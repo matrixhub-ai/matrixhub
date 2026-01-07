@@ -91,7 +91,7 @@ func (h *Handler) parseRefPath(refpath string, branches []string) (ref string, p
 // handleTree handles requests to list directory contents
 func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 	refpath := vars["refpath"]
 
 	repoName := repo
@@ -237,7 +237,7 @@ func parseTreeOutput(output string, basePath string) []TreeEntry {
 // handleBlob handles requests to get file content
 func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 	refpath := vars["refpath"]
 
 	repoName := repo
@@ -289,7 +289,7 @@ type Commit struct {
 // handleCommits handles requests to list commits
 func (h *Handler) handleCommits(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 	refpath := vars["refpath"]
 
 	repoName := repo
@@ -379,7 +379,7 @@ type Branch struct {
 // handleBranches handles requests to list branches
 func (h *Handler) handleBranches(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 
 	repoName := repo
 	repoPath := h.resolveRepoPath(repoName)

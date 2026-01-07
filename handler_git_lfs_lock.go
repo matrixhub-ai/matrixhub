@@ -26,7 +26,7 @@ func (h *Handler) registryLFSLock(r *mux.Router) {
 
 func (h *Handler) handleGetLock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 
 	enc := json.NewEncoder(w)
 	ll := &lfsLockList{}
@@ -51,7 +51,7 @@ func (h *Handler) handleGetLock(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleLocksVerify(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 	user := getUserFromRequest(r)
 
 	dec := json.NewDecoder(r.Body)
@@ -96,7 +96,7 @@ func (h *Handler) handleLocksVerify(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleCreateLock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 	user := getUserFromRequest(r)
 
 	dec := json.NewDecoder(r.Body)
@@ -145,7 +145,7 @@ func (h *Handler) handleCreateLock(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleDeleteLock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repo := vars["repo"]
+	repo := vars["repo"] + ".git"
 	lockId := vars["id"]
 	user := getUserFromRequest(r)
 

@@ -96,7 +96,7 @@ func lfsRepresent(rv *lfsRequestVars, download, upload bool) *lfsRepresentation 
 func unpack(r *http.Request) *lfsRequestVars {
 	vars := mux.Vars(r)
 	rv := &lfsRequestVars{
-		Repo:          vars["repo"],
+		Repo:          vars["repo"] + ".git",
 		Oid:           vars["oid"],
 		Authorization: r.Header.Get("Authorization"),
 	}
@@ -137,7 +137,7 @@ func unpackBatch(r *http.Request) *lfsBatchVars {
 	origin := fmt.Sprintf("%s://%s", scheme, r.Host)
 
 	for i := 0; i < len(bv.Objects); i++ {
-		bv.Objects[i].Repo = vars["repo"]
+		bv.Objects[i].Repo = vars["repo"] + ".git"
 		bv.Objects[i].Authorization = r.Header.Get("Authorization")
 		bv.Objects[i].Origin = origin
 	}

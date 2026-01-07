@@ -11,15 +11,15 @@ import (
 )
 
 func (h *Handler) registryGit(r *mux.Router) {
-	r.HandleFunc("/{repo:.+}/info/refs", h.requireAuth(h.handleInfoRefs)).Methods(http.MethodGet)
-	r.HandleFunc("/{repo:.+}/git-upload-pack", h.requireAuth(h.handleUploadPack)).Methods(http.MethodPost)
-	r.HandleFunc("/{repo:.+}/git-receive-pack", h.requireAuth(h.handleReceivePack)).Methods(http.MethodPost)
+	r.HandleFunc("/{repo:.+}.git/info/refs", h.requireAuth(h.handleInfoRefs)).Methods(http.MethodGet)
+	r.HandleFunc("/{repo:.+}.git/git-upload-pack", h.requireAuth(h.handleUploadPack)).Methods(http.MethodPost)
+	r.HandleFunc("/{repo:.+}.git/git-receive-pack", h.requireAuth(h.handleReceivePack)).Methods(http.MethodPost)
 }
 
 // handleInfoRefs handles the /info/refs endpoint for git service discovery.
 func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"]
+	repoName := vars["repo"] + ".git"
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
@@ -75,7 +75,7 @@ func (h *Handler) handleReceivePack(w http.ResponseWriter, r *http.Request) {
 // handleService handles a git service request.
 func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service string) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"]
+	repoName := vars["repo"] + ".git"
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
