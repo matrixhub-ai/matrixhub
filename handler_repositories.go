@@ -59,13 +59,14 @@ func (h *Handler) createBareRepo(ctx context.Context, repoPath string) error {
 		return fmt.Errorf("repository already exists")
 	}
 
-	base, dir := filepath.Split(repoPath)
-	if err := os.MkdirAll(base, 0755); err != nil {
+	// Create all parent directories
+	if err := os.MkdirAll(repoPath, 0755); err != nil {
 		return err
 	}
 
-	cmd := command(ctx, "git", "init", "--bare", dir)
-	cmd.Dir = base
+	// Run git init --bare in the repository directory itself
+	cmd := command(ctx, "git", "init", "--bare")
+	cmd.Dir = repoPath
 	return cmd.Run()
 }
 
@@ -79,7 +80,7 @@ func (h *Handler) handleCreateRepository(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	repoPath = filepath.Join(h.rootDir, repoName)
+	repoPath = filepath.Join(h.rootDir, repoName+".git")
 
 	err := h.createBareRepo(r.Context(), repoPath)
 	if err != nil {
