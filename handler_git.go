@@ -1,6 +1,7 @@
 package gitd
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -21,12 +22,6 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	repoName := vars["repo"] + ".git"
 
-	repoPath := h.resolveRepoPath(repoName)
-	if repoPath == "" {
-		http.NotFound(w, r)
-		return
-	}
-
 	service := r.URL.Query().Get("service")
 	if service == "" {
 		http.Error(w, "service parameter is required", http.StatusBadRequest)
@@ -36,6 +31,35 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 	if service != "git-upload-pack" && service != "git-receive-pack" {
 		http.Error(w, "unsupported service", http.StatusForbidden)
 		return
+	}
+
+	repoPath := h.resolveRepoPath(repoName)
+	if repoPath == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	repository, err := h.openRepository(repoPath)
+	if err != nil {
+		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		return
+	}
+	isMirror, _, err := h.isMirrorRepository(repository)
+	if err != nil {
+		http.Error(w, "Failed to check repository type", http.StatusInternalServerError)
+		return
+	}
+	if isMirror {
+		if service == "git-receive-pack" {
+			http.Error(w, "push to mirror repository is not allowed", http.StatusForbidden)
+			return
+		}
+
+		err := h.fetchFull(context.Background(), repoPath)
+		if err != nil {
+			http.Error(w, "Failed to fetch mirror repository", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-advertisement", service))
@@ -55,7 +79,7 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 	// Execute git command
 	cmd.Dir = base
 	cmd.Stdout = w
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		http.Error(w, "Failed to execute git command", http.StatusInternalServerError)
 		return

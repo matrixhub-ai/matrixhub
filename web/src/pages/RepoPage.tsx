@@ -89,8 +89,12 @@ export function RepoPage() {
         (e) => e.name.toLowerCase() === 'readme.md' && e.type === 'blob'
       );
       if (readmeEntry) {
-        const blob = await fetchBlob(repoPath, effectiveBranch, readmeEntry.path);
-        readmeContent = blob.content;
+        try {
+          const blob = await fetchBlob(repoPath, effectiveBranch, readmeEntry.path);
+          readmeContent = blob.content;
+        } catch {
+          // Ignore README fetch errors
+        }
       }
 
       setState({

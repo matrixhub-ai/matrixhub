@@ -1,7 +1,6 @@
 package gitd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-git/go-git/v5"
 	"github.com/gorilla/mux"
 )
 
@@ -53,23 +53,6 @@ func (h *Handler) validateRepoPath(urlPath string) (string, error) {
 	return fullPath, nil
 }
 
-// createBareRepo creates a bare git repository at the given path.
-func (h *Handler) createBareRepo(ctx context.Context, repoPath string) error {
-	if _, err := os.Stat(filepath.Join(repoPath, "HEAD")); err == nil {
-		return fmt.Errorf("repository already exists")
-	}
-
-	// Create all parent directories
-	if err := os.MkdirAll(repoPath, 0755); err != nil {
-		return err
-	}
-
-	// Run git init --bare in the repository directory itself
-	cmd := command(ctx, "git", "init", "--bare")
-	cmd.Dir = repoPath
-	return cmd.Run()
-}
-
 func (h *Handler) handleCreateRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	repoName := vars["repo"] + ".git"
@@ -82,11 +65,14 @@ func (h *Handler) handleCreateRepository(w http.ResponseWriter, r *http.Request)
 
 	repoPath = filepath.Join(h.rootDir, repoName)
 
-	err := h.createBareRepo(r.Context(), repoPath)
+	_, err := git.PlainInitWithOptions(repoPath, &git.PlainInitOptions{
+		Bare: true,
+	})
 	if err != nil {
 		http.Error(w, "Failed to create repository", http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *Handler) handleDeleteRepository(w http.ResponseWriter, r *http.Request) {
@@ -123,18 +109,23 @@ func (h *Handler) handleGetRepository(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	base, dir := filepath.Split(repoPath)
-	// Check if this is a mirror repository
-	_, isMirror, _ := h.getMirrorInfo(repoPath)
 
-	cmd := command(r.Context(),
-		"git", "symbolic-ref", "--short", "HEAD")
-	cmd.Dir = filepath.Join(base, dir)
+	repository, err := h.openRepository(repoPath)
+	if err != nil {
+		http.Error(w, "Failed to read repository config", http.StatusInternalServerError)
+		return
+	}
 
-	output, err := cmd.Output()
-	defaultBranch := "main"
-	if err == nil {
-		defaultBranch = strings.TrimSpace(string(output))
+	isMirror, _, err := h.isMirrorRepository(repository)
+	if err != nil {
+		http.Error(w, "Failed to get mirror config", http.StatusInternalServerError)
+		return
+	}
+
+	defaultBranch, err := h.getDefaultBranch(repository)
+	if err != nil {
+		http.Error(w, "Failed to get default branch", http.StatusInternalServerError)
+		return
 	}
 
 	repo := Repository{
@@ -166,11 +157,19 @@ func (h *Handler) handleListRepositories(w http.ResponseWriter, r *http.Request)
 			return nil
 		}
 		if isGitRepository(path) {
+			repository, err := h.openRepository(path)
+			if err != nil {
+				return nil
+			}
+
 			rel, _ := filepath.Rel(h.rootDir, path)
 			name := strings.TrimSuffix(rel, ".git")
 
 			// Check if this is a mirror repository
-			_, isMirror, _ := h.getMirrorInfo(path)
+			isMirror, _, err := h.isMirrorRepository(repository)
+			if err != nil {
+				return nil
+			}
 
 			repos = append(repos, RepositoryItem{
 				Name:     name,
