@@ -1,11 +1,11 @@
 package gitd
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -200,28 +200,19 @@ func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// Build the tree path
-	treePath := ref
-	if path != "" {
-		treePath = ref + ":" + path
-	}
-
-	cmd := command(r.Context(),
-		"git", "lfs", "ls-files", "--long", treePath)
-	cmd.Dir = repoPath
-	cmd.Stderr = os.Stderr
-	lfsOutput, err := cmd.Output()
-
-	if err == nil {
-		lfsFiles := parseLFSFilesOutput(string(lfsOutput))
-		if len(lfsFiles) != 0 {
-			for i := range entries {
-				if entries[i].Type == "blob" {
-					if sha256, ok := lfsFiles[entries[i].Name]; ok {
-						entries[i].IsLFS = true
-						entries[i].BlobSha256 = sha256
-					}
-				}
+	// Detect LFS files programmatically by checking blob content
+	for i := range entries {
+		if entries[i].Type == "blob" {
+			hash := plumbing.NewHash(entries[i].SHA)
+			blob, err := repository.BlobObject(hash)
+			if err != nil {
+				continue
+			}
+			
+			isLFS, sha256 := detectLFSPointer(blob)
+			if isLFS {
+				entries[i].IsLFS = true
+				entries[i].BlobSha256 = sha256
 			}
 		}
 	}
@@ -229,28 +220,50 @@ func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(entries)
 }
 
-func parseLFSFilesOutput(output string) map[string]string {
-	lfsFiles := make(map[string]string)
-	lines := strings.Split(strings.TrimSpace(output), "\n")
-
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-
-		// Format: <sha256> - <file>
-		parts := strings.SplitN(line, "-", 2)
-		if len(parts) != 2 {
-			continue
-		}
-
-		sha256 := strings.TrimSpace(parts[0])
-		file := strings.TrimSpace(parts[1])
-
-		lfsFiles[file] = sha256
+// detectLFSPointer checks if a blob is a git-lfs pointer file and returns the SHA256 if it is
+// LFS pointer files have a specific format:
+// version https://git-lfs.github.com/spec/v1
+// oid sha256:<hash>
+// size <bytes>
+func detectLFSPointer(blob *object.Blob) (bool, string) {
+	// LFS pointers are small (typically < 200 bytes)
+	if blob.Size > 1024 {
+		return false, ""
 	}
 
-	return lfsFiles
+	reader, err := blob.Reader()
+	if err != nil {
+		return false, ""
+	}
+	defer reader.Close()
+
+	scanner := bufio.NewScanner(reader)
+	var isLFS bool
+	var sha256 string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		
+		// Check for LFS version header
+		if strings.HasPrefix(line, "version https://git-lfs.github.com/spec/v") {
+			isLFS = true
+		}
+		
+		// Extract SHA256 from oid line
+		if strings.HasPrefix(line, "oid sha256:") {
+			sha256 = strings.TrimPrefix(line, "oid sha256:")
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return false, ""
+	}
+
+	// Only return SHA256 if both version and oid are present
+	if isLFS && sha256 != "" {
+		return true, sha256
+	}
+	return false, ""
 }
 
 // handleBlob handles requests to get file content
