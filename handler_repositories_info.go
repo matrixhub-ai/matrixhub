@@ -65,12 +65,15 @@ func (h *Handler) getBranches(repo *git.Repository) ([]string, error) {
 }
 
 func (h *Handler) getDefaultBranch(repo *git.Repository) (string, error) {
-	headRef, err := repo.Head()
+	config, err := repo.Storer.Config()
 	if err != nil {
 		return "", err
 	}
-
-	return headRef.Name().Short(), nil
+	defaultBranch := config.Init.DefaultBranch
+	if defaultBranch == "" {
+		defaultBranch = "main"
+	}
+	return defaultBranch, nil
 }
 
 // parseRefPath parses a combined ref/path string using the branch list
