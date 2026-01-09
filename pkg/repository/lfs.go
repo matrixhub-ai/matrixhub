@@ -28,11 +28,13 @@ func (r *Repository) ScanLFSPointers() ([]LFSPointer, error) {
 	err = branches.ForEach(func(ref *plumbing.Reference) error {
 		commit, err := r.repo.CommitObject(ref.Hash())
 		if err != nil {
+			// Skip branches with inaccessible commits, continue with others
 			return nil
 		}
 
 		tree, err := commit.Tree()
 		if err != nil {
+			// Skip branches with inaccessible trees, continue with others
 			return nil
 		}
 
@@ -113,10 +115,7 @@ func parseLFSPointerFromBlob(blob *object.Blob) (*LFSPointer, error) {
 		// Extract size
 		if strings.HasPrefix(line, "size ") {
 			sizeStr := strings.TrimPrefix(line, "size ")
-			_, err := parseSize(sizeStr, &size)
-			if err != nil {
-				continue
-			}
+			size = parseSize(sizeStr)
 		}
 	}
 
@@ -135,7 +134,7 @@ func parseLFSPointerFromBlob(blob *object.Blob) (*LFSPointer, error) {
 }
 
 // parseSize parses a size string into an int64
-func parseSize(s string, size *int64) (bool, error) {
+func parseSize(s string) int64 {
 	var n int64
 	for _, c := range s {
 		if c >= '0' && c <= '9' {
@@ -144,6 +143,5 @@ func parseSize(s string, size *int64) (bool, error) {
 			break
 		}
 	}
-	*size = n
-	return true, nil
+	return n
 }

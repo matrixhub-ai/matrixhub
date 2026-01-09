@@ -5,6 +5,7 @@ go 1.25
 require (
 	github.com/boltdb/bolt v1.3.1
 	github.com/felixge/httpsnoop v1.0.3
+	github.com/git-lfs/git-lfs/v3 v3.7.1
 	github.com/go-git/go-git/v5 v5.16.4
 	github.com/gorilla/context v1.1.2
 	github.com/gorilla/handlers v1.5.2
@@ -21,7 +22,6 @@ require (
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/dpotapov/go-spnego v0.0.0-20210315154721-298b63a54430 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/git-lfs/git-lfs/v3 v3.7.1 // indirect
 	github.com/git-lfs/gitobj/v2 v2.1.1 // indirect
 	github.com/git-lfs/go-netrc v0.0.0-20250218165306-ba0029b43d11 // indirect
 	github.com/git-lfs/pktline v0.0.0-20210330133718-06e9096e2825 // indirect
@@ -30,7 +30,6 @@ require (
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -48,13 +47,10 @@ require (
 	github.com/rubyist/tracerx v0.0.0-20170927163412-787959303086 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
-	github.com/spf13/cobra v1.7.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ssgelm/cookiejarparser v1.0.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
