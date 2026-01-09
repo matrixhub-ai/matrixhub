@@ -4,7 +4,7 @@ import type { BlobContent } from '../api/client';
 import './FileViewer.css';
 
 interface FileViewerProps {
-  content: BlobContent;
+  content: BlobContent | null;
   filename: string;
 }
 
@@ -54,19 +54,23 @@ export function FileViewer({ content, filename }: FileViewerProps) {
     <div className="file-viewer">
       <div className="file-header">
         <span className="file-name">{filename}</span>
-        <span className="file-size">{formatSize(content.size)}</span>
+        {content && content.size !== undefined ?
+          <span className="file-size">{formatSize(content ? content.size : 0)}</span>
+          : ''}
       </div>
-      <div className="file-content">
-        <SyntaxHighlighter
-          language={language}
-          style={oneLight}
-          showLineNumbers
-          lineNumberStyle={{ minWidth: '3em', paddingRight: '1em', textAlign: 'right', color: '#999' }}
-          customStyle={{ margin: 0, background: 'white', fontSize: '14px' }}
-        >
-          {content.content}
-        </SyntaxHighlighter>
-      </div>
+      {content && content.content &&
+        <div className="file-content">
+          <SyntaxHighlighter
+            language={language}
+            style={oneLight}
+            showLineNumbers
+            lineNumberStyle={{ minWidth: '3em', paddingRight: '1em', textAlign: 'right', color: '#999' }}
+            customStyle={{ margin: 0, background: 'white', fontSize: '14px' }}
+          >
+            {content.content}
+          </SyntaxHighlighter>
+        </div>
+      }
     </div>
   );
 }

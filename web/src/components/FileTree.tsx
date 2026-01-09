@@ -53,7 +53,7 @@ export function FileTree({ entries, repo, branch, currentPath }: FileTreeProps) 
                   {entry.name}
                 </Link>
                 {entry.isLfs && <span className="lfs-badge">LFS</span>}
-                {!entry.isLfs && entry.type === 'blob' && (
+                {entry.type === 'blob' && (
                   <a
                     href={`/api/repositories/${repo}.git/blob/${branch}/${entry.path}`}
                     download={entry.name}
@@ -64,18 +64,6 @@ export function FileTree({ entries, repo, branch, currentPath }: FileTreeProps) 
                     ⬇
                   </a>
                 )}
-                {
-                  entry.isLfs && entry.type === 'blob' && (
-                    <a
-                      href={`/objects/${entry.blobSha256}?filename=${encodeURIComponent(entry.name)}`}
-                      className="download-button"
-                      title={`Download ${entry.name}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      ⬇
-                    </a>
-                  )
-                }
               </td>
             </tr>
           ))}

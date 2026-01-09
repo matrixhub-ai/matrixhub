@@ -3,13 +3,16 @@ package backend
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/wzshiming/gitd/pkg/lfs"
 	"github.com/wzshiming/gitd/pkg/repository"
 )
 
@@ -18,7 +21,7 @@ func (h *Handler) registryRepositoriesInfo(r *mux.Router) {
 	r.HandleFunc("/api/repositories/{repo:.+}.git/commits/{refpath:.*}", h.handleCommits).Methods(http.MethodGet)
 	r.HandleFunc("/api/repositories/{repo:.+}.git/tree/{refpath:.*}", h.handleTree).Methods(http.MethodGet)
 	r.HandleFunc("/api/repositories/{repo:.+}.git/tree", h.handleTree).Methods(http.MethodGet)
-	r.HandleFunc("/api/repositories/{repo:.+}.git/blob/{refpath:.+}", h.handleBlob).Methods(http.MethodGet)
+	r.HandleFunc("/api/repositories/{repo:.+}.git/blob/{refpath:.+}", h.handleBlob).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc("/api/repositories/{repo:.+}.git/branches", h.handleBranches).Methods(http.MethodGet)
 }
 
@@ -153,6 +156,24 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get blob", http.StatusInternalServerError)
 		return
 	}
+
+	if blob.Size() <= lfs.MaxLFSPointerSize {
+		reader, err := blob.NewReader()
+		if err == nil {
+			defer reader.Close()
+			ptr, err := lfs.DecodePointer(reader)
+			if err == nil && ptr != nil {
+				http.Redirect(w, r,
+					fmt.Sprintf("/objects/%s?filename=%s",
+						ptr.Oid,
+						url.QueryEscape(blob.Name())),
+					http.StatusFound)
+				return
+			}
+		}
+	}
+
+	//  href={`/objects/${entry.blobSha256}?filename=${encodeURIComponent(entry.name)}`}
 
 	w.Header().Set("Content-Type", blob.ContentType())
 	w.Header().Set("Content-Length", strconv.FormatInt(blob.Size(), 10))

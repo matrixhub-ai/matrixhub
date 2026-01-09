@@ -3,6 +3,7 @@ package backend
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -79,6 +80,7 @@ func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
 	content, stat, err := h.contentStore.Get(rv.Oid)
 	if err != nil {
+		log.Println("Error getting LFS object:", err)
 		http.NotFound(w, r)
 		return
 	}

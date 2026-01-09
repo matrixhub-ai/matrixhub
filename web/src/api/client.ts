@@ -55,6 +55,19 @@ export async function fetchTree(repo: string, ref: string, path: string = ''): P
   return response.json();
 }
 
+export async function fetchBlobMetadata(repo: string, ref: string, path: string): Promise<{ size: number; contentType: string }> {
+  repo = correctRepoName(repo);
+  const response = await fetch(`${API_BASE}/repositories/${repo}/blob/${ref}/${path}`, {
+    method: 'HEAD',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch blob metadata');
+  }
+  const size = parseInt(response.headers.get('Content-Length') || '0', 10);
+  const contentType = response.headers.get('Content-Type') || 'text/plain';
+  return { size, contentType };
+}
+
 export async function fetchBlob(repo: string, ref: string, path: string): Promise<BlobContent> {
   repo = correctRepoName(repo);
   const response = await fetch(`${API_BASE}/repositories/${repo}/blob/${ref}/${path}`);
