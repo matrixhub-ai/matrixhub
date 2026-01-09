@@ -1,4 +1,4 @@
-package gitd_test
+package backend_test
 
 import (
 	"net/http"
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/handlers"
-	"github.com/wzshiming/gitd"
+	"github.com/wzshiming/gitd/pkg/backend"
 )
 
 // TestGitLFSServer tests the Git LFS server using git-lfs binary.
@@ -30,7 +30,7 @@ func TestGitLFSServer(t *testing.T) {
 	defer os.RemoveAll(clientDir)
 
 	// Create handler and test server
-	handler := handlers.LoggingHandler(os.Stderr, gitd.NewHandler(gitd.WithRootDir(repoDir)))
+	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
 	server := httptest.NewServer(handler)
 	defer server.Close()
 

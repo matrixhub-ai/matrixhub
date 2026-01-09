@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/wzshiming/gitd"
 	"github.com/wzshiming/gitd/internal/handlers"
+	"github.com/wzshiming/gitd/pkg/backend"
 )
 
 var (
@@ -33,7 +33,7 @@ func main() {
 
 	log.Printf("Starting gitd server on %s, serving repositories from %s\n", addr, absRootDir)
 
-	handler := handlers.LoggingHandler(os.Stderr, handlers.CompressHandler(gitd.NewHandler(gitd.WithRootDir(absRootDir))))
+	handler := handlers.LoggingHandler(os.Stderr, handlers.CompressHandler(backend.NewHandler(backend.WithRootDir(absRootDir))))
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
 		os.Exit(1)

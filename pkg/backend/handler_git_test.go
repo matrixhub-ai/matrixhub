@@ -1,4 +1,4 @@
-package gitd_test
+package backend_test
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/handlers"
-	"github.com/wzshiming/gitd"
+	"github.com/wzshiming/gitd/pkg/backend"
 )
 
 // TestGitServer tests the git server using the git binary.
@@ -31,7 +31,7 @@ func TestGitServer(t *testing.T) {
 	defer os.RemoveAll(clientDir)
 
 	// Create handler and test server
-	handler := handlers.LoggingHandler(os.Stderr, gitd.NewHandler(gitd.WithRootDir(repoDir)))
+	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -240,7 +240,7 @@ func TestInfoRefs(t *testing.T) {
 		t.Fatalf("Failed to create bare repository: %v\nOutput: %s", err, output)
 	}
 
-	handler := handlers.LoggingHandler(os.Stderr, gitd.NewHandler(gitd.WithRootDir(repoDir)))
+	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
 	server := httptest.NewServer(handler)
 	defer server.Close()
 

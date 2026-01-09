@@ -1,4 +1,4 @@
-package gitd
+package backend
 
 import (
 	"crypto/rand"

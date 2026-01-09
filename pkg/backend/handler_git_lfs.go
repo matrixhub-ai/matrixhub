@@ -1,4 +1,4 @@
-package gitd
+package backend
 
 import (
 	"encoding/json"
