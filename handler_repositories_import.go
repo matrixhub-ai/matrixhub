@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/gorilla/mux"
 )
 
@@ -213,7 +214,12 @@ func (h *Handler) isMirrorRepository(repo *git.Repository) (bool, string, error)
 }
 
 func (h *Handler) initMirrorRepo(repoPath string, sourceURL string, defaultBranch string) error {
-	repo, err := git.PlainInit(repoPath, true)
+	repo, err := git.PlainInitWithOptions(repoPath, &git.PlainInitOptions{
+		Bare: true,
+		InitOptions: git.InitOptions{
+			DefaultBranch: plumbing.NewBranchReferenceName(defaultBranch),
+		},
+	})
 	if err != nil {
 		return err
 	}

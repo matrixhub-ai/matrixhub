@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/gorilla/mux"
 )
 
@@ -67,7 +68,11 @@ func (h *Handler) handleCreateRepository(w http.ResponseWriter, r *http.Request)
 
 	_, err := git.PlainInitWithOptions(repoPath, &git.PlainInitOptions{
 		Bare: true,
+		InitOptions: git.InitOptions{
+			DefaultBranch: plumbing.NewBranchReferenceName("main"),
+		},
 	})
+
 	if err != nil {
 		http.Error(w, "Failed to create repository", http.StatusInternalServerError)
 		return
@@ -122,11 +127,7 @@ func (h *Handler) handleGetRepository(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defaultBranch, err := h.getDefaultBranch(repository)
-	if err != nil {
-		http.Error(w, "Failed to get default branch", http.StatusInternalServerError)
-		return
-	}
+	defaultBranch := h.getDefaultBranch(repository)
 
 	repo := Repository{
 		Name:          repoName,

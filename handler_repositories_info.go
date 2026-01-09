@@ -64,16 +64,23 @@ func (h *Handler) getBranches(repo *git.Repository) ([]string, error) {
 	return branches, nil
 }
 
-func (h *Handler) getDefaultBranch(repo *git.Repository) (string, error) {
+func (h *Handler) getDefaultBranch(repo *git.Repository) string {
+	head, err := repo.Head()
+	if err == nil {
+		name := head.Name()
+		if name.IsBranch() {
+			return name.Short()
+		}
+	}
+
 	config, err := repo.Storer.Config()
-	if err != nil {
-		return "", err
+	if err == nil {
+		defaultBranch := config.Init.DefaultBranch
+		if defaultBranch != "" {
+			return defaultBranch
+		}
 	}
-	defaultBranch := config.Init.DefaultBranch
-	if defaultBranch == "" {
-		defaultBranch = "main"
-	}
-	return defaultBranch, nil
+	return "main"
 }
 
 // parseRefPath parses a combined ref/path string using the branch list
@@ -136,20 +143,13 @@ func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 	ref, path := h.parseRefPath(refpath, branches)
 	if ref == "" {
 		// Use default branch
-		defaultBranch, err := h.getDefaultBranch(repository)
-		if err != nil {
-			http.Error(w, "Failed to get default branch", http.StatusInternalServerError)
-			return
-		}
-		ref = defaultBranch
-		if ref == "" {
-			ref = "main"
-		}
+		ref = h.getDefaultBranch(repository)
 	}
 
 	refObj, err := repository.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
 	if err != nil {
-		http.Error(w, "Failed to resolve reference", http.StatusNotFound)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]any{})
 		return
 	}
 
@@ -209,7 +209,7 @@ func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 				// Skip blobs that cannot be read - they won't be marked as LFS
 				continue
 			}
-			
+
 			isLFS, sha256 := detectLFSPointer(blob)
 			if isLFS {
 				entries[i].IsLFS = true
@@ -246,12 +246,12 @@ func detectLFSPointer(blob *object.Blob) (bool, string) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		// Check for LFS version header
 		if strings.HasPrefix(line, "version https://git-lfs.github.com/spec/v") {
 			isLFS = true
 		}
-		
+
 		// Extract SHA256 from oid line
 		if strings.HasPrefix(line, "oid sha256:") {
 			sha256 = strings.TrimPrefix(line, "oid sha256:")
@@ -406,21 +406,13 @@ func (h *Handler) handleCommits(w http.ResponseWriter, r *http.Request) {
 
 	ref, _ := h.parseRefPath(refpath, branches)
 	if ref == "" {
-		// Use default branch
-		defaultBranch, err := h.getDefaultBranch(repository)
-		if err != nil {
-			http.Error(w, "Failed to get default branch", http.StatusInternalServerError)
-			return
-		}
-		ref = defaultBranch
-		if ref == "" {
-			ref = "main"
-		}
+		ref = h.getDefaultBranch(repository)
 	}
 
 	refObj, err := repository.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
 	if err != nil {
-		http.Error(w, "Failed to resolve reference", http.StatusNotFound)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]any{})
 		return
 	}
 
