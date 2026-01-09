@@ -1,14 +1,12 @@
 package repository
 
 import (
-	"bufio"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
-	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/wzshiming/gitd/pkg/lfs"
 )
 
 var (
@@ -74,11 +72,15 @@ func (r *Repository) Tree(ref string, path string) ([]TreeEntry, error) {
 
 			hash := plumbing.NewHash(entry.SHA)
 			blob, err := r.repo.BlobObject(hash)
-			if err == nil {
-				isLFS, sha256 := detectLFSPointer(blob)
-				if isLFS {
-					entry.IsLFS = true
-					entry.BlobSha256 = sha256
+			if err == nil && blob.Size <= lfs.MaxLFSPointerSize {
+				reader, err := blob.Reader()
+				if err == nil {
+					ptr, err := lfs.DecodePointer(reader)
+					reader.Close()
+					if err == nil && ptr != nil {
+						entry.IsLFS = true
+						entry.BlobSha256 = ptr.Oid
+					}
 				}
 			}
 			entries = append(entries, entry)
@@ -110,52 +112,4 @@ func formatMode(mode filemode.FileMode) string {
 	default:
 		return fmt.Sprintf("unknown(%07o)", uint32(mode))
 	}
-}
-
-const maxLFSPointerSize = 1024 // LFS pointers are typically < 200 bytes
-
-// detectLFSPointer checks if a blob is a git-lfs pointer file and returns the SHA256 if it is
-// LFS pointer files have a specific format:
-// version https://git-lfs.github.com/spec/v1
-// oid sha256:<hash>
-// size <bytes>
-func detectLFSPointer(blob *object.Blob) (bool, string) {
-	// LFS pointers are small (typically < 200 bytes)
-	if blob.Size > maxLFSPointerSize {
-		return false, ""
-	}
-
-	reader, err := blob.Reader()
-	if err != nil {
-		return false, ""
-	}
-	defer reader.Close()
-
-	scanner := bufio.NewScanner(reader)
-	var isLFS bool
-	var sha256 string
-
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		// Check for LFS version header
-		if strings.HasPrefix(line, "version https://git-lfs.github.com/spec/v") {
-			isLFS = true
-		}
-
-		// Extract SHA256 from oid line
-		if strings.HasPrefix(line, "oid sha256:") {
-			sha256 = strings.TrimPrefix(line, "oid sha256:")
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return false, ""
-	}
-
-	// Only return SHA256 if both version and oid are present
-	if isLFS && sha256 != "" {
-		return true, sha256
-	}
-	return false, ""
 }
