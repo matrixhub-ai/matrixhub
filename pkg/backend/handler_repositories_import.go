@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/wzshiming/gitd/internal/utils"
+	"github.com/wzshiming/gitd/pkg/lfs"
 	"github.com/wzshiming/gitd/pkg/repository"
 )
 
@@ -98,12 +99,31 @@ func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request)
 	// Run import in background
 	go func() {
 		err := repo.SyncMirror(context.Background())
-		importMutex.Lock()
-		defer importMutex.Unlock()
 		if err != nil {
+			importMutex.Lock()
 			fmt.Fprintf(os.Stderr, "Import failed for %s: %v\n", repoName, err)
 			importStatuses[repoName] = &importStatus{
 				Status: "failed",
+				Error:  err.Error(),
+			}
+			importMutex.Unlock()
+			return
+		}
+
+		// Sync LFS objects after git fetch
+		importMutex.Lock()
+		importStatuses[repoName].Step = "syncing_lfs"
+		importMutex.Unlock()
+
+		err = h.syncLFSObjects(context.Background(), repo, req.SourceURL)
+		importMutex.Lock()
+		defer importMutex.Unlock()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "LFS sync failed for %s: %v\n", repoName, err)
+			// LFS sync failure is not fatal, mark as completed with warning
+			importStatuses[repoName] = &importStatus{
+				Status: "completed",
+				Step:   "lfs_sync_failed",
 				Error:  err.Error(),
 			}
 		} else {
@@ -164,12 +184,31 @@ func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 	// Run sync in background
 	go func() {
 		err := repo.SyncMirror(context.Background())
-		importMutex.Lock()
-		defer importMutex.Unlock()
 		if err != nil {
+			importMutex.Lock()
 			fmt.Fprintf(os.Stderr, "Import failed for %s: %v\n", repoName, err)
 			importStatuses[repoName] = &importStatus{
 				Status: "failed",
+				Error:  err.Error(),
+			}
+			importMutex.Unlock()
+			return
+		}
+
+		// Sync LFS objects after git fetch
+		importMutex.Lock()
+		importStatuses[repoName].Step = "syncing_lfs"
+		importMutex.Unlock()
+
+		err = h.syncLFSObjects(context.Background(), repo, sourceURL)
+		importMutex.Lock()
+		defer importMutex.Unlock()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "LFS sync failed for %s: %v\n", repoName, err)
+			// LFS sync failure is not fatal, mark as completed with warning
+			importStatuses[repoName] = &importStatus{
+				Status: "completed",
+				Step:   "lfs_sync_failed",
 				Error:  err.Error(),
 			}
 		} else {
@@ -284,4 +323,33 @@ func (h *Handler) handleMirrorInfo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// syncLFSObjects scans the repository for LFS pointers and fetches missing objects
+func (h *Handler) syncLFSObjects(ctx context.Context, repo *repository.Repository, sourceURL string) error {
+	// Scan repository for LFS pointers
+	pointers, err := repo.ScanLFSPointers()
+	if err != nil {
+		return fmt.Errorf("failed to scan LFS pointers: %w", err)
+	}
+
+	if len(pointers) == 0 {
+		return nil
+	}
+
+	// Convert to LFS objects
+	objects := make([]lfs.LFSObject, len(pointers))
+	for i, ptr := range pointers {
+		objects[i] = lfs.LFSObject{
+			Oid:  ptr.Oid,
+			Size: ptr.Size,
+		}
+	}
+
+	// Get LFS endpoint from source URL
+	lfsEndpoint := lfs.GetLFSEndpoint(sourceURL)
+
+	// Create remote client and fetch missing objects
+	remoteClient := lfs.NewRemoteClient()
+	return remoteClient.FetchAndStore(ctx, lfsEndpoint, objects, h.contentStore)
 }
