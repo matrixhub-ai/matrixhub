@@ -369,7 +369,9 @@ func (s *Store) scanTask(row *sql.Row) (*Task, error) {
 	}
 
 	if paramsJSON != "" {
-		json.Unmarshal([]byte(paramsJSON), &task.Params)
+		if err := json.Unmarshal([]byte(paramsJSON), &task.Params); err != nil {
+			return nil, fmt.Errorf("failed to parse task params: %w", err)
+		}
 	}
 	if startedAt.Valid {
 		task.StartedAt = &startedAt.Time
@@ -403,7 +405,9 @@ func (s *Store) scanTaskRows(rows *sql.Rows) (*Task, error) {
 	}
 
 	if paramsJSON != "" {
-		json.Unmarshal([]byte(paramsJSON), &task.Params)
+		if err := json.Unmarshal([]byte(paramsJSON), &task.Params); err != nil {
+			return nil, fmt.Errorf("failed to parse task params: %w", err)
+		}
 	}
 	if startedAt.Valid {
 		task.StartedAt = &startedAt.Time

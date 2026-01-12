@@ -2,6 +2,7 @@ package backend_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -119,7 +120,7 @@ func TestQueueAPI(t *testing.T) {
 			t.Skip("No task ID from previous test")
 		}
 
-		resp, err := http.Get(server.URL + "/api/queue/" + string(rune(taskID+'0')))
+		resp, err := http.Get(server.URL + "/api/queue/" + fmt.Sprintf("%d", taskID))
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
@@ -161,7 +162,7 @@ func TestQueueAPI(t *testing.T) {
 		// Update priority
 		priorityBody := strings.NewReader(`{"priority":100}`)
 		priorityReq, _ := http.NewRequest(http.MethodPut,
-			server.URL+"/api/queue/"+string(rune(importResp.TaskID+'0'))+"/priority",
+			server.URL+"/api/queue/"+fmt.Sprintf("%d", importResp.TaskID)+"/priority",
 			priorityBody)
 		priorityReq.Header.Set("Content-Type", "application/json")
 		priorityResp, err := http.DefaultClient.Do(priorityReq)
@@ -201,7 +202,7 @@ func TestQueueAPI(t *testing.T) {
 
 		// Cancel the task
 		cancelReq, _ := http.NewRequest(http.MethodDelete,
-			server.URL+"/api/queue/"+string(rune(importResp.TaskID+'0')), nil)
+			server.URL+"/api/queue/"+fmt.Sprintf("%d", importResp.TaskID), nil)
 		cancelResp, err := http.DefaultClient.Do(cancelReq)
 		if err != nil {
 			t.Fatalf("Failed to cancel task: %v", err)
