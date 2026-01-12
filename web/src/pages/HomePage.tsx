@@ -125,6 +125,9 @@ export function HomePage() {
           <span className="logo">🗂️</span>
           gitd
         </h1>
+        <nav className="header-nav">
+          <Link to="/queue" className="nav-link">📋 Queue</Link>
+        </nav>
       </header>
       <main className="main-content">
         <div className="repo-header">

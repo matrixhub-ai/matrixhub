@@ -8,6 +8,9 @@
   padding: 16px 0;
   border-bottom: 1px solid #d0d7de;
   margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .header h1 {
@@ -17,6 +20,30 @@
   margin: 0;
   font-size: 24px;
   color: #24292f;
+}
+
+.header-nav {
+  display: flex;
+  gap: 16px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #24292f;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background-color: #f6f8fa;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #e9ecef;
 }
 
 .logo {
