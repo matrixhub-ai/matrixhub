@@ -17,19 +17,19 @@ import (
 type TaskType string
 
 const (
-	TaskTypeMirrorSync TaskType = "mirror_sync"
-	TaskTypeLFSSync    TaskType = "lfs_sync"
+	TaskTypeRepositorySync TaskType = "repository_sync"
+	TaskTypeLFSSync        TaskType = "lfs_sync"
 )
 
 // TaskStatus represents the current status of a task
 type TaskStatus string
 
 const (
-	TaskStatusPending    TaskStatus = "pending"
-	TaskStatusRunning    TaskStatus = "running"
-	TaskStatusCompleted  TaskStatus = "completed"
-	TaskStatusFailed     TaskStatus = "failed"
-	TaskStatusCancelled  TaskStatus = "cancelled"
+	TaskStatusPending   TaskStatus = "pending"
+	TaskStatusRunning   TaskStatus = "running"
+	TaskStatusCompleted TaskStatus = "completed"
+	TaskStatusFailed    TaskStatus = "failed"
+	TaskStatusCancelled TaskStatus = "cancelled"
 )
 
 // Task represents a queued task
@@ -40,7 +40,7 @@ type Task struct {
 	Priority    int               `json:"priority"` // Higher value = higher priority
 	Repository  string            `json:"repository"`
 	Params      map[string]string `json:"params,omitempty"`
-	Progress    int               `json:"progress"`    // 0-100
+	Progress    int               `json:"progress"` // 0-100
 	ProgressMsg string            `json:"progress_msg,omitempty"`
 	TotalBytes  int64             `json:"total_bytes,omitempty"`
 	DoneBytes   int64             `json:"done_bytes,omitempty"`

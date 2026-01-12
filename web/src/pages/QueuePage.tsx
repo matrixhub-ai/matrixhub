@@ -31,7 +31,7 @@ function getStatusIcon(status: Task['status']): ReactElement {
 
 function getTaskTypeLabel(type: Task['type']): string {
   switch (type) {
-    case 'mirror_sync': return 'Mirror Sync';
+    case 'repository_sync': return 'Repository Sync';
     case 'lfs_sync': return 'LFS Sync';
     default: return type;
   }

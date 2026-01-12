@@ -24,7 +24,7 @@ func TestStore(t *testing.T) {
 
 	t.Run("AddAndGetTask", func(t *testing.T) {
 		params := map[string]string{"source_url": "https://github.com/test/repo.git"}
-		task, err := store.Add(TaskTypeMirrorSync, "test-repo.git", 0, params)
+		task, err := store.Add(TaskTypeRepositorySync, "test-repo.git", 0, params)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}
@@ -32,8 +32,8 @@ func TestStore(t *testing.T) {
 		if task.ID == 0 {
 			t.Error("Expected non-zero task ID")
 		}
-		if task.Type != TaskTypeMirrorSync {
-			t.Errorf("Expected type %s, got %s", TaskTypeMirrorSync, task.Type)
+		if task.Type != TaskTypeRepositorySync {
+			t.Errorf("Expected type %s, got %s", TaskTypeRepositorySync, task.Type)
 		}
 		if task.Status != TaskStatusPending {
 			t.Errorf("Expected status %s, got %s", TaskStatusPending, task.Status)
@@ -115,11 +115,11 @@ func TestStore(t *testing.T) {
 
 	t.Run("GetNextByPriority", func(t *testing.T) {
 		// Add tasks with different priorities
-		_, err := store.Add(TaskTypeMirrorSync, "low-priority.git", 0, nil)
+		_, err := store.Add(TaskTypeRepositorySync, "low-priority.git", 0, nil)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}
-		highPriorityTask, err := store.Add(TaskTypeMirrorSync, "high-priority.git", 10, nil)
+		highPriorityTask, err := store.Add(TaskTypeRepositorySync, "high-priority.git", 10, nil)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}
@@ -138,7 +138,7 @@ func TestStore(t *testing.T) {
 	})
 
 	t.Run("UpdatePriority", func(t *testing.T) {
-		task, err := store.Add(TaskTypeMirrorSync, "priority-test.git", 5, nil)
+		task, err := store.Add(TaskTypeRepositorySync, "priority-test.git", 5, nil)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}
@@ -155,7 +155,7 @@ func TestStore(t *testing.T) {
 	})
 
 	t.Run("Cancel", func(t *testing.T) {
-		task, err := store.Add(TaskTypeMirrorSync, "cancel-test.git", 0, nil)
+		task, err := store.Add(TaskTypeRepositorySync, "cancel-test.git", 0, nil)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}
@@ -197,7 +197,7 @@ func TestStore(t *testing.T) {
 
 	t.Run("ListByRepository", func(t *testing.T) {
 		repoName := "specific-repo.git"
-		_, err := store.Add(TaskTypeMirrorSync, repoName, 0, nil)
+		_, err := store.Add(TaskTypeRepositorySync, repoName, 0, nil)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}
@@ -218,7 +218,7 @@ func TestStore(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		task, err := store.Add(TaskTypeMirrorSync, "delete-test.git", 0, nil)
+		task, err := store.Add(TaskTypeRepositorySync, "delete-test.git", 0, nil)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}
@@ -253,7 +253,7 @@ func TestWorker(t *testing.T) {
 		worker := NewWorker(store, 2)
 
 		taskProcessed := make(chan int64, 1)
-		worker.RegisterHandler(TaskTypeMirrorSync, func(ctx context.Context, task *Task, progressFn ProgressFunc) error {
+		worker.RegisterHandler(TaskTypeRepositorySync, func(ctx context.Context, task *Task, progressFn ProgressFunc) error {
 			progressFn(50, "Processing...", 0, 0)
 			time.Sleep(100 * time.Millisecond)
 			progressFn(100, "Done", 0, 0)
@@ -265,7 +265,7 @@ func TestWorker(t *testing.T) {
 		defer worker.Stop()
 
 		// Add a task
-		task, err := store.Add(TaskTypeMirrorSync, "worker-test.git", 0, nil)
+		task, err := store.Add(TaskTypeRepositorySync, "worker-test.git", 0, nil)
 		if err != nil {
 			t.Fatalf("Failed to add task: %v", err)
 		}

@@ -81,7 +81,7 @@ func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request)
 	}
 
 	params := map[string]string{"source_url": req.SourceURL}
-	task, err := h.queueStore.Add(queue.TaskTypeMirrorSync, repoName, 0, params)
+	task, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
 	if err != nil {
 		http.Error(w, "Failed to queue import task", http.StatusInternalServerError)
 		return
@@ -135,7 +135,7 @@ func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := map[string]string{"source_url": sourceURL}
-	task, err := h.queueStore.Add(queue.TaskTypeMirrorSync, repoName, 0, params)
+	task, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
 	if err != nil {
 		http.Error(w, "Failed to queue sync task", http.StatusInternalServerError)
 		return

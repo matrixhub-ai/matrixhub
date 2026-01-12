@@ -124,7 +124,7 @@ export interface ImportStatus {
 
 export interface Task {
   id: number;
-  type: 'mirror_sync' | 'lfs_sync';
+  type: 'repository_sync' | 'lfs_sync';
   status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
   priority: number;
   repository: string;

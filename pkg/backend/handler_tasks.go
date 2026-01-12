@@ -12,12 +12,12 @@ import (
 
 // registerTaskHandlers registers all task handlers with the queue worker
 func (h *Handler) registerTaskHandlers() {
-	h.queueWorker.RegisterHandler(queue.TaskTypeMirrorSync, h.handleMirrorSyncTask)
+	h.queueWorker.RegisterHandler(queue.TaskTypeRepositorySync, h.handleRepositorySyncTask)
 	h.queueWorker.RegisterHandler(queue.TaskTypeLFSSync, h.handleLFSSyncTask)
 }
 
-// handleMirrorSyncTask handles a mirror sync task
-func (h *Handler) handleMirrorSyncTask(ctx context.Context, task *queue.Task, progressFn queue.ProgressFunc) error {
+// handleRepositorySyncTask handles a mirror sync task
+func (h *Handler) handleRepositorySyncTask(ctx context.Context, task *queue.Task, progressFn queue.ProgressFunc) error {
 	repoPath := h.resolveRepoPath(task.Repository)
 	if repoPath == "" {
 		return fmt.Errorf("repository not found: %s", task.Repository)
