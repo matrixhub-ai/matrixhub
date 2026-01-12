@@ -3,7 +3,10 @@ package backend
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/wzshiming/gitd/pkg/lfs"
 	"github.com/wzshiming/gitd/pkg/queue"
@@ -13,7 +16,7 @@ import (
 // registerTaskHandlers registers all task handlers with the queue worker
 func (h *Handler) registerTaskHandlers() {
 	h.queueWorker.RegisterHandler(queue.TaskTypeRepositorySync, h.handleRepositorySyncTask)
-	h.queueWorker.RegisterHandler(queue.TaskTypeLFSSync, h.handleLFSSyncTask)
+	h.queueWorker.RegisterHandler(queue.TaskTypeLFSSync, h.handleLFSSyncObjectTask)
 }
 
 // handleRepositorySyncTask handles a mirror sync task
@@ -44,55 +47,6 @@ func (h *Handler) handleRepositorySyncTask(ctx context.Context, task *queue.Task
 		return fmt.Errorf("failed to get mirror config: %w", err)
 	}
 
-	// Check if there are LFS objects to sync
-	pointers, err := repo.ScanLFSPointers()
-	if err != nil {
-		log.Printf("Failed to scan LFS pointers for %s: %v\n", task.Repository, err)
-		progressFn(100, "Completed (LFS scan failed)", 0, 0)
-		return nil
-	}
-
-	if len(pointers) == 0 {
-		progressFn(100, "Completed (no LFS objects)", 0, 0)
-		return nil
-	}
-
-	// Queue LFS sync as a separate task if there are LFS objects
-	if h.queueStore != nil && sourceURL != "" {
-		params := map[string]string{"source_url": sourceURL}
-		_, err := h.queueStore.Add(queue.TaskTypeLFSSync, task.Repository, task.Priority, params)
-		if err != nil {
-			log.Printf("Failed to queue LFS sync for %s: %v\n", task.Repository, err)
-		}
-	}
-
-	progressFn(100, "Completed", 0, 0)
-	return nil
-}
-
-// handleLFSSyncTask handles an LFS sync task
-func (h *Handler) handleLFSSyncTask(ctx context.Context, task *queue.Task, progressFn queue.ProgressFunc) error {
-	repoPath := h.resolveRepoPath(task.Repository)
-	if repoPath == "" {
-		return fmt.Errorf("repository not found: %s", task.Repository)
-	}
-
-	repo, err := repository.Open(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to open repository: %w", err)
-	}
-
-	sourceURL := task.Params["source_url"]
-	if sourceURL == "" {
-		// Try to get from repository config
-		_, sourceURL, err = repo.IsMirror()
-		if err != nil || sourceURL == "" {
-			return fmt.Errorf("source URL not found")
-		}
-	}
-
-	progressFn(10, "Scanning for LFS pointers...", 0, 0)
-
 	// Scan repository for LFS pointers
 	pointers, err := repo.ScanLFSPointers()
 	if err != nil {
@@ -104,92 +58,108 @@ func (h *Handler) handleLFSSyncTask(ctx context.Context, task *queue.Task, progr
 		return nil
 	}
 
-	// Convert to LFS objects
-	objects := make([]lfs.LFSObject, len(pointers))
-	var totalSize int64
-	for i, ptr := range pointers {
-		objects[i] = lfs.LFSObject{
-			Oid:  ptr.Oid,
-			Size: ptr.Size,
+	// Queue each LFS object as a separate task
+	for _, ptr := range pointers {
+		params := map[string]string{
+			"source_url": sourceURL,
+			"oid":        ptr.Oid,
+			"size":       fmt.Sprintf("%d", ptr.Size),
 		}
-		totalSize += ptr.Size
+		_, err := h.queueStore.Add(queue.TaskTypeLFSSync, task.Repository, task.Priority, params)
+		if err != nil {
+			log.Printf("Failed to queue LFS object sync for %s (OID: %s): %v\n", task.Repository, ptr.Oid, err)
+		}
+	}
+	progressFn(100, "Completed", 0, 0)
+	return nil
+}
+
+// handleLFSSyncObjectTask handles the sync of a single LFS object
+func (h *Handler) handleLFSSyncObjectTask(ctx context.Context, task *queue.Task, progressFn queue.ProgressFunc) error {
+	repoPath := h.resolveRepoPath(task.Repository)
+	if repoPath == "" {
+		return fmt.Errorf("repository not found: %s", task.Repository)
 	}
 
-	progressFn(20, fmt.Sprintf("Found %d LFS objects to sync", len(objects)), 0, totalSize)
+	sourceURL := task.Params["source_url"]
+	oid := task.Params["oid"]
+	sizeStr := task.Params["size"]
+
+	if sourceURL == "" || oid == "" || sizeStr == "" {
+		return fmt.Errorf("invalid task parameters")
+	}
+
+	size, err := strconv.ParseInt(sizeStr, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid size parameter: %w", err)
+	}
+
+	// Check if the object already exists
+	if h.contentStore.Exists(oid) {
+		progressFn(100, fmt.Sprintf("LFS object %s already exists", oid), size, size)
+		return nil
+	}
 
 	// Get LFS endpoint from source URL
 	lfsEndpoint := lfs.GetLFSEndpoint(sourceURL)
 
-	// Create remote client with progress tracking
+	// Create remote client
 	remoteClient := lfs.NewRemoteClient()
-	err = h.fetchLFSObjectsWithProgress(ctx, remoteClient, lfsEndpoint, objects, progressFn, totalSize)
-	if err != nil {
-		return fmt.Errorf("failed to fetch LFS objects: %w", err)
-	}
 
-	progressFn(100, "LFS sync completed", totalSize, totalSize)
-	return nil
-}
-
-// fetchLFSObjectsWithProgress fetches LFS objects with progress reporting
-func (h *Handler) fetchLFSObjectsWithProgress(ctx context.Context, client *lfs.RemoteClient, lfsEndpoint string, objects []lfs.LFSObject, progressFn queue.ProgressFunc, totalSize int64) error {
-	// Filter out objects that already exist
-	var missing []lfs.LFSObject
-	for _, obj := range objects {
-		if !h.contentStore.Exists(obj.Oid) {
-			missing = append(missing, obj)
-		}
-	}
-
-	if len(missing) == 0 {
-		return nil
-	}
-
-	// Request download URLs for missing objects
-	batchResp, err := client.BatchDownload(ctx, lfsEndpoint, missing)
+	// Request download URL for the object
+	batchResp, err := remoteClient.BatchDownload(ctx, lfsEndpoint, []lfs.LFSObject{{Oid: oid, Size: size}})
 	if err != nil {
 		return fmt.Errorf("batch download request failed: %w", err)
 	}
 
-	// Download and store each object
-	var downloadedBytes int64
-	downloadedCount := 0
-	for _, obj := range batchResp.Objects {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		if obj.Error != nil {
-			log.Printf("Skipping object %s due to error: %s\n", obj.Oid, obj.Error.Message)
-			continue
-		}
-
-		downloadAction, ok := obj.Actions["download"]
-		if !ok {
-			continue
-		}
-
-		progressFn(20+int(80*downloadedBytes/totalSize), fmt.Sprintf("Downloading %d/%d objects", downloadedCount+1, len(missing)), downloadedBytes, totalSize)
-
-		body, err := client.DownloadObject(ctx, &downloadAction)
-		if err != nil {
-			log.Printf("Failed to download LFS object %s: %v\n", obj.Oid, err)
-			continue
-		}
-
-		err = h.contentStore.Put(obj.Oid, body, obj.Size)
-		body.Close()
-		if err != nil {
-			log.Printf("Failed to store LFS object %s: %v\n", obj.Oid, err)
-			continue
-		}
-
-		downloadedBytes += obj.Size
-		downloadedCount++
-		progressFn(20+int(80*downloadedBytes/totalSize), fmt.Sprintf("Downloaded %d/%d objects", downloadedCount, len(missing)), downloadedBytes, totalSize)
+	if len(batchResp.Objects) == 0 || batchResp.Objects[0].Error != nil {
+		return fmt.Errorf("failed to fetch LFS object %s: %v", oid, batchResp.Objects[0].Error)
 	}
 
+	downloadAction, ok := batchResp.Objects[0].Actions["download"]
+	if !ok {
+		return fmt.Errorf("no download action for LFS object %s", oid)
+	}
+
+	// Download the object
+	body, err := remoteClient.DownloadObject(ctx, &downloadAction)
+	if err != nil {
+		return fmt.Errorf("failed to download LFS object %s: %w", oid, err)
+	}
+	defer body.Close()
+
+	rp := &readerProgress{
+		reader: body,
+		size:   size,
+		callFunc: func(n int64, size int64) {
+			progressFn(int(float64(n)*100/float64(size)), oid, n, size)
+		},
+	}
+
+	// Store the object
+	err = h.contentStore.Put(oid, rp, size)
+	if err != nil {
+		return fmt.Errorf("failed to store LFS object %s: %w", oid, err)
+	}
+
+	progressFn(100, fmt.Sprintf("LFS object %s synced successfully", oid), size, size)
 	return nil
+}
+
+type readerProgress struct {
+	reader   io.Reader
+	n        int64
+	size     int64
+	last     time.Time
+	callFunc func(n int64, size int64)
+}
+
+func (r *readerProgress) Read(p []byte) (int, error) {
+	n, err := r.reader.Read(p)
+	r.n += int64(n)
+	if time.Since(r.last) > time.Second && r.callFunc != nil {
+		r.callFunc(r.n, r.size)
+		r.last = time.Now()
+	}
+	return n, err
 }

@@ -31,8 +31,8 @@ function getStatusIcon(status: Task['status']): ReactElement {
 
 function getTaskTypeLabel(type: Task['type']): string {
   switch (type) {
-    case 'repository_sync': return 'Repository Sync';
-    case 'lfs_sync': return 'LFS Sync';
+    case 'repository_sync': return 'Repository';
+    case 'lfs_sync': return 'LFS Object';
     default: return type;
   }
 }
