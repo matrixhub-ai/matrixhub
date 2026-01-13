@@ -39,7 +39,7 @@ func TestRepositoryManagement(t *testing.T) {
 		}
 
 		// Verify it's a valid git repository
-		repoPath := filepath.Join(repoDir, repoName)
+		repoPath := filepath.Join(repoDir, "repositories", repoName)
 		headPath := filepath.Join(repoPath, "HEAD")
 		if _, err := os.Stat(headPath); os.IsNotExist(err) {
 			t.Errorf("HEAD file not found, not a valid git repository")
@@ -113,7 +113,7 @@ func TestRepositoryManagement(t *testing.T) {
 		}
 
 		// Verify it exists
-		repoPath := filepath.Join(repoDir, repoName)
+		repoPath := filepath.Join(repoDir, "repositories", repoName)
 		if _, err := os.Stat(repoPath); os.IsNotExist(err) {
 			t.Errorf("Nested repository was not created")
 		}

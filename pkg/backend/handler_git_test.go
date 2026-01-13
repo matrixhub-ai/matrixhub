@@ -55,7 +55,7 @@ func TestGitServer(t *testing.T) {
 		}
 
 		// Verify repository was created
-		repoPath := filepath.Join(repoDir, repoName)
+		repoPath := filepath.Join(repoDir, "repositories", repoName)
 		if _, err := os.Stat(repoPath); os.IsNotExist(err) {
 			t.Errorf("Repository was not created at %s", repoPath)
 		}
@@ -217,7 +217,7 @@ func TestGitServer(t *testing.T) {
 		}
 
 		// Verify repository was deleted
-		repoPath := filepath.Join(repoDir, repoName)
+		repoPath := filepath.Join(repoDir, "repositories", repoName)
 		if _, err := os.Stat(repoPath); !os.IsNotExist(err) {
 			t.Errorf("Repository was not deleted at %s", repoPath)
 		}
@@ -234,7 +234,7 @@ func TestInfoRefs(t *testing.T) {
 
 	// Create a bare repository
 	repoName := "test.git"
-	repoPath := filepath.Join(repoDir, repoName)
+	repoPath := filepath.Join(repoDir, "repositories", repoName)
 	cmd := exec.Command("git", "init", "--bare", repoPath)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("Failed to create bare repository: %v\nOutput: %s", err, output)
