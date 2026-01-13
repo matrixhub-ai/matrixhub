@@ -1,0 +1,29 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 16px;
+}
+
+.breadcrumb-item {
+  color: #0969da;
+  text-decoration: none;
+}
+
+.breadcrumb-item:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-item.repo-name {
+  font-weight: 600;
+}
+
+.breadcrumb-item.current {
+  color: #24292f;
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  margin: 0 4px;
+  color: #656d76;
+}

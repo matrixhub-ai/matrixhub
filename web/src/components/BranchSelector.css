@@ -1,0 +1,65 @@
+.branch-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.branch-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background-color: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.branch-button:hover {
+  background-color: #eaeef2;
+}
+
+.branch-name {
+  font-weight: 500;
+}
+
+.branch-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background-color: white;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(140, 149, 159, 0.2);
+  z-index: 100;
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.branch-dropdown-header {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #656d76;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.branch-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.branch-option:hover {
+  background-color: #f6f8fa;
+}
+
+.branch-option.active {
+  font-weight: 500;
+}

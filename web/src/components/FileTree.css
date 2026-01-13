@@ -1,0 +1,85 @@
+.file-tree {
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.file-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.file-table th {
+  background-color: #f6f8fa;
+  text-align: left;
+  padding: 8px 16px;
+  font-weight: 600;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.file-row {
+  border-bottom: 1px solid #d0d7de;
+}
+
+.file-row:last-child {
+  border-bottom: none;
+}
+
+.file-row:hover {
+  background-color: #f6f8fa;
+}
+
+.file-name {
+  padding: 8px 16px;
+}
+
+.file-link {
+  display: flex;
+  align-items: center;
+  color: #0969da;
+  text-decoration: none;
+}
+
+.file-link:hover {
+  text-decoration: underline;
+}
+
+.file-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.lfs-badge {
+  display: inline-block;
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #57606a;
+  background-color: #eaeef2;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.file-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  font-size: 14px;
+  color: #57606a;
+  text-decoration: none;
+  border-radius: 4px;
+  opacity: 1;
+}
+
+.download-button:hover {
+  background-color: #ddf4ff;
+  color: #0969da;
+}
