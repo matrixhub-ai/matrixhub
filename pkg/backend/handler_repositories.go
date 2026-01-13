@@ -29,11 +29,11 @@ func (h *Handler) validateRepoPath(urlPath string) (string, error) {
 	}
 
 	// Construct the full path
-	fullPath := filepath.Join(h.rootDir, urlPath)
+	fullPath := filepath.Join(h.repositoriesDir, urlPath)
 
 	// Clean and verify the path is within RepoDir using filepath.Rel
 	fullPath = filepath.Clean(fullPath)
-	absRepoDir, err := filepath.Abs(h.rootDir)
+	absRepoDir, err := filepath.Abs(h.repositoriesDir)
 	if err != nil {
 		return "", err
 	}
@@ -161,7 +161,7 @@ func (h *Handler) handleListRepositories(w http.ResponseWriter, r *http.Request)
 	var repos []RepositoryItem
 
 	// Walk through rootDir to find all git repositories at any depth
-	err := filepath.Walk(h.rootDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(h.repositoriesDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
 		}
@@ -174,7 +174,7 @@ func (h *Handler) handleListRepositories(w http.ResponseWriter, r *http.Request)
 				return nil
 			}
 
-			rel, _ := filepath.Rel(h.rootDir, path)
+			rel, _ := filepath.Rel(h.repositoriesDir, path)
 			name := strings.TrimSuffix(rel, ".git")
 
 			// Check if this is a mirror repository

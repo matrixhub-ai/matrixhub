@@ -131,7 +131,7 @@ func (h *Handler) resolveRepoPath(urlPath string) string {
 	}
 
 	// Construct the full path
-	fullPath := filepath.Join(h.rootDir, urlPath)
+	fullPath := filepath.Join(h.repositoriesDir, urlPath)
 
 	return filepath.Clean(fullPath)
 }

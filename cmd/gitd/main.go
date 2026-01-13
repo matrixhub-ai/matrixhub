@@ -15,17 +15,17 @@ import (
 
 var (
 	addr    = ":8080"
-	repoDir = "./data"
+	dataDir = "./data"
 )
 
 func init() {
 	flag.StringVar(&addr, "addr", ":8080", "HTTP server address")
-	flag.StringVar(&repoDir, "repo", "./data", "Directory containing git repositories")
+	flag.StringVar(&dataDir, "data", "./data", "Directory containing git repositories")
 	flag.Parse()
 }
 
 func main() {
-	absRootDir, err := filepath.Abs(repoDir)
+	absRootDir, err := filepath.Abs(dataDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting absolute path of repo directory: %v\n", err)
 		os.Exit(1)

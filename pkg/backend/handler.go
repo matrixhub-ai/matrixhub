@@ -20,7 +20,8 @@ type Authenticator interface {
 
 // Handler
 type Handler struct {
-	rootDir string
+	rootDir         string
+	repositoriesDir string
 
 	httpClient *http.Client
 	lfsClient  *lfs.Client
@@ -96,7 +97,7 @@ func NewHandler(opts ...Option) *Handler {
 		h.registerTaskHandlers()
 		h.queueWorker.Start()
 	}
-
+	h.repositoriesDir = filepath.Join(h.rootDir, "repositories")
 	h.lfsClient = lfs.NewClient(h.httpClient)
 	h.root = h.router()
 	return h
