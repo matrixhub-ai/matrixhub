@@ -19,11 +19,11 @@ const (
 )
 
 func (h *Handler) registryLFS(r *mux.Router) {
-	r.HandleFunc("/{repo:.+}.git/info/lfs/objects/batch", h.requireAuth(h.handleBatch)).Methods("POST").MatcherFunc(metaMatcher)
-	r.HandleFunc("/{repo:.+}/info/lfs/objects/batch", h.requireAuth(h.handleBatch)).Methods("POST").MatcherFunc(metaMatcher)
-	r.HandleFunc("/objects/{oid}", h.requireAuth(h.handleGetContent)).Methods("GET", "HEAD")
-	r.HandleFunc("/objects/{oid}", h.requireAuth(h.handlePutContent)).Methods("PUT")
-	r.HandleFunc("/objects/{oid}/verify", h.requireAuth(h.handleVerifyObject)).Methods("POST")
+	r.HandleFunc("/{repo:.+}.git/info/lfs/objects/batch", h.requireAuth(h.handleBatch)).Methods(http.MethodPost).MatcherFunc(metaMatcher)
+	r.HandleFunc("/{repo:.+}/info/lfs/objects/batch", h.requireAuth(h.handleBatch)).Methods(http.MethodPost).MatcherFunc(metaMatcher)
+	r.HandleFunc("/objects/{oid}", h.requireAuth(h.handleGetContent)).Methods(http.MethodGet, http.MethodHead)
+	r.HandleFunc("/objects/{oid}", h.requireAuth(h.handlePutContent)).Methods(http.MethodPut)
+	r.HandleFunc("/objects/{oid}/verify", h.requireAuth(h.handleVerifyObject)).Methods(http.MethodPost)
 }
 
 // handleBatch provides the batch api

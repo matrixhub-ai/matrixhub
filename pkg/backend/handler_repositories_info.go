@@ -18,11 +18,11 @@ import (
 
 func (h *Handler) registryRepositoriesInfo(r *mux.Router) {
 	// Use {refpath:.*} to capture both ref and path since branches can contain '/'
-	r.HandleFunc("/api/repositories/{repo:.+}.git/commits/{refpath:.*}", h.handleCommits).Methods(http.MethodGet)
-	r.HandleFunc("/api/repositories/{repo:.+}.git/tree/{refpath:.*}", h.handleTree).Methods(http.MethodGet)
-	r.HandleFunc("/api/repositories/{repo:.+}.git/tree", h.handleTree).Methods(http.MethodGet)
-	r.HandleFunc("/api/repositories/{repo:.+}.git/blob/{refpath:.+}", h.handleBlob).Methods(http.MethodGet, http.MethodHead)
-	r.HandleFunc("/api/repositories/{repo:.+}.git/branches", h.handleBranches).Methods(http.MethodGet)
+	r.HandleFunc("/api/repositories/{repo:.+}.git/commits/{refpath:.*}", h.requireAuth(h.handleCommits)).Methods(http.MethodGet)
+	r.HandleFunc("/api/repositories/{repo:.+}.git/tree/{refpath:.*}", h.requireAuth(h.handleTree)).Methods(http.MethodGet)
+	r.HandleFunc("/api/repositories/{repo:.+}.git/tree", h.requireAuth(h.handleTree)).Methods(http.MethodGet)
+	r.HandleFunc("/api/repositories/{repo:.+}.git/blob/{refpath:.+}", h.requireAuth(h.handleBlob)).Methods(http.MethodGet, http.MethodHead)
+	r.HandleFunc("/api/repositories/{repo:.+}.git/branches", h.requireAuth(h.handleBranches)).Methods(http.MethodGet)
 }
 
 // TreeEntry represents a file or directory in the repository

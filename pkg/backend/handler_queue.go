@@ -10,10 +10,10 @@ import (
 )
 
 func (h *Handler) registryQueue(r *mux.Router) {
-	r.HandleFunc("/api/queue", h.handleListTasks).Methods(http.MethodGet)
-	r.HandleFunc("/api/queue/{id:[0-9]+}", h.handleGetTask).Methods(http.MethodGet)
-	r.HandleFunc("/api/queue/{id:[0-9]+}/priority", h.handleUpdateTaskPriority).Methods(http.MethodPut)
-	r.HandleFunc("/api/queue/{id:[0-9]+}", h.handleCancelTask).Methods(http.MethodDelete)
+	r.HandleFunc("/api/queue", h.requireAuth(h.handleListTasks)).Methods(http.MethodGet)
+	r.HandleFunc("/api/queue/{id:[0-9]+}", h.requireAuth(h.handleGetTask)).Methods(http.MethodGet)
+	r.HandleFunc("/api/queue/{id:[0-9]+}/priority", h.requireAuth(h.handleUpdateTaskPriority)).Methods(http.MethodPut)
+	r.HandleFunc("/api/queue/{id:[0-9]+}", h.requireAuth(h.handleCancelTask)).Methods(http.MethodDelete)
 }
 
 // handleListTasks returns all tasks in the queue
