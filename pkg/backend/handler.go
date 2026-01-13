@@ -88,7 +88,9 @@ func NewHandler(opts ...Option) *Handler {
 
 	// Initialize queue store
 	queueStore, err := queue.NewStore(filepath.Join(h.rootDir, "queue", "queue.db"))
-	if err == nil {
+	if err != nil {
+		log.Printf("Failed to initialize queue store: %v\n", err)
+	} else {
 		h.queueStore = queueStore
 		h.queueWorker = queue.NewWorker(queueStore, 2)
 		h.registerTaskHandlers()
@@ -135,6 +137,8 @@ func (h *Handler) router() *mux.Router {
 
 	// Queue management endpoints
 	h.registryQueue(r)
+
+	h.registerWeb(r)
 
 	return r
 }
