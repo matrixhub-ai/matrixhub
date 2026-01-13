@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -87,12 +86,8 @@ func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer content.Close()
 
-	filename := r.URL.Query().Get("filename")
-	if filename != "" {
-		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(filename))
-	}
-
-	http.ServeContent(w, r, "", stat.ModTime(), content)
+	w.Header().Set("ETag", fmt.Sprintf("\"%s\"", rv.Oid))
+	http.ServeContent(w, r, rv.Oid, stat.ModTime(), content)
 }
 
 func (h *Handler) handleVerifyObject(w http.ResponseWriter, r *http.Request) {

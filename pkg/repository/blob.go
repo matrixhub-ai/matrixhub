@@ -17,6 +17,7 @@ type Blob struct {
 	contentType string
 	modTime     time.Time
 	newReader   func() (io.ReadCloser, error)
+	hash        string
 }
 
 func (b *Blob) Name() string {
@@ -39,15 +40,30 @@ func (b *Blob) NewReader() (io.ReadCloser, error) {
 	return b.newReader()
 }
 
-func (r *Repository) Blob(ref string, path string) (b *Blob, err error) {
-	refObj, err := r.repo.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve reference: %w", err)
-	}
+func (b *Blob) Hash() string {
+	return b.hash
+}
 
-	commit, err := r.repo.CommitObject(refObj.Hash())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get commit object: %w", err)
+func (r *Repository) Blob(ref string, path string) (b *Blob, err error) {
+	var commit *object.Commit
+
+	// First try to resolve as a branch reference
+	refObj, err := r.repo.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
+	if err == nil {
+		commit, err = r.repo.CommitObject(refObj.Hash())
+		if err != nil {
+			return nil, fmt.Errorf("failed to get commit object: %w", err)
+		}
+	} else {
+		// If not a branch, try to resolve as a commit SHA
+		if !isValidSHA(ref) {
+			return nil, fmt.Errorf("failed to resolve reference: not a valid branch or commit SHA")
+		}
+		hash := plumbing.NewHash(ref)
+		commit, err = r.repo.CommitObject(hash)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve reference or commit: %w", err)
+		}
 	}
 
 	tree, err := commit.Tree()
@@ -86,6 +102,7 @@ func (r *Repository) Blob(ref string, path string) (b *Blob, err error) {
 		contentType: contentType,
 		modTime:     commit.Committer.When,
 		newReader:   file.Reader,
+		hash:        file.Hash.String(),
 	}, nil
 }
 

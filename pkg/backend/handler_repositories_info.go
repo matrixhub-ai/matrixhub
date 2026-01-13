@@ -3,10 +3,9 @@ package backend
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -163,17 +162,19 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 			defer reader.Close()
 			ptr, err := lfs.DecodePointer(reader)
 			if err == nil && ptr != nil {
-				http.Redirect(w, r,
-					fmt.Sprintf("/objects/%s?filename=%s",
-						ptr.Oid,
-						url.QueryEscape(blob.Name())),
-					http.StatusFound)
+				content, stat, err := h.contentStore.Get(ptr.Oid)
+				if err != nil {
+					log.Println("Error getting LFS object:", err)
+					http.NotFound(w, r)
+					return
+				}
+				defer content.Close()
+
+				http.ServeContent(w, r, ptr.Oid, stat.ModTime(), content)
 				return
 			}
 		}
 	}
-
-	//  href={`/objects/${entry.blobSha256}?filename=${encodeURIComponent(entry.name)}`}
 
 	w.Header().Set("Content-Type", blob.ContentType())
 	w.Header().Set("Content-Length", strconv.FormatInt(blob.Size(), 10))

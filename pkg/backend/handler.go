@@ -136,6 +136,9 @@ func (h *Handler) router() *mux.Router {
 	h.registryRepositoriesInfo(r)
 	h.registryRepositories(r)
 
+	// HuggingFace-compatible API endpoints
+	h.registryHuggingFace(r)
+
 	// Queue management endpoints
 	h.registryQueue(r)
 

@@ -29,5 +29,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Install dependencies
+        run: pip install huggingface_hub
       - name: Test
         run: go test ./... -v
