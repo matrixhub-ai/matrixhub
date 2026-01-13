@@ -81,7 +81,7 @@ func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request)
 	}
 
 	params := map[string]string{"source_url": req.SourceURL}
-	task, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
+	taskID, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
 	if err != nil {
 		http.Error(w, "Failed to queue import task", http.StatusInternalServerError)
 		return
@@ -92,7 +92,7 @@ func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "accepted",
 		"message": "Import queued",
-		"task_id": task.ID,
+		"task_id": taskID,
 	})
 }
 
@@ -135,7 +135,7 @@ func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := map[string]string{"source_url": sourceURL}
-	task, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
+	taskID, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
 	if err != nil {
 		http.Error(w, "Failed to queue sync task", http.StatusInternalServerError)
 		return
@@ -146,7 +146,7 @@ func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "accepted",
 		"message": "Sync queued",
-		"task_id": task.ID,
+		"task_id": taskID,
 	})
 }
 

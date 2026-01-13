@@ -104,13 +104,28 @@ func (s *Store) Close() error {
 }
 
 // Add adds a new task to the queue
-func (s *Store) Add(taskType TaskType, repository string, priority int, params map[string]string) (*Task, error) {
+func (s *Store) Add(taskType TaskType, repository string, priority int, params map[string]string) (int64, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	paramsJSON, err := json.Marshal(params)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal params: %w", err)
+		return 0, fmt.Errorf("failed to marshal params: %w", err)
+	}
+
+	// Check if a task with the same parameters is already in Pending or Running status
+	var existingCount int
+	err = s.db.QueryRow(`
+		SELECT COUNT(*) FROM tasks 
+		WHERE status IN ('pending', 'running') 
+		AND type = ? AND repository = ? AND params = ?
+	`, taskType, repository, string(paramsJSON)).Scan(&existingCount)
+	if err != nil {
+		return 0, fmt.Errorf("failed to check for existing task: %w", err)
+	}
+
+	if existingCount > 0 {
+		return 0, fmt.Errorf("a task with the same parameters is already in progress")
 	}
 
 	result, err := s.db.Exec(`
@@ -118,15 +133,15 @@ func (s *Store) Add(taskType TaskType, repository string, priority int, params m
 		VALUES (?, ?, ?, ?, ?)
 	`, taskType, repository, priority, string(paramsJSON), time.Now())
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert task: %w", err)
+		return 0, fmt.Errorf("failed to insert task: %w", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get last insert id: %w", err)
+		return 0, fmt.Errorf("failed to get last insert id: %w", err)
 	}
 
-	return s.getByID(id)
+	return id, nil
 }
 
 // Get retrieves a task by ID
