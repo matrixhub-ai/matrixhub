@@ -1,4 +1,4 @@
-name: Run Jobs on PR
+name: Remove LGTM on PR changes
 on: pull_request
 
 jobs:
