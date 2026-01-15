@@ -1,7 +1,7 @@
 //go:build embedweb
 // +build embedweb
 
-package web
+package vibecoding
 
 import (
 	"embed"
