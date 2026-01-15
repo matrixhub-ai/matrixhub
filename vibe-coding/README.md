@@ -1,6 +1,8 @@
-# React + TypeScript + Vite
+# Vibe Code-Generated Web Interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This directory contains the auto-generated web interface created by vibe code. It is built using React + TypeScript + Vite with HMR and some ESLint rules.
+
+**Note**: This code is expected to be replaced by the main UI in the future. This directory serves as a supplement for vibe code-generated files.
 
 Currently, two official plugins are available:
 
