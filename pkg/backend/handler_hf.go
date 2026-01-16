@@ -18,6 +18,12 @@ import (
 // These endpoints allow using huggingface-cli and huggingface_hub library
 // with HF_ENDPOINT pointing to this server.
 func (h *Handler) registryHuggingFace(r *mux.Router) {
+	// Agent metadata endpoint with revision
+	r.HandleFunc("/api/models/{repo:.+}/agent/revision/{revision}", h.handleHFAgentMetadataRevision).Methods(http.MethodGet)
+
+	// Agent metadata endpoint - returns parsed agent.md metadata
+	r.HandleFunc("/api/models/{repo:.+}/agent", h.handleHFAgentMetadata).Methods(http.MethodGet)
+
 	// Model info endpoint with revision - used by huggingface_hub for snapshot_download
 	r.HandleFunc("/api/models/{repo:.+}/revision/{revision}", h.handleHFModelInfoRevision).Methods(http.MethodGet)
 
@@ -31,19 +37,20 @@ func (h *Handler) registryHuggingFace(r *mux.Router) {
 
 // HFModelInfo represents the model info response for HuggingFace API
 type HFModelInfo struct {
-	ID            string      `json:"id"`
-	ModelID       string      `json:"modelId"`
-	SHA           string      `json:"sha,omitempty"`
-	Private       bool        `json:"private"`
-	Disabled      bool        `json:"disabled"`
-	Gated         bool        `json:"gated"`
-	Downloads     int         `json:"downloads"`
-	Likes         int         `json:"likes"`
-	Tags          []string    `json:"tags"`
-	Siblings      []HFSibling `json:"siblings"`
-	CreatedAt     string      `json:"createdAt,omitempty"`
-	LastModified  string      `json:"lastModified,omitempty"`
-	DefaultBranch string      `json:"defaultBranch,omitempty"`
+	ID            string                    `json:"id"`
+	ModelID       string                    `json:"modelId"`
+	SHA           string                    `json:"sha,omitempty"`
+	Private       bool                      `json:"private"`
+	Disabled      bool                      `json:"disabled"`
+	Gated         bool                      `json:"gated"`
+	Downloads     int                       `json:"downloads"`
+	Likes         int                       `json:"likes"`
+	Tags          []string                  `json:"tags"`
+	Siblings      []HFSibling               `json:"siblings"`
+	CreatedAt     string                    `json:"createdAt,omitempty"`
+	LastModified  string                    `json:"lastModified,omitempty"`
+	DefaultBranch string                    `json:"defaultBranch,omitempty"`
+	AgentMetadata *repository.AgentMetadata `json:"agentMetadata,omitempty"`
 }
 
 // HFSibling represents a file in the model repository
@@ -104,6 +111,14 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 		sha = commits[0].SHA
 	}
 
+	// Try to get agent metadata if available
+	var agentMetadata *repository.AgentMetadata
+	if metadata, err := repo.GetAgentMetadata(defaultBranch); err == nil {
+		agentMetadata = metadata
+		// Don't include raw content in API response to keep it lean
+		agentMetadata.RawContent = ""
+	}
+
 	modelInfo := HFModelInfo{
 		ID:            repoID,
 		ModelID:       repoID,
@@ -116,6 +131,7 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 		Tags:          []string{},
 		Siblings:      siblings,
 		DefaultBranch: defaultBranch,
+		AgentMetadata: agentMetadata,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -179,6 +195,14 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 		sha = commits[0].SHA
 	}
 
+	// Try to get agent metadata if available
+	var agentMetadata *repository.AgentMetadata
+	if metadata, err := repo.GetAgentMetadata(ref); err == nil {
+		agentMetadata = metadata
+		// Don't include raw content in API response to keep it lean
+		agentMetadata.RawContent = ""
+	}
+
 	modelInfo := HFModelInfo{
 		ID:            repoID,
 		ModelID:       repoID,
@@ -191,6 +215,7 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 		Tags:          []string{},
 		Siblings:      siblings,
 		DefaultBranch: repo.DefaultBranch(),
+		AgentMetadata: agentMetadata,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -297,5 +322,105 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Log but don't send error - we may have already written partial content
 		return
+	}
+}
+
+// handleHFAgentMetadata handles the /api/models/{repo_id}/agent endpoint
+// Returns parsed agent.md metadata as JSON
+func (h *Handler) handleHFAgentMetadata(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	repoID := vars["repo"]
+
+	// Convert repo ID to internal repo name (add .git suffix)
+	repoName := repoID + ".git"
+
+	repoPath := h.resolveRepoPath(repoName)
+	if repoPath == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	repo, err := repository.Open(repoPath)
+	if err != nil {
+		if errors.Is(err, repository.ErrRepositoryNotExists) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		return
+	}
+
+	defaultBranch := repo.DefaultBranch()
+	if defaultBranch == "" {
+		// Empty repository with no commits
+		http.NotFound(w, r)
+		return
+	}
+
+	// Get agent metadata
+	metadata, err := repo.GetAgentMetadata(defaultBranch)
+	if err != nil {
+		// Check for both exact match and wrapped errors
+		if errors.Is(err, repository.ErrAgentFileNotFound) || 
+		   err == repository.ErrAgentFileNotFound {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, fmt.Sprintf("Failed to get agent metadata: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(metadata); err != nil {
+		log.Printf("failed to encode agent metadata for repo %q: %v", repoID, err)
+	}
+}
+
+// handleHFAgentMetadataRevision handles the /api/models/{repo_id}/agent/revision/{revision} endpoint
+// Returns parsed agent.md metadata as JSON for a specific revision
+func (h *Handler) handleHFAgentMetadataRevision(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	repoID := vars["repo"]
+	revision := vars["revision"]
+
+	// Convert repo ID to internal repo name (add .git suffix)
+	repoName := repoID + ".git"
+
+	repoPath := h.resolveRepoPath(repoName)
+	if repoPath == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	repo, err := repository.Open(repoPath)
+	if err != nil {
+		if errors.Is(err, repository.ErrRepositoryNotExists) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		return
+	}
+
+	// Use the specified revision or fall back to default branch
+	ref := revision
+	if ref == "" {
+		ref = repo.DefaultBranch()
+	}
+
+	// Get agent metadata
+	metadata, err := repo.GetAgentMetadata(ref)
+	if err != nil {
+		if errors.Is(err, repository.ErrAgentFileNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, fmt.Sprintf("Failed to get agent metadata: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(metadata); err != nil {
+		log.Printf("failed to encode agent metadata for repo %q (revision %q): %v", repoID, revision, err)
 	}
 }
