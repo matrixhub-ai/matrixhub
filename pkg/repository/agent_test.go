@@ -26,9 +26,9 @@ func runGitCommand(t *testing.T, dir string, args ...string) {
 	}
 }
 
-func TestGetAgentMetadata(t *testing.T) {
+func TestGetAgentsContent(t *testing.T) {
 	// Create a temporary directory for the test repository
-	tempDir, err := os.MkdirTemp("", "agent-test-")
+	tempDir, err := os.MkdirTemp("", "agents-test-")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestGetAgentMetadata(t *testing.T) {
 	// Clone the bare repo
 	runGitCommand(t, tempDir, "clone", repoPath, workDir)
 
-	t.Run("NoAgentFile", func(t *testing.T) {
+	t.Run("NoAgentsFile", func(t *testing.T) {
 		// Add a simple file to create a commit
 		readmePath := filepath.Join(workDir, "README.md")
 		if err := os.WriteFile(readmePath, []byte("# Test\n"), 0644); err != nil {
@@ -64,38 +64,31 @@ func TestGetAgentMetadata(t *testing.T) {
 			t.Fatalf("Failed to open repository: %v", err)
 		}
 
-		// Try to get agent metadata - should return error
-		_, err = repo.GetAgentMetadata("main")
-		if err != repository.ErrAgentFileNotFound {
-			t.Errorf("Expected ErrAgentFileNotFound, got: %v", err)
+		// Try to get AGENTS.md - should return error
+		_, err = repo.GetAgentsContent("main")
+		if err != repository.ErrAgentsFileNotFound {
+			t.Errorf("Expected ErrAgentsFileNotFound, got: %v", err)
 		}
 	})
 
-	t.Run("AgentFileWithFrontmatter", func(t *testing.T) {
-		// Create agent.md with YAML frontmatter
-		agentContent := `---
-name: "Test Agent"
-version: "1.0.0"
-type: "assistant"
-tags: ["coding", "automation"]
-description: "A test agent for unit testing"
----
-
-# Test Agent
-
-This is a comprehensive test agent for validating agent.md parsing.
-
-## Features
-
-- Feature 1
-- Feature 2
-`
-		agentPath := filepath.Join(workDir, "agent.md")
-		if err := os.WriteFile(agentPath, []byte(agentContent), 0644); err != nil {
-			t.Fatalf("Failed to create agent.md: %v", err)
+	t.Run("AgentsFileWithContent", func(t *testing.T) {
+		// Create AGENTS.md with plain markdown content
+		agentsContent := "# AGENTS Guidelines for This Repository\n\n" +
+			"## Dev environment tips\n" +
+			"- Use `pnpm dlx turbo run where <project_name>` to jump to a package\n" +
+			"- Run `pnpm install --filter <project_name>` to add the package to your workspace\n\n" +
+			"## Testing instructions\n" +
+			"- Find the CI plan in the .github/workflows folder.\n" +
+			"- Run `pnpm turbo run test --filter <project_name>` to run every check\n\n" +
+			"## PR instructions\n" +
+			"- Title format: [<project_name>] <Title>\n" +
+			"- Always run `pnpm lint` and `pnpm test` before committing.\n"
+		agentsPath := filepath.Join(workDir, "AGENTS.md")
+		if err := os.WriteFile(agentsPath, []byte(agentsContent), 0644); err != nil {
+			t.Fatalf("Failed to create AGENTS.md: %v", err)
 		}
-		runGitCommand(t, workDir, "add", "agent.md")
-		runGitCommand(t, workDir, "commit", "-m", "Add agent.md")
+		runGitCommand(t, workDir, "add", "AGENTS.md")
+		runGitCommand(t, workDir, "commit", "-m", "Add AGENTS.md")
 		runGitCommand(t, workDir, "push", "origin", "main")
 
 		// Open repository
@@ -104,56 +97,42 @@ This is a comprehensive test agent for validating agent.md parsing.
 			t.Fatalf("Failed to open repository: %v", err)
 		}
 
-		// Get agent metadata
-		metadata, err := repo.GetAgentMetadata("main")
+		// Get AGENTS.md content
+		content, err := repo.GetAgentsContent("main")
 		if err != nil {
-			t.Fatalf("Failed to get agent metadata: %v", err)
+			t.Fatalf("Failed to get AGENTS.md content: %v", err)
 		}
 
-		// Verify metadata
-		if metadata.Name != "Test Agent" {
-			t.Errorf("Expected name 'Test Agent', got '%s'", metadata.Name)
+		// Verify content
+		if !strings.Contains(content.Content, "AGENTS Guidelines") {
+			t.Errorf("Expected content to contain 'AGENTS Guidelines', got: %s", content.Content)
 		}
-		if metadata.Version != "1.0.0" {
-			t.Errorf("Expected version '1.0.0', got '%s'", metadata.Version)
+		if !strings.Contains(content.Content, "Dev environment tips") {
+			t.Errorf("Expected content to contain 'Dev environment tips'")
 		}
-		if metadata.Type != "assistant" {
-			t.Errorf("Expected type 'assistant', got '%s'", metadata.Type)
-		}
-		if len(metadata.Tags) != 2 {
-			t.Errorf("Expected 2 tags, got %d", len(metadata.Tags))
-		} else {
-			if metadata.Tags[0] != "coding" || metadata.Tags[1] != "automation" {
-				t.Errorf("Expected tags [coding, automation], got %v", metadata.Tags)
-			}
-		}
-		if metadata.Description != "A test agent for unit testing" {
-			t.Errorf("Expected description from frontmatter, got '%s'", metadata.Description)
-		}
-		if !strings.Contains(metadata.RawContent, "Test Agent") {
-			t.Errorf("RawContent should contain the full file content")
+		if !strings.Contains(content.Content, "Testing instructions") {
+			t.Errorf("Expected content to contain 'Testing instructions'")
 		}
 	})
 
-	t.Run("AgentFileWithoutFrontmatter", func(t *testing.T) {
+	t.Run("AgentsFileWithDifferentBranches", func(t *testing.T) {
 		// Create a new branch for this test
-		runGitCommand(t, workDir, "checkout", "-b", "no-frontmatter")
+		runGitCommand(t, workDir, "checkout", "-b", "feature-branch")
 
-		// Create agent.md without YAML frontmatter
-		agentContent := `# Simple Agent
+		// Create different AGENTS.md content
+		agentsContent := `# AGENTS for Feature Branch
 
-This is a simple agent without YAML frontmatter.
-It should still be parsed successfully.
-
-The description should be extracted from the content.
+## Feature-specific instructions
+- This is a feature branch
+- Different instructions apply here
 `
-		agentPath := filepath.Join(workDir, "agent.md")
-		if err := os.WriteFile(agentPath, []byte(agentContent), 0644); err != nil {
-			t.Fatalf("Failed to create agent.md: %v", err)
+		agentsPath := filepath.Join(workDir, "AGENTS.md")
+		if err := os.WriteFile(agentsPath, []byte(agentsContent), 0644); err != nil {
+			t.Fatalf("Failed to create AGENTS.md: %v", err)
 		}
-		runGitCommand(t, workDir, "add", "agent.md")
-		runGitCommand(t, workDir, "commit", "-m", "Add simple agent.md")
-		runGitCommand(t, workDir, "push", "origin", "no-frontmatter")
+		runGitCommand(t, workDir, "add", "AGENTS.md")
+		runGitCommand(t, workDir, "commit", "-m", "Update AGENTS.md for feature")
+		runGitCommand(t, workDir, "push", "origin", "feature-branch")
 
 		// Open repository
 		repo, err := repository.Open(repoPath)
@@ -161,45 +140,39 @@ The description should be extracted from the content.
 			t.Fatalf("Failed to open repository: %v", err)
 		}
 
-		// Get agent metadata
-		metadata, err := repo.GetAgentMetadata("no-frontmatter")
+		// Get content from feature branch
+		featureContent, err := repo.GetAgentsContent("feature-branch")
 		if err != nil {
-			t.Fatalf("Failed to get agent metadata: %v", err)
+			t.Fatalf("Failed to get AGENTS.md from feature branch: %v", err)
 		}
 
-		// Verify metadata - should have description extracted from content
-		if metadata.Name != "" {
-			t.Errorf("Expected empty name, got '%s'", metadata.Name)
+		if !strings.Contains(featureContent.Content, "Feature-specific instructions") {
+			t.Errorf("Expected feature branch content, got: %s", featureContent.Content)
 		}
-		if metadata.Description == "" {
-			t.Errorf("Expected non-empty description extracted from content")
+
+		// Get content from main branch
+		mainContent, err := repo.GetAgentsContent("main")
+		if err != nil {
+			t.Fatalf("Failed to get AGENTS.md from main: %v", err)
 		}
-		if !strings.Contains(metadata.Description, "simple agent") {
-			t.Errorf("Description should contain 'simple agent', got: '%s'", metadata.Description)
+
+		if !strings.Contains(mainContent.Content, "Dev environment tips") {
+			t.Errorf("Expected main branch content, got: %s", mainContent.Content)
 		}
 	})
 
-	t.Run("AgentFileWithInvalidYAML", func(t *testing.T) {
+	t.Run("EmptyAgentsFile", func(t *testing.T) {
 		// Create a new branch for this test
-		runGitCommand(t, workDir, "checkout", "-b", "invalid-yaml")
+		runGitCommand(t, workDir, "checkout", "-b", "empty-agents")
 
-		// Create agent.md with invalid YAML frontmatter
-		agentContent := `---
-name: "Test Agent
-this is invalid yaml: [unclosed
----
-
-# Content after invalid YAML
-
-This should still work, just without the frontmatter data.
-`
-		agentPath := filepath.Join(workDir, "agent.md")
-		if err := os.WriteFile(agentPath, []byte(agentContent), 0644); err != nil {
-			t.Fatalf("Failed to create agent.md: %v", err)
+		// Create empty AGENTS.md
+		agentsPath := filepath.Join(workDir, "AGENTS.md")
+		if err := os.WriteFile(agentsPath, []byte(""), 0644); err != nil {
+			t.Fatalf("Failed to create AGENTS.md: %v", err)
 		}
-		runGitCommand(t, workDir, "add", "agent.md")
-		runGitCommand(t, workDir, "commit", "-m", "Add agent.md with invalid YAML")
-		runGitCommand(t, workDir, "push", "origin", "invalid-yaml")
+		runGitCommand(t, workDir, "add", "AGENTS.md")
+		runGitCommand(t, workDir, "commit", "-m", "Add empty AGENTS.md")
+		runGitCommand(t, workDir, "push", "origin", "empty-agents")
 
 		// Open repository
 		repo, err := repository.Open(repoPath)
@@ -207,70 +180,39 @@ This should still work, just without the frontmatter data.
 			t.Fatalf("Failed to open repository: %v", err)
 		}
 
-		// Get agent metadata - should not fail even with invalid YAML
-		metadata, err := repo.GetAgentMetadata("invalid-yaml")
-		if err != nil {
-			t.Fatalf("Should handle invalid YAML gracefully, got error: %v", err)
-		}
-
-		// Should have some content even if YAML parsing failed
-		if metadata == nil {
-			t.Error("Expected metadata to be non-nil")
-		}
-	})
-
-	t.Run("EmptyAgentFile", func(t *testing.T) {
-		// Create a new branch for this test
-		runGitCommand(t, workDir, "checkout", "-b", "empty-agent")
-
-		// Create empty agent.md
-		agentPath := filepath.Join(workDir, "agent.md")
-		if err := os.WriteFile(agentPath, []byte(""), 0644); err != nil {
-			t.Fatalf("Failed to create agent.md: %v", err)
-		}
-		runGitCommand(t, workDir, "add", "agent.md")
-		runGitCommand(t, workDir, "commit", "-m", "Add empty agent.md")
-		runGitCommand(t, workDir, "push", "origin", "empty-agent")
-
-		// Open repository
-		repo, err := repository.Open(repoPath)
-		if err != nil {
-			t.Fatalf("Failed to open repository: %v", err)
-		}
-
-		// Get agent metadata - should work with empty file
-		metadata, err := repo.GetAgentMetadata("empty-agent")
+		// Get AGENTS.md content - should work with empty file
+		content, err := repo.GetAgentsContent("empty-agents")
 		if err != nil {
 			t.Fatalf("Should handle empty file gracefully, got error: %v", err)
 		}
 
-		if metadata == nil {
-			t.Error("Expected metadata to be non-nil")
+		if content.Content != "" {
+			t.Errorf("Expected empty content, got: %s", content.Content)
 		}
 	})
 
-	t.Run("HasAgentMetadata", func(t *testing.T) {
+	t.Run("HasAgentsFile", func(t *testing.T) {
 		// Open repository
 		repo, err := repository.Open(repoPath)
 		if err != nil {
 			t.Fatalf("Failed to open repository: %v", err)
 		}
 
-		// Check main branch (has agent.md)
-		if !repo.HasAgentMetadata("main") {
-			t.Error("Expected main branch to have agent metadata")
+		// Check main branch (has AGENTS.md)
+		if !repo.HasAgentsFile("main") {
+			t.Error("Expected main branch to have AGENTS.md")
 		}
 
-		// Create a branch without agent.md
+		// Create a branch without AGENTS.md
 		runGitCommand(t, workDir, "checkout", "main")
-		runGitCommand(t, workDir, "checkout", "-b", "no-agent")
-		runGitCommand(t, workDir, "rm", "agent.md")
-		runGitCommand(t, workDir, "commit", "-m", "Remove agent.md")
-		runGitCommand(t, workDir, "push", "origin", "no-agent")
+		runGitCommand(t, workDir, "checkout", "-b", "no-agents")
+		runGitCommand(t, workDir, "rm", "AGENTS.md")
+		runGitCommand(t, workDir, "commit", "-m", "Remove AGENTS.md")
+		runGitCommand(t, workDir, "push", "origin", "no-agents")
 
-		// Check no-agent branch (no agent.md)
-		if repo.HasAgentMetadata("no-agent") {
-			t.Error("Expected no-agent branch to not have agent metadata")
+		// Check no-agents branch (no AGENTS.md)
+		if repo.HasAgentsFile("no-agents") {
+			t.Error("Expected no-agents branch to not have AGENTS.md")
 		}
 	})
 }

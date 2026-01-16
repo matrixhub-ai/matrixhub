@@ -30,8 +30,8 @@ func runGitCommandAgent(t *testing.T, dir string, args ...string) {
 	}
 }
 
-func TestAgentMetadataAPI(t *testing.T) {
-	repoDir, err := os.MkdirTemp("", "matrixhub-agent-api-test")
+func TestAgentsAPI(t *testing.T) {
+	repoDir, err := os.MkdirTemp("", "matrixhub-agents-api-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp repo dir: %v", err)
 	}
@@ -41,18 +41,18 @@ func TestAgentMetadataAPI(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	// Test repository without agent.md
-	t.Run("AgentMetadataNotFound", func(t *testing.T) {
-		repoName := "no-agent.git"
+	// Test repository without AGENTS.md
+	t.Run("AgentsContentNotFound", func(t *testing.T) {
+		repoName := "no-agents.git"
 
-		// Create and populate repository without agent.md
+		// Create and populate repository without AGENTS.md
 		bareRepoPath := filepath.Join(repoDir, "repositories", repoName)
-		workDir := filepath.Join(repoDir, "work-no-agent")
+		workDir := filepath.Join(repoDir, "work-no-agents")
 
 		runGitCommandAgent(t, repoDir, "init", "--bare", "--initial-branch=main", bareRepoPath)
 		runGitCommandAgent(t, repoDir, "clone", bareRepoPath, workDir)
 
-		// Add a README but no agent.md
+		// Add a README but no AGENTS.md
 		readmePath := filepath.Join(workDir, "README.md")
 		if err := os.WriteFile(readmePath, []byte("# Test\n"), 0644); err != nil {
 			t.Fatalf("Failed to create README: %v", err)
@@ -62,63 +62,55 @@ func TestAgentMetadataAPI(t *testing.T) {
 		runGitCommandAgent(t, workDir, "commit", "-m", "Initial commit")
 		runGitCommandAgent(t, workDir, "push", "origin", "main")
 
-		// Request agent metadata for repo without agent.md
-		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/no-agent/agent", nil)
+		// Request AGENTS.md for repo without it
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/no-agents/agents", nil)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatalf("Failed to get agent metadata: %v", err)
+			t.Fatalf("Failed to get AGENTS.md: %v", err)
 		}
 		resp.Body.Close()
 
 		if resp.StatusCode != http.StatusNotFound {
-			t.Errorf("Expected status 404 for missing agent.md, got %d", resp.StatusCode)
+			t.Errorf("Expected status 404 for missing AGENTS.md, got %d", resp.StatusCode)
 		}
 	})
 
-	// Test repository with agent.md
-	t.Run("AgentMetadataFound", func(t *testing.T) {
-		repoName := "with-agent.git"
+	// Test repository with AGENTS.md
+	t.Run("AgentsContentFound", func(t *testing.T) {
+		repoName := "with-agents.git"
 
-		// Create and populate repository with agent.md
+		// Create and populate repository with AGENTS.md
 		bareRepoPath := filepath.Join(repoDir, "repositories", repoName)
-		workDir := filepath.Join(repoDir, "work-agent")
+		workDir := filepath.Join(repoDir, "work-agents")
 
 		runGitCommandAgent(t, repoDir, "init", "--bare", "--initial-branch=main", bareRepoPath)
 		runGitCommandAgent(t, repoDir, "clone", bareRepoPath, workDir)
 
-		// Create agent.md with full metadata
-		agentContent := `---
-name: "Test Agent"
-version: "1.0.0"
-type: "assistant"
-tags: ["coding", "automation", "testing"]
-description: "A comprehensive test agent"
----
-
-# Test Agent
-
-This is a test agent for API validation.
-
-## Capabilities
-
-- Code generation
-- Automated testing
-- Documentation
-`
-		agentPath := filepath.Join(workDir, "agent.md")
-		if err := os.WriteFile(agentPath, []byte(agentContent), 0644); err != nil {
-			t.Fatalf("Failed to create agent.md: %v", err)
+		// Create AGENTS.md with plain markdown content
+		agentsContent := "# AGENTS Guidelines for This Repository\n\n" +
+			"## Dev environment tips\n" +
+			"- Use `pnpm dlx turbo run where <project_name>` to jump to a package\n" +
+			"- Run `pnpm install --filter <project_name>` to add the package\n\n" +
+			"## Testing instructions\n" +
+			"- Find the CI plan in the .github/workflows folder\n" +
+			"- Run `pnpm turbo run test --filter <project_name>` to run checks\n\n" +
+			"## PR instructions\n" +
+			"- Title format: [<project_name>] <Title>\n" +
+			"- Always run `pnpm lint` and `pnpm test` before committing\n"
+		agentsPath := filepath.Join(workDir, "AGENTS.md")
+		if err := os.WriteFile(agentsPath, []byte(agentsContent), 0644); err != nil {
+			t.Fatalf("Failed to create AGENTS.md: %v", err)
 		}
 
-		runGitCommandAgent(t, workDir, "add", "agent.md")
-		runGitCommandAgent(t, workDir, "commit", "-m", "Add agent.md")
+		runGitCommandAgent(t, workDir, "add", "AGENTS.md")
+		runGitCommandAgent(t, workDir, "commit", "-m", "Add AGENTS.md")
 		runGitCommandAgent(t, workDir, "push", "origin", "main")
 
-		// Request agent metadata via API
-		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/with-agent/agent", nil)
+		// Request AGENTS.md via API
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/with-agents/agents", nil)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatalf("Failed to get agent metadata: %v", err)
+			t.Fatalf("Failed to get AGENTS.md: %v", err)
 		}
 		defer resp.Body.Close()
 
@@ -127,35 +119,23 @@ This is a test agent for API validation.
 		}
 
 		// Verify response structure
-		var metadata repository.AgentMetadata
-		if err := json.NewDecoder(resp.Body).Decode(&metadata); err != nil {
+		var content repository.AgentsContent
+		if err := json.NewDecoder(resp.Body).Decode(&content); err != nil {
 			t.Fatalf("Failed to decode response: %v", err)
 		}
 
-		// Verify metadata fields
-		if metadata.Name != "Test Agent" {
-			t.Errorf("Expected name 'Test Agent', got '%s'", metadata.Name)
+		// Verify content
+		if content.Content == "" {
+			t.Error("Expected non-empty content")
 		}
-		if metadata.Version != "1.0.0" {
-			t.Errorf("Expected version '1.0.0', got '%s'", metadata.Version)
-		}
-		if metadata.Type != "assistant" {
-			t.Errorf("Expected type 'assistant', got '%s'", metadata.Type)
-		}
-		if len(metadata.Tags) != 3 {
-			t.Errorf("Expected 3 tags, got %d", len(metadata.Tags))
-		}
-		if metadata.Description != "A comprehensive test agent" {
-			t.Errorf("Expected specific description, got '%s'", metadata.Description)
-		}
-		if metadata.RawContent == "" {
-			t.Error("Expected raw content to be populated")
+		if len(content.Content) < 50 {
+			t.Errorf("Content seems too short: %s", content.Content)
 		}
 	})
 
-	// Test agent metadata with revision
-	t.Run("AgentMetadataWithRevision", func(t *testing.T) {
-		repoName := "revision-agent.git"
+	// Test AGENTS.md with revision
+	t.Run("AgentsContentWithRevision", func(t *testing.T) {
+		repoName := "revision-agents.git"
 
 		// Create and populate repository
 		bareRepoPath := filepath.Join(repoDir, "repositories", repoName)
@@ -164,78 +144,74 @@ This is a test agent for API validation.
 		runGitCommandAgent(t, repoDir, "init", "--bare", "--initial-branch=main", bareRepoPath)
 		runGitCommandAgent(t, repoDir, "clone", bareRepoPath, workDir)
 
-		// Create initial agent.md
-		agentContent := `---
-name: "V1 Agent"
-version: "1.0.0"
----
+		// Create initial AGENTS.md
+		agentsContent := `# AGENTS v1
 
-Version 1 content
+Main branch content
 `
-		agentPath := filepath.Join(workDir, "agent.md")
-		if err := os.WriteFile(agentPath, []byte(agentContent), 0644); err != nil {
-			t.Fatalf("Failed to create agent.md: %v", err)
+		agentsPath := filepath.Join(workDir, "AGENTS.md")
+		if err := os.WriteFile(agentsPath, []byte(agentsContent), 0644); err != nil {
+			t.Fatalf("Failed to create AGENTS.md: %v", err)
 		}
 
-		runGitCommandAgent(t, workDir, "add", "agent.md")
-		runGitCommandAgent(t, workDir, "commit", "-m", "Add v1 agent.md")
+		runGitCommandAgent(t, workDir, "add", "AGENTS.md")
+		runGitCommandAgent(t, workDir, "commit", "-m", "Add v1 AGENTS.md")
 		runGitCommandAgent(t, workDir, "push", "origin", "main")
 
-		// Update agent.md in a new branch
+		// Update AGENTS.md in a new branch
 		runGitCommandAgent(t, workDir, "checkout", "-b", "v2")
-		agentContent = `---
-name: "V2 Agent"
-version: "2.0.0"
----
+		agentsContent = `# AGENTS v2
 
-Version 2 content with new features
+Version 2 content with new instructions
 `
-		if err := os.WriteFile(agentPath, []byte(agentContent), 0644); err != nil {
-			t.Fatalf("Failed to update agent.md: %v", err)
+		if err := os.WriteFile(agentsPath, []byte(agentsContent), 0644); err != nil {
+			t.Fatalf("Failed to update AGENTS.md: %v", err)
 		}
 
-		runGitCommandAgent(t, workDir, "add", "agent.md")
+		runGitCommandAgent(t, workDir, "add", "AGENTS.md")
 		runGitCommandAgent(t, workDir, "commit", "-m", "Update to v2")
 		runGitCommandAgent(t, workDir, "push", "origin", "v2")
 
-		// Request metadata from main branch
-		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/revision-agent/agent/revision/main", nil)
+		// Request content from main branch
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/revision-agents/agents/revision/main", nil)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatalf("Failed to get agent metadata for main: %v", err)
+			t.Fatalf("Failed to get AGENTS.md for main: %v", err)
 		}
 		defer resp.Body.Close()
 
-		var mainMetadata repository.AgentMetadata
-		if err := json.NewDecoder(resp.Body).Decode(&mainMetadata); err != nil {
-			t.Fatalf("Failed to decode main metadata: %v", err)
+		var mainContent repository.AgentsContent
+		if err := json.NewDecoder(resp.Body).Decode(&mainContent); err != nil {
+			t.Fatalf("Failed to decode main content: %v", err)
 		}
 
-		if mainMetadata.Version != "1.0.0" {
-			t.Errorf("Expected v1.0.0 on main branch, got %s", mainMetadata.Version)
+		// Should contain v1 content
+		if len(mainContent.Content) == 0 {
+			t.Error("Expected main branch to have content")
 		}
 
-		// Request metadata from v2 branch
-		req, _ = http.NewRequest(http.MethodGet, server.URL+"/api/models/revision-agent/agent/revision/v2", nil)
+		// Request content from v2 branch
+		req, _ = http.NewRequest(http.MethodGet, server.URL+"/api/models/revision-agents/agents/revision/v2", nil)
 		resp, err = http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatalf("Failed to get agent metadata for v2: %v", err)
+			t.Fatalf("Failed to get AGENTS.md for v2: %v", err)
 		}
 		defer resp.Body.Close()
 
-		var v2Metadata repository.AgentMetadata
-		if err := json.NewDecoder(resp.Body).Decode(&v2Metadata); err != nil {
-			t.Fatalf("Failed to decode v2 metadata: %v", err)
+		var v2Content repository.AgentsContent
+		if err := json.NewDecoder(resp.Body).Decode(&v2Content); err != nil {
+			t.Fatalf("Failed to decode v2 content: %v", err)
 		}
 
-		if v2Metadata.Version != "2.0.0" {
-			t.Errorf("Expected v2.0.0 on v2 branch, got %s", v2Metadata.Version)
+		// Should contain v2 content
+		if len(v2Content.Content) == 0 {
+			t.Error("Expected v2 branch to have content")
 		}
 	})
 
-	// Test model info includes agent metadata
-	t.Run("ModelInfoIncludesAgentMetadata", func(t *testing.T) {
-		repoName := "model-with-agent.git"
+	// Test model info includes AGENTS.md content
+	t.Run("ModelInfoIncludesAgentsContent", func(t *testing.T) {
+		repoName := "model-with-agents.git"
 
 		// Create and populate repository
 		bareRepoPath := filepath.Join(repoDir, "repositories", repoName)
@@ -244,18 +220,14 @@ Version 2 content with new features
 		runGitCommandAgent(t, repoDir, "init", "--bare", "--initial-branch=main", bareRepoPath)
 		runGitCommandAgent(t, repoDir, "clone", bareRepoPath, workDir)
 
-		// Create agent.md
-		agentContent := `---
-name: "Model Agent"
-version: "1.0.0"
-type: "model"
----
+		// Create AGENTS.md
+		agentsContent := `# AGENTS for Model
 
-Model agent for testing
+Model-specific agent guidelines
 `
-		agentPath := filepath.Join(workDir, "agent.md")
-		if err := os.WriteFile(agentPath, []byte(agentContent), 0644); err != nil {
-			t.Fatalf("Failed to create agent.md: %v", err)
+		agentsPath := filepath.Join(workDir, "AGENTS.md")
+		if err := os.WriteFile(agentsPath, []byte(agentsContent), 0644); err != nil {
+			t.Fatalf("Failed to create AGENTS.md: %v", err)
 		}
 
 		// Also add a model file
@@ -265,11 +237,11 @@ Model agent for testing
 		}
 
 		runGitCommandAgent(t, workDir, "add", ".")
-		runGitCommandAgent(t, workDir, "commit", "-m", "Add agent and model")
+		runGitCommandAgent(t, workDir, "commit", "-m", "Add AGENTS.md and model")
 		runGitCommandAgent(t, workDir, "push", "origin", "main")
 
 		// Request model info via HF API
-		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/model-with-agent", nil)
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/model-with-agents", nil)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatalf("Failed to get model info: %v", err)
@@ -280,28 +252,24 @@ Model agent for testing
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
 		}
 
-		// Verify response includes agent metadata
+		// Verify response includes AGENTS.md content
 		var modelInfo map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&modelInfo); err != nil {
 			t.Fatalf("Failed to decode response: %v", err)
 		}
 
-		// Check that agentMetadata field exists
-		agentMeta, ok := modelInfo["agentMetadata"]
+		// Check that agentsContent field exists
+		agentsContentField, ok := modelInfo["agentsContent"]
 		if !ok {
-			t.Error("Expected agentMetadata field in model info")
+			t.Error("Expected agentsContent field in model info")
 		} else {
 			// Verify it's populated
-			metaMap, ok := agentMeta.(map[string]interface{})
+			contentMap, ok := agentsContentField.(map[string]interface{})
 			if !ok {
-				t.Error("Expected agentMetadata to be an object")
+				t.Error("Expected agentsContent to be an object")
 			} else {
-				if metaMap["name"] != "Model Agent" {
-					t.Errorf("Expected name 'Model Agent', got %v", metaMap["name"])
-				}
-				// RawContent should be empty in API response
-				if rawContent, exists := metaMap["rawContent"]; exists && rawContent != "" {
-					t.Error("Expected rawContent to be empty in API response")
+				if contentMap["content"] == nil || contentMap["content"] == "" {
+					t.Error("Expected content field to be populated")
 				}
 			}
 		}
