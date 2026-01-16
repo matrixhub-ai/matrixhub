@@ -37,20 +37,20 @@ func (h *Handler) registryHuggingFace(r *mux.Router) {
 
 // HFModelInfo represents the model info response for HuggingFace API
 type HFModelInfo struct {
-	ID             string                      `json:"id"`
-	ModelID        string                      `json:"modelId"`
-	SHA            string                      `json:"sha,omitempty"`
-	Private        bool                        `json:"private"`
-	Disabled       bool                        `json:"disabled"`
-	Gated          bool                        `json:"gated"`
-	Downloads      int                         `json:"downloads"`
-	Likes          int                         `json:"likes"`
-	Tags           []string                    `json:"tags"`
-	Siblings       []HFSibling                 `json:"siblings"`
-	CreatedAt      string                      `json:"createdAt,omitempty"`
-	LastModified   string                      `json:"lastModified,omitempty"`
-	DefaultBranch  string                      `json:"defaultBranch,omitempty"`
-	AgentsContent  *repository.AgentsContent   `json:"agentsContent,omitempty"`
+	ID            string                    `json:"id"`
+	ModelID       string                    `json:"modelId"`
+	SHA           string                    `json:"sha,omitempty"`
+	Private       bool                      `json:"private"`
+	Disabled      bool                      `json:"disabled"`
+	Gated         bool                      `json:"gated"`
+	Downloads     int                       `json:"downloads"`
+	Likes         int                       `json:"likes"`
+	Tags          []string                  `json:"tags"`
+	Siblings      []HFSibling               `json:"siblings"`
+	CreatedAt     string                    `json:"createdAt,omitempty"`
+	LastModified  string                    `json:"lastModified,omitempty"`
+	DefaultBranch string                    `json:"defaultBranch,omitempty"`
+	AgentsContent *repository.AgentsContent `json:"agentsContent,omitempty"`
 }
 
 // HFSibling represents a file in the model repository
