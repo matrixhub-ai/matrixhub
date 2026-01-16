@@ -21,12 +21,17 @@ func (h *Handler) registryHuggingFace(r *mux.Router) {
 	// Model info endpoint with revision - used by huggingface_hub for snapshot_download
 	r.HandleFunc("/api/models/{repo:.+}/revision/{revision}", h.handleHFModelInfoRevision).Methods(http.MethodGet)
 
+	// /api/models/{repo:.+}/tree/{branch}/{path:.*}
+	r.HandleFunc("/api/models/{repo:.+}/tree/{branch}/{path:.*}", h.handleHFTree).Methods(http.MethodGet)
+	r.HandleFunc("/api/models/{repo:.+}/tree/{branch}", h.handleHFTree).Methods(http.MethodGet)
+
 	// Model info endpoint - used by huggingface_hub to get model metadata
 	r.HandleFunc("/api/models/{repo:.+}", h.handleHFModelInfo).Methods(http.MethodGet)
 
 	// File download endpoint - used by huggingface_hub to download files
 	// Pattern: /{repo_id}/resolve/{revision}/{path}
 	r.HandleFunc("/{repo:.+}/resolve/{revision}/{path:.*}", h.handleHFResolve).Methods(http.MethodGet, http.MethodHead)
+
 }
 
 // HFModelInfo represents the model info response for HuggingFace API
@@ -120,6 +125,45 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(modelInfo)
+}
+
+func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	repoID := vars["repo"]
+	branch := vars["branch"]
+	path := vars["path"]
+
+	// TODO: support recursive and expand query parameters
+	// query := r.URL.Query()
+	// recursive, _ := strconv.ParseBool(query.Get("recursive"))
+	// expand, _ := strconv.ParseBool(query.Get("expand"))
+
+	repoName := repoID + ".git"
+
+	repoPath := h.resolveRepoPath(repoName)
+	if repoPath == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	repo, err := repository.Open(repoPath)
+	if err != nil {
+		if errors.Is(err, repository.ErrRepositoryNotExists) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		return
+	}
+
+	entries, err := repo.HFTree(branch, path)
+	if err != nil {
+		http.Error(w, "Failed to get tree", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(entries)
 }
 
 // handleHFModelInfoRevision handles the /api/models/{repo_id}/revision/{revision} endpoint
