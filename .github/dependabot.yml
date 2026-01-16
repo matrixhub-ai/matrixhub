@@ -1,0 +1,90 @@
+version: 2
+updates:
+
+  # Maintain dependencies for go in root
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      kubernetes:
+        patterns:
+          - "k8s.io/*"
+    ignore:
+      # Ignore major and minor versions for kubernetes dependencies
+      # Allow patches and security updates.
+      - dependency-name: k8s.io/*
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  # Maintain dependencies for go tools
+  - package-ecosystem: "gomod"
+    directory: "/hack/internal/tools"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      kubernetes:
+        patterns:
+          - "k8s.io/*"
+    ignore:
+      # Ignore major and minor versions for kubernetes dependencies
+      # Allow patches and security updates.
+      - dependency-name: k8s.io/*
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  # Maintain npm dependencies for web
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      all:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Maintain npm dependencies for website
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      all:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Maintain GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "automated"
+    open-pull-requests-limit: 10
+    groups:
+      all:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Maintain Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "automated"
