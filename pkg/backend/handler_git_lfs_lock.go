@@ -1,21 +1,36 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/lfs"
 )
 
 var (
-	ErrNotOwner = errors.New("Attempt to delete other user's lock")
+	ErrNotOwner = errors.New("attempt to delete other user's lock")
 )
 
 func (h *Handler) registryLFSLock(r *mux.Router) {
@@ -50,7 +65,7 @@ func (h *Handler) handleGetLock(w http.ResponseWriter, r *http.Request) {
 		ll.NextCursor = nextCursor
 	}
 
-	enc.Encode(ll)
+	_ = enc.Encode(ll)
 
 }
 
@@ -67,7 +82,7 @@ func (h *Handler) handleLocksVerify(w http.ResponseWriter, r *http.Request) {
 	reqBody := &lfs.VerifiableLockRequest{}
 	if err := dec.Decode(reqBody); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		enc.Encode(&lfs.VerifiableLockList{Message: err.Error()})
+		_ = enc.Encode(&lfs.VerifiableLockList{Message: err.Error()})
 		return
 	}
 
@@ -95,7 +110,7 @@ func (h *Handler) handleLocksVerify(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	enc.Encode(ll)
+	_ = enc.Encode(ll)
 
 }
 
@@ -112,19 +127,19 @@ func (h *Handler) handleCreateLock(w http.ResponseWriter, r *http.Request) {
 	var lockRequest lfs.LockRequest
 	if err := dec.Decode(&lockRequest); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		enc.Encode(&lfs.LockResponse{Message: err.Error()})
+		_ = enc.Encode(&lfs.LockResponse{Message: err.Error()})
 		return
 	}
 
 	locks, _, err := h.locksStore.Filtered(repo, lockRequest.Path, "", "1")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(&lfs.LockResponse{Message: err.Error()})
+		_ = enc.Encode(&lfs.LockResponse{Message: err.Error()})
 		return
 	}
 	if len(locks) > 0 {
 		w.WriteHeader(http.StatusConflict)
-		enc.Encode(&lfs.LockResponse{Message: "lock already created"})
+		_ = enc.Encode(&lfs.LockResponse{Message: "lock already created"})
 		return
 	}
 
@@ -137,12 +152,12 @@ func (h *Handler) handleCreateLock(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.locksStore.Add(repo, *lock); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(&lfs.LockResponse{Message: err.Error()})
+		_ = enc.Encode(&lfs.LockResponse{Message: err.Error()})
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	enc.Encode(&lfs.LockResponse{
+	_ = enc.Encode(&lfs.LockResponse{
 		Lock: lock,
 	})
 
@@ -163,13 +178,13 @@ func (h *Handler) handleDeleteLock(w http.ResponseWriter, r *http.Request) {
 
 	if len(lockId) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		enc.Encode(&lfs.UnlockResponse{Message: "invalid lock id"})
+		_ = enc.Encode(&lfs.UnlockResponse{Message: "invalid lock id"})
 		return
 	}
 
 	if err := dec.Decode(&unlockRequest); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		enc.Encode(&lfs.UnlockResponse{Message: err.Error()})
+		_ = enc.Encode(&lfs.UnlockResponse{Message: err.Error()})
 		return
 	}
 
@@ -180,23 +195,23 @@ func (h *Handler) handleDeleteLock(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-		enc.Encode(&lfs.UnlockResponse{Message: err.Error()})
+		_ = enc.Encode(&lfs.UnlockResponse{Message: err.Error()})
 		return
 	}
 	if l == nil {
 		w.WriteHeader(http.StatusNotFound)
-		enc.Encode(&lfs.UnlockResponse{Message: "unable to find lock"})
+		_ = enc.Encode(&lfs.UnlockResponse{Message: "unable to find lock"})
 		return
 	}
 
-	enc.Encode(&lfs.UnlockResponse{Lock: l})
+	_ = enc.Encode(&lfs.UnlockResponse{Lock: l})
 
 }
 
 func randomLockId() string {
 	var id [20]byte
-	rand.Read(id[:])
-	return fmt.Sprintf("%x", id[:])
+	_, _ = rand.Read(id[:])
+	return hex.EncodeToString(id[:])
 }
 
 func getUserFromRequest(r *http.Request) string {

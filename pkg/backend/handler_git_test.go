@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend_test
 
 import (
@@ -11,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/handlers"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/backend"
 )
 
@@ -21,14 +36,18 @@ func TestGitServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp repo dir: %v", err)
 	}
-	defer os.RemoveAll(repoDir)
+	defer func() {
+		_ = os.RemoveAll(repoDir)
+	}()
 
 	// Create a temporary directory for client operations
 	clientDir, err := os.MkdirTemp("", "matrixhub-test-client")
 	if err != nil {
 		t.Fatalf("Failed to create temp client dir: %v", err)
 	}
-	defer os.RemoveAll(clientDir)
+	defer func() {
+		_ = os.RemoveAll(clientDir)
+	}()
 
 	// Create handler and test server
 	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
@@ -48,7 +67,9 @@ func TestGitServer(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Expected status 201, got %d", resp.StatusCode)
@@ -99,15 +120,15 @@ func TestGitServer(t *testing.T) {
 		cmd := exec.Command("git", "push", "-u", "origin", "master")
 		cmd.Dir = workDir
 		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
+		_, err := cmd.CombinedOutput()
 		// Try main branch if master fails
 		if err != nil {
 			cmd = exec.Command("git", "push", "-u", "origin", "main")
 			cmd.Dir = workDir
 			cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-			output, err = cmd.CombinedOutput()
+			_, err = cmd.CombinedOutput()
 			if err != nil {
-				t.Fatalf("Failed to push to repository: %v\nOutput: %s", err, output)
+				t.Fatalf("Failed to push to repository: %v", err)
 			}
 		}
 	})
@@ -210,7 +231,9 @@ func TestGitServer(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusNoContent {
 			t.Errorf("Expected status 204, got %d", resp.StatusCode)
@@ -230,7 +253,9 @@ func TestInfoRefs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp repo dir: %v", err)
 	}
-	defer os.RemoveAll(repoDir)
+	defer func() {
+		_ = os.RemoveAll(repoDir)
+	}()
 
 	// Create a bare repository
 	repoName := "test.git"
@@ -249,7 +274,9 @@ func TestInfoRefs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get info/refs: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -261,7 +288,10 @@ func TestInfoRefs(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		buf.ReadFrom(resp.Body)
+		_, err = buf.ReadFrom(resp.Body)
+		if err != nil {
+			t.Fatalf("Failed to read response body: %v", err)
+		}
 		body := buf.String()
 
 		if !strings.Contains(body, "# service=git-upload-pack") {
@@ -274,7 +304,9 @@ func TestInfoRefs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get info/refs: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -291,7 +323,9 @@ func TestInfoRefs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get info/refs: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Errorf("Expected status 400, got %d", resp.StatusCode)
@@ -303,7 +337,9 @@ func TestInfoRefs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get info/refs: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusForbidden {
 			t.Errorf("Expected status 403, got %d", resp.StatusCode)
@@ -315,7 +351,9 @@ func TestInfoRefs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get info/refs: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusNotFound {
 			t.Errorf("Expected status 404, got %d", resp.StatusCode)

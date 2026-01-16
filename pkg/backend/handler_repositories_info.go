@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
@@ -11,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/lfs"
 	"github.com/matrixhub-ai/matrixhub/pkg/repository"
 )
@@ -105,7 +120,7 @@ func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(entries)
+			_ = json.NewEncoder(w).Encode(entries)
 			return
 		}
 		http.Error(w, "Failed to get tree", http.StatusInternalServerError)
@@ -113,7 +128,7 @@ func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(entries)
+	_ = json.NewEncoder(w).Encode(entries)
 }
 
 // handleBlob handles requests to get file content
@@ -159,7 +174,9 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 	if blob.Size() <= lfs.MaxLFSPointerSize {
 		reader, err := blob.NewReader()
 		if err == nil {
-			defer reader.Close()
+			defer func() {
+				_ = reader.Close()
+			}()
 			ptr, err := lfs.DecodePointer(reader)
 			if err == nil && ptr != nil {
 				content, stat, err := h.contentStore.Get(ptr.Oid)
@@ -168,7 +185,9 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 					http.NotFound(w, r)
 					return
 				}
-				defer content.Close()
+				defer func() {
+					_ = content.Close()
+				}()
 
 				http.ServeContent(w, r, ptr.Oid, stat.ModTime(), content)
 				return
@@ -189,7 +208,9 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get blob reader", http.StatusInternalServerError)
 		return
 	}
-	defer reader.Close()
+	defer func() {
+		_ = reader.Close()
+	}()
 	_, err = io.Copy(w, reader)
 	if err != nil {
 		http.Error(w, "Failed to read blob content", http.StatusInternalServerError)
@@ -235,7 +256,7 @@ func (h *Handler) handleCommits(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(commits)
+			_ = json.NewEncoder(w).Encode(commits)
 			return
 		}
 		http.Error(w, "Failed to get commits", http.StatusInternalServerError)
@@ -243,7 +264,7 @@ func (h *Handler) handleCommits(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(commits)
+	_ = json.NewEncoder(w).Encode(commits)
 }
 
 // Branch represents a git branch
@@ -283,5 +304,5 @@ func (h *Handler) handleBranches(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(branchList)
+	_ = json.NewEncoder(w).Encode(branchList)
 }

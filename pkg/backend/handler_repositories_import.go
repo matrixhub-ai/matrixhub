@@ -1,13 +1,27 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"github.com/matrixhub-ai/matrixhub/internal/utils"
 	"github.com/matrixhub-ai/matrixhub/pkg/queue"
 	"github.com/matrixhub-ai/matrixhub/pkg/repository"
@@ -89,7 +103,7 @@ func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]any{
 		"status":  "accepted",
 		"message": "Import queued",
 		"task_id": taskID,
@@ -143,7 +157,7 @@ func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]any{
 		"status":  "accepted",
 		"message": "Sync queued",
 		"task_id": taskID,
@@ -167,7 +181,7 @@ func (h *Handler) getRemoteDefaultBranch(ctx context.Context, sourceURL string) 
 			remaining := line[5:]
 			// Find the end of the ref (before whitespace/tab)
 			refEnd := len(remaining)
-			for i := 0; i < len(remaining); i++ {
+			for i := range len(remaining) {
 				if remaining[i] == ' ' || remaining[i] == '\t' {
 					refEnd = i
 					break
@@ -181,14 +195,14 @@ func (h *Handler) getRemoteDefaultBranch(ctx context.Context, sourceURL string) 
 		}
 	}
 
-	return "", fmt.Errorf("could not determine default branch")
+	return "", errors.New("could not determine default branch")
 }
 
 // splitLines splits a string into lines
 func splitLines(s string) []string {
 	var lines []string
 	start := 0
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		if s[i] == '\n' {
 			lines = append(lines, s[start:i])
 			start = i + 1
@@ -224,7 +238,7 @@ func (h *Handler) handleImportStatus(w http.ResponseWriter, r *http.Request) {
 
 	// Return the most recent task status
 	task := tasks[0]
-	response := map[string]interface{}{
+	response := map[string]any{
 		"status":   task.Status,
 		"progress": task.Progress,
 		"step":     task.ProgressMsg,
@@ -235,7 +249,7 @@ func (h *Handler) handleImportStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // handleMirrorInfo returns information about a mirror repository.
@@ -265,11 +279,11 @@ func (h *Handler) handleMirrorInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := map[string]interface{}{
+	response := map[string]any{
 		"is_mirror":  isMirror,
 		"source_url": sourceURL,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }

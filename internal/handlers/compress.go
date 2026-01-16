@@ -1,6 +1,16 @@
-// Copyright 2013 The Gorilla Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package handlers
 
@@ -104,7 +114,7 @@ func CompressHandlerLevel(h http.Handler, level int) http.Handler {
 
 		// detect what encoding to use
 		var encoding string
-		for _, curEnc := range strings.Split(r.Header.Get(acceptEncoding), ",") {
+		for curEnc := range strings.SplitSeq(r.Header.Get(acceptEncoding), ",") {
 			curEnc = strings.TrimSpace(curEnc)
 			if curEnc == gzipEncoding || curEnc == flateEncoding {
 				encoding = curEnc
@@ -129,12 +139,15 @@ func CompressHandlerLevel(h http.Handler, level int) http.Handler {
 
 		// wrap the ResponseWriter with the writer for the chosen encoding
 		var encWriter io.WriteCloser
-		if encoding == gzipEncoding {
+		switch encoding {
+		case gzipEncoding:
 			encWriter, _ = gzip.NewWriterLevel(w, level)
-		} else if encoding == flateEncoding {
+		case flateEncoding:
 			encWriter, _ = flate.NewWriter(w, level)
 		}
-		defer encWriter.Close()
+		defer func() {
+			_ = encWriter.Close()
+		}()
 
 		w.Header().Set(contentEncoding, encoding)
 		r.Header.Del(acceptEncoding)

@@ -132,22 +132,13 @@ gomod-download:
 	$(GO_CMD) mod download
 
 
-
 .PHONY: vet
 vet: ## Run go vet against code.
 	$(GO_CMD) vet ./...
 
-.PHONY: ci-lint
-ci-lint: golangci-lint
-	find . -path ./site -prune -false -o -name go.mod -exec dirname {} \; | xargs -I {} sh -c 'cd "{}" && $(GOLANGCI_LINT) run $(GOLANGCI_LINT_FIX) --timeout 15m0s --config "$(PROJECT_DIR)/.golangci.yaml"'
-
 .PHONY: lint-fix
-lint-fix: GOLANGCI_LINT_FIX=--fix
-lint-fix: ci-lint
-
-.PHONY: verify
-verify: gomod-verify ci-lint fmt-verify generate ## Verify code quality and formatting
-	git --no-pager diff --exit-code
+lint-fix:
+	$(GO_CMD) run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0 run --fix
 
 ##@ Build
 

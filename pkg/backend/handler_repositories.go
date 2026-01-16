@@ -1,15 +1,29 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/repository"
 )
 
@@ -25,7 +39,7 @@ func (h *Handler) validateRepoPath(urlPath string) (string, error) {
 	// Clean the path
 	urlPath = strings.TrimPrefix(urlPath, "/")
 	if urlPath == "" {
-		return "", fmt.Errorf("empty path")
+		return "", errors.New("empty path")
 	}
 
 	// Construct the full path
@@ -48,7 +62,7 @@ func (h *Handler) validateRepoPath(urlPath string) (string, error) {
 	}
 	// Reject if the relative path starts with ".." (meaning it's outside RepoDir)
 	if strings.HasPrefix(relPath, "..") {
-		return "", fmt.Errorf("path outside repository directory")
+		return "", errors.New("path outside repository directory")
 	}
 
 	return fullPath, nil
@@ -148,7 +162,7 @@ func (h *Handler) handleGetRepository(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(info)
+	_ = json.NewEncoder(w).Encode(info)
 }
 
 type RepositoryItem struct {
@@ -197,5 +211,5 @@ func (h *Handler) handleListRepositories(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(repos)
+	_ = json.NewEncoder(w).Encode(repos)
 }

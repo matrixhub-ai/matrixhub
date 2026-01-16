@@ -1,9 +1,23 @@
-// Package queue provides a SQLite-backed task queue for background processing.
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package queue
 
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -91,7 +105,7 @@ func NewStore(dbPath string) (*Store, error) {
 		CREATE INDEX IF NOT EXISTS idx_tasks_repository ON tasks(repository);
 	`)
 	if err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to create tables: %w", err)
 	}
 
@@ -125,7 +139,7 @@ func (s *Store) Add(taskType TaskType, repository string, priority int, params m
 	}
 
 	if existingCount > 0 {
-		return 0, fmt.Errorf("a task with the same parameters is already in progress")
+		return 0, errors.New("a task with the same parameters is already in progress")
 	}
 
 	result, err := s.db.Exec(`
@@ -167,7 +181,7 @@ func (s *Store) List(status *TaskStatus, limit int) ([]*Task, error) {
 	defer s.mu.RUnlock()
 
 	var query string
-	var args []interface{}
+	var args []any
 
 	if status != nil {
 		query = `
@@ -177,7 +191,7 @@ func (s *Store) List(status *TaskStatus, limit int) ([]*Task, error) {
 			ORDER BY priority DESC, created_at ASC
 			LIMIT ?
 		`
-		args = []interface{}{*status, limit}
+		args = []any{*status, limit}
 	} else {
 		query = `
 			SELECT id, type, status, priority, repository, params, progress, progress_msg,
@@ -192,14 +206,16 @@ func (s *Store) List(status *TaskStatus, limit int) ([]*Task, error) {
 				priority DESC, created_at ASC
 			LIMIT ?
 		`
-		args = []interface{}{limit}
+		args = []any{limit}
 	}
 
 	rows, err := s.db.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query tasks: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var tasks []*Task
 	for rows.Next() {
@@ -228,7 +244,9 @@ func (s *Store) ListByRepository(repository string) ([]*Task, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to query tasks: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var tasks []*Task
 	for rows.Next() {

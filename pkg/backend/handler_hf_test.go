@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend_test
 
 import (
@@ -11,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/handlers"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/backend"
 )
 
@@ -20,7 +35,9 @@ func TestHuggingFaceAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp repo dir: %v", err)
 	}
-	defer os.RemoveAll(repoDir)
+	defer func() {
+		_ = os.RemoveAll(repoDir)
+	}()
 
 	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
 	server := httptest.NewServer(handler)
@@ -33,7 +50,7 @@ func TestHuggingFaceAPI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusNotFound {
 			t.Errorf("Expected status 404, got %d", resp.StatusCode)
@@ -49,7 +66,7 @@ func TestHuggingFaceAPI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create repository: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Fatalf("Expected status 201 for create, got %d", resp.StatusCode)
@@ -61,14 +78,16 @@ func TestHuggingFaceAPI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get model info: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
 		}
 
 		// Verify response structure
-		var modelInfo map[string]interface{}
+		var modelInfo map[string]any
 		if err := json.NewDecoder(resp.Body).Decode(&modelInfo); err != nil {
 			t.Fatalf("Failed to decode response: %v", err)
 		}
@@ -94,7 +113,7 @@ func TestHuggingFaceAPI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create repository: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		// Try to resolve a file that doesn't exist
 		req, _ = http.NewRequest(http.MethodGet, server.URL+"/resolve-test/resolve/main/nonexistent.txt", nil)
@@ -102,7 +121,7 @@ func TestHuggingFaceAPI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusNotFound {
 			t.Errorf("Expected status 404, got %d", resp.StatusCode)
@@ -118,7 +137,7 @@ func TestHuggingFaceAPI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create repository: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Fatalf("Expected status 201 for create, got %d", resp.StatusCode)
@@ -130,14 +149,16 @@ func TestHuggingFaceAPI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get model info: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
 		}
 
 		// Verify response structure
-		var modelInfo map[string]interface{}
+		var modelInfo map[string]any
 		if err := json.NewDecoder(resp.Body).Decode(&modelInfo); err != nil {
 			t.Fatalf("Failed to decode response: %v", err)
 		}
@@ -162,14 +183,18 @@ func TestHuggingFaceCLI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp repo dir: %v", err)
 	}
-	defer os.RemoveAll(repoDir)
+	defer func() {
+		_ = os.RemoveAll(repoDir)
+	}()
 
 	// Create a temporary directory for client operations
 	clientDir, err := os.MkdirTemp("", "matrixhub-hf-cli-client")
 	if err != nil {
 		t.Fatalf("Failed to create temp client dir: %v", err)
 	}
-	defer os.RemoveAll(clientDir)
+	defer func() {
+		_ = os.RemoveAll(clientDir)
+	}()
 
 	// Create handler and test server
 	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
@@ -190,7 +215,9 @@ func TestHuggingFaceCLI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Expected status 201, got %d", resp.StatusCode)
@@ -417,7 +444,8 @@ func TestHuggingFaceCLI(t *testing.T) {
 		}
 
 		// Verify the content is correct (we wrote i % 256 for each byte)
-		for i := 0; i < min(100, len(content)); i++ {
+		l := min(100, len(content))
+		for i := range l {
 			if content[i] != byte(i%256) {
 				t.Errorf("LFS content mismatch at byte %d: expected %d, got %d", i, i%256, content[i])
 				break
@@ -436,7 +464,9 @@ func TestHuggingFaceCLI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if resp.StatusCode != http.StatusNoContent {
 			t.Errorf("Expected status 204, got %d", resp.StatusCode)

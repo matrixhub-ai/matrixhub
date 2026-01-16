@@ -1,5 +1,4 @@
 //go:build embedweb
-// +build embedweb
 
 package web
 

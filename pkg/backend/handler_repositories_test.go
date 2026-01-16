@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend_test
 
 import (
@@ -8,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/handlers"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/backend"
 )
 
@@ -17,7 +32,9 @@ func TestRepositoryManagement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp repo dir: %v", err)
 	}
-	defer os.RemoveAll(repoDir)
+	defer func() {
+		_ = os.RemoveAll(repoDir)
+	}()
 
 	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
 	server := httptest.NewServer(handler)
@@ -32,7 +49,7 @@ func TestRepositoryManagement(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create repository: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Expected status 201 for create, got %d", resp.StatusCode)
@@ -51,7 +68,7 @@ func TestRepositoryManagement(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to delete repository: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusNoContent {
 			t.Errorf("Expected status 204 for delete, got %d", resp.StatusCode)
@@ -69,7 +86,7 @@ func TestRepositoryManagement(t *testing.T) {
 		// Create first time
 		req, _ := http.NewRequest(http.MethodPost, server.URL+"/api/repositories/"+repoName, nil)
 		resp, _ := http.DefaultClient.Do(req)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		// Create second time
 		req, _ = http.NewRequest(http.MethodPost, server.URL+"/api/repositories/"+repoName, nil)
@@ -77,7 +94,7 @@ func TestRepositoryManagement(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusConflict {
 			t.Errorf("Expected status 409 for duplicate, got %d", resp.StatusCode)
@@ -90,7 +107,7 @@ func TestRepositoryManagement(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send request: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusNotFound {
 			t.Errorf("Expected status 404, got %d", resp.StatusCode)
@@ -106,7 +123,7 @@ func TestRepositoryManagement(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create repository: %v", err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Expected status 201 for create, got %d", resp.StatusCode)

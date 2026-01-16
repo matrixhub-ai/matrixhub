@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
@@ -9,9 +23,10 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/wzshiming/httpseek"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/lfs"
 	"github.com/matrixhub-ai/matrixhub/pkg/queue"
-	"github.com/wzshiming/httpseek"
 )
 
 type Authenticator interface {
@@ -109,10 +124,10 @@ func (h *Handler) Close() {
 		h.queueWorker.Stop()
 	}
 	if h.queueStore != nil {
-		h.queueStore.Close()
+		_ = h.queueStore.Close()
 	}
 	if h.locksStore != nil {
-		h.locksStore.Close()
+		_ = h.locksStore.Close()
 	}
 }
 

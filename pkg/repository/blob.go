@@ -1,6 +1,21 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -57,7 +72,7 @@ func (r *Repository) Blob(ref string, path string) (b *Blob, err error) {
 	} else {
 		// If not a branch, try to resolve as a commit SHA
 		if !isValidSHA(ref) {
-			return nil, fmt.Errorf("failed to resolve reference: not a valid branch or commit SHA")
+			return nil, errors.New("failed to resolve reference: not a valid branch or commit SHA")
 		}
 		hash := plumbing.NewHash(ref)
 		commit, err = r.repo.CommitObject(hash)
@@ -81,7 +96,7 @@ func (r *Repository) Blob(ref string, path string) (b *Blob, err error) {
 		}
 
 		if entry.Mode.IsFile() {
-			return nil, fmt.Errorf("path is not a directory")
+			return nil, errors.New("path is not a directory")
 		}
 
 		tree, err = r.repo.TreeObject(entry.Hash)

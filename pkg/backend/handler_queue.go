@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
@@ -6,6 +20,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/queue"
 )
 
@@ -38,12 +53,13 @@ func (h *Handler) handleListTasks(w http.ResponseWriter, r *http.Request) {
 	var tasks []*queue.Task
 	var err error
 
-	if repoFilter != "" {
+	switch {
+	case repoFilter != "":
 		tasks, err = h.queueStore.ListByRepository(repoFilter)
-	} else if statusStr != "" {
+	case statusStr != "":
 		status := queue.TaskStatus(statusStr)
 		tasks, err = h.queueStore.List(&status, limit)
-	} else {
+	default:
 		tasks, err = h.queueStore.List(nil, limit)
 	}
 
@@ -58,7 +74,7 @@ func (h *Handler) handleListTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
+	_ = json.NewEncoder(w).Encode(tasks)
 }
 
 // handleGetTask returns a specific task by ID
@@ -82,7 +98,7 @@ func (h *Handler) handleGetTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(task)
+	_ = json.NewEncoder(w).Encode(task)
 }
 
 // updatePriorityRequest represents a request to update task priority
@@ -123,7 +139,7 @@ func (h *Handler) handleUpdateTaskPriority(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(task)
+	_ = json.NewEncoder(w).Encode(task)
 }
 
 // handleCancelTask cancels a task

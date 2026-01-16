@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package queue
 
 import (
@@ -134,7 +148,7 @@ func (w *Worker) processTask(task *Task) {
 
 	if !exists {
 		log.Printf("No handler registered for task type: %s\n", task.Type)
-		w.store.UpdateStatus(task.ID, TaskStatusFailed, fmt.Sprintf("No handler for task type: %s", task.Type))
+		_ = w.store.UpdateStatus(task.ID, TaskStatusFailed, fmt.Sprintf("No handler for task type: %s", task.Type))
 		return
 	}
 
@@ -162,7 +176,7 @@ func (w *Worker) processTask(task *Task) {
 
 	// Create progress callback
 	progressFn := func(progress int, message string, doneBytes, totalBytes int64) {
-		w.store.UpdateProgress(task.ID, progress, message, doneBytes, totalBytes)
+		_ = w.store.UpdateProgress(task.ID, progress, message, doneBytes, totalBytes)
 	}
 
 	// Execute the handler
@@ -172,15 +186,15 @@ func (w *Worker) processTask(task *Task) {
 	if err != nil {
 		if taskCtx.Err() == context.Canceled {
 			log.Printf("Task %d cancelled\n", task.ID)
-			w.store.UpdateStatus(task.ID, TaskStatusCancelled, "Cancelled")
+			_ = w.store.UpdateStatus(task.ID, TaskStatusCancelled, "Cancelled")
 		} else {
 			log.Printf("Task %d failed: %v\n", task.ID, err)
-			w.store.UpdateStatus(task.ID, TaskStatusFailed, err.Error())
+			_ = w.store.UpdateStatus(task.ID, TaskStatusFailed, err.Error())
 		}
 		return
 	}
 
 	log.Printf("Task %d completed successfully\n", task.ID)
-	w.store.UpdateProgress(task.ID, 100, "Completed", 0, 0)
-	w.store.UpdateStatus(task.ID, TaskStatusCompleted, "")
+	_ = w.store.UpdateProgress(task.ID, 100, "Completed", 0, 0)
+	_ = w.store.UpdateStatus(task.ID, TaskStatusCompleted, "")
 }

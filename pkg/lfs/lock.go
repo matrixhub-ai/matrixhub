@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package lfs
 
 import (
@@ -15,8 +29,8 @@ import (
 )
 
 var (
-	ErrNotOwner = errors.New("Attempt to delete other user's lock")
-	errNoBucket = errors.New("Bucket not found")
+	ErrNotOwner = errors.New("attempt to delete other user's lock")
+	errNoBucket = errors.New("bucket not found")
 )
 
 // LockDB implements a metadata storage. It stores user credentials and Meta information
@@ -40,12 +54,15 @@ func NewLock(dbFile string) *LockDB {
 		panic(fmt.Sprintf("Failed to open boltdb file %s: %v", dbFile, err))
 	}
 
-	db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists(locksBucket); err != nil {
 			return err
 		}
 		return nil
 	})
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create boltdb buckets in file %s: %v", dbFile, err))
+	}
 
 	return &LockDB{db: db}
 }
@@ -139,7 +156,7 @@ func (s *LockDB) Filtered(repo, path, cursor, limit string) (locks []Lock, next 
 		size, err = strconv.Atoi(limit)
 		if err != nil || size < 0 {
 			locks = make([]Lock, 0)
-			err = fmt.Errorf("Invalid limit amount: %s", limit)
+			err = fmt.Errorf("invalid limit amount: %s", limit)
 			return
 		}
 
@@ -201,8 +218,8 @@ func (s *LockDB) Delete(repo, user, id string, force bool) (*Lock, error) {
 }
 
 // Close closes the underlying boltdb.
-func (s *LockDB) Close() {
-	s.db.Close()
+func (s *LockDB) Close() error {
+	return s.db.Close()
 }
 
 type User struct {

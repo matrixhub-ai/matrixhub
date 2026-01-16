@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
@@ -10,6 +24,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/lfs"
 	"github.com/matrixhub-ai/matrixhub/pkg/repository"
 )
@@ -91,14 +106,12 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var siblings []HFSibling
-	if entries != nil {
-		for _, entry := range entries {
-			// Only include blob entries (files) to keep behavior consistent with handleHFModelInfoRevision.
-			if entry.Type == "blob" {
-				siblings = append(siblings, HFSibling{
-					RFilename: entry.Path,
-				})
-			}
+	for _, entry := range entries {
+		// Only include blob entries (files) to keep behavior consistent with handleHFModelInfoRevision.
+		if entry.Type == "blob" {
+			siblings = append(siblings, HFSibling{
+				RFilename: entry.Path,
+			})
 		}
 	}
 
@@ -124,7 +137,7 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(modelInfo)
+	_ = json.NewEncoder(w).Encode(modelInfo)
 }
 
 func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +176,7 @@ func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(entries)
+	_ = json.NewEncoder(w).Encode(entries)
 }
 
 // handleHFModelInfoRevision handles the /api/models/{repo_id}/revision/{revision} endpoint
@@ -206,13 +219,11 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 	}
 
 	var siblings []HFSibling
-	if entries != nil {
-		for _, entry := range entries {
-			if entry.Type == "blob" {
-				siblings = append(siblings, HFSibling{
-					RFilename: entry.Path,
-				})
-			}
+	for _, entry := range entries {
+		if entry.Type == "blob" {
+			siblings = append(siblings, HFSibling{
+				RFilename: entry.Path,
+			})
 		}
 	}
 
@@ -293,7 +304,9 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 	if blob.Size() <= lfs.MaxLFSPointerSize {
 		reader, err := blob.NewReader()
 		if err == nil {
-			defer reader.Close()
+			defer func() {
+				_ = reader.Close()
+			}()
 			ptr, err := lfs.DecodePointer(reader)
 			if err == nil && ptr != nil {
 				// This is an LFS file, redirect to the LFS object
@@ -306,7 +319,9 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 					http.NotFound(w, r)
 					return
 				}
-				defer content.Close()
+				defer func() {
+					_ = content.Close()
+				}()
 
 				http.ServeContent(w, r, ptr.Oid, stat.ModTime(), content)
 				return
@@ -335,7 +350,9 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get blob reader", http.StatusInternalServerError)
 		return
 	}
-	defer reader.Close()
+	defer func() {
+		_ = reader.Close()
+	}()
 
 	_, err = io.Copy(w, reader)
 	if err != nil {

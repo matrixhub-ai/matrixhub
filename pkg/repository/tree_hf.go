@@ -1,3 +1,17 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package repository
 
 import (
@@ -6,6 +20,7 @@ import (
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+
 	"github.com/matrixhub-ai/matrixhub/pkg/lfs"
 )
 
@@ -29,12 +44,13 @@ func (r *Repository) HFTree(ref string, path string) ([]HFTreeEntry, error) {
 
 	// First try to resolve as a branch reference
 	refObj, err := r.repo.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
-	if err == nil {
+	switch err {
+	case nil:
 		commit, err = r.repo.CommitObject(refObj.Hash())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get commit object: %w", err)
 		}
-	} else if err == plumbing.ErrReferenceNotFound {
+	case plumbing.ErrReferenceNotFound:
 		// If not a branch, try to resolve as a commit SHA
 		if !isValidSHA(ref) {
 			// Neither a branch nor a valid commit SHA format
@@ -46,7 +62,7 @@ func (r *Repository) HFTree(ref string, path string) ([]HFTreeEntry, error) {
 			// Valid SHA format but commit not found
 			return []HFTreeEntry{}, nil
 		}
-	} else {
+	default:
 		return nil, err
 	}
 
@@ -88,7 +104,7 @@ func (r *Repository) HFTree(ref string, path string) ([]HFTreeEntry, error) {
 					reader, err := blob.Reader()
 					if err == nil {
 						ptr, err := lfs.DecodePointer(reader)
-						reader.Close()
+						_ = reader.Close()
 						hfentry.Size = blob.Size
 						if err == nil && ptr != nil {
 							hfentry.LFS = &HFTreeLFS{

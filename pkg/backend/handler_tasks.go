@@ -1,7 +1,22 @@
+// Copyright The MatrixHub Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package backend
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -63,7 +78,7 @@ func (h *Handler) handleRepositorySyncTask(ctx context.Context, task *queue.Task
 		params := map[string]string{
 			"source_url": sourceURL,
 			"oid":        ptr.Oid,
-			"size":       fmt.Sprintf("%d", ptr.Size),
+			"size":       strconv.FormatInt(ptr.Size, 10),
 		}
 		_, err := h.queueStore.Add(queue.TaskTypeLFSSync, task.Repository, task.Priority, params)
 		if err != nil {
@@ -86,7 +101,7 @@ func (h *Handler) handleLFSSyncObjectTask(ctx context.Context, task *queue.Task,
 	sizeStr := task.Params["size"]
 
 	if sourceURL == "" || oid == "" || sizeStr == "" {
-		return fmt.Errorf("invalid task parameters")
+		return errors.New("invalid task parameters")
 	}
 
 	size, err := strconv.ParseInt(sizeStr, 10, 64)
@@ -124,7 +139,9 @@ func (h *Handler) handleLFSSyncObjectTask(ctx context.Context, task *queue.Task,
 	if err != nil {
 		return fmt.Errorf("failed to download LFS object %s: %w", oid, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	rp := &readerProgress{
 		reader: resp.Body,
