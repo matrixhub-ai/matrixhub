@@ -2,6 +2,6 @@ services:
   matrixhub:
     build: .
     ports:
-      - "8080:8080"
+      - "9527:9527"
     volumes:
       - ./data/:/data/
