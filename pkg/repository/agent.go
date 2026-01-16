@@ -81,7 +81,7 @@ func parseAgentMetadata(content []byte) (*AgentMetadata, error) {
 
 	// Check for YAML frontmatter
 	scanner := bufio.NewScanner(bytes.NewReader(content))
-	
+
 	// Look for opening frontmatter delimiter
 	if !scanner.Scan() {
 		// Empty file
@@ -89,13 +89,13 @@ func parseAgentMetadata(content []byte) (*AgentMetadata, error) {
 	}
 
 	firstLine := strings.TrimSpace(scanner.Text())
-	
+
 	// Check if file starts with YAML frontmatter (---)
 	if firstLine == "---" {
 		// Collect frontmatter content
 		var frontmatter []string
 		foundClosing := false
-		
+
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.TrimSpace(line) == "---" {
@@ -121,7 +121,7 @@ func parseAgentMetadata(content []byte) (*AgentMetadata, error) {
 			line := scanner.Text()
 			bodyLines = append(bodyLines, line)
 		}
-		
+
 		// If no description in frontmatter, extract from body
 		if metadata.Description == "" && len(bodyLines) > 0 {
 			metadata.Description = extractDescription(bodyLines)
@@ -139,31 +139,31 @@ func parseAgentMetadata(content []byte) (*AgentMetadata, error) {
 func extractDescription(lines []string) string {
 	var descLines []string
 	inCodeBlock := false
-	
+
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		// Skip empty lines at the start
 		if len(descLines) == 0 && trimmed == "" {
 			continue
 		}
-		
+
 		// Handle code blocks
 		if strings.HasPrefix(trimmed, "```") {
 			inCodeBlock = !inCodeBlock
 			continue
 		}
-		
+
 		// Skip headers (we want the content after headers)
 		if strings.HasPrefix(trimmed, "#") && len(descLines) == 0 {
 			continue
 		}
-		
+
 		// Skip lines in code blocks
 		if inCodeBlock {
 			continue
 		}
-		
+
 		// Add content lines
 		if trimmed != "" {
 			descLines = append(descLines, trimmed)
@@ -176,7 +176,7 @@ func extractDescription(lines []string) string {
 			break
 		}
 	}
-	
+
 	return strings.Join(descLines, " ")
 }
 

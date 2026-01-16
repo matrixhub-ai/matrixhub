@@ -360,9 +360,7 @@ func (h *Handler) handleHFAgentMetadata(w http.ResponseWriter, r *http.Request) 
 	// Get agent metadata
 	metadata, err := repo.GetAgentMetadata(defaultBranch)
 	if err != nil {
-		// Check for both exact match and wrapped errors
-		if errors.Is(err, repository.ErrAgentFileNotFound) || 
-		   err == repository.ErrAgentFileNotFound {
+		if errors.Is(err, repository.ErrAgentFileNotFound) {
 			http.NotFound(w, r)
 			return
 		}
