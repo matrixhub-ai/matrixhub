@@ -1,346 +1,148 @@
----
-name: "Example Agent"
-version: "1.0.0"
-type: "assistant"
-tags: ["example", "demo", "documentation"]
-description: "A comprehensive example agent demonstrating agent.md features"
----
+# AGENTS Guidelines for MatrixHub Example Repository
 
-# Example Agent
-
-This is an example `agent.md` file that demonstrates all the features and best practices for documenting AI agents in MatrixHub.
+This file follows the [agents.md specification](https://agents.md) - a simple, open format for guiding AI coding agents.
 
 ## Overview
 
-Example Agent is a demonstration agent that showcases:
+This example repository demonstrates best practices for AI model management in MatrixHub. The AGENTS.md file provides instructions to help AI coding agents understand how to work with this repository effectively.
 
-- Structured metadata using YAML frontmatter
-- Rich Markdown documentation
-- Code examples and usage instructions
-- Best practices for agent documentation
+## Dev Environment Tips
 
-## Features
+- MatrixHub uses Go 1.25+ and requires git for repository management
+- Build the project with `go build -o bin/matrixhub cmd/matrixhub/main.go`
+- Run locally with `./bin/matrixhub -addr :9527 -data ./data`
+- Use `go mod tidy` to keep dependencies synchronized
+- The main package is in `cmd/matrixhub/main.go`
+- Core logic resides in `pkg/` packages: backend, repository, lfs, queue
 
-### Core Capabilities
+## Repository Structure
 
-- **Natural Language Processing**: Understand and process user queries
-- **Multi-language Support**: Work with Python, JavaScript, and Go
-- **Context Management**: Maintain conversation context
-- **Error Handling**: Graceful error recovery and reporting
+- `cmd/matrixhub/` - Main application entry point
+- `pkg/backend/` - HTTP handlers and API endpoints
+- `pkg/repository/` - Git repository operations and file access
+- `pkg/lfs/` - Git LFS support for large files
+- `pkg/queue/` - Background job processing
+- `web/` - Frontend web UI (if building with embedweb tag)
+- `docs/` - Design documents and technical documentation
+- `examples/` - Example files and templates
 
-### Advanced Features
+## Testing Instructions
 
-- Code generation and completion
-- Documentation generation
-- Test case creation
-- Code review and suggestions
+- Run all tests: `go test ./pkg/...`
+- Run specific package tests: `go test ./pkg/repository -v`
+- Run with coverage: `go test ./pkg/... -cover`
+- Tests use temporary directories and clean up automatically
+- Git operations in tests require git to be installed
 
-## Installation
+## Code Quality
 
-```bash
-# Clone the repository
-git clone http://your-matrixhub:9527/example-agent.git
+- Run linter: `make ci-lint` or use golangci-lint directly
+- Format code: `go fmt ./...`
+- Verify modules: `go mod verify && go mod tidy`
+- Follow existing code patterns and naming conventions
+- Keep functions focused and testable
 
-# Install dependencies
-cd example-agent
-pip install -r requirements.txt
+## Adding New Features
+
+1. **Design First**: Create a design document in `docs/` describing the feature
+2. **Tests First**: Write tests before implementation when possible  
+3. **Minimal Changes**: Make the smallest changes necessary
+4. **Documentation**: Update relevant docs and examples
+5. **Security**: Run security scans before committing
+
+## API Development
+
+- New endpoints go in `pkg/backend/handler_*.go` files
+- Follow HuggingFace-compatible API patterns where applicable
+- Use gorilla/mux for routing
+- Return proper HTTP status codes (404 for not found, 500 for errors)
+- Log errors appropriately
+
+## Working with Repositories
+
+- Use `pkg/repository` package for all git operations
+- Don't use git commands directly - use the repository abstraction
+- Handle missing files gracefully (return specific errors)
+- Respect file size limits to prevent DoS
+- Support both branches and commit SHAs as references
+
+## PR Instructions
+
+- Title format: `[component] Brief description` (e.g., `[backend] Add AGENTS.md support`)
+- Always run `make verify` before committing (includes lint, fmt, tests)
+- Keep PRs focused on a single change or feature
+- Update tests for any code changes
+- Update documentation for user-facing changes
+- Link to related issues or design docs
+
+## Security Guidelines
+
+- Never commit secrets or credentials
+- Validate all user input
+- Implement file size limits for uploads
+- Use path validation to prevent traversal attacks
+- Run `codeql` scanner before submitting PRs
+- Check dependencies for known vulnerabilities
+
+## Common Tasks
+
+### Adding a New API Endpoint
+
+```go
+// In pkg/backend/handler_*.go
+func (h *Handler) handleNewFeature(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    // Implementation
+}
+
+// In registryHuggingFace or similar router function
+r.HandleFunc("/api/new-feature/{param}", h.handleNewFeature).Methods(http.MethodGet)
 ```
 
-## Quick Start
+### Reading a File from Repository
 
-### Python
-
-```python
-from example_agent import ExampleAgent
-
-# Initialize the agent
-agent = ExampleAgent(
-    model="example-1.0",
-    temperature=0.7
-)
-
-# Run a simple task
-result = agent.run("Generate a hello world program in Python")
-print(result)
+```go
+blob, err := repo.Blob(ref, "path/to/file")
+if err != nil {
+    // Handle error
+}
+reader, err := blob.NewReader()
+defer reader.Close()
+content, err := io.ReadAll(reader)
 ```
 
-### JavaScript
+### Adding a New Test
 
-```javascript
-const { ExampleAgent } = require('example-agent');
-
-// Initialize the agent
-const agent = new ExampleAgent({
-  model: 'example-1.0',
-  temperature: 0.7
-});
-
-// Run a simple task
-agent.run('Generate a hello world program in JavaScript')
-  .then(result => console.log(result));
+```go
+func TestNewFeature(t *testing.T) {
+    t.Run("SuccessCase", func(t *testing.T) {
+        // Setup
+        // Execute
+        // Assert
+    })
+    t.Run("ErrorCase", func(t *testing.T) {
+        // Test error handling
+    })
+}
 ```
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `EXAMPLE_MODEL` | Model version to use | `example-1.0` |
-| `EXAMPLE_TEMPERATURE` | Generation temperature (0.0-1.0) | `0.7` |
-| `EXAMPLE_MAX_TOKENS` | Maximum tokens in response | `2048` |
-| `EXAMPLE_API_KEY` | API key for authentication | `None` |
-
-### Configuration File
-
-Create a `config.yaml` file:
-
-```yaml
-model: "example-1.0"
-temperature: 0.7
-max_tokens: 2048
-features:
-  code_generation: true
-  documentation: true
-  testing: true
-```
-
-## Usage Examples
-
-### Code Generation
-
-```python
-agent = ExampleAgent()
-
-# Generate a function
-code = agent.generate_code(
-    description="A function to calculate factorial",
-    language="python"
-)
-
-print(code)
-# Output:
-# def factorial(n):
-#     if n <= 1:
-#         return 1
-#     return n * factorial(n - 1)
-```
-
-### Documentation Generation
-
-```python
-agent = ExampleAgent()
-
-# Generate documentation for code
-docs = agent.generate_docs(
-    code="""
-    def add(a, b):
-        return a + b
-    """,
-    format="markdown"
-)
-
-print(docs)
-```
-
-### Code Review
-
-```python
-agent = ExampleAgent()
-
-# Review code and get suggestions
-review = agent.review_code(
-    code="""
-    def calc(x, y):
-        return x/y
-    """,
-    language="python"
-)
-
-print(review.suggestions)
-# Output: ["Add error handling for division by zero", ...]
-```
-
-## API Reference
-
-### Class: ExampleAgent
-
-Main agent class for all operations.
-
-#### Constructor
-
-```python
-ExampleAgent(
-    model: str = "example-1.0",
-    temperature: float = 0.7,
-    max_tokens: int = 2048
-)
-```
-
-**Parameters:**
-- `model`: Model version to use
-- `temperature`: Randomness in generation (0.0 = deterministic, 1.0 = very random)
-- `max_tokens`: Maximum tokens in generated response
-
-#### Methods
-
-##### run(prompt: str) -> str
-
-Execute a general task based on the prompt.
-
-```python
-result = agent.run("Write a hello world program")
-```
-
-##### generate_code(description: str, language: str) -> str
-
-Generate code based on description.
-
-```python
-code = agent.generate_code(
-    description="Sort a list of numbers",
-    language="python"
-)
-```
-
-##### generate_docs(code: str, format: str) -> str
-
-Generate documentation for provided code.
-
-```python
-docs = agent.generate_docs(
-    code="def hello(): return 'Hello'",
-    format="markdown"
-)
-```
-
-##### review_code(code: str, language: str) -> CodeReview
-
-Review code and provide suggestions.
-
-```python
-review = agent.review_code(
-    code="def divide(a, b): return a/b",
-    language="python"
-)
-```
-
-## Performance
-
-### Benchmarks
-
-| Task | Avg Time | Tokens/sec |
-|------|----------|------------|
-| Code Generation | 2.3s | 450 |
-| Documentation | 1.8s | 520 |
-| Code Review | 3.1s | 380 |
-
-### Resource Requirements
-
-- **Memory**: 4GB minimum, 8GB recommended
-- **GPU**: Optional, improves performance by 3-5x
-- **Disk**: 2GB for model files
-
-## Limitations
-
-### Known Limitations
-
-1. **Context Length**: Maximum 4096 tokens (approximately 3000 words)
-2. **Languages**: Best performance with Python, JavaScript, and Go
-3. **Real-time**: Not suitable for streaming applications
-4. **Internet**: Requires internet connection for model updates
-
-### Roadmap
-
-Features planned for future versions:
-
-- [ ] Streaming support for real-time generation
-- [ ] Extended context length (8192 tokens)
-- [ ] Additional language support (Rust, C++)
-- [ ] Fine-tuning capabilities
-- [ ] Multi-agent collaboration
 
 ## Troubleshooting
 
-### Common Issues
+- **Build fails**: Run `go mod tidy` to sync dependencies
+- **Tests fail**: Check if git is installed and configured
+- **Lint errors**: Run `make lint-fix` to auto-fix many issues
+- **Import errors**: Verify go.mod and run `go mod download`
 
-#### Issue: "Model not found"
+## Additional Resources
 
-**Solution**: Ensure the model is downloaded:
+- [MatrixHub Documentation](../website/docs/)
+- [Design Documents](../docs/)
+- [Contributing Guide](../CONTRIBUTING.md)
+- [agents.md Specification](https://agents.md)
 
-```bash
-python -m example_agent download-model
-```
+## Questions?
 
-#### Issue: "Out of memory"
-
-**Solution**: Reduce max_tokens or use a smaller model:
-
-```python
-agent = ExampleAgent(
-    model="example-small",
-    max_tokens=1024
-)
-```
-
-#### Issue: "Rate limit exceeded"
-
-**Solution**: Add delays between requests:
-
-```python
-import time
-
-for task in tasks:
-    result = agent.run(task)
-    time.sleep(1)  # Wait 1 second between requests
-```
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-### Development Setup
-
-```bash
-# Clone the repo
-git clone http://your-matrixhub:9527/example-agent.git
-cd example-agent
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dev dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/
-```
-
-## License
-
-MIT License - see [LICENSE](./LICENSE) for details.
-
-## Support
-
-- **Documentation**: [https://docs.example.com](https://docs.example.com)
-- **Issues**: [GitHub Issues](https://github.com/example/example-agent/issues)
-- **Slack**: [#example-agent](https://slack.example.com)
-- **Email**: support@example.com
-
-## Changelog
-
-### v1.0.0 (2026-01-16)
-
-- Initial release
-- Core code generation features
-- Documentation generation
-- Code review capabilities
-- Python and JavaScript support
-
-## References
-
-- [Agent Architecture](./docs/architecture.md)
-- [Model Details](./docs/model.md)
-- [API Specification](./docs/api.md)
-- [Examples Repository](https://github.com/example/example-agent-examples)
+- Check existing issues and PRs for similar questions
+- Review design documents for architectural decisions
+- Look at existing code for patterns and examples
+- Ask in Slack or GitHub discussions

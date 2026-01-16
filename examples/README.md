@@ -4,37 +4,51 @@ This directory contains example files demonstrating MatrixHub features and best 
 
 ## Files
 
-### agent.md
+### AGENTS.md
 
-A comprehensive example of an `agent.md` file showing:
+A comprehensive example of an `AGENTS.md` file following the [agents.md specification](https://agents.md).
 
-- YAML frontmatter with metadata
-- Rich Markdown documentation
-- Code examples in multiple languages
-- API reference documentation
-- Best practices for agent documentation
+**What is AGENTS.md?**
+
+AGENTS.md is a simple, open format for guiding AI coding agents. It's a plain markdown file containing instructions for AI agents on how to work with your codebase, including:
+
+- Development environment setup
+- Testing instructions
+- Code quality guidelines
+- PR workflow
+- Common tasks and troubleshooting
 
 **Usage:**
 
 ```bash
 # Copy this example to your repository
-cp examples/agent.md /path/to/your/repo/agent.md
+cp examples/AGENTS.md /path/to/your/repo/AGENTS.md
 
-# Customize it for your agent
-vi /path/to/your/repo/agent.md
+# Customize it for your project
+vi /path/to/your/repo/AGENTS.md
 
 # Commit and push
 cd /path/to/your/repo
-git add agent.md
-git commit -m "Add agent.md"
+git add AGENTS.md
+git commit -m "Add AGENTS.md"
 git push
+```
+
+**Viewing via API:**
+
+```bash
+# Get AGENTS.md content for a repository
+curl http://localhost:9527/api/models/your-repo/agents
+
+# Get AGENTS.md for a specific branch
+curl http://localhost:9527/api/models/your-repo/agents/revision/main
 ```
 
 ## Documentation
 
-For more information on `agent.md` support:
+For more information on AGENTS.md support in MatrixHub:
 
-- [Agent.md User Guide](../website/docs/agent-md-support.md)
+- [agents.md specification](https://agents.md)
 - [Design Document](../docs/design-agent-md-support.md)
 
 ## Contributing Examples
