@@ -10,4 +10,8 @@ approvers:
 
 # List of usernames who may use /lgtm
 reviewers:
+- wzshiming
+- samzong
+- yitingdc
+- lsq645599166
 - yankay
