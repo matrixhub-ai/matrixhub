@@ -53,3 +53,13 @@ func Get() Info {
 		Platform:   fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
 }
+
+func PrintVersion() {
+	info := Get()
+	fmt.Printf("Version:      %s\n", info.GitVersion)
+	fmt.Printf("Git Commit:   %s\n", info.GitCommit)
+	fmt.Printf("Go Version:   %s\n", info.GoVersion)
+	fmt.Printf("Build Date:   %s\n", info.BuildDate)
+	fmt.Printf("Compiler:     %s\n", info.Compiler)
+	fmt.Printf("Platform:     %s\n", info.Platform)
+}

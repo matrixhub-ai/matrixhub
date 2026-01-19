@@ -3,10 +3,12 @@ ARG NODE_VERSION=25.2
 ARG GO_VERSION=1.25
 
 ARG BASE_IMAGE_PREFIX=docker.io
-ARG NPM_CONFIG_REGISTRY=https://registry.npmjs.org
-ARG GOPROXY=https://proxy.golang.org,direct
+ARG NPM_CONFIG_REGISTRY
+ARG GOPROXY
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
+
+ARG LD_FLAGS
 
 ##########################################
 
@@ -58,8 +60,10 @@ COPY web /app/web
 COPY go.mod go.sum /app/
 COPY --from=web-builder /app/web/dist /app/web/dist
 
+ARG LD_FLAGS
+ENV LD_FLAGS=${LD_FLAGS}
 RUN --mount=type=cache,target=/go/pkg/mod \
-    CGO_ENABLED=1 go build -tags embedweb -o /matrixhub ./cmd/matrixhub
+    CGO_ENABLED=1 go build  -ldflags="${LD_FLAGS}" -tags embedweb -o /matrixhub ./cmd/matrixhub
 
 ##########################################
 

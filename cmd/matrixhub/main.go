@@ -24,20 +24,28 @@ import (
 
 	"github.com/matrixhub-ai/matrixhub/internal/handlers"
 	"github.com/matrixhub-ai/matrixhub/pkg/backend"
+	"github.com/matrixhub-ai/matrixhub/pkg/version"
 )
 
 var (
-	addr    = ":9527"
-	dataDir = "./data"
+	addr        = ":9527"
+	dataDir     = "./data"
+	showVersion = false
 )
 
 func init() {
 	flag.StringVar(&addr, "addr", ":9527", "HTTP server address")
 	flag.StringVar(&dataDir, "data", "./data", "Directory containing git repositories")
+	flag.BoolVar(&showVersion, "version", false, "Show version information")
 	flag.Parse()
 }
 
 func main() {
+	if showVersion {
+		version.PrintVersion()
+		os.Exit(0)
+	}
+
 	absRootDir, err := filepath.Abs(dataDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting absolute path of repo directory: %v\n", err)

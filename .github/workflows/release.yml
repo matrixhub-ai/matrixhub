@@ -30,6 +30,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push release images
-        env:
-          DOCKER_BUILDX_CMD: docker buildx
         run: make image-push
