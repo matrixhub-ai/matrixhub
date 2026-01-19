@@ -4,9 +4,18 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+
   pull_request:
     branches:
       - main
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
 
 # Copy from https://github.com/vllm-project/vllm/blob/b66b0d6abb955f9209a0d88b1dc245f4c1c9ff98/.github/workflows/macos-smoke-test.yml
 # modified to test against MatrixHub

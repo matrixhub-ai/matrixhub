@@ -1,15 +1,24 @@
-name: Go unit tests
+name: Unit tests
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+
   pull_request:
     branches:
       - main
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
 
 jobs:
-  unit-test:
+  go-unit-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
