@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -199,7 +200,7 @@ func (h *Handler) getRemoteDefaultBranch(ctx context.Context, sourceURL string) 
 // - First ref line with capabilities: "<sha1> <ref>\0<capabilities>\n"
 // - Additional ref lines: "<sha1> <ref>\n"
 // - Flush packet (0000)
-func parseDefaultBranchFromPktLine(r interface{ Read([]byte) (int, error) }) (string, error) {
+func parseDefaultBranchFromPktLine(r io.Reader) (string, error) {
 	pl := pktline.NewPktline(r, nil)
 
 	// Read and skip the service announcement packet

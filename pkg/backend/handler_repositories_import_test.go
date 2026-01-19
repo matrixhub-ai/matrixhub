@@ -134,6 +134,9 @@ func buildPktLineResponse(sha, ref, defaultBranch string) []byte {
 	return buildPktLineResponseWithCaps(sha, ref, caps)
 }
 
+// pktLineHeaderSize is the size of the pkt-line length header in bytes (4 hex characters).
+const pktLineHeaderSize = 4
+
 // buildPktLineResponseWithCaps creates a valid pkt-line response with the given SHA, ref, and capabilities.
 func buildPktLineResponseWithCaps(sha, ref, caps string) []byte {
 	// Service announcement
@@ -142,11 +145,11 @@ func buildPktLineResponseWithCaps(sha, ref, caps string) []byte {
 
 	// First ref with capabilities (NUL-separated)
 	line := fmt.Sprintf("%s %s\x00%s\n", sha, ref, caps)
-	linePkt := fmt.Sprintf("%04x%s", len(line)+4, line)
+	linePkt := fmt.Sprintf("%04x%s", len(line)+pktLineHeaderSize, line)
 
 	// HEAD ref
 	headLine := fmt.Sprintf("%s HEAD\n", sha)
-	headPkt := fmt.Sprintf("%04x%s", len(headLine)+4, headLine)
+	headPkt := fmt.Sprintf("%04x%s", len(headLine)+pktLineHeaderSize, headLine)
 
 	return []byte(service + flush + linePkt + headPkt + flush)
 }
