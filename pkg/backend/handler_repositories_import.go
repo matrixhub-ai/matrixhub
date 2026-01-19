@@ -22,7 +22,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/matrixhub-ai/matrixhub/internal/utils"
 	"github.com/matrixhub-ai/matrixhub/pkg/queue"
 	"github.com/matrixhub-ai/matrixhub/pkg/repository"
 )
@@ -70,21 +69,9 @@ func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request)
 
 	ctx := context.Background()
 
-	defaultBranch, err := h.getRemoteDefaultBranch(ctx, req.SourceURL)
-	if err != nil {
-		http.Error(w, "Failed to get default branch from source", http.StatusInternalServerError)
-		return
-	}
-
-	repo, err := repository.Init(repoPath, defaultBranch)
+	_, err = repository.InitMrror(ctx, repoPath, req.SourceURL)
 	if err != nil {
 		http.Error(w, "Failed to create repository", http.StatusInternalServerError)
-		return
-	}
-
-	err = repo.SetMirrorRemote(req.SourceURL)
-	if err != nil {
-		http.Error(w, "Failed to set mirror remote", http.StatusInternalServerError)
 		return
 	}
 
@@ -162,56 +149,6 @@ func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 		"message": "Sync queued",
 		"task_id": taskID,
 	})
-}
-
-// getRemoteDefaultBranch discovers the default branch of a remote repository
-func (h *Handler) getRemoteDefaultBranch(ctx context.Context, sourceURL string) (string, error) {
-	cmd := utils.Command(ctx, "git", "ls-remote", "--symref", sourceURL, "HEAD")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
-	// Parse output to find the default branch
-	// Format: ref: refs/heads/main	HEAD
-	lines := string(output)
-	for _, line := range splitLines(lines) {
-		if len(line) > 5 && line[:5] == "ref: " {
-			// Extract the ref part after "ref: "
-			remaining := line[5:]
-			// Find the end of the ref (before whitespace/tab)
-			refEnd := len(remaining)
-			for i := range len(remaining) {
-				if remaining[i] == ' ' || remaining[i] == '\t' {
-					refEnd = i
-					break
-				}
-			}
-			ref := remaining[:refEnd]
-			// Extract branch name from refs/heads/xxx
-			if len(ref) > 11 && ref[:11] == "refs/heads/" {
-				return ref[11:], nil
-			}
-		}
-	}
-
-	return "", errors.New("could not determine default branch")
-}
-
-// splitLines splits a string into lines
-func splitLines(s string) []string {
-	var lines []string
-	start := 0
-	for i := range len(s) {
-		if s[i] == '\n' {
-			lines = append(lines, s[start:i])
-			start = i + 1
-		}
-	}
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-	return lines
 }
 
 // handleImportStatus returns the current status of an import operation.

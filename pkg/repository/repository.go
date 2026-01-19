@@ -20,7 +20,6 @@ import (
 	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
@@ -126,29 +125,4 @@ func (r *Repository) IsMirror() (bool, string, error) {
 		}
 	}
 	return isMirror, sourceURL, nil
-}
-
-func (r *Repository) SetMirrorRemote(sourceURL string) error {
-	cfg, err := r.repo.Config()
-	if err != nil {
-		return err
-	}
-	cfg.Init.DefaultBranch = r.DefaultBranch()
-	cfg.Remotes = map[string]*config.RemoteConfig{
-		"origin": {
-			Name:   "origin",
-			URLs:   []string{sourceURL},
-			Mirror: true,
-			Fetch: []config.RefSpec{
-				"+refs/heads/*:refs/heads/*",
-				"+refs/tags/*:refs/tags/*",
-			},
-		},
-	}
-
-	err = r.repo.Storer.SetConfig(cfg)
-	if err != nil {
-		return err
-	}
-	return nil
 }
