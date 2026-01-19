@@ -10,15 +10,6 @@ updates:
       - "dependencies"
       - "automated"
 
-  # Maintain dependencies for go tools
-  - package-ecosystem: "gomod"
-    directory: "/hack/internal/tools"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "automated"
-
   # Maintain npm dependencies for web
   - package-ecosystem: "npm"
     directory: "/web"
