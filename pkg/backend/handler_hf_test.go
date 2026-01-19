@@ -170,6 +170,262 @@ func TestHuggingFaceAPI(t *testing.T) {
 	})
 }
 
+// TestHuggingFaceTreeAPI tests the HuggingFace tree API with recursive and expand options.
+func TestHuggingFaceTreeAPI(t *testing.T) {
+	repoDir, err := os.MkdirTemp("", "matrixhub-hf-tree-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp repo dir: %v", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(repoDir)
+	}()
+
+	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	// Create a temporary directory for client operations
+	clientDir, err := os.MkdirTemp("", "matrixhub-hf-tree-client")
+	if err != nil {
+		t.Fatalf("Failed to create temp client dir: %v", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(clientDir)
+	}()
+
+	repoName := "tree-test.git"
+
+	// Create repository
+	req, _ := http.NewRequest(http.MethodPost, server.URL+"/api/repositories/"+repoName, nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to create repository: %v", err)
+	}
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("Expected status 201 for create, got %d", resp.StatusCode)
+	}
+
+	// Clone and add nested structure
+	gitWorkDir := filepath.Join(clientDir, "git-work")
+	cmd := exec.Command("git", "clone", server.URL+"/"+repoName, gitWorkDir)
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
+	}
+
+	// Configure git user
+	runGitCmd(t, gitWorkDir, "config", "user.email", "test@test.com")
+	runGitCmd(t, gitWorkDir, "config", "user.name", "Test User")
+
+	// Create nested structure: dir1/dir2/file.txt
+	dir1 := filepath.Join(gitWorkDir, "dir1")
+	dir2 := filepath.Join(dir1, "dir2")
+	if err := os.MkdirAll(dir2, 0755); err != nil {
+		t.Fatalf("Failed to create nested directories: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(gitWorkDir, "root.txt"), []byte("root file"), 0644); err != nil {
+		t.Fatalf("Failed to create root.txt: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir1, "file1.txt"), []byte("file in dir1"), 0644); err != nil {
+		t.Fatalf("Failed to create file1.txt: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir2, "file2.txt"), []byte("file in dir2"), 0644); err != nil {
+		t.Fatalf("Failed to create file2.txt: %v", err)
+	}
+
+	// Add, commit, and push
+	runGitCmd(t, gitWorkDir, "add", ".")
+	runGitCmd(t, gitWorkDir, "commit", "-m", "Add nested structure")
+	runGitCmd(t, gitWorkDir, "branch", "-M", "main")
+	cmd = exec.Command("git", "push", "-u", "origin", "main")
+	cmd.Dir = gitWorkDir
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to push: %v\nOutput: %s", err, output)
+	}
+
+	t.Run("TreeNonRecursive", func(t *testing.T) {
+		// Request tree without recursive option (default)
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/tree-test/tree/main", nil)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("Failed to send request: %v", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("Expected status 200, got %d", resp.StatusCode)
+		}
+
+		var entries []map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		// Should only have root.txt and dir1 (not nested entries)
+		if len(entries) != 2 {
+			t.Errorf("Expected 2 entries, got %d", len(entries))
+		}
+
+		// Check that entries have size (expand=true by default)
+		for _, entry := range entries {
+			if entry["type"] == "file" {
+				if _, ok := entry["size"]; !ok {
+					t.Errorf("Expected file entry to have size field")
+				}
+			}
+		}
+	})
+
+	t.Run("TreeRecursive", func(t *testing.T) {
+		// Request tree with recursive option
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/tree-test/tree/main?recursive=true", nil)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("Failed to send request: %v", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("Expected status 200, got %d", resp.StatusCode)
+		}
+
+		var entries []map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		// Should have all entries: root.txt, dir1, dir1/file1.txt, dir1/dir2, dir1/dir2/file2.txt
+		if len(entries) != 5 {
+			t.Errorf("Expected 5 entries, got %d", len(entries))
+		}
+
+		// Check specific paths
+		paths := make(map[string]bool)
+		for _, entry := range entries {
+			paths[entry["path"].(string)] = true
+		}
+		expectedPaths := []string{"root.txt", "dir1", "dir1/file1.txt", "dir1/dir2", "dir1/dir2/file2.txt"}
+		for _, p := range expectedPaths {
+			if !paths[p] {
+				t.Errorf("Expected path %q not found in response", p)
+			}
+		}
+	})
+
+	t.Run("TreeExpandFalse", func(t *testing.T) {
+		// Request tree with expand=false
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/tree-test/tree/main?expand=false", nil)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("Failed to send request: %v", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("Expected status 200, got %d", resp.StatusCode)
+		}
+
+		var entries []map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		// When expand=false, entries should NOT have lastCommit field
+		for _, entry := range entries {
+			if _, hasLastCommit := entry["lastCommit"]; hasLastCommit {
+				t.Errorf("Expected no lastCommit when expand=false, but found one for %v", entry["path"])
+			}
+		}
+	})
+
+	t.Run("TreeRecursiveAndExpandFalse", func(t *testing.T) {
+		// Request tree with recursive=true and expand=false
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/tree-test/tree/main?recursive=true&expand=false", nil)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("Failed to send request: %v", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("Expected status 200, got %d", resp.StatusCode)
+		}
+
+		var entries []map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		// Should have all 5 entries
+		if len(entries) != 5 {
+			t.Errorf("Expected 5 entries, got %d", len(entries))
+		}
+
+		// All entries should NOT have lastCommit field
+		for _, entry := range entries {
+			if _, hasLastCommit := entry["lastCommit"]; hasLastCommit {
+				t.Errorf("Expected no lastCommit when expand=false, but found one for %v", entry["path"])
+			}
+		}
+	})
+
+	t.Run("TreeExpandTrue", func(t *testing.T) {
+		// Request tree with expand=true (default)
+		req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/models/tree-test/tree/main?expand=true", nil)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("Failed to send request: %v", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("Expected status 200, got %d", resp.StatusCode)
+		}
+
+		var entries []map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		// When expand=true, entries should have lastCommit field
+		hasLastCommitCount := 0
+		for _, entry := range entries {
+			if _, hasLastCommit := entry["lastCommit"]; hasLastCommit {
+				hasLastCommitCount++
+				// Verify lastCommit has expected fields
+				lastCommit := entry["lastCommit"].(map[string]any)
+				if _, ok := lastCommit["id"]; !ok {
+					t.Errorf("Expected lastCommit to have 'id' field")
+				}
+				if _, ok := lastCommit["title"]; !ok {
+					t.Errorf("Expected lastCommit to have 'title' field")
+				}
+				if _, ok := lastCommit["date"]; !ok {
+					t.Errorf("Expected lastCommit to have 'date' field")
+				}
+			}
+		}
+		if hasLastCommitCount == 0 {
+			t.Errorf("Expected at least one entry with lastCommit when expand=true")
+		}
+	})
+}
+
 // TestHuggingFaceCLI tests the HuggingFace CLI (hf command) integration.
 // This is an e2e test that requires the huggingface_hub package to be installed.
 func TestHuggingFaceCLI(t *testing.T) {
@@ -470,6 +726,168 @@ func TestHuggingFaceCLI(t *testing.T) {
 
 		if resp.StatusCode != http.StatusNoContent {
 			t.Errorf("Expected status 204, got %d", resp.StatusCode)
+		}
+	})
+}
+
+// TestHuggingFaceHubTreeAPI tests the HuggingFace Hub CLI for downloading files.
+// This is an e2e test that requires the huggingface_hub package to be installed.
+func TestHuggingFaceHubTreeAPI(t *testing.T) {
+	// Check if hf CLI is available
+	if _, err := exec.LookPath("hf"); err != nil {
+		t.Skip("hf CLI not found, skipping test. Install with: pip install huggingface_hub")
+	}
+
+	// Create a temporary directory for repositories
+	repoDir, err := os.MkdirTemp("", "matrixhub-hf-tree-api-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp repo dir: %v", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(repoDir)
+	}()
+
+	// Create a temporary directory for client operations
+	clientDir, err := os.MkdirTemp("", "matrixhub-hf-tree-api-client")
+	if err != nil {
+		t.Fatalf("Failed to create temp client dir: %v", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(clientDir)
+	}()
+
+	// Create handler and test server
+	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	repoName := "tree-api-test.git"
+	repoID := "tree-api-test"
+
+	// Create repository on server
+	req, err := http.NewRequest(http.MethodPost, server.URL+"/api/repositories/"+repoName, nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("Expected status 201 for create, got %d", resp.StatusCode)
+	}
+
+	// Clone and add nested content to the repository
+	gitWorkDir := filepath.Join(clientDir, "git-work")
+	cmd := exec.Command("git", "clone", server.URL+"/"+repoName, gitWorkDir)
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
+	}
+
+	// Configure git user
+	runGitCmd(t, gitWorkDir, "config", "user.email", "test@test.com")
+	runGitCmd(t, gitWorkDir, "config", "user.name", "Test User")
+
+	// Create nested structure: subdir/nested_file.txt
+	subDir := filepath.Join(gitWorkDir, "subdir")
+	if err := os.MkdirAll(subDir, 0755); err != nil {
+		t.Fatalf("Failed to create subdir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(gitWorkDir, "root_file.txt"), []byte("root content"), 0644); err != nil {
+		t.Fatalf("Failed to create root_file.txt: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(subDir, "nested_file.txt"), []byte("nested content"), 0644); err != nil {
+		t.Fatalf("Failed to create nested_file.txt: %v", err)
+	}
+
+	// Add, commit, and push
+	runGitCmd(t, gitWorkDir, "add", ".")
+	runGitCmd(t, gitWorkDir, "commit", "-m", "Add nested files")
+	runGitCmd(t, gitWorkDir, "branch", "-M", "main")
+	cmd = exec.Command("git", "push", "-u", "origin", "main")
+	cmd.Dir = gitWorkDir
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to push: %v\nOutput: %s", err, output)
+	}
+
+	// Test hf download for specific file (this uses the resolve endpoint)
+	t.Run("HFDownloadSingleFile", func(t *testing.T) {
+		downloadDir := filepath.Join(clientDir, "hf-download-single")
+		if err := os.MkdirAll(downloadDir, 0755); err != nil {
+			t.Fatalf("Failed to create download dir: %v", err)
+		}
+
+		// Download single file
+		cmd := exec.Command("hf", "download", repoID, "root_file.txt", "--local-dir", downloadDir)
+		cmd.Env = append(os.Environ(),
+			"HF_ENDPOINT="+server.URL,
+			"HF_HUB_DISABLE_TELEMETRY=1",
+		)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("hf download failed: %v\nOutput: %s", err, output)
+		}
+
+		// Verify file was downloaded
+		content, err := os.ReadFile(filepath.Join(downloadDir, "root_file.txt"))
+		if err != nil {
+			t.Fatalf("Failed to read root_file.txt: %v", err)
+		}
+		if string(content) != "root content" {
+			t.Errorf("Content mismatch: expected 'root content', got '%s'", content)
+		}
+	})
+
+	// Test hf download for specific nested file (this uses the resolve endpoint)
+	t.Run("HFDownloadNestedFile", func(t *testing.T) {
+		downloadDir := filepath.Join(clientDir, "hf-download-nested")
+		if err := os.MkdirAll(downloadDir, 0755); err != nil {
+			t.Fatalf("Failed to create download dir: %v", err)
+		}
+
+		// Download specific nested file
+		cmd := exec.Command("hf", "download", repoID, "subdir/nested_file.txt", "--local-dir", downloadDir)
+		cmd.Env = append(os.Environ(),
+			"HF_ENDPOINT="+server.URL,
+			"HF_HUB_DISABLE_TELEMETRY=1",
+		)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("hf download nested file failed: %v\nOutput: %s", err, output)
+		}
+
+		// Verify nested file was downloaded
+		content, err := os.ReadFile(filepath.Join(downloadDir, "subdir", "nested_file.txt"))
+		if err != nil {
+			t.Fatalf("Failed to read nested_file.txt: %v", err)
+		}
+		if string(content) != "nested content" {
+			t.Errorf("Nested file content mismatch: expected 'nested content', got '%s'", content)
+		}
+	})
+
+	// Test hf models info command
+	t.Run("HFModelsInfo", func(t *testing.T) {
+		cmd := exec.Command("hf", "models", "info", repoID)
+		cmd.Env = append(os.Environ(),
+			"HF_ENDPOINT="+server.URL,
+			"HF_HUB_DISABLE_TELEMETRY=1",
+		)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("hf models info failed: %v\nOutput: %s", err, output)
+		}
+
+		outputStr := string(output)
+		// Verify the output contains the repo ID
+		if !strings.Contains(outputStr, repoID) {
+			t.Errorf("Expected output to contain repo ID '%s', got: %s", repoID, outputStr)
 		}
 	})
 }

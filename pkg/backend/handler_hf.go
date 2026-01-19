@@ -146,10 +146,9 @@ func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 	branch := vars["branch"]
 	path := vars["path"]
 
-	// TODO: support recursive and expand query parameters
-	// query := r.URL.Query()
-	// recursive, _ := strconv.ParseBool(query.Get("recursive"))
-	// expand, _ := strconv.ParseBool(query.Get("expand"))
+	query := r.URL.Query()
+	recursive, _ := strconv.ParseBool(query.Get("recursive"))
+	expand, _ := strconv.ParseBool(query.Get("expand"))
 
 	repoName := repoID + ".git"
 
@@ -169,8 +168,12 @@ func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries, err := repo.HFTree(branch, path)
+	entries, err := repo.HFTree(branch, path, &repository.HFTreeOptions{
+		Recursive: recursive,
+		Expand:    expand,
+	})
 	if err != nil {
+		log.Println("Error getting HF tree:", err)
 		http.Error(w, "Failed to get tree", http.StatusInternalServerError)
 		return
 	}
