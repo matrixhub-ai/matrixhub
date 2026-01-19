@@ -26,8 +26,21 @@ import (
 
 	"github.com/gorilla/handlers"
 
+	"github.com/matrixhub-ai/matrixhub/internal/utils"
 	"github.com/matrixhub-ai/matrixhub/pkg/backend"
 )
+
+// runHFCmd runs an hf (HuggingFace CLI) command and returns its output.
+func runHFCmd(t *testing.T, endpoint string, args ...string) string {
+	t.Helper()
+	cmd := utils.Command(t.Context(), "hf", args...)
+	cmd.Env = append(os.Environ(), "HF_ENDPOINT="+endpoint, "HF_HUB_DISABLE_TELEMETRY=1")
+	output, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("HF command failed: hf %s\nError: %v\nOutput: %s", strings.Join(args, " "), err, output)
+	}
+	return string(output)
+}
 
 // TestHuggingFaceAPI tests the HuggingFace-compatible API endpoints.
 func TestHuggingFaceAPI(t *testing.T) {
@@ -209,12 +222,7 @@ func TestHuggingFaceTreeAPI(t *testing.T) {
 
 	// Clone and add nested structure
 	gitWorkDir := filepath.Join(clientDir, "git-work")
-	cmd := exec.Command("git", "clone", server.URL+"/"+repoName, gitWorkDir)
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
-	}
+	runGitCmd(t, "", "clone", server.URL+"/"+repoName, gitWorkDir)
 
 	// Configure git user
 	runGitCmd(t, gitWorkDir, "config", "user.email", "test@test.com")
@@ -240,13 +248,7 @@ func TestHuggingFaceTreeAPI(t *testing.T) {
 	runGitCmd(t, gitWorkDir, "add", ".")
 	runGitCmd(t, gitWorkDir, "commit", "-m", "Add nested structure")
 	runGitCmd(t, gitWorkDir, "branch", "-M", "main")
-	cmd = exec.Command("git", "push", "-u", "origin", "main")
-	cmd.Dir = gitWorkDir
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Failed to push: %v\nOutput: %s", err, output)
-	}
+	runGitCmd(t, gitWorkDir, "push", "-u", "origin", "main")
 
 	t.Run("TreeNonRecursive", func(t *testing.T) {
 		// Request tree without recursive option (default)
@@ -484,12 +486,7 @@ func TestHuggingFaceCLI(t *testing.T) {
 	gitWorkDir := filepath.Join(clientDir, "git-work")
 	t.Run("CloneAndAddContent", func(t *testing.T) {
 		// Clone the repository using git
-		cmd := exec.Command("git", "clone", server.URL+"/"+repoName, gitWorkDir)
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, "", "clone", server.URL+"/"+repoName, gitWorkDir)
 
 		// Configure git user
 		runGitCmd(t, gitWorkDir, "config", "user.email", "test@test.com")
@@ -514,13 +511,7 @@ func TestHuggingFaceCLI(t *testing.T) {
 		runGitCmd(t, gitWorkDir, "branch", "-M", "main")
 
 		// Push
-		cmd = exec.Command("git", "push", "-u", "origin", "main")
-		cmd.Dir = gitWorkDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err = cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to push: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, gitWorkDir, "push", "-u", "origin", "main")
 	})
 
 	// Add LFS content to the repository
@@ -557,42 +548,22 @@ func TestHuggingFaceCLI(t *testing.T) {
 		runGitCmd(t, gitWorkDir, "commit", "-m", "Add model weights (LFS)")
 
 		// Push
-		cmd := exec.Command("git", "push")
-		cmd.Dir = gitWorkDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to push LFS content: %v\nOutput: %s", err, output)
-		}
-
+		runGitCmd(t, gitWorkDir, "push")
 		// Verify LFS is tracking the file
-		cmd = exec.Command("git", "lfs", "ls-files")
-		cmd.Dir = gitWorkDir
-		output, err = cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to list LFS files: %v\nOutput: %s", err, output)
-		}
-		if !strings.Contains(string(output), "model.safetensors") {
+		output := runGitLFSCmd(t, gitWorkDir, "ls-files")
+
+		if !strings.Contains(output, "model.safetensors") {
 			t.Errorf("model.safetensors should be tracked by LFS, got: %s", output)
 		}
 	})
 
 	// Test hf models info command
 	t.Run("HFModelsInfo", func(t *testing.T) {
-		cmd := exec.Command("hf", "models", "info", repoID)
-		cmd.Env = append(os.Environ(),
-			"HF_ENDPOINT="+server.URL,
-			"HF_HUB_DISABLE_TELEMETRY=1",
-		)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("hf models info failed: %v\nOutput: %s", err, output)
-		}
+		output := runHFCmd(t, server.URL, "models", "info", repoID)
 
 		// Verify the output contains expected fields
-		outputStr := string(output)
-		if !strings.Contains(outputStr, repoID) {
-			t.Errorf("Expected output to contain repo ID '%s', got: %s", repoID, outputStr)
+		if !strings.Contains(output, repoID) {
+			t.Errorf("Expected output to contain repo ID '%s', got: %s", repoID, output)
 		}
 	})
 
@@ -603,15 +574,7 @@ func TestHuggingFaceCLI(t *testing.T) {
 			t.Fatalf("Failed to create download dir: %v", err)
 		}
 
-		cmd := exec.Command("hf", "download", repoID, "config.json", "--local-dir", hfDownloadDir)
-		cmd.Env = append(os.Environ(),
-			"HF_ENDPOINT="+server.URL,
-			"HF_HUB_DISABLE_TELEMETRY=1",
-		)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("hf download failed: %v\nOutput: %s", err, output)
-		}
+		runHFCmd(t, server.URL, "download", repoID, "config.json", "--local-dir", hfDownloadDir)
 
 		// Verify the file was downloaded
 		downloadedFile := filepath.Join(hfDownloadDir, "config.json")
@@ -632,15 +595,7 @@ func TestHuggingFaceCLI(t *testing.T) {
 			t.Fatalf("Failed to create download dir: %v", err)
 		}
 
-		cmd := exec.Command("hf", "download", repoID, "--local-dir", hfDownloadFullDir)
-		cmd.Env = append(os.Environ(),
-			"HF_ENDPOINT="+server.URL,
-			"HF_HUB_DISABLE_TELEMETRY=1",
-		)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("hf download (full) failed: %v\nOutput: %s", err, output)
-		}
+		runHFCmd(t, server.URL, "download", repoID, "--local-dir", hfDownloadFullDir)
 
 		// Verify both files were downloaded
 		configFile := filepath.Join(hfDownloadFullDir, "config.json")
@@ -676,15 +631,7 @@ func TestHuggingFaceCLI(t *testing.T) {
 		}
 
 		// Download the LFS file specifically
-		cmd := exec.Command("hf", "download", repoID, "model.safetensors", "--local-dir", hfDownloadLFSDir)
-		cmd.Env = append(os.Environ(),
-			"HF_ENDPOINT="+server.URL,
-			"HF_HUB_DISABLE_TELEMETRY=1",
-		)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("hf download (LFS) failed: %v\nOutput: %s", err, output)
-		}
+		runHFCmd(t, server.URL, "download", repoID, "model.safetensors", "--local-dir", hfDownloadLFSDir)
 
 		// Verify the LFS file was downloaded with correct content
 		lfsFile := filepath.Join(hfDownloadLFSDir, "model.safetensors")
@@ -781,12 +728,7 @@ func TestHuggingFaceHubTreeAPI(t *testing.T) {
 
 	// Clone and add nested content to the repository
 	gitWorkDir := filepath.Join(clientDir, "git-work")
-	cmd := exec.Command("git", "clone", server.URL+"/"+repoName, gitWorkDir)
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
-	}
+	runGitCmd(t, "", "clone", server.URL+"/"+repoName, gitWorkDir)
 
 	// Configure git user
 	runGitCmd(t, gitWorkDir, "config", "user.email", "test@test.com")
@@ -808,13 +750,7 @@ func TestHuggingFaceHubTreeAPI(t *testing.T) {
 	runGitCmd(t, gitWorkDir, "add", ".")
 	runGitCmd(t, gitWorkDir, "commit", "-m", "Add nested files")
 	runGitCmd(t, gitWorkDir, "branch", "-M", "main")
-	cmd = exec.Command("git", "push", "-u", "origin", "main")
-	cmd.Dir = gitWorkDir
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Failed to push: %v\nOutput: %s", err, output)
-	}
+	runGitCmd(t, gitWorkDir, "push", "-u", "origin", "main")
 
 	// Test hf download for specific file (this uses the resolve endpoint)
 	t.Run("HFDownloadSingleFile", func(t *testing.T) {
@@ -824,15 +760,7 @@ func TestHuggingFaceHubTreeAPI(t *testing.T) {
 		}
 
 		// Download single file
-		cmd := exec.Command("hf", "download", repoID, "root_file.txt", "--local-dir", downloadDir)
-		cmd.Env = append(os.Environ(),
-			"HF_ENDPOINT="+server.URL,
-			"HF_HUB_DISABLE_TELEMETRY=1",
-		)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("hf download failed: %v\nOutput: %s", err, output)
-		}
+		runHFCmd(t, server.URL, "download", repoID, "root_file.txt", "--local-dir", downloadDir)
 
 		// Verify file was downloaded
 		content, err := os.ReadFile(filepath.Join(downloadDir, "root_file.txt"))
@@ -852,15 +780,7 @@ func TestHuggingFaceHubTreeAPI(t *testing.T) {
 		}
 
 		// Download specific nested file
-		cmd := exec.Command("hf", "download", repoID, "subdir/nested_file.txt", "--local-dir", downloadDir)
-		cmd.Env = append(os.Environ(),
-			"HF_ENDPOINT="+server.URL,
-			"HF_HUB_DISABLE_TELEMETRY=1",
-		)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("hf download nested file failed: %v\nOutput: %s", err, output)
-		}
+		runHFCmd(t, server.URL, "download", repoID, "subdir/nested_file.txt", "--local-dir", downloadDir)
 
 		// Verify nested file was downloaded
 		content, err := os.ReadFile(filepath.Join(downloadDir, "subdir", "nested_file.txt"))
@@ -874,45 +794,11 @@ func TestHuggingFaceHubTreeAPI(t *testing.T) {
 
 	// Test hf models info command
 	t.Run("HFModelsInfo", func(t *testing.T) {
-		cmd := exec.Command("hf", "models", "info", repoID)
-		cmd.Env = append(os.Environ(),
-			"HF_ENDPOINT="+server.URL,
-			"HF_HUB_DISABLE_TELEMETRY=1",
-		)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("hf models info failed: %v\nOutput: %s", err, output)
-		}
+		output := runHFCmd(t, server.URL, "models", "info", repoID)
 
-		outputStr := string(output)
 		// Verify the output contains the repo ID
-		if !strings.Contains(outputStr, repoID) {
-			t.Errorf("Expected output to contain repo ID '%s', got: %s", repoID, outputStr)
+		if !strings.Contains(output, repoID) {
+			t.Errorf("Expected output to contain repo ID '%s', got: %s", repoID, output)
 		}
 	})
-}
-
-// runGitCmd runs a git command in the specified directory.
-func runGitCmd(t *testing.T, dir string, args ...string) {
-	t.Helper()
-	cmd := exec.Command("git", args...)
-	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Git command failed: git %s\nError: %v\nOutput: %s", strings.Join(args, " "), err, output)
-	}
-}
-
-// runGitLFSCmd runs a git-lfs command in the specified directory.
-func runGitLFSCmd(t *testing.T, dir string, args ...string) {
-	t.Helper()
-	fullArgs := append([]string{"lfs"}, args...)
-	cmd := exec.Command("git", fullArgs...)
-	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Git LFS command failed: git lfs %s\nError: %v\nOutput: %s", strings.Join(args, " "), err, output)
-	}
 }

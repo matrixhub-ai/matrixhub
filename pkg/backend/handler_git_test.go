@@ -19,15 +19,28 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/gorilla/handlers"
 
+	"github.com/matrixhub-ai/matrixhub/internal/utils"
 	"github.com/matrixhub-ai/matrixhub/pkg/backend"
 )
+
+// runGitCmd runs a git command in the specified directory.
+func runGitCmd(t *testing.T, dir string, args ...string) string {
+	t.Helper()
+	cmd := utils.Command(t.Context(), "git", args...)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	output, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("Git command failed: git %s\nError: %v\nOutput: %s", strings.Join(args, " "), err, output)
+	}
+	return string(output)
+}
 
 // TestGitServer tests the git server using the git binary.
 func TestGitServer(t *testing.T) {
@@ -85,12 +98,7 @@ func TestGitServer(t *testing.T) {
 	t.Run("CloneEmptyRepository", func(t *testing.T) {
 		cloneDir := filepath.Join(clientDir, "clone-empty")
 
-		cmd := exec.Command("git", "clone", repoURL, cloneDir)
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, "", "clone", repoURL, cloneDir)
 
 		// Verify .git directory exists
 		matrixhubir := filepath.Join(cloneDir, ".git")
@@ -103,8 +111,8 @@ func TestGitServer(t *testing.T) {
 		workDir := filepath.Join(clientDir, "clone-empty")
 
 		// Configure git user for commits
-		runGitCommand(t, workDir, "config", "user.email", "test@test.com")
-		runGitCommand(t, workDir, "config", "user.name", "Test User")
+		runGitCmd(t, workDir, "config", "user.email", "test@test.com")
+		runGitCmd(t, workDir, "config", "user.name", "Test User")
 
 		// Create a test file
 		testFile := filepath.Join(workDir, "README.md")
@@ -113,36 +121,17 @@ func TestGitServer(t *testing.T) {
 		}
 
 		// Add and commit
-		runGitCommand(t, workDir, "add", "README.md")
-		runGitCommand(t, workDir, "commit", "-m", "Initial commit")
+		runGitCmd(t, workDir, "add", "README.md")
+		runGitCmd(t, workDir, "commit", "-m", "Initial commit")
 
 		// Push to remote
-		cmd := exec.Command("git", "push", "-u", "origin", "master")
-		cmd.Dir = workDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		_, err := cmd.CombinedOutput()
-		// Try main branch if master fails
-		if err != nil {
-			cmd = exec.Command("git", "push", "-u", "origin", "main")
-			cmd.Dir = workDir
-			cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-			_, err = cmd.CombinedOutput()
-			if err != nil {
-				t.Fatalf("Failed to push to repository: %v", err)
-			}
-		}
+		runGitCmd(t, workDir, "push", "-u", "origin", "master")
 	})
 
 	t.Run("CloneWithContent", func(t *testing.T) {
 		cloneDir := filepath.Join(clientDir, "clone-with-content")
 
-		cmd := exec.Command("git", "clone", repoURL, cloneDir)
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
-		}
-
+		runGitCmd(t, "", "clone", repoURL, cloneDir)
 		// Verify README.md exists
 		readmePath := filepath.Join(cloneDir, "README.md")
 		if _, err := os.Stat(readmePath); os.IsNotExist(err) {
@@ -162,13 +151,7 @@ func TestGitServer(t *testing.T) {
 	t.Run("FetchFromRepository", func(t *testing.T) {
 		workDir := filepath.Join(clientDir, "clone-with-content")
 
-		cmd := exec.Command("git", "fetch", "origin")
-		cmd.Dir = workDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to fetch from repository: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, workDir, "fetch", "origin")
 	})
 
 	t.Run("PushMoreCommits", func(t *testing.T) {
@@ -181,38 +164,26 @@ func TestGitServer(t *testing.T) {
 		}
 
 		// Configure git user
-		runGitCommand(t, workDir, "config", "user.email", "test@test.com")
-		runGitCommand(t, workDir, "config", "user.name", "Test User")
+		runGitCmd(t, workDir, "config", "user.email", "test@test.com")
+		runGitCmd(t, workDir, "config", "user.name", "Test User")
 
 		// Add and commit
-		runGitCommand(t, workDir, "add", "file2.txt")
-		runGitCommand(t, workDir, "commit", "-m", "Add second file")
+		runGitCmd(t, workDir, "add", "file2.txt")
+		runGitCmd(t, workDir, "commit", "-m", "Add second file")
 
 		// Push
-		cmd := exec.Command("git", "push")
-		cmd.Dir = workDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to push to repository: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, workDir, "push")
 	})
 
 	t.Run("PullChanges", func(t *testing.T) {
 		workDir := filepath.Join(clientDir, "clone-empty")
 
 		// Configure git user
-		runGitCommand(t, workDir, "config", "user.email", "test@test.com")
-		runGitCommand(t, workDir, "config", "user.name", "Test User")
+		runGitCmd(t, workDir, "config", "user.email", "test@test.com")
+		runGitCmd(t, workDir, "config", "user.name", "Test User")
 
 		// Pull changes from another clone
-		cmd := exec.Command("git", "pull")
-		cmd.Dir = workDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to pull from repository: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, workDir, "pull")
 
 		// Verify file2.txt exists
 		file2Path := filepath.Join(workDir, "file2.txt")
@@ -260,10 +231,7 @@ func TestInfoRefs(t *testing.T) {
 	// Create a bare repository
 	repoName := "test.git"
 	repoPath := filepath.Join(repoDir, "repositories", repoName)
-	cmd := exec.Command("git", "init", "--bare", repoPath)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("Failed to create bare repository: %v\nOutput: %s", err, output)
-	}
+	runGitCmd(t, "", "init", "--bare", repoPath)
 
 	handler := handlers.LoggingHandler(os.Stderr, backend.NewHandler(backend.WithRootDir(repoDir)))
 	server := httptest.NewServer(handler)
@@ -359,16 +327,4 @@ func TestInfoRefs(t *testing.T) {
 			t.Errorf("Expected status 404, got %d", resp.StatusCode)
 		}
 	})
-}
-
-// runGitCommand runs a git command in the specified directory.
-func runGitCommand(t *testing.T, dir string, args ...string) {
-	t.Helper()
-	cmd := exec.Command("git", args...)
-	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Git command failed: git %s\nError: %v\nOutput: %s", strings.Join(args, " "), err, output)
-	}
 }

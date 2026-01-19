@@ -18,29 +18,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/gorilla/handlers"
 
+	"github.com/matrixhub-ai/matrixhub/internal/utils"
 	"github.com/matrixhub-ai/matrixhub/pkg/backend"
 )
-
-// runGitLFSCommandWithOutput runs a git-lfs command and returns its output.
-func runGitLFSCommandWithOutput(t *testing.T, dir string, args ...string) string {
-	t.Helper()
-	fullArgs := append([]string{"lfs"}, args...)
-	cmd := exec.Command("git", fullArgs...)
-	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Git LFS command failed: git lfs %s\nError: %v\nOutput: %s", strings.Join(args, " "), err, output)
-	}
-	return string(output)
-}
 
 // TestGitLFSLock tests the Git LFS lock functionality using git-lfs binary.
 func TestGitLFSLock(t *testing.T) {
@@ -94,35 +80,24 @@ func TestGitLFSLock(t *testing.T) {
 
 	t.Run("CloneAndConfigureLFS", func(t *testing.T) {
 		// Clone the repository
-		cmd := exec.Command("git", "clone", repoURL, workDir)
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, "", "clone", repoURL, workDir)
 
 		// Configure git user
-		runGitCommand(t, workDir, "config", "user.email", "test@test.com")
-		runGitCommand(t, workDir, "config", "user.name", "Test User")
+		runGitCmd(t, workDir, "config", "user.email", "test@test.com")
+		runGitCmd(t, workDir, "config", "user.name", "Test User")
 
 		// Initialize LFS
-		runGitLFSCommand(t, workDir, "install", "--local")
+		runGitLFSCmd(t, workDir, "install", "--local")
 
 		// Track binary files with LFS
-		runGitLFSCommand(t, workDir, "track", "*.bin")
+		runGitLFSCmd(t, workDir, "track", "*.bin")
 
 		// Commit .gitattributes
-		runGitCommand(t, workDir, "add", ".gitattributes")
-		runGitCommand(t, workDir, "commit", "-m", "Configure LFS tracking")
+		runGitCmd(t, workDir, "add", ".gitattributes")
+		runGitCmd(t, workDir, "commit", "-m", "Configure LFS tracking")
 
 		// Push initial commit
-		cmd = exec.Command("git", "push", "-u", "origin", "HEAD")
-		cmd.Dir = workDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err = cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to push LFS tracking: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, workDir, "push", "-u", "origin", "HEAD")
 	})
 
 	// Create and push a binary file for locking tests
@@ -138,22 +113,16 @@ func TestGitLFSLock(t *testing.T) {
 		}
 
 		// Add and commit
-		runGitCommand(t, workDir, "add", "lockable.bin")
-		runGitCommand(t, workDir, "commit", "-m", "Add lockable binary file")
+		runGitCmd(t, workDir, "add", "lockable.bin")
+		runGitCmd(t, workDir, "commit", "-m", "Add lockable binary file")
 
 		// Push with LFS
-		cmd := exec.Command("git", "push")
-		cmd.Dir = workDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to push LFS file: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, workDir, "push")
 	})
 
 	// Test locking a file
 	t.Run("LockFile", func(t *testing.T) {
-		output := runGitLFSCommandWithOutput(t, workDir, "lock", "lockable.bin")
+		output := runGitLFSCmd(t, workDir, "lock", "lockable.bin")
 		if !strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected lock output to contain 'lockable.bin', got: %s", output)
 		}
@@ -161,7 +130,7 @@ func TestGitLFSLock(t *testing.T) {
 
 	// Test listing locks
 	t.Run("ListLocks", func(t *testing.T) {
-		output := runGitLFSCommandWithOutput(t, workDir, "locks")
+		output := runGitLFSCmd(t, workDir, "locks")
 		if !strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected locks output to contain 'lockable.bin', got: %s", output)
 		}
@@ -169,11 +138,10 @@ func TestGitLFSLock(t *testing.T) {
 
 	// Test locking the same file again should fail
 	t.Run("LockSameFileShouldFail", func(t *testing.T) {
-		fullArgs := []string{"lfs", "lock", "lockable.bin"}
-		cmd := exec.Command("git", fullArgs...)
+		cmd := utils.Command(t.Context(), "git", "lfs", "lock", "lockable.bin")
 		cmd.Dir = workDir
 		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
+		output, err := cmd.Output()
 		if err == nil {
 			t.Errorf("Expected lock to fail for already locked file, but it succeeded. Output: %s", output)
 		}
@@ -185,7 +153,7 @@ func TestGitLFSLock(t *testing.T) {
 
 	// Test verify locks
 	t.Run("VerifyLocks", func(t *testing.T) {
-		output := runGitLFSCommandWithOutput(t, workDir, "locks", "--verify")
+		output := runGitLFSCmd(t, workDir, "locks", "--verify")
 		// Verify should show the lock as "ours"
 		if !strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected verify output to contain 'lockable.bin', got: %s", output)
@@ -194,7 +162,7 @@ func TestGitLFSLock(t *testing.T) {
 
 	// Test lock with JSON output
 	t.Run("ListLocksJSON", func(t *testing.T) {
-		output := runGitLFSCommandWithOutput(t, workDir, "locks", "--json")
+		output := runGitLFSCmd(t, workDir, "locks", "--json")
 		if !strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected JSON locks output to contain 'lockable.bin', got: %s", output)
 		}
@@ -206,7 +174,7 @@ func TestGitLFSLock(t *testing.T) {
 
 	// Test unlock file
 	t.Run("UnlockFile", func(t *testing.T) {
-		output := runGitLFSCommandWithOutput(t, workDir, "unlock", "lockable.bin")
+		output := runGitLFSCmd(t, workDir, "unlock", "lockable.bin")
 		if !strings.Contains(output, "lockable.bin") && !strings.Contains(output, "unlocked") {
 			t.Logf("Unlock output: %s", output)
 		}
@@ -214,7 +182,7 @@ func TestGitLFSLock(t *testing.T) {
 
 	// Test locks should be empty after unlock
 	t.Run("VerifyUnlock", func(t *testing.T) {
-		output := runGitLFSCommandWithOutput(t, workDir, "locks")
+		output := runGitLFSCmd(t, workDir, "locks")
 		if strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected no locks after unlock, but got: %s", output)
 		}
@@ -223,16 +191,16 @@ func TestGitLFSLock(t *testing.T) {
 	// Test lock and force unlock
 	t.Run("LockAndForceUnlock", func(t *testing.T) {
 		// Lock the file again
-		runGitLFSCommand(t, workDir, "lock", "lockable.bin")
+		runGitLFSCmd(t, workDir, "lock", "lockable.bin")
 
 		// Force unlock
-		output := runGitLFSCommandWithOutput(t, workDir, "unlock", "--force", "lockable.bin")
+		output := runGitLFSCmd(t, workDir, "unlock", "--force", "lockable.bin")
 		if !strings.Contains(output, "lockable.bin") && !strings.Contains(output, "unlocked") {
 			t.Logf("Force unlock output: %s", output)
 		}
 
 		// Verify no locks
-		output = runGitLFSCommandWithOutput(t, workDir, "locks")
+		output = runGitLFSCmd(t, workDir, "locks")
 		if strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected no locks after force unlock, but got: %s", output)
 		}
@@ -253,25 +221,19 @@ func TestGitLFSLock(t *testing.T) {
 		}
 
 		// Add and commit
-		runGitCommand(t, workDir, "add", ".")
-		runGitCommand(t, workDir, "commit", "-m", "Add multiple binary files")
+		runGitCmd(t, workDir, "add", ".")
+		runGitCmd(t, workDir, "commit", "-m", "Add multiple binary files")
 
 		// Push
-		cmd := exec.Command("git", "push")
-		cmd.Dir = workDir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Failed to push: %v\nOutput: %s", err, output)
-		}
+		runGitCmd(t, workDir, "push")
 
 		// Lock all files
-		runGitLFSCommand(t, workDir, "lock", "file1.bin")
-		runGitLFSCommand(t, workDir, "lock", "file2.bin")
-		runGitLFSCommand(t, workDir, "lock", "file3.bin")
+		runGitLFSCmd(t, workDir, "lock", "file1.bin")
+		runGitLFSCmd(t, workDir, "lock", "file2.bin")
+		runGitLFSCmd(t, workDir, "lock", "file3.bin")
 
 		// List locks should show all three
-		locksOutput := runGitLFSCommandWithOutput(t, workDir, "locks")
+		locksOutput := runGitLFSCmd(t, workDir, "locks")
 		for _, name := range []string{"file1.bin", "file2.bin", "file3.bin"} {
 			if !strings.Contains(locksOutput, name) {
 				t.Errorf("Expected locks to contain %s, got: %s", name, locksOutput)
@@ -279,20 +241,20 @@ func TestGitLFSLock(t *testing.T) {
 		}
 
 		// Unlock all
-		runGitLFSCommand(t, workDir, "unlock", "file1.bin")
-		runGitLFSCommand(t, workDir, "unlock", "file2.bin")
-		runGitLFSCommand(t, workDir, "unlock", "file3.bin")
+		runGitLFSCmd(t, workDir, "unlock", "file1.bin")
+		runGitLFSCmd(t, workDir, "unlock", "file2.bin")
+		runGitLFSCmd(t, workDir, "unlock", "file3.bin")
 	})
 
 	// Test lock with limit parameter
 	t.Run("LockWithLimit", func(t *testing.T) {
 		// Lock multiple files
-		runGitLFSCommand(t, workDir, "lock", "file1.bin")
-		runGitLFSCommand(t, workDir, "lock", "file2.bin")
-		runGitLFSCommand(t, workDir, "lock", "file3.bin")
+		runGitLFSCmd(t, workDir, "lock", "file1.bin")
+		runGitLFSCmd(t, workDir, "lock", "file2.bin")
+		runGitLFSCmd(t, workDir, "lock", "file3.bin")
 
 		// List locks with limit
-		output := runGitLFSCommandWithOutput(t, workDir, "locks", "--limit", "2")
+		output := runGitLFSCmd(t, workDir, "locks", "--limit", "2")
 		// Count how many locks are shown (should be limited)
 		lines := strings.Split(strings.TrimSpace(output), "\n")
 		lockCount := 0
@@ -306,30 +268,30 @@ func TestGitLFSLock(t *testing.T) {
 		}
 
 		// Cleanup
-		runGitLFSCommand(t, workDir, "unlock", "file1.bin")
-		runGitLFSCommand(t, workDir, "unlock", "file2.bin")
-		runGitLFSCommand(t, workDir, "unlock", "file3.bin")
+		runGitLFSCmd(t, workDir, "unlock", "file1.bin")
+		runGitLFSCmd(t, workDir, "unlock", "file2.bin")
+		runGitLFSCmd(t, workDir, "unlock", "file3.bin")
 	})
 
 	// Test lock by path filter
 	t.Run("LockFilterByPath", func(t *testing.T) {
 		// Lock a file
-		runGitLFSCommand(t, workDir, "lock", "lockable.bin")
+		runGitLFSCmd(t, workDir, "lock", "lockable.bin")
 
 		// List locks with path filter
-		output := runGitLFSCommandWithOutput(t, workDir, "locks", "--path", "lockable.bin")
+		output := runGitLFSCmd(t, workDir, "locks", "--path", "lockable.bin")
 		if !strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected filtered locks to contain 'lockable.bin', got: %s", output)
 		}
 
 		// Filter for non-existent path should return no locks
-		output = runGitLFSCommandWithOutput(t, workDir, "locks", "--path", "nonexistent.bin")
+		output = runGitLFSCmd(t, workDir, "locks", "--path", "nonexistent.bin")
 		if strings.Contains(output, "lockable.bin") {
 			t.Errorf("Expected filtered locks to not contain 'lockable.bin', got: %s", output)
 		}
 
 		// Cleanup
-		runGitLFSCommand(t, workDir, "unlock", "lockable.bin")
+		runGitLFSCmd(t, workDir, "unlock", "lockable.bin")
 	})
 
 	// Cleanup
