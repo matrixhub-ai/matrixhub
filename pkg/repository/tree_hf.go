@@ -125,30 +125,15 @@ func (r *Repository) HFTree(ref string, path string, opts *HFTreeOptions) ([]HFT
 	if opts == nil {
 		opts = &HFTreeOptions{}
 	}
-	var commit *object.Commit
 
-	// First try to resolve as a branch reference
-	refObj, err := r.repo.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
-	switch err {
-	case nil:
-		commit, err = r.repo.CommitObject(refObj.Hash())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get commit object: %w", err)
-		}
-	case plumbing.ErrReferenceNotFound:
-		// If not a branch, try to resolve as a commit SHA
-		if !isValidSHA(ref) {
-			// Neither a branch nor a valid commit SHA format
-			return nil, fmt.Errorf("invalid rev id: %s", ref)
-		}
-		hash := plumbing.NewHash(ref)
-		commit, err = r.repo.CommitObject(hash)
-		if err != nil {
-			// Valid SHA format but commit not found
-			return nil, fmt.Errorf("commit not found: %w", err)
-		}
-	default:
-		return nil, err
+	hash, err := r.repo.ResolveRevision(plumbing.Revision(ref))
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve revision: %w", err)
+	}
+
+	commit, err := r.repo.CommitObject(*hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit object: %w", err)
 	}
 
 	tree, err := commit.Tree()

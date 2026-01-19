@@ -21,7 +21,6 @@ import (
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
-	"github.com/go-git/go-git/v5/plumbing/object"
 
 	"github.com/matrixhub-ai/matrixhub/pkg/lfs"
 )
@@ -42,30 +41,14 @@ type TreeEntry struct {
 }
 
 func (r *Repository) Tree(ref string, path string) ([]TreeEntry, error) {
-	var commit *object.Commit
+	hash, err := r.repo.ResolveRevision(plumbing.Revision(ref))
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve revision: %w", err)
+	}
 
-	// First try to resolve as a branch reference
-	refObj, err := r.repo.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
-	switch err {
-	case nil:
-		commit, err = r.repo.CommitObject(refObj.Hash())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get commit object: %w", err)
-		}
-	case plumbing.ErrReferenceNotFound:
-		// If not a branch, try to resolve as a commit SHA
-		if !isValidSHA(ref) {
-			// Neither a branch nor a valid commit SHA format
-			return []TreeEntry{}, nil
-		}
-		hash := plumbing.NewHash(ref)
-		commit, err = r.repo.CommitObject(hash)
-		if err != nil {
-			// Valid SHA format but commit not found
-			return []TreeEntry{}, nil
-		}
-	default:
-		return nil, err
+	commit, err := r.repo.CommitObject(*hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit object: %w", err)
 	}
 
 	tree, err := commit.Tree()

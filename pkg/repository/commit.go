@@ -24,32 +24,12 @@ import (
 )
 
 func (r *Repository) Commits(ref string, limit int) ([]Commit, error) {
-	var fromHash plumbing.Hash
-
-	// First try to resolve as a branch reference
-	refObj, err := r.repo.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
-	switch err {
-	case nil:
-		fromHash = refObj.Hash()
-	case plumbing.ErrReferenceNotFound:
-		// If not a branch, try to resolve as a commit SHA
-		if !isValidSHA(ref) {
-			// Neither a branch nor a valid commit SHA format
-			return []Commit{}, nil
-		}
-		hash := plumbing.NewHash(ref)
-		// Verify the commit exists
-		_, err := r.repo.CommitObject(hash)
-		if err != nil {
-			// Valid SHA format but commit not found
-			return []Commit{}, nil
-		}
-		fromHash = hash
-	default:
-		return nil, err
+	hash, err := r.repo.ResolveRevision(plumbing.Revision(ref))
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve revision: %w", err)
 	}
 
-	commitIter, err := r.repo.Log(&git.LogOptions{From: fromHash})
+	commitIter, err := r.repo.Log(&git.LogOptions{From: *hash})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get commit log: %w", err)
 	}

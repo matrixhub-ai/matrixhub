@@ -15,7 +15,6 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -23,7 +22,6 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 type Blob struct {
@@ -60,52 +58,17 @@ func (b *Blob) Hash() string {
 }
 
 func (r *Repository) Blob(ref string, path string) (b *Blob, err error) {
-	var commit *object.Commit
-
-	// First try to resolve as a branch reference
-	refObj, err := r.repo.Reference(plumbing.ReferenceName("refs/heads/"+ref), true)
-	if err == nil {
-		commit, err = r.repo.CommitObject(refObj.Hash())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get commit object: %w", err)
-		}
-	} else {
-		// If not a branch, try to resolve as a commit SHA
-		if !isValidSHA(ref) {
-			return nil, errors.New("failed to resolve reference: not a valid branch or commit SHA")
-		}
-		hash := plumbing.NewHash(ref)
-		commit, err = r.repo.CommitObject(hash)
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve reference or commit: %w", err)
-		}
-	}
-
-	tree, err := commit.Tree()
+	hash, err := r.repo.ResolveRevision(plumbing.Revision(ref))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tree object: %w", err)
+		return nil, fmt.Errorf("failed to resolve revision: %w", err)
 	}
 
-	dir, filename := filepath.Split(path)
-	var file *object.File
-	dir = strings.TrimSuffix(dir, "/")
-	if dir != "" {
-		entry, err := tree.FindEntry(strings.TrimSuffix(dir, "/"))
-		if err != nil {
-			return nil, fmt.Errorf("path %s not found in tree: %w", dir, err)
-		}
-
-		if entry.Mode.IsFile() {
-			return nil, errors.New("path is not a directory")
-		}
-
-		tree, err = r.repo.TreeObject(entry.Hash)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get subtree object: %w", err)
-		}
+	commit, err := r.repo.CommitObject(*hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit object: %w", err)
 	}
 
-	file, err = tree.File(filename)
+	file, err := commit.File(path)
 	if err != nil {
 		return nil, fmt.Errorf("file not found in tree: %w", err)
 	}
