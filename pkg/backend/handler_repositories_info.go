@@ -20,9 +20,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -50,38 +48,6 @@ type TreeEntry struct {
 	BlobSha256 string `json:"blobSha256,omitempty"`
 }
 
-// parseRefPath parses a combined ref/path string using the branch list
-// Branches can contain '/', so we need to match against the branch list
-// Returns the ref (branch) and the remaining path
-func (h *Handler) parseRefPath(refpath string, branches []string) (ref string, path string) {
-	if refpath == "" {
-		return "", ""
-	}
-
-	// Sort branches by length (longest first) to match the most specific branch
-	sortedBranches := make([]string, len(branches))
-	copy(sortedBranches, branches)
-	sort.Slice(sortedBranches, func(i, j int) bool {
-		return len(sortedBranches[i]) > len(sortedBranches[j])
-	})
-
-	for _, branch := range sortedBranches {
-		if refpath == branch {
-			return branch, ""
-		}
-		if strings.HasPrefix(refpath, branch+"/") {
-			return branch, refpath[len(branch)+1:]
-		}
-	}
-
-	// Fallback: treat first segment as branch
-	parts := strings.SplitN(refpath, "/", 2)
-	if len(parts) == 2 {
-		return parts[0], parts[1]
-	}
-	return refpath, ""
-}
-
 // handleTree handles requests to list directory contents
 func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -103,17 +69,11 @@ func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
 		return
 	}
-	// Get branches to properly parse ref and path
-	branches, err := repo.Branches()
-	if err != nil {
-		http.Error(w, "Failed to get branches", http.StatusInternalServerError)
-		return
-	}
 
-	ref, path := h.parseRefPath(refpath, branches)
-	if ref == "" {
-		// Use default branch
-		ref = repo.DefaultBranch()
+	ref, path, err := repo.SplitRevisionAndPath(refpath)
+	if err != nil {
+		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		return
 	}
 
 	entries, err := repo.Tree(ref, path)
@@ -153,16 +113,10 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	branches, err := repo.Branches()
+	ref, path, err := repo.SplitRevisionAndPath(refpath)
 	if err != nil {
-		http.Error(w, "Failed to get branches", http.StatusInternalServerError)
+		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
 		return
-	}
-
-	ref, path := h.parseRefPath(refpath, branches)
-	if ref == "" {
-		// Use default branch
-		ref = repo.DefaultBranch()
 	}
 
 	blob, err := repo.Blob(ref, path)
@@ -239,16 +193,10 @@ func (h *Handler) handleCommits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	branches, err := repo.Branches()
+	ref, _, err := repo.SplitRevisionAndPath(refpath)
 	if err != nil {
-		http.Error(w, "Failed to get branches", http.StatusInternalServerError)
+		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
 		return
-	}
-
-	ref, _ := h.parseRefPath(refpath, branches)
-	if ref == "" {
-		// Use default branch
-		ref = repo.DefaultBranch()
 	}
 
 	commits, err := repo.Commits(ref, 1)

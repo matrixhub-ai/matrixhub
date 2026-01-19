@@ -122,6 +122,10 @@ func (r *Repository) hfLastCommit(commit *object.Commit) (*HFTreeLastCommit, err
 }
 
 func (r *Repository) HFTree(ref string, path string, opts *HFTreeOptions) ([]HFTreeEntry, error) {
+	if ref == "" {
+		ref = r.DefaultBranch()
+	}
+
 	if opts == nil {
 		opts = &HFTreeOptions{}
 	}
