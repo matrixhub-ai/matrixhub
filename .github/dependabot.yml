@@ -9,15 +9,6 @@ updates:
     labels:
       - "dependencies"
       - "automated"
-    groups:
-      kubernetes:
-        patterns:
-          - "k8s.io/*"
-    ignore:
-      # Ignore major and minor versions for kubernetes dependencies
-      # Allow patches and security updates.
-      - dependency-name: k8s.io/*
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Maintain dependencies for go tools
   - package-ecosystem: "gomod"
@@ -27,15 +18,6 @@ updates:
     labels:
       - "dependencies"
       - "automated"
-    groups:
-      kubernetes:
-        patterns:
-          - "k8s.io/*"
-    ignore:
-      # Ignore major and minor versions for kubernetes dependencies
-      # Allow patches and security updates.
-      - dependency-name: k8s.io/*
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Maintain npm dependencies for web
   - package-ecosystem: "npm"
