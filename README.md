@@ -24,6 +24,7 @@ MatrixHub streamlines the transition from public model hubs to production-grade 
 * **RBAC & Multi-Tenancy**: Project-based isolation with granular permissions and seamless LDAP/SSO integration.
 * **Audit & Compliance**: Full traceability with comprehensive logs for every upload, download, and configuration change.
 * **Integrity Protection**: Built-in malware scanning and content signing to ensure models remain untampered.
+* **Agent Documentation**: First-class support for `agent.md` files to document AI agents with structured metadata and rich documentation.
 
 ### 🌍 Scalable Infrastructure
 
