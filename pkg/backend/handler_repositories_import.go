@@ -18,11 +18,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/git-lfs/pktline"
 	"github.com/gorilla/mux"
 
-	"github.com/matrixhub-ai/matrixhub/internal/utils"
 	"github.com/matrixhub-ai/matrixhub/pkg/queue"
 	"github.com/matrixhub-ai/matrixhub/pkg/repository"
 )
@@ -165,53 +167,87 @@ func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 }
 
 // getRemoteDefaultBranch discovers the default branch of a remote repository
+// by fetching and parsing the git-upload-pack info/refs pkt-line response.
 func (h *Handler) getRemoteDefaultBranch(ctx context.Context, sourceURL string) (string, error) {
-	cmd := utils.Command(ctx, "git", "ls-remote", "--symref", sourceURL, "HEAD")
-	output, err := cmd.Output()
+	// Construct the info/refs URL for git-upload-pack
+	infoRefsURL := strings.TrimSuffix(sourceURL, "/") + "/info/refs?service=git-upload-pack"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, infoRefsURL, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("User-Agent", "git/2.0")
+
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch info/refs: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	// Parse output to find the default branch
-	// Format: ref: refs/heads/main	HEAD
-	lines := string(output)
-	for _, line := range splitLines(lines) {
-		if len(line) > 5 && line[:5] == "ref: " {
-			// Extract the ref part after "ref: "
-			remaining := line[5:]
-			// Find the end of the ref (before whitespace/tab)
-			refEnd := len(remaining)
-			for i := range len(remaining) {
-				if remaining[i] == ' ' || remaining[i] == '\t' {
-					refEnd = i
-					break
-				}
-			}
-			ref := remaining[:refEnd]
-			// Extract branch name from refs/heads/xxx
-			if len(ref) > 11 && ref[:11] == "refs/heads/" {
-				return ref[11:], nil
-			}
-		}
-	}
-
-	return "", errors.New("could not determine default branch")
+	return parseDefaultBranchFromPktLine(resp.Body)
 }
 
-// splitLines splits a string into lines
-func splitLines(s string) []string {
-	var lines []string
-	start := 0
-	for i := range len(s) {
-		if s[i] == '\n' {
-			lines = append(lines, s[start:i])
-			start = i + 1
+// parseDefaultBranchFromPktLine parses the git-upload-pack info/refs pkt-line response
+// to extract the default branch from the symref capability.
+// The response format is:
+// - Service announcement: "# service=git-upload-pack\n"
+// - Flush packet (0000)
+// - First ref line with capabilities: "<sha1> <ref>\0<capabilities>\n"
+// - Additional ref lines: "<sha1> <ref>\n"
+// - Flush packet (0000)
+func parseDefaultBranchFromPktLine(r interface{ Read([]byte) (int, error) }) (string, error) {
+	pl := pktline.NewPktline(r, nil)
+
+	// Read and skip the service announcement packet
+	// Format: "# service=git-upload-pack"
+	_, err := pl.ReadPacketText()
+	if err != nil {
+		return "", fmt.Errorf("failed to read service packet: %w", err)
+	}
+
+	// Read the flush packet after service announcement
+	_, pktLen, err := pl.ReadPacketTextWithLength()
+	if err != nil {
+		return "", fmt.Errorf("failed to read flush packet: %w", err)
+	}
+	if pktLen != 0 {
+		return "", errors.New("expected flush packet after service announcement")
+	}
+
+	// Read the first ref packet which contains capabilities
+	// Format: "<sha1> <ref>\0<capabilities>\n"
+	firstRefPacket, pktLen, err := pl.ReadPacketTextWithLength()
+	if err != nil {
+		return "", fmt.Errorf("failed to read first ref packet: %w", err)
+	}
+	if pktLen == 0 {
+		return "", errors.New("empty repository: no refs found")
+	}
+
+	// Parse capabilities from the first ref line
+	// The capabilities are separated from the ref by a NUL byte
+	nullIdx := strings.Index(firstRefPacket, "\x00")
+	if nullIdx == -1 {
+		return "", errors.New("no capabilities found in first ref packet")
+	}
+
+	capabilities := firstRefPacket[nullIdx+1:]
+
+	// Look for symref=HEAD:refs/heads/<branch> in capabilities
+	for _, cap := range strings.Fields(capabilities) {
+		if strings.HasPrefix(cap, "symref=HEAD:") {
+			ref := strings.TrimPrefix(cap, "symref=HEAD:")
+			if strings.HasPrefix(ref, "refs/heads/") {
+				return strings.TrimPrefix(ref, "refs/heads/"), nil
+			}
 		}
 	}
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-	return lines
+
+	return "", errors.New("could not determine default branch from symref capability")
 }
 
 // handleImportStatus returns the current status of an import operation.

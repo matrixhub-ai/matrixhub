@@ -6,6 +6,7 @@ require (
 	github.com/boltdb/bolt v1.3.1
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/git-lfs/git-lfs/v3 v3.7.1
+	github.com/git-lfs/pktline v0.0.0-20210330133718-06e9096e2825
 	github.com/go-git/go-git/v5 v5.16.4
 	github.com/gorilla/context v1.1.2
 	github.com/gorilla/handlers v1.5.2
@@ -26,7 +27,6 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/git-lfs/gitobj/v2 v2.1.1 // indirect
 	github.com/git-lfs/go-netrc v0.0.0-20250218165306-ba0029b43d11 // indirect
-	github.com/git-lfs/pktline v0.0.0-20210330133718-06e9096e2825 // indirect
 	github.com/git-lfs/wildmatch/v2 v2.0.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
