@@ -339,7 +339,6 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("ETag", fmt.Sprintf("\"%s\"", blob.Hash()))
 
 	// Serve regular file content
-	w.Header().Set("Content-Type", blob.ContentType())
 	w.Header().Set("Content-Length", strconv.FormatInt(blob.Size(), 10))
 	w.Header().Set("Last-Modified", blob.ModTime().UTC().Format(http.TimeFormat))
 
