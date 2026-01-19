@@ -34,18 +34,16 @@ import (
 // with HF_ENDPOINT pointing to this server.
 func (h *Handler) registryHuggingFace(r *mux.Router) {
 	// Model info endpoint with revision - used by huggingface_hub for snapshot_download
-	r.HandleFunc("/api/models/{repo:.+}/revision/{revision}", h.handleHFModelInfoRevision).Methods(http.MethodGet)
+	r.HandleFunc("/api/models/{repo:.+}/revision/{revision:.*}", h.handleHFModelInfoRevision).Methods(http.MethodGet)
 
-	// /api/models/{repo:.+}/tree/{branch}/{path:.*}
-	r.HandleFunc("/api/models/{repo:.+}/tree/{branch}/{path:.*}", h.handleHFTree).Methods(http.MethodGet)
-	r.HandleFunc("/api/models/{repo:.+}/tree/{branch}", h.handleHFTree).Methods(http.MethodGet)
+	// Tree endpoint - used by huggingface_hub to list files in the model repository
+	r.HandleFunc("/api/models/{repo:.+}/tree/{refpath:.*}", h.handleHFTree).Methods(http.MethodGet)
 
 	// Model info endpoint - used by huggingface_hub to get model metadata
 	r.HandleFunc("/api/models/{repo:.+}", h.handleHFModelInfo).Methods(http.MethodGet)
 
 	// File download endpoint - used by huggingface_hub to download files
-	// Pattern: /{repo_id}/resolve/{revision}/{path}
-	r.HandleFunc("/{repo:.+}/resolve/{revision}/{path:.*}", h.handleHFResolve).Methods(http.MethodGet, http.MethodHead)
+	r.HandleFunc("/{repo:.+}/resolve/{refpath:.*}", h.handleHFResolve).Methods(http.MethodGet, http.MethodHead)
 
 }
 
@@ -143,9 +141,7 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	repoID := vars["repo"]
-	branch := vars["branch"]
-	path := vars["path"]
-
+	refpath := vars["refpath"]
 	query := r.URL.Query()
 	recursive, _ := strconv.ParseBool(query.Get("recursive"))
 	expand, _ := strconv.ParseBool(query.Get("expand"))
@@ -168,7 +164,13 @@ func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries, err := repo.HFTree(branch, path, &repository.HFTreeOptions{
+	ref, path, err := repo.SplitRevisionAndPath(refpath)
+	if err != nil {
+		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		return
+	}
+
+	entries, err := repo.HFTree(ref, path, &repository.HFTreeOptions{
 		Recursive: recursive,
 		Expand:    expand,
 	})
@@ -187,7 +189,7 @@ func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	repoID := vars["repo"]
-	revision := vars["revision"]
+	ref := vars["revision"]
 
 	// Convert repo ID to internal repo name (add .git suffix)
 	repoName := repoID + ".git"
@@ -206,12 +208,6 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 		}
 		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
 		return
-	}
-
-	// Use the specified revision or fall back to default branch
-	ref := revision
-	if ref == "" {
-		ref = repo.DefaultBranch()
 	}
 
 	// Get list of files in the repository at the specified revision
@@ -253,7 +249,7 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(modelInfo); err != nil {
-		log.Printf("failed to encode HF model info for repo %q (revision %q): %v", repoID, revision, err)
+		log.Printf("failed to encode HF model info for repo %q (revision %q): %v", repoID, ref, err)
 	}
 }
 
@@ -262,8 +258,7 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	repoID := vars["repo"]
-	revision := vars["revision"]
-	filePath := vars["path"]
+	refpath := vars["refpath"]
 
 	// Convert repo ID to internal repo name (add .git suffix)
 	repoName := repoID + ".git"
@@ -284,10 +279,10 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use default branch if revision is "main" or empty
-	ref := revision
-	if ref == "" {
-		ref = repo.DefaultBranch()
+	ref, path, err := repo.SplitRevisionAndPath(refpath)
+	if err != nil {
+		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		return
 	}
 
 	// Get commit hash for the HuggingFace client requirements
@@ -297,7 +292,7 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 		commitHash = commits[0].SHA
 	}
 
-	blob, err := repo.Blob(ref, filePath)
+	blob, err := repo.Blob(ref, path)
 	if err != nil {
 		http.NotFound(w, r)
 		return
