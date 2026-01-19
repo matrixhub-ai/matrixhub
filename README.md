@@ -35,10 +35,10 @@ MatrixHub streamlines the transition from public model hubs to production-grade 
 
 ### Docker Deployment
 
-Deploy MatrixHub with Docker Compose:
+Deploy MatrixHub with Docker:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/matrixhub-ai/matrixhub/main/deploy/docker-compose.yml | docker compose -f - up -d
+docker run -d -p 9527:9527 -v $PWD/data:/data ghcr.io/matrixhub-ai/matrixhub:main
 ```
 
 Access MatrixHub at `http://localhost:9527`.
