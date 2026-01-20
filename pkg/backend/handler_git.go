@@ -129,7 +129,7 @@ func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service 
 		}
 	}
 
-	w.Header().Set("Content-Type", fmt.Sprintf("application/x-git-%s-result", service))
+	w.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", service))
 	w.Header().Set("Cache-Control", "no-cache")
 
 	err = repo.Stateless(r.Context(), w, r.Body, service, false)
