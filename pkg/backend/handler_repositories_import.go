@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -42,134 +43,123 @@ func (h *Handler) registryRepositoriesImport(r *mux.Router) {
 // The import process follows these steps for fast imports and intermittent transfers:
 func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
+
+	if h.queueStore == nil {
+		h.JSON(w, fmt.Errorf("queue not initialized"), http.StatusServiceUnavailable)
+		return
+	}
 
 	var req importRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		h.JSON(w, fmt.Errorf("invalid request body"), http.StatusBadRequest)
 		return
 	}
 
 	if req.SourceURL == "" {
-		http.Error(w, "source_url is required", http.StatusBadRequest)
+		h.JSON(w, fmt.Errorf("source_url is required"), http.StatusBadRequest)
 		return
 	}
 
-	// Validate and construct the repository path using the same logic as resolveRepoPath
-	repoPath, err := h.validateRepoPath(repoName)
-	if err != nil {
-		http.Error(w, "Invalid repository path", http.StatusBadRequest)
-		return
-	}
+	repoPath := h.resolveRepoPath(repoName)
 
 	if repository.IsRepository(repoPath) {
-		http.Error(w, "Repository already exists", http.StatusConflict)
+		h.JSON(w, fmt.Errorf("repository already exists"), http.StatusConflict)
 		return
 	}
 
 	ctx := context.Background()
 
-	_, err = repository.InitMrror(ctx, repoPath, req.SourceURL)
+	_, err := repository.InitMrror(ctx, repoPath, req.SourceURL)
 	if err != nil {
-		http.Error(w, "Failed to create repository", http.StatusInternalServerError)
-		return
-	}
-
-	// Add import task to queue
-	if h.queueStore == nil {
-		http.Error(w, "Queue not initialized", http.StatusServiceUnavailable)
+		h.JSON(w, fmt.Errorf("failed to create repository"), http.StatusInternalServerError)
 		return
 	}
 
 	params := map[string]string{"source_url": req.SourceURL}
 	taskID, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
 	if err != nil {
-		http.Error(w, "Failed to queue import task", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to queue import task"), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	_ = json.NewEncoder(w).Encode(map[string]any{
+	h.JSON(w, map[string]any{
 		"status":  "accepted",
 		"message": "Import queued",
 		"task_id": taskID,
-	})
+	}, http.StatusAccepted)
 }
 
 // handleSyncRepository synchronizes a mirror repository with its source.
 func (h *Handler) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
+
+	if h.queueStore == nil {
+		h.JSON(w, fmt.Errorf("queue not initialized"), http.StatusServiceUnavailable)
+		return
+	}
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository"), http.StatusInternalServerError)
 		return
 	}
 
 	isMirror, sourceURL, err := repo.IsMirror()
 	if err != nil {
-		http.Error(w, "Failed to get mirror config", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get mirror config"), http.StatusInternalServerError)
 		return
 	}
 
 	if !isMirror || sourceURL == "" {
-		http.Error(w, "Repository is not a mirror", http.StatusBadRequest)
-		return
-	}
-
-	// Add sync task to queue
-	if h.queueStore == nil {
-		http.Error(w, "Queue not initialized", http.StatusServiceUnavailable)
+		h.JSON(w, fmt.Errorf("repository is not a mirror"), http.StatusBadRequest)
 		return
 	}
 
 	params := map[string]string{"source_url": sourceURL}
 	taskID, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
 	if err != nil {
-		http.Error(w, "Failed to queue sync task", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to queue sync task"), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	_ = json.NewEncoder(w).Encode(map[string]any{
+	h.JSON(w, map[string]any{
 		"status":  "accepted",
 		"message": "Sync queued",
 		"task_id": taskID,
-	})
+	}, http.StatusAccepted)
 }
 
 // handleImportStatus returns the current status of an import operation.
 func (h *Handler) handleImportStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 
 	if h.queueStore == nil {
-		http.Error(w, "Queue not initialized", http.StatusServiceUnavailable)
+		h.JSON(w, fmt.Errorf("queue not initialized"), http.StatusServiceUnavailable)
 		return
 	}
 
 	// Get tasks for this repository
 	tasks, err := h.queueStore.ListByRepository(repoName)
 	if err != nil {
-		http.Error(w, "Failed to get import status", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get import status"), http.StatusInternalServerError)
 		return
 	}
 
 	if len(tasks) == 0 {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("import status not found"), http.StatusNotFound)
 		return
 	}
 
@@ -185,34 +175,33 @@ func (h *Handler) handleImportStatus(w http.ResponseWriter, r *http.Request) {
 		response["error"] = task.Error
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(response)
+	h.JSON(w, response, http.StatusOK)
 }
 
 // handleMirrorInfo returns information about a mirror repository.
 func (h *Handler) handleMirrorInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to read repository config", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to read repository config"), http.StatusInternalServerError)
 		return
 	}
 
 	isMirror, sourceURL, err := repo.IsMirror()
 	if err != nil {
-		http.Error(w, "Failed to get mirror config", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get mirror config"), http.StatusInternalServerError)
 		return
 	}
 
@@ -221,6 +210,5 @@ func (h *Handler) handleMirrorInfo(w http.ResponseWriter, r *http.Request) {
 		"source_url": sourceURL,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(response)
+	h.JSON(w, response, http.StatusOK)
 }

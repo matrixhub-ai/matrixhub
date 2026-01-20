@@ -15,11 +15,9 @@
 package backend
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -73,24 +71,21 @@ type HFSibling struct {
 // This is used by huggingface_hub to get model metadata
 func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoID := vars["repo"]
-
-	// Convert repo ID to internal repo name (add .git suffix)
-	repoName := repoID + ".git"
+	repoName := vars["repo"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -121,8 +116,8 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	modelInfo := HFModelInfo{
-		ID:            repoID,
-		ModelID:       repoID,
+		ID:            repoName,
+		ModelID:       repoName,
 		SHA:           sha,
 		Private:       false,
 		Disabled:      false,
@@ -134,39 +129,38 @@ func (h *Handler) handleHFModelInfo(w http.ResponseWriter, r *http.Request) {
 		DefaultBranch: defaultBranch,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(modelInfo)
+	h.JSON(w, modelInfo, http.StatusOK)
 }
 
 func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoID := vars["repo"]
+
+	repoName := vars["repo"]
 	refpath := vars["refpath"]
+
 	query := r.URL.Query()
 	recursive, _ := strconv.ParseBool(query.Get("recursive"))
 	expand, _ := strconv.ParseBool(query.Get("expand"))
 
-	repoName := repoID + ".git"
-
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	ref, path, err := repo.SplitRevisionAndPath(refpath)
 	if err != nil {
-		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to parse ref and path for repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -175,38 +169,34 @@ func (h *Handler) handleHFTree(w http.ResponseWriter, r *http.Request) {
 		Expand:    expand,
 	})
 	if err != nil {
-		log.Println("Error getting HF tree:", err)
-		http.Error(w, "Failed to get tree", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get tree for repo %q at ref %q and path %q: %v", repoName, ref, path, err), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(entries)
+	h.JSON(w, entries, http.StatusOK)
 }
 
 // handleHFModelInfoRevision handles the /api/models/{repo_id}/revision/{revision} endpoint
 // This is used by huggingface_hub for snapshot_download to get model info at specific revision
 func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoID := vars["repo"]
-	ref := vars["revision"]
 
-	// Convert repo ID to internal repo name (add .git suffix)
-	repoName := repoID + ".git"
+	repoName := vars["repo"]
+	ref := vars["revision"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -234,8 +224,8 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 	}
 
 	modelInfo := HFModelInfo{
-		ID:            repoID,
-		ModelID:       repoID,
+		ID:            repoName,
+		ModelID:       repoName,
 		SHA:           sha,
 		Private:       false,
 		Disabled:      false,
@@ -247,41 +237,36 @@ func (h *Handler) handleHFModelInfoRevision(w http.ResponseWriter, r *http.Reque
 		DefaultBranch: repo.DefaultBranch(),
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(modelInfo); err != nil {
-		log.Printf("failed to encode HF model info for repo %q (revision %q): %v", repoID, ref, err)
-	}
+	h.JSON(w, modelInfo, http.StatusOK)
 }
 
 // handleHFResolve handles the /{repo_id}/resolve/{revision}/{path} endpoint
 // This is used by huggingface_hub to download files
 func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoID := vars["repo"]
-	refpath := vars["refpath"]
 
-	// Convert repo ID to internal repo name (add .git suffix)
-	repoName := repoID + ".git"
+	repoName := vars["repo"]
+	refpath := vars["refpath"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	ref, path, err := repo.SplitRevisionAndPath(refpath)
 	if err != nil {
-		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to parse ref and path for repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -294,7 +279,7 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 
 	blob, err := repo.Blob(ref, path)
 	if err != nil {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("file %q not found in repository %q at revision %q", path, repoName, ref), http.StatusNotFound)
 		return
 	}
 
@@ -313,8 +298,7 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("ETag", fmt.Sprintf("\"%s\"", ptr.Oid))
 				content, stat, err := h.contentStore.Get(ptr.Oid)
 				if err != nil {
-					log.Println("Error getting LFS object:", err)
-					http.NotFound(w, r)
+					h.JSON(w, fmt.Errorf("LFS object %q not found for file %q in repository %q at revision %q", ptr.Oid, path, repoName, ref), http.StatusNotFound)
 					return
 				}
 				defer func() {
@@ -344,7 +328,7 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 
 	reader, err := blob.NewReader()
 	if err != nil {
-		http.Error(w, "Failed to get blob reader", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get blob reader for file %q in repository %q at revision %q: %v", path, repoName, ref, err), http.StatusInternalServerError)
 		return
 	}
 	defer func() {

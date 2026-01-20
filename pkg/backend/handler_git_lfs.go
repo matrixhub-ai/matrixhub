@@ -17,7 +17,6 @@ package backend
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -76,15 +75,14 @@ func (h *Handler) handleBatch(w http.ResponseWriter, r *http.Request) {
 		Objects:  responseObjects,
 	}
 
-	enc := json.NewEncoder(w)
-	_ = enc.Encode(respobj)
+	h.JSON(w, respobj, http.StatusOK)
 }
 
 // handlePutContent receives data from the client and puts it into the content store
 func (h *Handler) handlePutContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
 	if err := h.contentStore.Put(rv.Oid, r.Body, r.ContentLength); err != nil {
-		http.Error(w, "Failed to store content", http.StatusInternalServerError)
+		h.Text(w, fmt.Sprintf("failed to put LFS object %s: %v", rv.Oid, err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -94,8 +92,11 @@ func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
 	content, stat, err := h.contentStore.Get(rv.Oid)
 	if err != nil {
-		log.Println("Error getting LFS object:", err)
-		http.NotFound(w, r)
+		if os.IsNotExist(err) {
+			h.Text(w, fmt.Sprintf("LFS object %s not found", rv.Oid), http.StatusNotFound)
+			return
+		}
+		h.Text(w, fmt.Sprintf("failed to get LFS object %s: %v", rv.Oid, err), http.StatusInternalServerError)
 		return
 	}
 	defer func() {
@@ -110,16 +111,16 @@ func (h *Handler) handleVerifyObject(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
 	info, err := h.contentStore.Info(rv.Oid)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			http.Error(w, "Failed to verify object", http.StatusInternalServerError)
+		if os.IsNotExist(err) {
+			h.Text(w, fmt.Sprintf("LFS object %s not found", rv.Oid), http.StatusNotFound)
 			return
 		}
-		http.NotFound(w, r)
+		h.Text(w, fmt.Sprintf("failed to get LFS object %s info: %v", rv.Oid, err), http.StatusInternalServerError)
 		return
 	}
 
 	if info.Size() != rv.Size {
-		http.Error(w, "Size mismatch", http.StatusBadRequest)
+		h.Text(w, "Size mismatch", http.StatusBadRequest)
 		return
 	}
 }
@@ -157,7 +158,7 @@ func lfsRepresent(rv *lfsRequestVars, download, upload bool) *lfsRepresentation 
 func unpack(r *http.Request) *lfsRequestVars {
 	vars := mux.Vars(r)
 	rv := &lfsRequestVars{
-		Repo:          vars["repo"] + ".git",
+		Repo:          vars["repo"],
 		Oid:           vars["oid"],
 		Authorization: r.Header.Get("Authorization"),
 	}
@@ -198,7 +199,7 @@ func unpackBatch(r *http.Request) *lfsBatchVars {
 	origin := fmt.Sprintf("%s://%s", scheme, r.Host)
 
 	for i := range len(bv.Objects) {
-		bv.Objects[i].Repo = vars["repo"] + ".git"
+		bv.Objects[i].Repo = vars["repo"]
 		bv.Objects[i].Authorization = r.Header.Get("Authorization")
 		bv.Objects[i].Origin = origin
 	}

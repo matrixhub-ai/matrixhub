@@ -15,10 +15,9 @@
 package backend
 
 import (
-	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -51,77 +50,75 @@ type TreeEntry struct {
 // handleTree handles requests to list directory contents
 func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 	refpath := vars["refpath"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	ref, path, err := repo.SplitRevisionAndPath(refpath)
 	if err != nil {
-		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to parse ref and path for repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	entries, err := repo.Tree(ref, path)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			w.Header().Set("Content-Type", "application/json")
-			_ = json.NewEncoder(w).Encode(entries)
+		if repository.IsNotFoundError(err) {
+			h.JSON(w, []any{}, http.StatusOK)
 			return
 		}
-		http.Error(w, "Failed to get tree", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get tree for repository %q at revision %q and path %q: %v", repoName, ref, path, err), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(entries)
+	h.JSON(w, entries, http.StatusOK)
 }
 
 // handleBlob handles requests to get file content
 func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 	refpath := vars["refpath"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	ref, path, err := repo.SplitRevisionAndPath(refpath)
 	if err != nil {
-		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to parse ref and path for repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	blob, err := repo.Blob(ref, path)
 	if err != nil {
-		http.Error(w, "Failed to get blob", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get blob for repository %q at revision %q and path %q: %v", repoName, ref, path, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -135,8 +132,7 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 			if err == nil && ptr != nil {
 				content, stat, err := h.contentStore.Get(ptr.Oid)
 				if err != nil {
-					log.Println("Error getting LFS object:", err)
-					http.NotFound(w, r)
+					h.JSON(w, fmt.Errorf("LFS object %q not found", ptr.Oid), http.StatusNotFound)
 					return
 				}
 				defer func() {
@@ -158,7 +154,7 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 
 	reader, err := blob.NewReader()
 	if err != nil {
-		http.Error(w, "Failed to get blob reader", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get blob reader for repository %q at revision %q and path %q: %v", repoName, ref, path, err), http.StatusInternalServerError)
 		return
 	}
 	defer func() {
@@ -166,7 +162,7 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 	}()
 	_, err = io.Copy(w, reader)
 	if err != nil {
-		http.Error(w, "Failed to read blob content", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to read blob content for repository %q at revision %q and path %q: %v", repoName, ref, path, err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -174,44 +170,42 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 // handleCommits handles requests to list commits
 func (h *Handler) handleCommits(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 	refpath := vars["refpath"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	ref, _, err := repo.SplitRevisionAndPath(refpath)
 	if err != nil {
-		http.Error(w, "Failed to parse ref and path", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to parse ref and path for repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	commits, err := repo.Commits(ref, 1)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			w.Header().Set("Content-Type", "application/json")
-			_ = json.NewEncoder(w).Encode(commits)
+		if repository.IsNotFoundError(err) {
+			h.JSON(w, []any{}, http.StatusOK)
 			return
 		}
-		http.Error(w, "Failed to get commits", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get commits for repository %q at ref %q: %v", repoName, ref, err), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(commits)
+	h.JSON(w, commits, http.StatusOK)
 }
 
 // Branch represents a git branch
@@ -222,26 +216,26 @@ type Branch struct {
 // handleBranches handles requests to list branches
 func (h *Handler) handleBranches(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	branches, err := repo.Branches()
 	if err != nil {
-		http.Error(w, "Failed to get branches", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get branches for repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -250,6 +244,5 @@ func (h *Handler) handleBranches(w http.ResponseWriter, r *http.Request) {
 		branchList = append(branchList, Branch{Name: b})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(branchList)
+	h.JSON(w, branchList, http.StatusOK)
 }

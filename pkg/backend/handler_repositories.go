@@ -15,8 +15,8 @@
 package backend
 
 import (
-	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -34,89 +34,55 @@ func (h *Handler) registryRepositories(r *mux.Router) {
 	r.HandleFunc("/api/repositories/{repo:.+}.git", h.handleDeleteRepository).Methods(http.MethodDelete)
 }
 
-// validateRepoPath validates and constructs a repository path, ensuring it's within the root directory.
-func (h *Handler) validateRepoPath(urlPath string) (string, error) {
-	// Clean the path
-	urlPath = strings.TrimPrefix(urlPath, "/")
-	if urlPath == "" {
-		return "", errors.New("empty path")
-	}
-
-	// Construct the full path
-	fullPath := filepath.Join(h.repositoriesDir, urlPath)
-
-	// Clean and verify the path is within RepoDir using filepath.Rel
-	fullPath = filepath.Clean(fullPath)
-	absRepoDir, err := filepath.Abs(h.repositoriesDir)
-	if err != nil {
-		return "", err
-	}
-	absFullPath, err := filepath.Abs(fullPath)
-	if err != nil {
-		return "", err
-	}
-	// Use filepath.Rel to safely check if absFullPath is within absRepoDir
-	relPath, err := filepath.Rel(absRepoDir, absFullPath)
-	if err != nil {
-		return "", err
-	}
-	// Reject if the relative path starts with ".." (meaning it's outside RepoDir)
-	if strings.HasPrefix(relPath, "..") {
-		return "", errors.New("path outside repository directory")
-	}
-
-	return fullPath, nil
-}
-
 func (h *Handler) handleCreateRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	if repository.IsRepository(repoPath) {
-		http.Error(w, "Repository already exists", http.StatusConflict)
+		h.JSON(w, fmt.Errorf("repository %q already exists", repoName), http.StatusConflict)
 		return
 	}
 
 	_, err := repository.Init(repoPath, "main")
 	if err != nil {
-		http.Error(w, "Failed to create repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to create repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+	h.JSON(w, nil, http.StatusCreated)
 }
 
 func (h *Handler) handleDeleteRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to open repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to open repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	err = repo.Remove()
 	if err != nil {
-		http.Error(w, "Failed to delete repository", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to delete repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	h.JSON(w, nil, http.StatusNoContent)
 }
 
 type Repository struct {
@@ -128,27 +94,27 @@ type Repository struct {
 
 func (h *Handler) handleGetRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repoName := vars["repo"] + ".git"
+	repoName := vars["repo"]
 
 	repoPath := h.resolveRepoPath(repoName)
 	if repoPath == "" {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 		return
 	}
 
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			http.NotFound(w, r)
+			h.JSON(w, fmt.Errorf("repository %q not found", repoName), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Failed to read repository config", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to read repository config for %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
 	isMirror, _, err := repo.IsMirror()
 	if err != nil {
-		http.Error(w, "Failed to get mirror config", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to get mirror config for repository %q: %v", repoName, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -161,8 +127,7 @@ func (h *Handler) handleGetRepository(w http.ResponseWriter, r *http.Request) {
 		Description:   "", // Description can be implemented later
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(info)
+	h.JSON(w, info, http.StatusOK)
 }
 
 type RepositoryItem struct {
@@ -206,10 +171,9 @@ func (h *Handler) handleListRepositories(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 	if err != nil {
-		http.Error(w, "Failed to list repos", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to walk repositories directory: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(repos)
+	h.JSON(w, repos, http.StatusOK)
 }

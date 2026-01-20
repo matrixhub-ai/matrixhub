@@ -26,8 +26,13 @@ import (
 )
 
 var (
-	ErrObjectNotFound = plumbing.ErrObjectNotFound
+	ErrObjectNotFound    = plumbing.ErrObjectNotFound
+	ErrReferenceNotFound = plumbing.ErrReferenceNotFound
 )
+
+func IsNotFoundError(err error) bool {
+	return errors.Is(err, ErrObjectNotFound) || errors.Is(err, ErrReferenceNotFound)
+}
 
 // TreeEntry represents a file or directory in the repository
 type TreeEntry struct {

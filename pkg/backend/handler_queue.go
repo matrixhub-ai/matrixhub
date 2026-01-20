@@ -16,6 +16,7 @@ package backend
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -34,7 +35,7 @@ func (h *Handler) registryQueue(r *mux.Router) {
 // handleListTasks returns all tasks in the queue
 func (h *Handler) handleListTasks(w http.ResponseWriter, r *http.Request) {
 	if h.queueStore == nil {
-		http.Error(w, "Queue not initialized", http.StatusServiceUnavailable)
+		h.JSON(w, fmt.Errorf("queue not initialized"), http.StatusServiceUnavailable)
 		return
 	}
 
@@ -64,7 +65,7 @@ func (h *Handler) handleListTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		http.Error(w, "Failed to list tasks", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to list tasks: %w", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -73,32 +74,30 @@ func (h *Handler) handleListTasks(w http.ResponseWriter, r *http.Request) {
 		tasks = []*queue.Task{}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(tasks)
+	h.JSON(w, tasks, http.StatusOK)
 }
 
 // handleGetTask returns a specific task by ID
 func (h *Handler) handleGetTask(w http.ResponseWriter, r *http.Request) {
 	if h.queueStore == nil {
-		http.Error(w, "Queue not initialized", http.StatusServiceUnavailable)
+		h.JSON(w, fmt.Errorf("queue not initialized"), http.StatusServiceUnavailable)
 		return
 	}
 
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid task ID", http.StatusBadRequest)
+		h.JSON(w, fmt.Errorf("invalid task ID"), http.StatusBadRequest)
 		return
 	}
 
 	task, err := h.queueStore.Get(id)
 	if err != nil {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("task not found"), http.StatusNotFound)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(task)
+	h.JSON(w, task, http.StatusOK)
 }
 
 // updatePriorityRequest represents a request to update task priority
@@ -109,50 +108,49 @@ type updatePriorityRequest struct {
 // handleUpdateTaskPriority updates the priority of a task
 func (h *Handler) handleUpdateTaskPriority(w http.ResponseWriter, r *http.Request) {
 	if h.queueStore == nil {
-		http.Error(w, "Queue not initialized", http.StatusServiceUnavailable)
+		h.JSON(w, fmt.Errorf("queue not initialized"), http.StatusServiceUnavailable)
 		return
 	}
 
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid task ID", http.StatusBadRequest)
+		h.JSON(w, fmt.Errorf("invalid task ID"), http.StatusBadRequest)
 		return
 	}
 
 	var req updatePriorityRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		h.JSON(w, fmt.Errorf("invalid request body"), http.StatusBadRequest)
 		return
 	}
 
 	err = h.queueStore.UpdatePriority(id, req.Priority)
 	if err != nil {
-		http.Error(w, "Failed to update priority", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to update priority: %w", err), http.StatusInternalServerError)
 		return
 	}
 
 	task, err := h.queueStore.Get(id)
 	if err != nil {
-		http.NotFound(w, r)
+		h.JSON(w, fmt.Errorf("task not found"), http.StatusNotFound)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(task)
+	h.JSON(w, task, http.StatusOK)
 }
 
 // handleCancelTask cancels a task
 func (h *Handler) handleCancelTask(w http.ResponseWriter, r *http.Request) {
 	if h.queueStore == nil {
-		http.Error(w, "Queue not initialized", http.StatusServiceUnavailable)
+		h.JSON(w, fmt.Errorf("queue not initialized"), http.StatusServiceUnavailable)
 		return
 	}
 
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid task ID", http.StatusBadRequest)
+		h.JSON(w, fmt.Errorf("invalid task ID"), http.StatusBadRequest)
 		return
 	}
 
@@ -163,9 +161,9 @@ func (h *Handler) handleCancelTask(w http.ResponseWriter, r *http.Request) {
 
 	err = h.queueStore.Cancel(id)
 	if err != nil {
-		http.Error(w, "Failed to cancel task", http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to cancel task: %w", err), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	h.JSON(w, nil, http.StatusNoContent)
 }
