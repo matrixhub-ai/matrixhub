@@ -56,7 +56,7 @@ export function FileTree({ entries, repo, branch, currentPath }: FileTreeProps) 
                 {entry.isLfs && <span className="lfs-badge">LFS</span>}
                 {entry.type === 'blob' && (
                   <a
-                    href={`/api/repositories/${repo}/blob/${branch}/${entry.path}`}
+                    href={`/api/repositories/${repo}.git/blob/${branch}/${entry.path}`}
                     download={entry.name}
                     className="download-button"
                     title={`Download ${entry.name}`}
