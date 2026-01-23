@@ -33,9 +33,41 @@ MatrixHub streamlines the transition from public model hubs to production-grade 
 
 ## 🚀 Quick Start
 
+### One-Line Deployment (Recommended)
+
+The easiest way to deploy MatrixHub is using our CLI tool with npx:
+
+```bash
+npx @matrixhub/cli start
+```
+
+This will automatically:
+- Check Docker installation
+- Pull the latest MatrixHub image
+- Start the container with optimal settings
+- Show you the access URL
+
+**Additional CLI commands:**
+
+```bash
+npx @matrixhub/cli status    # Check container status
+npx @matrixhub/cli logs -f   # Follow logs in real-time
+npx @matrixhub/cli stop      # Stop the container
+npx @matrixhub/cli restart   # Restart the container
+npx @matrixhub/cli update    # Update to latest version
+```
+
+**Custom configuration:**
+
+```bash
+npx @matrixhub/cli start -p 8080 -d ~/my-data
+```
+
+See the [CLI documentation](packages/cli/README.md) for more options.
+
 ### Docker Deployment
 
-Deploy MatrixHub with Docker:
+Alternatively, deploy MatrixHub directly with Docker:
 
 ```bash
 docker run -d -p 9527:9527 -v $PWD/data:/data ghcr.io/matrixhub-ai/matrixhub:main

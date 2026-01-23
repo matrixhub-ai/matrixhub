@@ -1,0 +1,53 @@
+{
+  "name": "@matrixhub/cli",
+  "version": "0.1.4",
+  "description": "CLI tool for deploying and managing MatrixHub",
+  "type": "module",
+  "bin": {
+    "matrixhub": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "matrixhub",
+    "ai",
+    "model-registry",
+    "huggingface",
+    "docker",
+    "cli"
+  ],
+  "author": "MatrixHub Authors",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matrixhub-ai/matrixhub.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/matrixhub-ai/matrixhub/issues"
+  },
+  "homepage": "https://github.com/matrixhub-ai/matrixhub#readme",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "chalk": "^5.4.1",
+    "ora": "^8.1.1",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
