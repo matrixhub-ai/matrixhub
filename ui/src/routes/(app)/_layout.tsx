@@ -23,7 +23,7 @@ export const Route = createFileRoute('/(app)/_layout')({
 function AppNavbar() {
   const router = useRouter()
   const activeRouteIds = useRouterState({
-    select: (state) => state.matches.map((match) => match.routeId),
+    select: state => state.matches.map(match => match.routeId),
   })
 
   const layoutRoute = router.routesById['/(app)/_layout']
@@ -31,15 +31,15 @@ function AppNavbar() {
     const children = layoutRoute?.children
     if (!children) return []
     return Object.values(children)
-      .filter((route) => typeof route.options.staticData?.navName === 'string')
+      .filter(route => typeof route.options.staticData?.navName === 'string')
       .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))
   }, [layoutRoute])
 
   if (!navRoutes.length) {
     return (
-        <Text size="sm" c="dimmed">
-          No navigation routes available
-        </Text>
+      <Text size="sm" c="dimmed">
+        No navigation routes available
+      </Text>
     )
   }
 

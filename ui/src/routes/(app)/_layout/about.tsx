@@ -4,7 +4,7 @@ export const Route = createFileRoute('/(app)/_layout/about')({
   component: AboutRoute,
   staticData: {
     navName: 'About',
-  }
+  },
 })
 
 function AboutRoute() {

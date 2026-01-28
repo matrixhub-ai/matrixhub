@@ -1,25 +1,27 @@
 type NamespaceBundle = Record<string, Record<string, unknown>>
 
-const modules = import.meta.glob<NamespaceBundle>('../locales/**/*.json')
+const modules = import.meta.glob<NamespaceBundle>(
+  '../locales/**/*.json',
+  { eager: true },
+)
 
-export async function loadLocale(lang: string) {
-    const entries = Object.entries(modules).filter(([path]) =>
-        path.startsWith(`../locales/${lang}/`)
-    )
+export function loadLocale(lang: string) {
+  const result: NamespaceBundle = {}
 
-    if (!entries.length) {
-        throw new Error(`Missing locale: ${lang}`)
-    }
+  for (const path in modules) {
+    if (!path.includes(`/${lang}/`)) continue
 
-    const result: NamespaceBundle = {}
+    const name = path
+      .split(`/${lang}/`)[1]
+      .replace(/\.json$/, '')
+      .replaceAll('/', '.')
 
-    for (const [path, loader] of entries) {
-        const mod = await loader()
+    result[name] = modules[path].default
+  }
 
-        const name = path.split('/').pop()!.replace('.json', '')
+  if (!Object.keys(result).length) {
+    throw new Error(`Missing locale: ${lang}`)
+  }
 
-        result[name] = mod.default
-    }
-
-    return result
+  return result
 }

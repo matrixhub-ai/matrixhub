@@ -1,5 +1,5 @@
 {
-  "name": "ui",
+  "name": "matrixhub-ui",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
     "prepare": "cd .. && husky install ui/.husky"
   },
@@ -22,7 +22,8 @@
     "react-i18next": "^16.5.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@stylistic/eslint-plugin": "^5.7.1",
+    "@tanstack/eslint-plugin-router": "^1.155.0",
     "@tanstack/router-plugin": "^1.157.16",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
@@ -32,8 +33,8 @@
     "eslint": "^9.39.1",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
+    "eslint-plugin-react-dom": "^2.7.4",
+    "eslint-plugin-react-x": "^2.7.4",
     "globals": "^16.5.0",
     "husky": "^8.0.3",
     "lint-staged": "^16.2.7",

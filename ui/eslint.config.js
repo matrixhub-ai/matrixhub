@@ -1,54 +1,41 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 import importPlugin from 'eslint-plugin-import'
+import routerPlugin from '@tanstack/eslint-plugin-router'
+import stylistic from '@stylistic/eslint-plugin'
 
-export default [
-  {
-    ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts'],
-  },
-
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+export default defineConfig([
+  globalIgnores(['dist']),
+   ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      ecmaVersion: 2024,
-      globals: globals.browser,
-    },
+    extends: [
+      reactX.configs['recommended-typescript'],
+      reactDom.configs.recommended,
+      routerPlugin.configs['flat/recommended'],
+      stylistic.configs.recommended,
+    ],
     plugins: {
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
       import: importPlugin,
     },
     settings: {
       'import/resolver': {
         typescript: {
+          project: ['./tsconfig.app.json'],
           alwaysTryTypes: true,
-          project: './tsconfig.json',
         },
       },
     },
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
-      ...reactHooks.configs.recommended.rules,
-
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
-
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
-      ],
-
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports' },
-      ],
-
+      'import/no-duplicates': 'error',
       'import/order': [
         'error',
         {
@@ -61,9 +48,12 @@ export default [
             'type',
           ],
           'newlines-between': 'always',
-          alphabetize: { order: 'asc', caseInsensitive: true },
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
         },
       ],
     },
   },
-]
+])
