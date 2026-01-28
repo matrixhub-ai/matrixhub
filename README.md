@@ -38,6 +38,7 @@ MatrixHub streamlines the transition from public model hubs to production-grade 
 Deploy MatrixHub with Docker:
 
 ```bash
+make image-build
 docker run -d -p 9527:9527 -v $PWD/data:/data ghcr.io/matrixhub-ai/matrixhub:main
 ```
 

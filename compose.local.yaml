@@ -1,7 +1,0 @@
-services:
-  matrixhub:
-    build: .
-    ports:
-      - "9527:9527"
-    volumes:
-      - ./data/:/data/

@@ -18,7 +18,7 @@ GIT_TAG ?= $(shell git describe --tags --dirty --always)
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
-PLATFORMS ?= linux/amd64,linux/arm64
+PLATFORMS ?=
 IMAGE_BUILD_CMD ?= docker buildx build
 
 IMAGE_REPO := ghcr.io/matrixhub-ai/matrixhub
@@ -33,6 +33,7 @@ version_pkg = github.com/matrixhub-ai/matrixhub/pkg/version
 LD_FLAGS += -X '$(version_pkg).GitVersion=$(GIT_TAG)'
 LD_FLAGS += -X '$(version_pkg).GitCommit=$(GIT_COMMIT)'
 LD_FLAGS += -X '$(version_pkg).BuildDate=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)'
+PUSH ?= --load
 
 .PHONY: all
 all: help
@@ -78,7 +79,7 @@ image-build: ## Build the MatrixHub image
 	$(IMAGE_BUILD_CMD) \
 		-t $(IMAGE_REPO):$(GIT_TAG) \
 		-t $(IMAGE_REPO):$(GIT_BRANCH) \
-		--platform=$(PLATFORMS) \
+		$(if $(PLATFORMS),--platform=$(PLATFORMS)) \
 		--build-arg BASE_IMAGE_PREFIX=$(BASE_IMAGE_PREFIX) \
 		--build-arg NPM_CONFIG_REGISTRY=$(NPM_CONFIG_REGISTRY) \
 		--build-arg GOPROXY=$(GOPROXY) \
