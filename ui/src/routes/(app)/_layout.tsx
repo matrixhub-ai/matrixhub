@@ -75,7 +75,7 @@ function AppLayout() {
       }}
     >
       <AppShell.Header p="md">
-        <Title order={2}>{t('title')}</Title>
+        <Title order={2}>{t('translation.title')}</Title>
       </AppShell.Header>
 
       <AppShell.Navbar>

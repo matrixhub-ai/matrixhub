@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
 import { MantineProvider } from '@mantine/core';
-import './i18n'
+import './i18n/index.ts'
 import '@mantine/core/styles.css';
 import './index.css'
 import { router } from './router.tsx'
