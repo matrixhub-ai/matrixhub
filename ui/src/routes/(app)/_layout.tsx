@@ -1,33 +1,65 @@
+import { useMemo } from 'react'
 import {
   createFileRoute,
+  Link,
   Outlet,
   useRouter,
-  useNavigate
+  useRouterState,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import {
   AppShell,
   Title,
   NavLink,
+  ScrollArea,
+  Stack,
+  Text,
 } from '@mantine/core'
 
 export const Route = createFileRoute('/(app)/_layout')({
   component: AppLayout,
 })
 
-
 function AppNavbar() {
   const router = useRouter()
-  const navigate = useNavigate()
+  const activeRouteIds = useRouterState({
+    select: (state) => state.matches.map((match) => match.routeId),
+  })
 
   const layoutRoute = router.routesById['/(app)/_layout']
- console.log('layoutRoute', layoutRoute)
+  const navRoutes = useMemo(() => {
+    const children = layoutRoute?.children
+    if (!children) return []
+    return Object.values(children)
+      .filter((route) => typeof route.options.staticData?.navName === 'string')
+      .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))
+  }, [layoutRoute])
+
+  if (!navRoutes.length) {
+    return (
+        <Text size="sm" c="dimmed">
+          No navigation routes available
+        </Text>
+    )
+  }
 
   return (
-    <>
-        <NavLink label="Home"   onClick={() => navigate({ to: '/' })}  />
-        <NavLink label="About"  onClick={() => navigate({ to: '/about' })} />
-    </>
+    <ScrollArea h="100%">
+      <Stack gap={0}>
+        {navRoutes.map((route) => {
+          const isActive = activeRouteIds.includes(route.id)
+          return (
+            <NavLink
+              key={route.id}
+              label={route.options.staticData?.navName ?? route.id}
+              component={Link}
+              to={route.to}
+              active={isActive}
+            />
+          )
+        })}
+      </Stack>
+    </ScrollArea>
   )
 }
 
@@ -39,19 +71,20 @@ function AppLayout() {
       header={{ height: 60 }}
       navbar={{
         width: 300,
-        breakpoint: 'md',
+        breakpoint: '',
       }}
     >
-      <AppShell.Header p='md'>
-          <Title order={2}>{t('title')}</Title>
-
+      <AppShell.Header p="md">
+        <Title order={2}>{t('title')}</Title>
       </AppShell.Header>
 
       <AppShell.Navbar>
         <AppNavbar />
       </AppShell.Navbar>
 
-      <AppShell.Main><Outlet></Outlet></AppShell.Main>
+      <AppShell.Main>
+        <Outlet />
+      </AppShell.Main>
     </AppShell>
   )
 }

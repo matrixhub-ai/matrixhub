@@ -1,9 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(app)/_layout/')({
-  component: RouteComponent,
+  component: HomeRoute,
+  staticData: {
+    navName: 'Home',
+  },
 })
 
-function RouteComponent() {
-  return <div>Hello "/(app)/_layout/"!</div>
+function HomeRoute() {
+  return <div>Hello “home”!</div>
 }

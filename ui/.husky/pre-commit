@@ -1,0 +1,13 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+if ! git diff --cached --name-only | grep -q '^ui/'; then
+  echo "no ui changes, skip ui hooks"
+  exit 0
+fi
+
+echo "ui changes detected"
+
+cd ui || exit 1
+
+npx lint-staged
