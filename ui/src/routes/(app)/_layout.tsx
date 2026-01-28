@@ -1,12 +1,3 @@
-import { useMemo } from 'react'
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useRouter,
-  useRouterState,
-} from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
 import {
   AppShell,
   Title,
@@ -15,6 +6,15 @@ import {
   Stack,
   Text,
 } from '@mantine/core'
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useRouter,
+  useRouterState,
+} from '@tanstack/react-router'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/(app)/_layout')({
   component: AppLayout,

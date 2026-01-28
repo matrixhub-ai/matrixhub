@@ -1,4 +1,5 @@
 import { createRouter } from '@tanstack/react-router'
+
 import { routeTree } from './routeTree.gen.ts'
 
 const rawBasePath = import.meta.env.VITE_UI_BASE_PATH ?? '/'
