@@ -52,6 +52,17 @@ func Init(repoPath string, defaultBranch string) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	conf, err := repo.Config()
+	if err != nil {
+		return nil, err
+	}
+	conf.Raw.AddOption("receive", "", "shallowUpdate", "true")
+
+	err = repo.SetConfig(conf)
+	if err != nil {
+		return nil, err
+	}
 	return &Repository{
 		repo:     repo,
 		repoPath: repoPath,
