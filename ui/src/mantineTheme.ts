@@ -1,4 +1,3 @@
 import { createTheme } from '@mantine/core'
 
-export const mantineTheme = createTheme({
-})
+export const mantineTheme = createTheme({})

@@ -2,14 +2,18 @@ type NamespaceBundle = Record<string, Record<string, unknown>>
 
 const modules = import.meta.glob<NamespaceBundle>(
   '../locales/**/*.json',
-  { eager: true },
+  {
+    eager: true,
+  },
 )
 
 export function loadLocale(lang: string) {
   const result: NamespaceBundle = {}
 
   for (const path in modules) {
-    if (!path.includes(`/${lang}/`)) continue
+    if (!path.includes(`/${lang}/`)) {
+      continue
+    }
 
     const name = path
       .split(`/${lang}/`)[1]
