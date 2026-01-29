@@ -4,7 +4,7 @@ import { initReactI18next } from 'react-i18next'
 
 import { loadLocale } from './loadLocale'
 
-i18n
+void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
@@ -13,8 +13,8 @@ i18n
     interpolation: { escapeValue: false },
   })
 
-i18n.on('languageChanged', async (lng) => {
-  const bundles = await loadLocale(lng)
+i18n.on('languageChanged', (lng) => {
+  const bundles = loadLocale(lng)
 
   let resourceBundle: Record<string, unknown> = {}
 

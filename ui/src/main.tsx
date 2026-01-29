@@ -9,7 +9,13 @@ import './index.css'
 import { mantineTheme } from './mantineTheme'
 import { router } from './router.tsx'
 
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')
+
+if (!root) {
+  throw new Error('Root container missing in index.html')
+}
+
+createRoot(root).render(
   <StrictMode>
     <MantineProvider theme={mantineTheme}>
       <RouterProvider router={router} />
