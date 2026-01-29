@@ -1,0 +1,20 @@
+name: 'Setup UI Environment'
+description: 'Install pnpm, Node.js 22, and UI project dependencies'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 22
+        cache: 'pnpm'
+        cache-dependency-path: 'ui/pnpm-lock.yaml'
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ui
+      run: pnpm install --frozen-lockfile
