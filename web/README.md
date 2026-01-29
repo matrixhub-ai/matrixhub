@@ -1,121 +1,73 @@
-# Matrixhub UI
+# React + TypeScript + Vite
 
-A modern, lightweight web interface for Matrixhub.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Tech Stack
+Currently, two official plugins are available:
 
-This project is built with modern web technologies:
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-- **[React](https://react.dev/)** 19.2.0 - UI library
-- **[TypeScript](https://www.typescriptlang.org/)** 5.9.3 - Type-safe JavaScript
-- **[Vite](https://vitejs.dev/)** 7.3.1 - Build tool and development server
-- **[React Router DOM](https://reactrouter.com/)** - Client-side routing
-- **[React Markdown](https://remarkjs.github.io/react-markdown/)** - Markdown rendering
-- **[React Syntax Highlighter](https://github.com/react-syntax-highlighter/react-syntax-highlighter)** - Code syntax highlighting
-- **[React Icons](https://react-icons.github.io/react-icons/)** - Icon library
+## React Compiler
 
-## Prerequisites
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-Before you begin, ensure you have the following installed:
+## Expanding the ESLint configuration
 
-- **Node.js** 20.x or higher
-- **npm** (comes with Node.js) or your preferred package manager (yarn, pnpm)
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-You can check your Node.js version with:
-```bash
-node --version
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-## Quick Start
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-Get up and running with Matrixhub UI in minutes:
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-### 1. Install dependencies
-
-```bash
-npm install
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-
-### 2. Start the development server
-
-```bash
-npm run dev
-```
-
-The application will start on `http://localhost:5173` (or another port if 5173 is in use).
-
-### 3. Build for production
-
-```bash
-npm run build
-```
-
-The optimized production build will be generated in the `dist` directory.
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm run dev`
-
-Runs the app in development mode with hot module replacement (HMR).  
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
-
-### `npm run build`
-
-Builds the app for production to the `dist` folder.  
-The build is optimized and minified for best performance.
-
-### `npm run preview`
-
-Locally preview the production build.  
-Run this after `npm run build` to test the production bundle.
-
-### `npm run lint`
-
-Runs ESLint to check code quality and style issues.
-
-## Project Structure
-
-```
-web/
-├── src/
-│   ├── api/           # API client and utilities
-│   ├── assets/        # Static assets (images, icons)
-│   ├── components/    # React components
-│   │   ├── BranchSelector.tsx
-│   │   ├── Breadcrumb.tsx
-│   │   ├── CommitList.tsx
-│   │   ├── FileTree.tsx
-│   │   ├── FileViewer.tsx
-│   │   └── ReadmeViewer.tsx
-│   ├── pages/         # Page components
-│   │   ├── HomePage.tsx
-│   │   ├── RepoPage.tsx
-│   │   ├── BlobPage.tsx
-│   │   └── QueuePage.tsx
-│   ├── utils/         # Utility functions
-│   ├── App.tsx        # Main app component
-│   └── main.tsx       # Entry point
-├── public/            # Public static files
-├── index.html         # HTML template
-├── vite.config.ts     # Vite configuration
-└── package.json       # Project dependencies
-```
-
-## Development
-
-This project uses Vite for fast development and optimized builds. The development server features:
-
-- ⚡️ Lightning-fast Hot Module Replacement (HMR)
-- 🔧 Built-in TypeScript support
-- 📦 Optimized bundling for production
-- 🎯 ESLint integration for code quality
-
-## License
-
-See the main [Matrixhub repository](https://github.com/matrixhub-ai/matrixhub) for license information.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
