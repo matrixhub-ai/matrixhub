@@ -1,0 +1,28 @@
+# config for local dev env
+debug: true
+migrationPath: ./../../db/migrations
+log:
+  level: debug
+
+database:
+  dsn: "ghippo:changeme@tcp(10.6.165.50:30007)/ghippo?charset=utf8mb4&multiStatements=true&parseTime=true"
+  driver: mysql
+  accessType: readwrite
+  maxOpenConns: 100
+  maxIdleConns: 10
+  connMaxLifetimeSeconds: 3600
+  connMaxIdleSeconds: 1800
+  migrate: false
+
+apiServer:
+  port: 3001
+
+kubeConfig:
+  kubeConfig: ./../../config/kube/config
+
+istio:
+  namespace: istio-system
+  ingressLabel:
+    app: istio-ingressgateway
+    istio: ingressgateway
+
