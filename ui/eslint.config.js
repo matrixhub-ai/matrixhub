@@ -54,6 +54,7 @@ export default defineConfig([
           },
         },
       ],
+      'import/no-duplicates': 'error',
     },
   },
 ])
