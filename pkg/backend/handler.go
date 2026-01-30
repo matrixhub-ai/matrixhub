@@ -47,6 +47,7 @@ type Handler struct {
 
 	locksStore   *lfs.LockDB
 	contentStore *lfs.Content
+	s3Store      *lfs.S3
 	queueStore   *queue.Store
 	queueWorker  *queue.Worker
 	root         *mux.Router
@@ -75,6 +76,13 @@ func WithQueueWorkers(count int) Option {
 		if h.queueStore != nil {
 			h.queueWorker = queue.NewWorker(h.queueStore, count)
 		}
+	}
+}
+
+// WithLFSS3 configures the LFS S3 storage backend.
+func WithLFSS3(s3Store *lfs.S3) Option {
+	return func(h *Handler) {
+		h.s3Store = s3Store
 	}
 }
 

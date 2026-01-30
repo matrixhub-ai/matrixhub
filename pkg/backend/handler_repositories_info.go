@@ -130,6 +130,15 @@ func (h *Handler) handleBlob(w http.ResponseWriter, r *http.Request) {
 			}()
 			ptr, err := lfs.DecodePointer(reader)
 			if err == nil && ptr != nil {
+				if h.s3Store != nil {
+					url, err := h.s3Store.SignGet(ptr.Oid)
+					if err != nil {
+						h.JSON(w, fmt.Errorf("failed to sign S3 URL for LFS object %q: %v", ptr.Oid, err), http.StatusInternalServerError)
+						return
+					}
+					http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+					return
+				}
 				content, stat, err := h.contentStore.Get(ptr.Oid)
 				if err != nil {
 					h.JSON(w, fmt.Errorf("LFS object %q not found", ptr.Oid), http.StatusNotFound)

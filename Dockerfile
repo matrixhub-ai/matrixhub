@@ -70,7 +70,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 FROM ${BASE_IMAGE_PREFIX}/library/alpine:${ALPINE_VERSION} AS matrixhub
 
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk add ca-certificates git && \
+    apk add ca-certificates git s3fs-fuse && \
     update-ca-certificates
 
 COPY --from=builder /matrixhub /usr/local/bin/matrixhub

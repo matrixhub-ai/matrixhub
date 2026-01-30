@@ -126,6 +126,7 @@ func (c *Client) GetBatch(ctx context.Context, lfsEndpoint string, objects []LFS
 
 	req.Header.Set("Content-Type", "application/vnd.git-lfs+json")
 	req.Header.Set("Accept", "application/vnd.git-lfs+json")
+	req.Header.Set("User-Agent", "go-git/5.x")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

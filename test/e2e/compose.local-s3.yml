@@ -1,0 +1,42 @@
+services:
+  matrixhub:
+    build: .
+    entrypoint:
+      - matrixhub
+    devices:
+      - /dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    command:
+      - --addr=:9527
+      - --s3-repositories
+      - --s3-endpoint=http://s3:9000
+      - --s3-sign-endpoint=http://localhost:9000
+      - --s3-access-key=minioadmin
+      - --s3-secret-key=minioadmin
+      - --s3-bucket=hub
+      - --s3-use-path-style
+    ports:
+      - "9527:9527"
+
+  s3:
+    container_name: s3
+    image: docker.io/minio/minio
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+    command:
+      - "mkdir -p /data/hub && minio server /data --console-address=0.0.0.0:9001"
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - s3-data:/data
+    environment:
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_ADDRESS=0.0.0.0:9000
+      - MINIO_CONSOLE_ADDRESS=0.0.0.0:9001
+
+volumes:
+  s3-data: {}
