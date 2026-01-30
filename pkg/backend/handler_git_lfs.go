@@ -17,7 +17,6 @@ package backend
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -92,7 +91,6 @@ func (h *Handler) handlePutContent(w http.ResponseWriter, r *http.Request) {
 	if h.s3Store != nil {
 		url, err := h.s3Store.SignPut(rv.Oid)
 		if err != nil {
-			log.Println("XXXXXX", err)
 			h.Text(w, fmt.Sprintf("failed to sign S3 URL for LFS object %q: %v", rv.Oid, err), http.StatusInternalServerError)
 			return
 		}

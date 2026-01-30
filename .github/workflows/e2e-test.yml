@@ -48,7 +48,7 @@ jobs:
             ${{ runner.os }}-go-
 
       - run: |
-          go build -o matrixhub ./cmd/matrixhub
+          go build -o matrixhub ./cmd/poc
 
           ./matrixhub --addr=:9527 &
 

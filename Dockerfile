@@ -63,7 +63,7 @@ COPY --from=web-builder /app/web/dist /app/web/dist
 ARG LD_FLAGS
 ENV LD_FLAGS=${LD_FLAGS}
 RUN --mount=type=cache,target=/go/pkg/mod \
-    CGO_ENABLED=1 go build  -ldflags="${LD_FLAGS}" -tags embedweb -o /matrixhub ./cmd/matrixhub
+    CGO_ENABLED=1 go build  -ldflags="${LD_FLAGS}" -tags embedweb -o /matrixhub ./cmd/poc
 
 ##########################################
 
