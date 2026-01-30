@@ -29,7 +29,11 @@ function AppNavbar() {
   const layoutRoute = router.routesById['/(app)/_layout']
   const navRoutes = useMemo(() => {
     const children = layoutRoute?.children
-    if (!children) return []
+
+    if (!children) {
+      return []
+    }
+
     return Object.values(children)
       .filter(route => typeof route.options.staticData?.navName === 'string')
       .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))
@@ -48,6 +52,7 @@ function AppNavbar() {
       <Stack gap={0}>
         {navRoutes.map((route) => {
           const isActive = activeRouteIds.includes(route.id)
+
           return (
             <NavLink
               key={route.id}
@@ -64,11 +69,16 @@ function AppNavbar() {
 }
 
 function AppLayout() {
-  const { t } = useTranslation()
+  const {
+    t,
+  } = useTranslation()
+
   return (
     <AppShell
       padding="md"
-      header={{ height: 60 }}
+      header={{
+        height: 60,
+      }}
       navbar={{
         width: 300,
         breakpoint: '',

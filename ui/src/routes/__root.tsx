@@ -1,4 +1,6 @@
-import { createRootRoute, Outlet, HeadContent } from '@tanstack/react-router'
+import {
+  createRootRoute, Outlet, HeadContent,
+} from '@tanstack/react-router'
 
 import i18n from '@/i18n'
 
@@ -12,10 +14,12 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [{
       title: i18n.t('translation.title'),
-    },
-    ],
+    }],
     links: [
-      { rel: 'icon', href: '/favicon.ico?' },
+      {
+        rel: 'icon',
+        href: '/favicon.ico?',
+      },
     ],
   }),
 })

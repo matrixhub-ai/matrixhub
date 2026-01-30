@@ -10,7 +10,9 @@ i18n
   .init({
     fallbackLng: 'en',
     supportedLngs: ['en', 'zh'],
-    interpolation: { escapeValue: false },
+    interpolation: {
+      escapeValue: false,
+    },
   })
 
 i18n.on('languageChanged', async (lng) => {
