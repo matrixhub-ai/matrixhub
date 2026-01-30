@@ -68,7 +68,7 @@ serve-web: ## Run web frontend locally
 
 .PHONY: serve-api
 serve-api: ## Serve the API only
-	go run ./cmd/matrixhub
+	go run ./cmd/poc
 
 .PHONY: run
 run: ## Run MatrixHub locally (web + API)
