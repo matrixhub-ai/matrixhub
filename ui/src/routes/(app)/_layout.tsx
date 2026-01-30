@@ -12,6 +12,7 @@ import {
   Outlet,
   useRouter,
   useRouterState,
+  type AnyRoute,
 } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -28,11 +29,10 @@ function AppNavbar() {
 
   const layoutRoute = router.routesById['/(app)/_layout']
   const navRoutes = useMemo(() => {
-    const children = layoutRoute?.children
+    const children = layoutRoute.children
     if (!children) return []
-    return Object.values(children)
-      .filter(route => typeof route.options.staticData?.navName === 'string')
-      .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))
+    return (Object.values(children) as AnyRoute[])
+      .filter(route => route.options.staticData?.navName !== undefined)
   }, [layoutRoute])
 
   if (!navRoutes.length) {
@@ -47,13 +47,13 @@ function AppNavbar() {
     <ScrollArea h="100%">
       <Stack gap={0}>
         {navRoutes.map((route) => {
-          const isActive = activeRouteIds.includes(route.id)
+          const isActive = activeRouteIds.includes(route.id as typeof activeRouteIds[number])
           return (
             <NavLink
-              key={route.id}
-              label={route.options.staticData?.navName ?? route.id}
+              key={route.id as string}
+              label={route.options.staticData?.navName ?? route.id as string}
               component={Link}
-              to={route.to}
+              to={route.to as string}
               active={isActive}
             />
           )

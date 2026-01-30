@@ -1,20 +1,25 @@
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+import stylistic from '@stylistic/eslint-plugin'
 import importPlugin from 'eslint-plugin-import'
 import routerPlugin from '@tanstack/eslint-plugin-router'
-import stylistic from '@stylistic/eslint-plugin'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import eslintReact from '@eslint-react/eslint-plugin'
+
 
 export default defineConfig([
-  globalIgnores(['dist']),
-   ...tseslint.configs.recommended,
+  globalIgnores(['dist', 'src/routeTree.gen.ts']), 
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
-      reactX.configs['recommended-typescript'],
-      reactDom.configs.recommended,
+      tseslint.configs.strict,
+      tseslint.configs.strictTypeChecked,
+      reactHooks.configs.flat['recommended-latest'],
+      reactRefresh.configs.vite,
+      eslintReact.configs['strict-typescript'],
       routerPlugin.configs['flat/recommended'],
+      tseslint.configs.stylistic,
       stylistic.configs.recommended,
     ],
     plugins: {
@@ -30,7 +35,7 @@ export default defineConfig([
     },
     languageOptions: {
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -54,7 +59,6 @@ export default defineConfig([
           },
         },
       ],
-      'import/no-duplicates': 'error',
     },
   },
 ])
