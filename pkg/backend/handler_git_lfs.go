@@ -17,6 +17,7 @@ package backend
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -46,7 +47,14 @@ func (h *Handler) handleBatch(w http.ResponseWriter, r *http.Request) {
 
 	// Create a response object
 	for _, object := range bv.Objects {
-		exists := h.contentStore.Exists(object.Oid)
+		var exists bool
+		if h.s3Store != nil {
+			fi, _ := h.s3Store.Info(object.Oid)
+			exists = fi != nil
+		} else {
+			exists = h.contentStore.Exists(object.Oid)
+		}
+
 		if exists { // Object is found and exists
 			responseObjects = append(responseObjects, lfsRepresent(object, true, false))
 			continue
@@ -81,6 +89,16 @@ func (h *Handler) handleBatch(w http.ResponseWriter, r *http.Request) {
 // handlePutContent receives data from the client and puts it into the content store
 func (h *Handler) handlePutContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
+	if h.s3Store != nil {
+		url, err := h.s3Store.SignPut(rv.Oid)
+		if err != nil {
+			log.Println("XXXXXX", err)
+			h.Text(w, fmt.Sprintf("failed to sign S3 URL for LFS object %q: %v", rv.Oid, err), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+		return
+	}
 	if err := h.contentStore.Put(rv.Oid, r.Body, r.ContentLength); err != nil {
 		h.Text(w, fmt.Sprintf("failed to put LFS object %s: %v", rv.Oid, err), http.StatusInternalServerError)
 		return
@@ -90,6 +108,15 @@ func (h *Handler) handlePutContent(w http.ResponseWriter, r *http.Request) {
 // handleGetContent gets the content from the content store
 func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
+	if h.s3Store != nil {
+		url, err := h.s3Store.SignGet(rv.Oid)
+		if err != nil {
+			h.Text(w, fmt.Sprintf("failed to sign S3 URL for LFS object %q: %v", rv.Oid, err), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+		return
+	}
 	content, stat, err := h.contentStore.Get(rv.Oid)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -109,6 +136,23 @@ func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleVerifyObject(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
+	if h.s3Store != nil {
+		info, err := h.s3Store.Info(rv.Oid)
+		if err != nil {
+			if os.IsNotExist(err) {
+				h.Text(w, fmt.Sprintf("LFS object %s not found", rv.Oid), http.StatusNotFound)
+				return
+			}
+			h.Text(w, fmt.Sprintf("failed to get LFS object %s info: %v", rv.Oid, err), http.StatusInternalServerError)
+			return
+		}
+
+		if info.Size() != rv.Size {
+			h.Text(w, "Size mismatch", http.StatusBadRequest)
+			return
+		}
+		return
+	}
 	info, err := h.contentStore.Info(rv.Oid)
 	if err != nil {
 		if os.IsNotExist(err) {

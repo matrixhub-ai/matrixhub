@@ -42,6 +42,8 @@ func InitMrror(ctx context.Context, repoPath string, sourceURL string) (*Reposit
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
+	req.Header.Set("Accept", "application/x-git-upload-pack-advertisement")
+	req.Header.Set("User-Agent", "go-git/5.x")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -52,7 +54,8 @@ func InitMrror(ctx context.Context, repoPath string, sourceURL string) (*Reposit
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, string(body))
 	}
 
 	if resp.Header.Get("Content-Type") != "application/x-git-upload-pack-advertisement" {

@@ -293,8 +293,8 @@ func (s *Store) UpdateStatus(id int64, status TaskStatus, errorMsg string) error
 	case TaskStatusRunning:
 		_, err = s.db.Exec(`
 			UPDATE tasks SET status = ?, started_at = ?, error = NULL
-			WHERE id = ?
-		`, status, now, id)
+			WHERE id = ? AND status = ?
+		`, status, now, id, TaskStatusPending)
 	case TaskStatusCompleted, TaskStatusFailed, TaskStatusCancelled:
 		_, err = s.db.Exec(`
 			UPDATE tasks SET status = ?, completed_at = ?, error = ?

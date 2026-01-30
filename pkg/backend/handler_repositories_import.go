@@ -72,14 +72,14 @@ func (h *Handler) handleImportRepository(w http.ResponseWriter, r *http.Request)
 
 	_, err := repository.InitMrror(ctx, repoPath, req.SourceURL)
 	if err != nil {
-		h.JSON(w, fmt.Errorf("failed to create repository"), http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to create repository: %w", err), http.StatusInternalServerError)
 		return
 	}
 
 	params := map[string]string{"source_url": req.SourceURL}
 	taskID, err := h.queueStore.Add(queue.TaskTypeRepositorySync, repoName, 0, params)
 	if err != nil {
-		h.JSON(w, fmt.Errorf("failed to queue import task"), http.StatusInternalServerError)
+		h.JSON(w, fmt.Errorf("failed to queue import task: %w", err), http.StatusInternalServerError)
 		return
 	}
 

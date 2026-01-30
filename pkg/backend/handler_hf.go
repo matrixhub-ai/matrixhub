@@ -296,6 +296,15 @@ func (h *Handler) handleHFResolve(w http.ResponseWriter, r *http.Request) {
 				// Set HuggingFace-required headers before redirect
 				w.Header().Set("X-Repo-Commit", commitHash)
 				w.Header().Set("ETag", fmt.Sprintf("\"%s\"", ptr.Oid))
+				if h.s3Store != nil {
+					url, err := h.s3Store.SignGet(ptr.Oid)
+					if err != nil {
+						h.JSON(w, fmt.Errorf("failed to sign S3 URL for LFS object %q: %v", ptr.Oid, err), http.StatusInternalServerError)
+						return
+					}
+					http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+					return
+				}
 				content, stat, err := h.contentStore.Get(ptr.Oid)
 				if err != nil {
 					h.JSON(w, fmt.Errorf("LFS object %q not found for file %q in repository %q at revision %q", ptr.Oid, path, repoName, ref), http.StatusNotFound)

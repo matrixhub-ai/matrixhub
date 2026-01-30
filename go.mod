@@ -3,6 +3,7 @@ module github.com/matrixhub-ai/matrixhub
 go 1.25
 
 require (
+	github.com/aws/aws-sdk-go v1.55.8
 	github.com/boltdb/bolt v1.3.1
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/git-lfs/git-lfs/v3 v3.7.1
@@ -39,6 +40,7 @@ require (
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.2 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/clock v1.2.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/leonelquinteros/gotext v1.5.0 // indirect
