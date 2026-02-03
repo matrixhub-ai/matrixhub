@@ -1,0 +1,18 @@
+# config for local dev env
+debug: true
+migrationPath: ./../../db/migrations
+log:
+  level: debug
+
+database:
+  # dsn: "matrixhub:changeme@tcp(127.0.0.1:30007)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true"
+  driver: mysql
+  accessType: readwrite
+  maxOpenConns: 100
+  maxIdleConns: 10
+  connMaxLifetimeSeconds: 3600
+  connMaxIdleSeconds: 1800
+  migrate: true
+
+apiServer:
+  port: 3001

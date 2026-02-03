@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package matrixhub.v1alpha1;
+
+// option go_package = "github.com/matrixhub-ai/matrixhub/api/protogen/v1alpha1/project;projectv1alpha1";
+
+option go_package = "v1alpha1/project;projectv1alpha1";
+
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service Projects {
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/projects/{name}"
+    };
+  }
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/projects"
+      body: "*"
+    };
+  }
+}
+
+message GetProjectRequest {
+  string name = 1;
+}
+
+message GetProjectResponse {
+  string name = 1;
+}
+
+message CreateProjectRequest {
+  string name = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+message CreateProjectResponse {
+}
