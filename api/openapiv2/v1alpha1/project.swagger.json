@@ -17,13 +17,14 @@
   ],
   "paths": {
     "/api/v1alpha1/projects": {
-      "post": {
-        "operationId": "Projects_CreateProject",
+      "get": {
+        "summary": "List projects lists all projects.",
+        "operationId": "Projects_List",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1CreateProjectResponse"
+              "$ref": "#/definitions/v1alpha1ListProjects"
             }
           },
           "default": {
@@ -35,12 +36,30 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1alpha1CreateProjectRequest"
-            }
+            "name": "limit",
+            "description": "limit is the maximum number of projects to return.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "cursor",
+            "description": "cursor is the pagination cursor.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderBy",
+            "description": "order_by specifies the ordering of the projects.\nIt is a list of fields to order by, each prefixed by \"+\" (ascending) or \"-\" (descending).\nFor example, to order by name ascending and created_at descending:\n  order_by: [\"+name\", \"-created_at\"]",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "tags": [
@@ -50,12 +69,13 @@
     },
     "/api/v1alpha1/projects/{name}": {
       "get": {
-        "operationId": "Projects_GetProject",
+        "summary": "Get retrieves a project by name.",
+        "operationId": "Projects_Get",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1GetProjectResponse"
+              "$ref": "#/definitions/v1alpha1ProjectItem"
             }
           },
           "default": {
@@ -68,9 +88,48 @@
         "parameters": [
           {
             "name": "name",
+            "description": "name is the name of the project.",
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Projects"
+        ]
+      },
+      "post": {
+        "summary": "Create creates a new project.",
+        "operationId": "Projects_Create",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ProjectItem"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name is the name of the project.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProjectsCreateBody"
+            }
           }
         ],
         "tags": [
@@ -80,6 +139,19 @@
     }
   },
   "definitions": {
+    "ProjectsCreateBody": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "display_name is the display name of the project."
+        },
+        "description": {
+          "type": "string",
+          "description": "description is the description of the project."
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -108,24 +180,45 @@
         }
       }
     },
-    "v1alpha1CreateProjectRequest": {
+    "v1alpha1ListProjects": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ProjectItem"
+          },
+          "description": "items is the list of projects."
+        },
+        "count": {
+          "type": "string",
+          "format": "int64",
+          "description": "count is the total number of projects."
+        },
+        "nextCursor": {
+          "type": "string",
+          "description": "next_cursor is the cursor for the next page.\nIf there are no more pages, this field will be empty."
         }
       }
     },
-    "v1alpha1CreateProjectResponse": {
-      "type": "object"
-    },
-    "v1alpha1GetProjectResponse": {
+    "v1alpha1ProjectItem": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "name is the name of the project."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "display_name is the display name of the project."
+        },
+        "description": {
+          "type": "string",
+          "description": "description is the description of the project."
         }
-      }
+      },
+      "description": "ProjectItem is the project item."
     }
   }
 }

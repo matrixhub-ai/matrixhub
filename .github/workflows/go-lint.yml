@@ -32,3 +32,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9.2.0
         with:
           version: v2.8.0
+
+      - name: Verify proto generation
+        run: |
+          ./scripts/verify-proto-gen.sh

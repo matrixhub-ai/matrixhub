@@ -12,28 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package log
 
-import (
-	"fmt"
-	"os"
+type Config struct {
+	Level   string
+	Encoder string
 
-	"github.com/urfave/cli/v2"
-
-	"github.com/matrixhub-ai/matrixhub/pkg/version"
-)
-
-func main() {
-	app := cli.NewApp()
-	app.Name = "matrixhub"
-	app.Version = version.GitVersion
-	app.Usage = "MatrixHub is an open-source platform for managing and deploying machine learning models."
-	app.Commands = []*cli.Command{
-		runServerCommand,
-	}
-
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "matrixhub: %s\n", err)
-		os.Exit(1)
-	}
+	FilePath       string
+	FileMaxSize    int
+	FileMaxBackups int
+	FileMaxAges    int
+	Compress       bool
 }

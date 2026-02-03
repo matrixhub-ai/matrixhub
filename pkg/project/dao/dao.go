@@ -12,28 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package dao
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/urfave/cli/v2"
-
-	"github.com/matrixhub-ai/matrixhub/pkg/version"
+	"github.com/matrixhub-ai/matrixhub/pkg/db"
+	"github.com/matrixhub-ai/matrixhub/pkg/db/dao"
 )
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "matrixhub"
-	app.Version = version.GitVersion
-	app.Usage = "MatrixHub is an open-source platform for managing and deploying machine learning models."
-	app.Commands = []*cli.Command{
-		runServerCommand,
-	}
+// Project represents a project entity in the database.
+type Project struct {
+	db.Model
+	Name        string
+	DisplayName string
+	Description string
+}
 
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "matrixhub: %s\n", err)
-		os.Exit(1)
+func (p Project) GetID() uint {
+	return p.ID
+}
+
+// DAO is the data access object for Project.
+type DAO struct {
+	db *db.DB[Project]
+	*dao.DAO[Project]
+}
+
+func NewDAO(db *db.DB[Project]) *DAO {
+	return &DAO{
+		db:  db,
+		DAO: dao.NewDAO(db),
 	}
 }

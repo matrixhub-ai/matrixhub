@@ -12,28 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package project
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/urfave/cli/v2"
-
-	"github.com/matrixhub-ai/matrixhub/pkg/version"
+	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
+	"github.com/matrixhub-ai/matrixhub/pkg/project/dao"
 )
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "matrixhub"
-	app.Version = version.GitVersion
-	app.Usage = "MatrixHub is an open-source platform for managing and deploying machine learning models."
-	app.Commands = []*cli.Command{
-		runServerCommand,
-	}
-
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "matrixhub: %s\n", err)
-		os.Exit(1)
+func daoToModel(input dao.Project) *v1alpha1.ProjectItem {
+	return &v1alpha1.ProjectItem{
+		Name:        input.Name,
+		DisplayName: input.DisplayName,
+		Description: input.Description,
 	}
 }

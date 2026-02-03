@@ -2,39 +2,80 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-// option go_package = "github.com/matrixhub-ai/matrixhub/api/protogen/v1alpha1/project;projectv1alpha1";
-
-option go_package = "v1alpha1/project;projectv1alpha1";
-
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1/project;v1alpha1";
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 
 service Projects {
-  rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {
+  // Get retrieves a project by name.
+  rpc Get(GetProjectRequest) returns (ProjectItem) {
     option (google.api.http) = {
       get: "/api/v1alpha1/projects/{name}"
     };
   }
-  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {
+  // Create creates a new project.
+  rpc Create(CreateProjectRequest) returns (ProjectItem) {
     option (google.api.http) = {
-      post: "/api/v1alpha1/projects"
+      post: "/api/v1alpha1/projects/{name}"
       body: "*"
+    };
+  }
+  // List projects lists all projects.
+  rpc List(ListProjectsRequest) returns (ListProjects) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/projects"
     };
   }
 }
 
-message GetProjectRequest {
+// ProjectItem is the project item.
+message ProjectItem {
+  // name is the name of the project.
   string name = 1;
-}
-
-message GetProjectResponse {
-  string name = 1;
+  // display_name is the display name of the project.
+  string display_name = 2;
+  // description is the description of the project.
+  string description = 3;
 }
 
 message CreateProjectRequest {
-  string name = 1 [(validate.rules).string = {min_len: 1}];
+  // name is the name of the project.
+  string name = 1 [(validate.rules).string.min_len = 1, (validate.rules).string.max_len = 63];
+  // display_name is the display name of the project.
+  string display_name = 2 [(validate.rules).string.max_len = 63];
+  // description is the description of the project.
+  string description = 3 [(validate.rules).string.max_len = 63];
 }
 
-message CreateProjectResponse {
+// GetProjectRequest is the request message for GetProject.
+message GetProjectRequest {
+  // name is the name of the project.
+  string name = 1;
+}
+
+// ListProjectsRequest is the request message for ListProjects.
+message ListProjectsRequest {
+  // limit is the maximum number of projects to return.
+  int64 limit = 1;
+  // cursor is the pagination cursor.
+  string cursor = 2;
+
+  // order_by specifies the ordering of the projects.
+  // It is a list of fields to order by, each prefixed by "+" (ascending) or "-" (descending).
+  // For example, to order by name ascending and created_at descending:
+  //   order_by: ["+name", "-created_at"]
+  repeated string order_by = 3;
+}
+
+message ListProjects {
+  // items is the list of projects.
+  repeated ProjectItem items = 1;
+
+  // count is the total number of projects.
+  int64 count = 2;
+
+  // next_cursor is the cursor for the next page.
+  // If there are no more pages, this field will be empty.
+  string next_cursor = 3;
 }

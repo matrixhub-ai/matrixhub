@@ -12,28 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package handler
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/urfave/cli/v2"
-
-	"github.com/matrixhub-ai/matrixhub/pkg/version"
+	"github.com/gin-gonic/gin"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
 )
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "matrixhub"
-	app.Version = version.GitVersion
-	app.Usage = "MatrixHub is an open-source platform for managing and deploying machine learning models."
-	app.Commands = []*cli.Command{
-		runServerCommand,
-	}
+type ServerOptions struct {
+	Router      *gin.Engine
+	GatewayMux  *runtime.ServeMux
+	GRPCServer  *grpc.Server
+	GRPCAddr    string
+	GRPCDialOpt []grpc.DialOption
+}
 
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "matrixhub: %s\n", err)
-		os.Exit(1)
-	}
+type Registry interface {
+	Register(*ServerOptions) error
 }
