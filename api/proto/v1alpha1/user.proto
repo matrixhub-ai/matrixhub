@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package matrixhub.v1alpha1;
+
+option go_package = "v1alpha1/user;userv1alpha1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service Users {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/users"
+    };
+  }
+
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/users"
+      body: "*"
+    };
+  }
+
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/users/{id}"
+    };
+  }
+
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1alpha1/users/{id}"
+    };
+  }
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message CreateUserRequest {
+  string username = 1 [(validate.rules).string.min_len = 1];
+  string password = 2 [(validate.rules).string.min_len = 1];
+  string email = 3 [(validate.rules).string.email = true];
+}
+
+message CreateUserResponse {}
+
+message ListUsersRequest {
+  uint32 page = 1;
+  uint32 page_size = 2;
+  string search = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  Pagination pagination = 2;
+}
+
+message Pagination {
+  uint32 total = 1;
+  uint32 page = 2;
+  uint32 page_size = 3;
+}
+
+message GetUserRequest {
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetUserResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message DeleteUserRequest {
+  string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message DeleteUserResponse {}

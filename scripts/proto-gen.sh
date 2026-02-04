@@ -26,7 +26,7 @@ go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts@v1.1.2
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 
 SERVICES=(
-  "project"
+  "project user"
 )
 
 V1ALPHA=0

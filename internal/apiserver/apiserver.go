@@ -67,6 +67,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 		repos:         repos,
 		handlers: []handler.IHandler{
 			handler.NewProjectHandler(repos.Project),
+			handler.NewUserHandler(repos.User),
 		},
 	}
 
