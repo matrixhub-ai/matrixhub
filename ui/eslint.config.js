@@ -17,10 +17,8 @@ export default defineConfig(
   // JavaScript files (non-TypeScript)
   // =============================================
   {
-    files: ['**/*.{js,mjs,cjs}'],
+    files: ['**/*.{js,mjs,cjs}', 'vite.config.ts'],
     extends: [
-      js.configs.recommended,
-      stylistic.configs.recommended,
     ],
     languageOptions: {
       ecmaVersion: 2024,
@@ -34,10 +32,10 @@ export default defineConfig(
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
-      js.configs.recommended,
       tseslint.configs.strict,
       tseslint.configs.stylistic,
-      stylistic.configs.recommended,
+      reactHooks.configs.flat['recommended-latest'],
+      reactRefresh.configs.vite,
       eslintReact.configs['strict-typescript'],
       tanstackRouter.configs['flat/recommended'],
     ],
@@ -51,12 +49,7 @@ export default defineConfig(
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint.plugin,
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
       import: importPlugin,
-      '@stylistic': stylistic,
-      '@tanstack/router': tanstackRouter,
     },
     settings: {
       'import/resolver': {
@@ -67,11 +60,6 @@ export default defineConfig(
       },
     },
     rules: {
-      // =============================================
-      // React Hooks (Official)
-      // =============================================
-      ...reactHooks.configs.recommended.rules,
-
       // =============================================
       // React Refresh (HMR)
       // =============================================
@@ -133,26 +121,10 @@ export default defineConfig(
       // =============================================
       // @eslint-react: Performance Optimization
       // =============================================
-      // Disallow nested component definitions (recreated on each render)
-      '@eslint-react/no-nested-component-definitions': 'error',
-      // Disallow nested lazy declarations
-      '@eslint-react/no-nested-lazy-component-declarations': 'error',
       // Avoid literal objects for Context.Provider value
       '@eslint-react/no-unstable-context-value': 'error',
       // Avoid reference type literals for default props
       '@eslint-react/no-unstable-default-props': 'error',
-      // Use lazy initialization when passing functions to useState
-      '@eslint-react/prefer-use-state-lazy-initialization': 'warn',
-
-      // =============================================
-      // @eslint-react: Code Quality
-      // =============================================
-      // Recommended to destructure props
-      '@eslint-react/prefer-destructuring-assignment': 'warn',
-      // Disallow array index as key
-      '@eslint-react/no-array-index-key': 'warn',
-      // Disallow children as prop
-      '@eslint-react/no-children-prop': 'error',
 
       // =============================================
       // @eslint-react: DOM Security
@@ -161,34 +133,8 @@ export default defineConfig(
       '@eslint-react/dom/no-unsafe-target-blank': 'error',
       // Disallow javascript: URL
       '@eslint-react/dom/no-script-url': 'error',
-      // iframe must have sandbox
-      '@eslint-react/dom/no-missing-iframe-sandbox': 'warn',
       // Disallow unsafe sandbox combinations
       '@eslint-react/dom/no-unsafe-iframe-sandbox': 'error',
-      // button must have type
-      '@eslint-react/dom/no-missing-button-type': 'warn',
-
-      // =============================================
-      // @eslint-react: Web API Leak Prevention
-      // =============================================
-      '@eslint-react/web-api/no-leaked-event-listener': 'warn',
-      '@eslint-react/web-api/no-leaked-interval': 'warn',
-      '@eslint-react/web-api/no-leaked-timeout': 'warn',
-      '@eslint-react/web-api/no-leaked-resize-observer': 'warn',
-
-      // =============================================
-      // @eslint-react: Hooks Enhancement
-      // =============================================
-      // Avoid direct setState calls in useEffect (should be in callback)
-      '@eslint-react/hooks-extra/no-direct-set-state-in-use-effect': 'warn',
-
-      // =============================================
-      // @eslint-react: Naming Convention
-      // =============================================
-      // useState destructuring: [value, setValue]
-      '@eslint-react/naming-convention/use-state': 'warn',
-      // useRef naming: xxxRef
-      '@eslint-react/naming-convention/ref-name': 'warn',
     },
   },
 
@@ -197,23 +143,16 @@ export default defineConfig(
   // =============================================
   {
     files: ['**/*.{ts,tsx,js,mjs,cjs}'],
-    plugins: {
-      '@stylistic': stylistic,
-    },
+    extends: [
+      js.configs.recommended,
+      stylistic.configs.recommended,
+    ],
     rules: {
-      '@stylistic/eol-last': ['error', 'always'],
+      '@stylistic/brace-style': ['error', '1tbs'],
       '@stylistic/quote-props': ['error', 'as-needed'],
-      // Migrated from legacy config
+
       '@stylistic/quotes': ['error', 'single'],
-      '@stylistic/jsx-quotes': ['error', 'prefer-double'],
-      '@stylistic/brace-style': ['error', '1tbs', {
-        allowSingleLine: false,
-      }],
       '@stylistic/comma-dangle': ['error', 'always-multiline'],
-      '@stylistic/comma-spacing': ['error', {
-        before: false,
-        after: true,
-      }],
       '@stylistic/object-property-newline': ['error', {
         allowAllPropertiesOnSameLine: false,
       }],
@@ -235,9 +174,6 @@ export default defineConfig(
           multiline: true,
           minProperties: 3,
         },
-      }],
-      '@stylistic/max-statements-per-line': ['error', {
-        max: 1,
       }],
       '@stylistic/array-bracket-newline': ['error', 'consistent'],
       '@stylistic/array-element-newline': ['error', 'consistent'],
