@@ -69,9 +69,7 @@ function AppNavbar() {
 }
 
 function AppLayout() {
-  const {
-    t,
-  } = useTranslation()
+  const { t } = useTranslation()
 
   return (
     <AppShell

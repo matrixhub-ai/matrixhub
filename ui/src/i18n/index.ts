@@ -15,8 +15,8 @@ i18n
     },
   })
 
-i18n.on('languageChanged', async (lng) => {
-  const bundles = await loadLocale(lng)
+i18n.on('languageChanged', (lng) => {
+  const bundles = loadLocale(lng)
 
   let resourceBundle: Record<string, unknown> = {}
 

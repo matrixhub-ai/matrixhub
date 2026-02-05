@@ -77,8 +77,10 @@ const generateTSConfig = async (stagedFiles) => {
     // dynamic include for app + exclude node include to avoid duplicate checks
     // Explicitly include d.ts to ensure global types are available
     const srcDir = path.resolve('src/**/*.d.ts')
+    const routeTree = path.resolve('src/routeTree.gen.ts')
+    const router = path.resolve('src/router.tsx')
 
-    tsAppConfig.include = [...appFilesToCheck, srcDir]
+    tsAppConfig.include = [routeTree, router, ...appFilesToCheck, srcDir]
 
     const tsAppLintPath = path.resolve('node_modules/.tmp/tsconfig.app.lint.json')
 

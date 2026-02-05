@@ -14,6 +14,91 @@ export default defineConfig(
   globalIgnores(['dist', 'node_modules', 'src/routeTree.gen.ts', '.vscode']),
 
   // =============================================
+  // Base rules for all JS/TS files
+  // =============================================
+  {
+    files: ['**/*.{ts,tsx,js,mjs,cjs}'],
+    extends: [
+      js.configs.recommended,
+      stylistic.configs.recommended,
+    ],
+    rules: {
+      '@stylistic/brace-style': ['error', '1tbs'],
+      '@stylistic/quote-props': ['error', 'as-needed'],
+
+      '@stylistic/quotes': ['error', 'single'],
+      '@stylistic/comma-dangle': ['error', 'always-multiline'],
+      '@stylistic/object-property-newline': ['error', { allowAllPropertiesOnSameLine: false }],
+      '@stylistic/object-curly-spacing': ['error', 'always'],
+      '@stylistic/object-curly-newline': ['error', {
+        ObjectExpression: {
+          consistent: true,
+          minProperties: 2,
+          multiline: false,
+        },
+        ObjectPattern: {
+          consistent: true,
+          minProperties: 2,
+          multiline: false,
+        },
+        ImportDeclaration: {
+          multiline: true,
+          minProperties: 3,
+        },
+        ExportDeclaration: {
+          multiline: true,
+          minProperties: 3,
+        },
+      }],
+      '@stylistic/array-bracket-newline': ['error', 'consistent'],
+      '@stylistic/array-element-newline': ['error', 'consistent'],
+      '@stylistic/padding-line-between-statements': [
+        'error',
+        {
+          blankLine: 'always',
+          prev: ['interface', 'type'],
+          next: '*',
+        },
+        {
+          blankLine: 'always',
+          prev: ['const', 'let', 'var'],
+          next: '*',
+        },
+        {
+          blankLine: 'any',
+          prev: ['const', 'let', 'var'],
+          next: ['const', 'let', 'var'],
+        },
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: 'return',
+        },
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: 'function',
+        },
+      ],
+      '@stylistic/max-len': [
+        'error',
+        {
+          code: 150,
+          tabWidth: 2,
+          ignoreUrls: true,
+          ignoreRegExpLiterals: true,
+          ignoreStrings: true,
+          ignoreTemplateLiterals: true,
+          ignoreComments: true,
+        },
+      ],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-debugger': 'warn',
+      curly: ['error', 'all'],
+    },
+  },
+
+  // =============================================
   // JavaScript files (non-TypeScript)
   // =============================================
   {
@@ -88,6 +173,8 @@ export default defineConfig(
         },
       ],
 
+      '@typescript-eslint/await-thenable': 'error',
+
       // =============================================
       // Import
       // =============================================
@@ -139,93 +226,6 @@ export default defineConfig(
   },
 
   // =============================================
-  // Base rules for all JS/TS files
-  // =============================================
-  {
-    files: ['**/*.{ts,tsx,js,mjs,cjs}'],
-    extends: [
-      js.configs.recommended,
-      stylistic.configs.recommended,
-    ],
-    rules: {
-      '@stylistic/brace-style': ['error', '1tbs'],
-      '@stylistic/quote-props': ['error', 'as-needed'],
-
-      '@stylistic/quotes': ['error', 'single'],
-      '@stylistic/comma-dangle': ['error', 'always-multiline'],
-      '@stylistic/object-property-newline': ['error', {
-        allowAllPropertiesOnSameLine: false,
-      }],
-      '@stylistic/object-curly-spacing': ['error', 'always'],
-      '@stylistic/object-curly-newline': ['error', {
-        ObjectExpression: {
-          multiline: true,
-          minProperties: 1,
-        },
-        ObjectPattern: {
-          multiline: true,
-          minProperties: 1,
-        },
-        ImportDeclaration: {
-          multiline: true,
-          minProperties: 3,
-        },
-        ExportDeclaration: {
-          multiline: true,
-          minProperties: 3,
-        },
-      }],
-      '@stylistic/array-bracket-newline': ['error', 'consistent'],
-      '@stylistic/array-element-newline': ['error', 'consistent'],
-      '@stylistic/padding-line-between-statements': [
-        'error',
-        {
-          blankLine: 'always',
-          prev: ['interface', 'type'],
-          next: '*',
-        },
-        {
-          blankLine: 'always',
-          prev: ['const', 'let', 'var'],
-          next: '*',
-        },
-        {
-          blankLine: 'any',
-          prev: ['const', 'let', 'var'],
-          next: ['const', 'let', 'var'],
-        },
-        {
-          blankLine: 'always',
-          prev: '*',
-          next: 'return',
-        },
-        {
-          blankLine: 'always',
-          prev: '*',
-          next: 'function',
-        },
-      ],
-      '@stylistic/max-len': [
-        'error',
-        {
-          code: 150,
-          tabWidth: 2,
-          ignoreUrls: true,
-          ignoreRegExpLiterals: true,
-          ignoreStrings: true,
-          ignoreTemplateLiterals: true,
-          ignoreComments: true,
-        },
-      ],
-      'no-console': ['warn', {
-        allow: ['warn', 'error'],
-      }],
-      'no-debugger': 'warn',
-      curly: ['error', 'all'],
-    },
-  },
-
-  // =============================================
   // JSON files (strict, no comments allowed)
   // =============================================
   ...jsonc.configs['flat/recommended-with-json'],
@@ -236,12 +236,11 @@ export default defineConfig(
   ...jsonc.configs['flat/recommended-with-jsonc'],
   {
     files: ['**/*.json', '**/*.jsonc'],
-    plugins: {
-      '@stylistic': stylistic,
-    },
+    plugins: { '@stylistic': stylistic },
     rules: {
       'jsonc/indent': ['error', 2],
       '@stylistic/eol-last': ['error', 'always'],
+      'jsonc/array-bracket-spacing': ['error', 'never'],
     },
   },
   {
