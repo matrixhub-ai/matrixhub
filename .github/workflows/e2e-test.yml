@@ -47,7 +47,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - run: |
+      - name: Start matrixhub
+        run: |
           go build -o matrixhub ./cmd/poc
 
           ./matrixhub --addr=:9527 &
