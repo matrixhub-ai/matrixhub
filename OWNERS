@@ -7,6 +7,8 @@ approvers:
 - samzong
 - yitingdc
 - lsq645599166
+- Ruby-rc
+- linghaoSu
 
 # List of usernames who may use /lgtm
 reviewers:
@@ -15,3 +17,7 @@ reviewers:
 - yitingdc
 - lsq645599166
 - yankay
+- vivian-xu
+- Ruby-rc
+- linghaoSu
+- viajes7
