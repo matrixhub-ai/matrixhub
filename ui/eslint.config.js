@@ -99,19 +99,6 @@ export default defineConfig(
   },
 
   // =============================================
-  // JavaScript files (non-TypeScript)
-  // =============================================
-  {
-    files: ['**/*.{js,mjs,cjs}', 'vite.config.ts'],
-    extends: [
-    ],
-    languageOptions: {
-      ecmaVersion: 2024,
-      globals: globals.node,
-    },
-  },
-
-  // =============================================
   // TypeScript + React files
   // =============================================
   {
@@ -145,16 +132,6 @@ export default defineConfig(
       },
     },
     rules: {
-      // =============================================
-      // React Refresh (HMR)
-      // =============================================
-      'react-refresh/only-export-components': [
-        'warn',
-        {
-          allowConstantExport: true,
-        },
-      ],
-
       // =============================================
       // TypeScript
       // =============================================
@@ -226,6 +203,17 @@ export default defineConfig(
   },
 
   // =============================================
+  // set runtime for specify files
+  // =============================================
+  {
+    files: ['**/*.{js,mjs,cjs}', 'vite.config.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      globals: globals.node,
+    },
+  },
+
+  // =============================================
   // JSON files (strict, no comments allowed)
   // =============================================
   ...jsonc.configs['flat/recommended-with-json'],
@@ -236,11 +224,24 @@ export default defineConfig(
   ...jsonc.configs['flat/recommended-with-jsonc'],
   {
     files: ['**/*.json', '**/*.jsonc'],
-    plugins: { '@stylistic': stylistic },
+    extends: [
+      stylistic.configs.recommended,
+    ],
     rules: {
       'jsonc/indent': ['error', 2],
-      '@stylistic/eol-last': ['error', 'always'],
       'jsonc/array-bracket-spacing': ['error', 'never'],
+      'jsonc/no-irregular-whitespace': 'error',
+      'jsonc/object-curly-spacing': [
+        'error',
+        'always',
+      ],
+      'jsonc/object-property-newline': 'error',
+      'jsonc/object-curly-newline': ['error', {
+        consistent: true,
+        minProperties: 2,
+        multiline: false,
+      }],
+      'jsonc/comma-style': 'error',
     },
   },
   {
