@@ -19,8 +19,8 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	projectv1alpha1 "matrixhub.ai/api/protogen/v1alpha1/project"
 
+	projectv1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )

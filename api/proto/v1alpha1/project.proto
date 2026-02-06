@@ -2,10 +2,7 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-// option go_package = "github.com/matrixhub-ai/matrixhub/api/protogen/v1alpha1/project;projectv1alpha1";
-
-option go_package = "v1alpha1/project;projectv1alpha1";
-
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";

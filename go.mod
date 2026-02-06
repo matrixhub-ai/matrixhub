@@ -18,8 +18,7 @@ require (
 	go.uber.org/zap v1.27.1
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
-	gorm.io/gorm v1.30.0
-	matrixhub.ai/api v0.0.0-00010101000000-000000000000
+	gorm.io/gorm v1.30.0 
 )
 
 require (
@@ -128,5 +127,3 @@ require (
 	gorm.io/driver/postgres v1.6.0
 	k8s.io/klog/v2 v2.130.1
 )
-
-replace matrixhub.ai/api => ./api
