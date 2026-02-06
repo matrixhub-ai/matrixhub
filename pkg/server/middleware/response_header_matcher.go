@@ -12,28 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package middleware
 
 import (
-	"fmt"
-	"os"
+	"context"
+	"net/http"
 
-	"github.com/urfave/cli/v2"
-
-	"github.com/matrixhub-ai/matrixhub/pkg/version"
+	"google.golang.org/protobuf/proto"
 )
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "matrixhub"
-	app.Version = version.GitVersion
-	app.Usage = "MatrixHub is an open-source platform for managing and deploying machine learning models."
-	app.Commands = []*cli.Command{
-		runServerCommand,
+// grpc-gateway does 302 redirect
+// https://stackoverflow.com/questions/49878855/how-to-do-a-302-redirect-in-grpc-gateway
+func ResponseHeaderLocation(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+	headers := w.Header()
+	if location, ok := headers["Grpc-Metadata-Location"]; ok {
+		w.Header().Set("Location", location[0])
+		w.WriteHeader(http.StatusFound)
 	}
-
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "matrixhub: %s\n", err)
-		os.Exit(1)
-	}
+	return nil
 }
