@@ -1,0 +1,14 @@
+# Welcome to be owners
+# If you would like your GitHub username to be added to approvers, please follow the guide: https://kubernetes.io/docs/contribute/review/for-approvers/
+
+# List of usernames who may use /approve
+approvers:
+- Ruby-rc
+- linghaoSu
+
+# List of usernames who may use /lgtm
+reviewers:
+- vivian-xu
+- Ruby-rc
+- linghaoSu
+- viajes7
