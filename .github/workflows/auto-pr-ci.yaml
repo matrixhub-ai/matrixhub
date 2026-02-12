@@ -96,6 +96,7 @@ jobs:
           ref=$( git show -s --format='format:%H')
           echo "RUN_REF=${ref}" >> $GITHUB_ENV
 
+# TODO: add unittest and verify-check
   # call_unittest:
   #   needs: get_ref
   #   if: ${{ needs.get_ref.outputs.unittest_enabled == 'true' }}
@@ -113,14 +114,6 @@ jobs:
       ref: ${{ needs.get_ref.outputs.ref }}
       push: false
     secrets: inherit
-
-  # lint_chart:
-  #   needs: get_ref
-  #   if: ${{ needs.get_ref.outputs.e2e_enabled == 'true' }}
-  #   uses: ./.github/workflows/call-lint-chart.yaml
-  #   with:
-  #     ref: ${{ needs.get_ref.outputs.ref }}
-  #   secrets: inherit
 
   e2e_test:
     needs: [call_build_ci_image, get_ref]

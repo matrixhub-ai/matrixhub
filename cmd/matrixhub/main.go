@@ -30,7 +30,9 @@ const configFlag = "config"
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "matrixhub"
+	if app.Name == "" {
+		app.Name = "matrixhub"
+	}
 	app.Version = Version
 	app.Usage = "MATRIXBUB"
 	app.Commands = []*cli.Command{
