@@ -42,6 +42,7 @@ func (u *UserHandler) CreateUser(ctx context.Context, request *userv1alpha1.Crea
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	// test
 	return &userv1alpha1.CreateUserResponse{}, nil
 }
 
