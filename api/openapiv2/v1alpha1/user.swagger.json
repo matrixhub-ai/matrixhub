@@ -170,6 +170,44 @@
         ]
       }
     },
+    "/api/v1alpha1/users/{id}/reset-password": {
+      "post": {
+        "operationId": "Users_ResetUserPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ResetUserPasswordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UsersResetUserPasswordBody"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
     "/apis/v1alpha1/users/{id}/roles": {
       "put": {
         "operationId": "Users_UpdateUserRoles",
@@ -210,6 +248,14 @@
     }
   },
   "definitions": {
+    "UsersResetUserPasswordBody": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "type": "string"
+        }
+      }
+    },
     "UsersUpdateUserRolesBody": {
       "type": "object",
       "properties": {
@@ -266,8 +312,8 @@
         "password": {
           "type": "string"
         },
-        "email": {
-          "type": "string"
+        "isAdmin": {
+          "type": "boolean"
         }
       }
     },
@@ -342,6 +388,9 @@
         }
       },
       "description": "Pagination is for data paging."
+    },
+    "v1alpha1ResetUserPasswordResponse": {
+      "type": "object"
     },
     "v1alpha1UpdateUserRolesResponse": {
       "type": "object"

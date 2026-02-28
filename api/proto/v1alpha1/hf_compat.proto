@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package matrixhub.v1alpha1;
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
+import "google/api/annotations.proto";
+
+service HfCompatibility {
+  rpc CLILogin(CLILoginRequest) returns (CLILoginResponse) {
+    option (google.api.http) = {
+      get: "/api/whoami-v2"
+    };
+  }
+
+  // todo: Metadata API && Resolve API
+}
+
+message CLILoginRequest {}
+
+message CLILoginResponse {}

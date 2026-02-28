@@ -15,7 +15,7 @@ export type User = {
 export type CreateUserRequest = {
   username?: string
   password?: string
-  email?: string
+  isAdmin?: boolean
 }
 
 export type CreateUserResponse = {
@@ -65,6 +65,14 @@ export type GetCurrentUserProjectRolesResponse = {
   projectRoles?: {[key: string]: string}
 }
 
+export type ResetUserPasswordRequest = {
+  id?: string
+  password?: string
+}
+
+export type ResetUserPasswordResponse = {
+}
+
 export class Users {
   static ListUsers(req: ListUsersRequest, initReq?: fm.InitReq): Promise<ListUsersResponse> {
     return fm.fetchReq<ListUsersRequest, ListUsersResponse>(`/api/v1alpha1/users?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -77,6 +85,9 @@ export class Users {
   }
   static DeleteUser(req: DeleteUserRequest, initReq?: fm.InitReq): Promise<DeleteUserResponse> {
     return fm.fetchReq<DeleteUserRequest, DeleteUserResponse>(`/api/v1alpha1/users/${req["id"]}`, {...initReq, method: "DELETE"})
+  }
+  static ResetUserPassword(req: ResetUserPasswordRequest, initReq?: fm.InitReq): Promise<ResetUserPasswordResponse> {
+    return fm.fetchReq<ResetUserPasswordRequest, ResetUserPasswordResponse>(`/api/v1alpha1/users/${req["id"]}/reset-password`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static UpdateUserRoles(req: UpdateUserRolesRequest, initReq?: fm.InitReq): Promise<UpdateUserRolesResponse> {
     return fm.fetchReq<UpdateUserRolesRequest, UpdateUserRolesResponse>(`/apis/v1alpha1/users/${req["id"]}/roles`, {...initReq, method: "PUT", body: JSON.stringify(req, fm.replacer)})
