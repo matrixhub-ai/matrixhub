@@ -34,6 +34,13 @@ service Users {
     };
   }
 
+  rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/users/{id}/reset-password"
+      body: "*"
+    };
+  }
+
   rpc UpdateUserRoles(UpdateUserRolesRequest) returns (UpdateUserRolesResponse) {
     option (google.api.http) = {
       put: "/apis/v1alpha1/users/{id}/roles"
@@ -57,7 +64,7 @@ message User {
 message CreateUserRequest {
   string username = 1 [(validate.rules).string.min_len = 1];
   string password = 2 [(validate.rules).string.min_len = 1];
-  string email = 3 [(validate.rules).string.email = true];
+  repeated int32 roles = 3;
 }
 
 message CreateUserResponse {}
@@ -103,3 +110,10 @@ message GetCurrentUserProjectRolesRequest {}
 message GetCurrentUserProjectRolesResponse {
   map<string, string> project_roles = 1;
 }
+
+message ResetUserPasswordRequest {
+  string id = 1 [(validate.rules).string.min_len = 1];
+  string password = 2 [(validate.rules).string.min_len = 1];
+}
+
+message ResetUserPasswordResponse {}

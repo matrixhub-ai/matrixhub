@@ -30,6 +30,11 @@ type UserHandler struct {
 	userRepo user.IUserRepo
 }
 
+func (u *UserHandler) ResetUserPassword(ctx context.Context, request *userv1alpha1.ResetUserPasswordRequest) (*userv1alpha1.ResetUserPasswordResponse, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (u *UserHandler) GetCurrentUserProjectRoles(ctx context.Context, request *userv1alpha1.GetCurrentUserProjectRolesRequest) (*userv1alpha1.GetCurrentUserProjectRolesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "Not implemented")
 }
@@ -45,7 +50,6 @@ func (u *UserHandler) CreateUser(ctx context.Context, request *userv1alpha1.Crea
 	if err := u.userRepo.CreateUser(ctx, user.User{
 		Username: request.Username,
 		Password: request.Password,
-		Email:    request.Email,
 	}); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
