@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package matrixhub.v1alpha1;
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service Abcs {
+  rpc GetAbc(GetAbcRequest) returns (GetAbcResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/abc/{name}"
+    };
+  }
+}
+
+message GetAbcRequest {
+  string name = 1;
+}
+
+message GetAbcResponse {
+  string name = 1;
+}
