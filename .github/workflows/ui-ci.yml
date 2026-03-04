@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - ui/**
+      - api/ts/**
   pull_request:
     paths:
       - ui/**
+      - api/ts/**
 
 defaults:
   run:

@@ -26,7 +26,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@matrixhub/api-ts/*": ["../api/ts/*"]
     }
   },
   "include": ["src"]
