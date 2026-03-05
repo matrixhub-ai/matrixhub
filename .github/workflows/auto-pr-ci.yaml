@@ -33,7 +33,7 @@ jobs:
       e2e_enabled: ${{ env.RUN_E2E_ENABLED }}
     steps:
       - name: Check Code Changes
-        uses: dorny/paths-filter@v2.11.1
+        uses: dorny/paths-filter@v3.0.2
         if: ${{ github.event_name == 'pull_request'}}
         id: filter_pr
         with:
