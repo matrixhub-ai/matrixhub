@@ -503,7 +503,7 @@
       "properties": {
         "id": {
           "type": "integer",
-          "format": "int64",
+          "format": "int32",
           "title": "Unique identifier for the registry"
         },
         "name": {
@@ -531,9 +531,8 @@
           "title": "Whether to allow insecure connections (e.g., skip TLS verification)"
         },
         "status": {
-          "type": "integer",
-          "format": "int64",
-          "title": "Status of the registry (e.g., 1=active, 0=disabled, custom meanings allowed)"
+          "$ref": "#/definitions/v1alpha1RegistryStatus",
+          "title": "Status of the registry"
         },
         "createdAt": {
           "type": "string",
@@ -559,6 +558,15 @@
           "title": "Password for basic auth"
         }
       }
+    },
+    "v1alpha1RegistryStatus": {
+      "type": "string",
+      "enum": [
+        "REGISTRY_STATUS_UNSPECIFIED",
+        "REGISTRY_STATUS_HEALTHY",
+        "REGISTRY_STATUS_UNHEALTHY"
+      ],
+      "default": "REGISTRY_STATUS_UNSPECIFIED"
     },
     "v1alpha1RegistryType": {
       "type": "string",

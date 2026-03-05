@@ -121,8 +121,10 @@ func (server *APIServer) initHandlersServicesRepos() {
 
 	// init handlers
 	handlers := []handler.IHandler{
+		handler.NewLoginHandler(),
 		handler.NewProjectHandler(projectService),
 		handler.NewUserHandler(repos.User),
+		handler.NewCurrentUserHandler(repos.User),
 		handler.NewRegistryHandler(),
 		handler.NewDatasetHandler(),
 	}

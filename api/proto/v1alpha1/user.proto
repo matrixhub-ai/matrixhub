@@ -92,6 +92,9 @@ message GetUserResponse {
   string id = 1;
   string username = 2;
   string email = 3;
+  bool is_admin = 4;
+  UserSource source = 5;
+  google.protobuf.Timestamp created_at = 6;
 }
 
 message DeleteUserRequest {

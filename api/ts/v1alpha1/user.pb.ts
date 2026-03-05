@@ -50,6 +50,9 @@ export type GetUserResponse = {
   id?: string
   username?: string
   email?: string
+  isAdmin?: boolean
+  source?: UserSource
+  createdAt?: GoogleProtobufTimestamp.Timestamp
 }
 
 export type DeleteUserRequest = {

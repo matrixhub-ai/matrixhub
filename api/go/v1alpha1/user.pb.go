@@ -412,6 +412,9 @@ type GetUserResponse struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	IsAdmin       bool                   `protobuf:"varint,4,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
+	Source        UserSource             `protobuf:"varint,5,opt,name=source,proto3,enum=matrixhub.v1alpha1.UserSource" json:"source,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -465,6 +468,27 @@ func (x *GetUserResponse) GetEmail() string {
 		return x.Email
 	}
 	return ""
+}
+
+func (x *GetUserResponse) GetIsAdmin() bool {
+	if x != nil {
+		return x.IsAdmin
+	}
+	return false
+}
+
+func (x *GetUserResponse) GetSource() UserSource {
+	if x != nil {
+		return x.Source
+	}
+	return UserSource_USER_SOURCE_UNSPECIFIED
+}
+
+func (x *GetUserResponse) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
 }
 
 type DeleteUserRequest struct {
@@ -751,11 +775,15 @@ const file_v1alpha1_user_proto_rawDesc = "" +
 	"pagination\x18\x02 \x01(\v2\x1e.matrixhub.v1alpha1.PaginationR\n" +
 	"pagination\")\n" +
 	"\x0eGetUserRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x02id\"S\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x02id\"\xe1\x01\n" +
 	"\x0fGetUserResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\",\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x19\n" +
+	"\bis_admin\x18\x04 \x01(\bR\aisAdmin\x126\n" +
+	"\x06source\x18\x05 \x01(\x0e2\x1e.matrixhub.v1alpha1.UserSourceR\x06source\x129\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\",\n" +
 	"\x11DeleteUserRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x02id\"\x14\n" +
 	"\x12DeleteUserResponse\"V\n" +
@@ -818,23 +846,25 @@ var file_v1alpha1_user_proto_depIdxs = []int32{
 	14, // 1: matrixhub.v1alpha1.User.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 2: matrixhub.v1alpha1.ListUsersResponse.users:type_name -> matrixhub.v1alpha1.User
 	15, // 3: matrixhub.v1alpha1.ListUsersResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	4,  // 4: matrixhub.v1alpha1.Users.ListUsers:input_type -> matrixhub.v1alpha1.ListUsersRequest
-	2,  // 5: matrixhub.v1alpha1.Users.CreateUser:input_type -> matrixhub.v1alpha1.CreateUserRequest
-	6,  // 6: matrixhub.v1alpha1.Users.GetUser:input_type -> matrixhub.v1alpha1.GetUserRequest
-	8,  // 7: matrixhub.v1alpha1.Users.DeleteUser:input_type -> matrixhub.v1alpha1.DeleteUserRequest
-	12, // 8: matrixhub.v1alpha1.Users.ResetUserPassword:input_type -> matrixhub.v1alpha1.ResetUserPasswordRequest
-	10, // 9: matrixhub.v1alpha1.Users.SetUserSysAdmin:input_type -> matrixhub.v1alpha1.SetUserSysAdminRequest
-	5,  // 10: matrixhub.v1alpha1.Users.ListUsers:output_type -> matrixhub.v1alpha1.ListUsersResponse
-	3,  // 11: matrixhub.v1alpha1.Users.CreateUser:output_type -> matrixhub.v1alpha1.CreateUserResponse
-	7,  // 12: matrixhub.v1alpha1.Users.GetUser:output_type -> matrixhub.v1alpha1.GetUserResponse
-	9,  // 13: matrixhub.v1alpha1.Users.DeleteUser:output_type -> matrixhub.v1alpha1.DeleteUserResponse
-	13, // 14: matrixhub.v1alpha1.Users.ResetUserPassword:output_type -> matrixhub.v1alpha1.ResetUserPasswordResponse
-	11, // 15: matrixhub.v1alpha1.Users.SetUserSysAdmin:output_type -> matrixhub.v1alpha1.SetUserSysAdminResponse
-	10, // [10:16] is the sub-list for method output_type
-	4,  // [4:10] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	0,  // 4: matrixhub.v1alpha1.GetUserResponse.source:type_name -> matrixhub.v1alpha1.UserSource
+	14, // 5: matrixhub.v1alpha1.GetUserResponse.created_at:type_name -> google.protobuf.Timestamp
+	4,  // 6: matrixhub.v1alpha1.Users.ListUsers:input_type -> matrixhub.v1alpha1.ListUsersRequest
+	2,  // 7: matrixhub.v1alpha1.Users.CreateUser:input_type -> matrixhub.v1alpha1.CreateUserRequest
+	6,  // 8: matrixhub.v1alpha1.Users.GetUser:input_type -> matrixhub.v1alpha1.GetUserRequest
+	8,  // 9: matrixhub.v1alpha1.Users.DeleteUser:input_type -> matrixhub.v1alpha1.DeleteUserRequest
+	12, // 10: matrixhub.v1alpha1.Users.ResetUserPassword:input_type -> matrixhub.v1alpha1.ResetUserPasswordRequest
+	10, // 11: matrixhub.v1alpha1.Users.SetUserSysAdmin:input_type -> matrixhub.v1alpha1.SetUserSysAdminRequest
+	5,  // 12: matrixhub.v1alpha1.Users.ListUsers:output_type -> matrixhub.v1alpha1.ListUsersResponse
+	3,  // 13: matrixhub.v1alpha1.Users.CreateUser:output_type -> matrixhub.v1alpha1.CreateUserResponse
+	7,  // 14: matrixhub.v1alpha1.Users.GetUser:output_type -> matrixhub.v1alpha1.GetUserResponse
+	9,  // 15: matrixhub.v1alpha1.Users.DeleteUser:output_type -> matrixhub.v1alpha1.DeleteUserResponse
+	13, // 16: matrixhub.v1alpha1.Users.ResetUserPassword:output_type -> matrixhub.v1alpha1.ResetUserPasswordResponse
+	11, // 17: matrixhub.v1alpha1.Users.SetUserSysAdmin:output_type -> matrixhub.v1alpha1.SetUserSysAdminResponse
+	12, // [12:18] is the sub-list for method output_type
+	6,  // [6:12] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_user_proto_init() }

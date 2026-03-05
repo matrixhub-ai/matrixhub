@@ -301,6 +301,16 @@
         },
         "email": {
           "type": "string"
+        },
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "source": {
+          "$ref": "#/definitions/v1alpha1UserSource"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
