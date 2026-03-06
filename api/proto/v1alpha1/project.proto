@@ -81,8 +81,8 @@ message ListProjectsRequest {
   string name = 1;
   ProjectType type = 2;
   bool managed_only = 3;
-  uint32 page = 4;
-  uint32 page_size = 5;
+  int32 page = 4;
+  int32 page_size = 5;
 }
 
 message ListProjectsResponse {
