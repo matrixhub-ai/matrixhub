@@ -71,14 +71,14 @@ message ListModelTaskLabelsRequest {
 }
 
 message ListModelTaskLabelsResponse {
-  repeated Label item = 1;
+  repeated Label items = 1;
 }
 
 message ListModelFrameLabelsRequest {
 }
 
 message ListModelFrameLabelsResponse {
-  repeated Label item = 1;
+  repeated Label items = 1;
 }
 
 message ListModelsRequest {
@@ -91,7 +91,7 @@ message ListModelsRequest {
 }
 
 message ListModelsResponse {
-  repeated Model item = 1;
+  repeated Model items = 1;
   Pagination pagination = 3;
 }
 
@@ -122,7 +122,7 @@ message ListModelRevisionsRequest {
 }
 
 message ListModelRevisionsResponse {
-  Revisions revisions = 1;
+  Revisions items = 1;
 }
 
 message Revisions {
@@ -159,8 +159,20 @@ message GetModelTreeRequest {
   string path = 4;
 }
 
+message Files {
+  string name = 1;
+  FileType type = 2;
+  string path = 3;
+  int64 size = 4;
+  bool lfs = 5;
+  string Sha256 = 6;
+  // commit with out diffs
+  // only file type have commit
+  Commit commit = 7;
+}
+
 message GetModelTreeResponse {
-  repeated GetModelBlobResponse items = 1;
+  repeated Files items = 1;
 }
 
 message GetModelBlobRequest {
@@ -171,14 +183,9 @@ message GetModelBlobRequest {
 }
 
 message GetModelBlobResponse {
-  string name = 1;
-  FileType type = 2;
-  int64 size = 3;
-  string path = 4;
-  string id = 5;
-  bool lfs = 6;
-  string content = 7;
-  Commit commit = 8;
+  bool lfs = 1;
+  string content = 2;
+  string url = 3;
 }
 
 message Model {

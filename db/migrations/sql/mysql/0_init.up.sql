@@ -110,14 +110,33 @@ CREATE TABLE IF NOT EXISTS `models_labels`
 
 CREATE TABLE IF NOT EXISTS `datasets`
 (
-    `id`         int         NOT NULL AUTO_INCREMENT,
-    `name`       varchar(64) NOT NULL,
-    `project_id` int         NOT NULL,
-    `created_at` timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`              bigint       NOT NULL AUTO_INCREMENT COMMENT 'Dataset ID',
+    `name`            varchar(255) NOT NULL COMMENT 'Dataset name',
+    `project_id`      int          NOT NULL COMMENT 'Reference to projects.id',
+    `nickname`        varchar(255) NOT NULL DEFAULT '' COMMENT 'Dataset nickname',
+    `default_branch`  varchar(64)  NOT NULL DEFAULT 'main' COMMENT 'Default branch name',
+    `num_rows`        varchar(64)  NOT NULL DEFAULT '' COMMENT 'Number of rows in dataset',
+    `license`         varchar(64)  NOT NULL DEFAULT '' COMMENT 'Dataset license',
+    `size`            bigint       NOT NULL DEFAULT 0 COMMENT 'Dataset size in Bytes',
+    `readme_content`  longtext     NOT NULL COMMENT 'Dataset README content',
+    `downloads`       bigint       NOT NULL DEFAULT 0 COMMENT 'Download count',
+    `created_at`      timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`      timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    KEY `name` (`name`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+    UNIQUE KEY `uniq_project_name` (`project_id`, `name`),
+    KEY `idx_updated_at` (`updated_at`),
+    CONSTRAINT `fk_datasets_project_id` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'Datasets storage';
+
+CREATE TABLE IF NOT EXISTS `datasets_labels`
+(
+    `dataset_id` bigint    NOT NULL COMMENT 'Reference to datasets.id',
+    `label_id`   int       NOT NULL COMMENT 'Reference to labels.id',
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`dataset_id`, `label_id`),
+    CONSTRAINT `fk_dataset_labels_dataset_id` FOREIGN KEY (`dataset_id`) REFERENCES `datasets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_dataset_labels_label_id` FOREIGN KEY (`label_id`) REFERENCES `labels` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'Dataset to labels mapping';
 
 CREATE TABLE IF NOT EXISTS `access_tokens`
 (

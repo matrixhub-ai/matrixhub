@@ -159,7 +159,7 @@ func (m *ListModelTaskLabelsResponse) validate(all bool) error {
 
 	var errors []error
 
-	for idx, item := range m.GetItem() {
+	for idx, item := range m.GetItems() {
 		_, _ = idx, item
 
 		if all {
@@ -167,7 +167,7 @@ func (m *ListModelTaskLabelsResponse) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListModelTaskLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -175,7 +175,7 @@ func (m *ListModelTaskLabelsResponse) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListModelTaskLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -184,7 +184,7 @@ func (m *ListModelTaskLabelsResponse) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListModelTaskLabelsResponseValidationError{
-					field:  fmt.Sprintf("Item[%v]", idx),
+					field:  fmt.Sprintf("Items[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -399,7 +399,7 @@ func (m *ListModelFrameLabelsResponse) validate(all bool) error {
 
 	var errors []error
 
-	for idx, item := range m.GetItem() {
+	for idx, item := range m.GetItems() {
 		_, _ = idx, item
 
 		if all {
@@ -407,7 +407,7 @@ func (m *ListModelFrameLabelsResponse) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListModelFrameLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -415,7 +415,7 @@ func (m *ListModelFrameLabelsResponse) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListModelFrameLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -424,7 +424,7 @@ func (m *ListModelFrameLabelsResponse) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListModelFrameLabelsResponseValidationError{
-					field:  fmt.Sprintf("Item[%v]", idx),
+					field:  fmt.Sprintf("Items[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -648,7 +648,7 @@ func (m *ListModelsResponse) validate(all bool) error {
 
 	var errors []error
 
-	for idx, item := range m.GetItem() {
+	for idx, item := range m.GetItems() {
 		_, _ = idx, item
 
 		if all {
@@ -656,7 +656,7 @@ func (m *ListModelsResponse) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListModelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -664,7 +664,7 @@ func (m *ListModelsResponse) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListModelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -673,7 +673,7 @@ func (m *ListModelsResponse) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListModelsResponseValidationError{
-					field:  fmt.Sprintf("Item[%v]", idx),
+					field:  fmt.Sprintf("Items[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1512,11 +1512,11 @@ func (m *ListModelRevisionsResponse) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetRevisions()).(type) {
+		switch v := interface{}(m.GetItems()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, ListModelRevisionsResponseValidationError{
-					field:  "Revisions",
+					field:  "Items",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -1524,16 +1524,16 @@ func (m *ListModelRevisionsResponse) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, ListModelRevisionsResponseValidationError{
-					field:  "Revisions",
+					field:  "Items",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetRevisions()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetItems()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ListModelRevisionsResponseValidationError{
-				field:  "Revisions",
+				field:  "Items",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -2347,6 +2347,145 @@ var _ interface {
 	ErrorName() string
 } = GetModelTreeRequestValidationError{}
 
+// Validate checks the field values on Files with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Files) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Files with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in FilesMultiError, or nil if none found.
+func (m *Files) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Files) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Type
+
+	// no validation rules for Path
+
+	// no validation rules for Size
+
+	// no validation rules for Lfs
+
+	// no validation rules for Sha256
+
+	if all {
+		switch v := interface{}(m.GetCommit()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, FilesValidationError{
+					field:  "Commit",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, FilesValidationError{
+					field:  "Commit",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCommit()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return FilesValidationError{
+				field:  "Commit",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return FilesMultiError(errors)
+	}
+
+	return nil
+}
+
+// FilesMultiError is an error wrapping multiple validation errors returned by
+// Files.ValidateAll() if the designated constraints aren't met.
+type FilesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m FilesMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m FilesMultiError) AllErrors() []error { return m }
+
+// FilesValidationError is the validation error returned by Files.Validate if
+// the designated constraints aren't met.
+type FilesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FilesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FilesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FilesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FilesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FilesValidationError) ErrorName() string { return "FilesValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FilesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFiles.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FilesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FilesValidationError{}
+
 // Validate checks the field values on GetModelTreeResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -2633,48 +2772,11 @@ func (m *GetModelBlobResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Name
-
-	// no validation rules for Type
-
-	// no validation rules for Size
-
-	// no validation rules for Path
-
-	// no validation rules for Id
-
 	// no validation rules for Lfs
 
 	// no validation rules for Content
 
-	if all {
-		switch v := interface{}(m.GetCommit()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetModelBlobResponseValidationError{
-					field:  "Commit",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, GetModelBlobResponseValidationError{
-					field:  "Commit",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetCommit()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return GetModelBlobResponseValidationError{
-				field:  "Commit",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Url
 
 	if len(errors) > 0 {
 		return GetModelBlobResponseMultiError(errors)

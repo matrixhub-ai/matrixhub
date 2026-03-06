@@ -11,20 +11,14 @@ export type ListDatasetTaskLabelsRequest = {
 }
 
 export type ListDatasetTaskLabelsResponse = {
-  item?: MatrixhubV1alpha1Model.Label[]
-}
-
-export type ListDatasetFrameLabelsRequest = {
-}
-
-export type ListDatasetFrameLabelsResponse = {
-  item?: MatrixhubV1alpha1Model.Label[]
+  items?: MatrixhubV1alpha1Model.Label[]
 }
 
 export type ListDatasetsRequest = {
-  label?: string
+  label?: string[]
   search?: string
   sort?: string
+  project?: string
   page?: number
   pageSize?: number
 }
@@ -61,7 +55,7 @@ export type ListDatasetRevisionsRequest = {
 }
 
 export type ListDatasetRevisionsResponse = {
-  revisions?: MatrixhubV1alpha1Model.Revisions
+  items?: MatrixhubV1alpha1Model.Revisions
 }
 
 export type ListDatasetCommitsRequest = {
@@ -92,7 +86,7 @@ export type GetDatasetTreeRequest = {
 }
 
 export type GetDatasetTreeResponse = {
-  items?: GetDatasetBlobResponse[]
+  items?: MatrixhubV1alpha1Model.Files[]
 }
 
 export type GetDatasetBlobRequest = {
@@ -103,14 +97,9 @@ export type GetDatasetBlobRequest = {
 }
 
 export type GetDatasetBlobResponse = {
-  name?: string
-  type?: MatrixhubV1alpha1Model.FileType
-  size?: string
-  path?: string
-  id?: string
   lfs?: boolean
   content?: string
-  commit?: MatrixhubV1alpha1Model.Commit
+  url?: string
 }
 
 export type Dataset = {
@@ -119,7 +108,6 @@ export type Dataset = {
   name?: string
   nickname?: string
   defaultBranch?: string
-  task?: string
   numRows?: string
   license?: string
   labels?: MatrixhubV1alpha1Model.Label[]
