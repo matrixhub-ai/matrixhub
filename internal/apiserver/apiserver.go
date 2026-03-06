@@ -31,7 +31,6 @@ import (
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/handler"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/internal/repo"
@@ -116,13 +115,10 @@ func (server *APIServer) initHandlersServicesRepos() {
 	// init repos
 	repos := repo.NewRepos(server.config)
 
-	// init domain services, add if needed
-	projectService := project.NewProjectService(repos.Project)
-
 	// init handlers
 	handlers := []handler.IHandler{
 		handler.NewLoginHandler(),
-		handler.NewProjectHandler(projectService),
+		handler.NewProjectHandler(repos.Project),
 		handler.NewUserHandler(repos.User),
 		handler.NewCurrentUserHandler(repos.User),
 		handler.NewRegistryHandler(),

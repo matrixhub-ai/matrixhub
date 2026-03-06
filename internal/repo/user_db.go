@@ -21,6 +21,7 @@ import (
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/crypto"
+	"github.com/matrixhub-ai/matrixhub/internal/utils"
 )
 
 type UserRepo struct {
@@ -46,14 +47,20 @@ func (u *UserRepo) GetUser(ctx context.Context, id string) (*user.User, error) {
 }
 
 func (u *UserRepo) ListUsers(ctx context.Context, page, pageSize int, search string) (us []*user.User, total int64, err error) {
-	query := u.db.WithContext(ctx).Limit(pageSize).Offset((page - 1) * pageSize)
+	query := u.db.WithContext(ctx).Model(&user.User{})
 	if search != "" {
 		query = query.Where("name LIKE ?", "%"+search+"%")
 	}
 	if err = query.Count(&total).Error; err != nil {
 		return
 	}
-	err = query.Find(&us).Error
+
+	if utils.IsFullPageData(page, pageSize) {
+		err = query.Find(&us).Error
+	} else {
+		offset := (page - 1) * pageSize
+		err = query.Offset(offset).Limit(pageSize).Find(&us).Error
+	}
 	return
 }
 

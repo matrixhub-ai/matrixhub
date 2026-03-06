@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	mhe2e "github.com/matrixhub-ai/matrixhub/test/e2e"
+	mhe2e "github.com/matrixhub-ai/matrixhub/test/e2e/tools"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

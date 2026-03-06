@@ -229,8 +229,8 @@ type ListProjectsRequest struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Type          ProjectType            `protobuf:"varint,2,opt,name=type,proto3,enum=matrixhub.v1alpha1.ProjectType" json:"type,omitempty"`
 	ManagedOnly   bool                   `protobuf:"varint,3,opt,name=managed_only,json=managedOnly,proto3" json:"managed_only,omitempty"`
-	Page          uint32                 `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      uint32                 `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Page          int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -286,14 +286,14 @@ func (x *ListProjectsRequest) GetManagedOnly() bool {
 	return false
 }
 
-func (x *ListProjectsRequest) GetPage() uint32 {
+func (x *ListProjectsRequest) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *ListProjectsRequest) GetPageSize() uint32 {
+func (x *ListProjectsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
@@ -1292,8 +1292,8 @@ const file_v1alpha1_project_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x123\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeR\x04type\x12!\n" +
 	"\fmanaged_only\x18\x03 \x01(\bR\vmanagedOnly\x12\x12\n" +
-	"\x04page\x18\x04 \x01(\rR\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x05 \x01(\rR\bpageSize\"\x8f\x01\n" +
+	"\x04page\x18\x04 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\"\x8f\x01\n" +
 	"\x14ListProjectsResponse\x127\n" +
 	"\bprojects\x18\x01 \x03(\v2\x1b.matrixhub.v1alpha1.ProjectR\bprojects\x12>\n" +
 	"\n" +
