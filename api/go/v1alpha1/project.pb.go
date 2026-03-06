@@ -229,8 +229,8 @@ type ListProjectsRequest struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Type          ProjectType            `protobuf:"varint,2,opt,name=type,proto3,enum=matrixhub.v1alpha1.ProjectType" json:"type,omitempty"`
 	ManagedOnly   bool                   `protobuf:"varint,3,opt,name=managed_only,json=managedOnly,proto3" json:"managed_only,omitempty"`
-	Page          uint32                 `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      uint32                 `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Page          int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -286,14 +286,14 @@ func (x *ListProjectsRequest) GetManagedOnly() bool {
 	return false
 }
 
-func (x *ListProjectsRequest) GetPage() uint32 {
+func (x *ListProjectsRequest) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *ListProjectsRequest) GetPageSize() uint32 {
+func (x *ListProjectsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
@@ -1280,10 +1280,10 @@ var File_v1alpha1_project_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_project_proto_rawDesc = "" +
 	"\n" +
-	"\x16v1alpha1/project.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\x1a\x13v1alpha1/role.proto\x1a\x14v1alpha1/utils.proto\"\xf6\x01\n" +
+	"\x16v1alpha1/project.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\x1a\x13v1alpha1/role.proto\x1a\x14v1alpha1/utils.proto\"\x80\x02\n" +
 	"\x14CreateProjectRequest\x12G\n" +
-	"\x04name\x18\x01 \x01(\tB3\xfaB0r.\x10\x022*^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$R\x04name\x123\n" +
-	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeR\x04type\x12<\n" +
+	"\x04name\x18\x01 \x01(\tB3\xfaB0r.\x10\x022*^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$R\x04name\x12=\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeB\b\xfaB\x05\x82\x01\x02\x10\x01R\x04type\x12<\n" +
 	"\vregistry_id\x18\x03 \x01(\v2\x1b.google.protobuf.Int32ValueR\n" +
 	"registryId\x12\"\n" +
 	"\forganization\x18\x04 \x01(\tR\forganization\"\x17\n" +
@@ -1292,8 +1292,8 @@ const file_v1alpha1_project_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x123\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeR\x04type\x12!\n" +
 	"\fmanaged_only\x18\x03 \x01(\bR\vmanagedOnly\x12\x12\n" +
-	"\x04page\x18\x04 \x01(\rR\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x05 \x01(\rR\bpageSize\"\x8f\x01\n" +
+	"\x04page\x18\x04 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\"\x8f\x01\n" +
 	"\x14ListProjectsResponse\x127\n" +
 	"\bprojects\x18\x01 \x03(\v2\x1b.matrixhub.v1alpha1.ProjectR\bprojects\x12>\n" +
 	"\n" +
@@ -1326,10 +1326,10 @@ const file_v1alpha1_project_proto_rawDesc = "" +
 	"modelCount\x12#\n" +
 	"\rdataset_count\x18\x05 \x01(\rR\fdatasetCount\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x93\x01\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x8a\x01\n" +
 	"\x19ListProjectMembersRequest\x12\x1b\n" +
-	"\x04name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\x12(\n" +
-	"\vmember_name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\n" +
+	"\x04name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\x12\x1f\n" +
+	"\vmember_name\x18\x02 \x01(\tR\n" +
 	"memberName\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x99\x01\n" +

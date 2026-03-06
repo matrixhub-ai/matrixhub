@@ -69,7 +69,7 @@ message CreateProjectRequest {
     min_len: 2,
     pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$"
   }];
-  ProjectType type = 2;
+  ProjectType type = 2 [(validate.rules).enum.defined_only = true];
   google.protobuf.Int32Value registry_id = 3;
   string organization = 4;
 }
@@ -81,8 +81,8 @@ message ListProjectsRequest {
   string name = 1;
   ProjectType type = 2;
   bool managed_only = 3;
-  uint32 page = 4;
-  uint32 page_size = 5;
+  int32 page = 4;
+  int32 page_size = 5;
 }
 
 message ListProjectsResponse {
@@ -135,7 +135,7 @@ enum ProjectType {
 
 message ListProjectMembersRequest {
   string name = 1[(validate.rules).string.min_len = 1];
-  string member_name = 2[(validate.rules).string.min_len = 1];
+  string member_name = 2;
   int32 page = 3;
   int32 page_size = 4;
 }

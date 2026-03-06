@@ -180,3 +180,8 @@ CREATE TABLE IF NOT EXISTS `sync_jobs`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
+INSERT INTO `roles` (`name`, `permissions`, `scope`) VALUES
+    ('platform_admin', '*', 'platform'),
+    ('project_admin', '*', 'project'),
+    ('project_editor', 'read,write', 'project'),
+    ('project_viewer', 'read', 'project');

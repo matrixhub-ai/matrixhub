@@ -28,3 +28,7 @@ func Command(ctx context.Context, name string, args ...string) *exec.Cmd {
 	cmd.Stderr = os.Stderr
 	return cmd
 }
+
+func IsFullPageData(page, pageSize int) bool {
+	return page == 1 && pageSize == -1
+}

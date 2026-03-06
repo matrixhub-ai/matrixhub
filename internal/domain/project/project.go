@@ -50,11 +50,11 @@ func (p *Project) HasProxy() bool {
 	return p.RegistryID != nil
 }
 
-type MemberType int
+type MemberType string
 
 const (
-	MemberTypeUser MemberType = iota
-	MemberTypeGroup
+	MemberTypeUser  MemberType = "user"
+	MemberTypeGroup MemberType = "group"
 )
 
 type ProjectMember struct {
@@ -62,6 +62,7 @@ type ProjectMember struct {
 	ProjectID  int           `gorm:"column:project_id;index"`
 	MemberID   string        `gorm:"column:member_id"`
 	MemberType MemberType    `gorm:"column:member_type"`
+	MemberName string        `gorm:"column:member_name;<-:false"`
 	RoleID     role.RoleType `gorm:"column:role_id"`
 	CreatedAt  time.Time     `gorm:"column:created_at"`
 	UpdatedAt  time.Time     `gorm:"column:updated_at"`
@@ -80,13 +81,13 @@ type Member struct {
 type IProjectRepo interface {
 	CreateProject(ctx context.Context, project *Project) (*Project, error)
 	GetProjectByName(ctx context.Context, name string) (*Project, error)
-	GetProject(ctx context.Context, param *Project) (*Project, error)
+	GetProjectIDByName(ctx context.Context, name string) (int, error)
 	ListProjects(ctx context.Context, name string, projectType ProjectType, managedOnly bool, page, pageSize int) ([]*Project, int64, error)
 	UpdateProject(ctx context.Context, project *Project) error
-	DeleteProject(ctx context.Context, name int) error
+	DeleteProject(ctx context.Context, id int) error
 
 	ListProjectMembers(ctx context.Context, projectID int, memberName string, page, pageSize int) ([]*ProjectMember, int64, error)
 	AddProjectMemberWithRole(ctx context.Context, projectMember *ProjectMember) error
 	RemoveProjectMembers(ctx context.Context, projectID int, members []*Member) error
-	UpdateProjectMemberRole(ctx context.Context, projectID int, memberID string, role role.RoleType) error
+	UpdateProjectMemberRole(ctx context.Context, projectID int, member Member, role role.RoleType) error
 }

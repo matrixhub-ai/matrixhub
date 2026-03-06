@@ -17,7 +17,7 @@ package role
 type RoleType int
 
 const (
-	PlatformRoleAdmin RoleType = iota
+	PlatformRoleAdmin RoleType = iota + 1
 	ProjectRoleAdmin
 	ProjectRoleEditor
 	ProjectRoleViewer

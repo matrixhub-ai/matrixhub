@@ -79,7 +79,16 @@ func (m *CreateProjectRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Type
+	if _, ok := ProjectType_name[int32(m.GetType())]; !ok {
+		err := CreateProjectRequestValidationError{
+			field:  "Type",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetRegistryId()).(type) {
@@ -1431,16 +1440,7 @@ func (m *ListProjectMembersRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetMemberName()) < 1 {
-		err := ListProjectMembersRequestValidationError{
-			field:  "MemberName",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for MemberName
 
 	// no validation rules for Page
 
