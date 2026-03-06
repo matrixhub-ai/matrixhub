@@ -160,7 +160,7 @@ func (m *ListDatasetTaskLabelsResponse) validate(all bool) error {
 
 	var errors []error
 
-	for idx, item := range m.GetItem() {
+	for idx, item := range m.GetItems() {
 		_, _ = idx, item
 
 		if all {
@@ -168,7 +168,7 @@ func (m *ListDatasetTaskLabelsResponse) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListDatasetTaskLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -176,7 +176,7 @@ func (m *ListDatasetTaskLabelsResponse) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListDatasetTaskLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
+						field:  fmt.Sprintf("Items[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -185,7 +185,7 @@ func (m *ListDatasetTaskLabelsResponse) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListDatasetTaskLabelsResponseValidationError{
-					field:  fmt.Sprintf("Item[%v]", idx),
+					field:  fmt.Sprintf("Items[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -275,246 +275,6 @@ var _ interface {
 	ErrorName() string
 } = ListDatasetTaskLabelsResponseValidationError{}
 
-// Validate checks the field values on ListDatasetFrameLabelsRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ListDatasetFrameLabelsRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ListDatasetFrameLabelsRequest with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// ListDatasetFrameLabelsRequestMultiError, or nil if none found.
-func (m *ListDatasetFrameLabelsRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ListDatasetFrameLabelsRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(errors) > 0 {
-		return ListDatasetFrameLabelsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// ListDatasetFrameLabelsRequestMultiError is an error wrapping multiple
-// validation errors returned by ListDatasetFrameLabelsRequest.ValidateAll()
-// if the designated constraints aren't met.
-type ListDatasetFrameLabelsRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ListDatasetFrameLabelsRequestMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ListDatasetFrameLabelsRequestMultiError) AllErrors() []error { return m }
-
-// ListDatasetFrameLabelsRequestValidationError is the validation error
-// returned by ListDatasetFrameLabelsRequest.Validate if the designated
-// constraints aren't met.
-type ListDatasetFrameLabelsRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ListDatasetFrameLabelsRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ListDatasetFrameLabelsRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ListDatasetFrameLabelsRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ListDatasetFrameLabelsRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ListDatasetFrameLabelsRequestValidationError) ErrorName() string {
-	return "ListDatasetFrameLabelsRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ListDatasetFrameLabelsRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sListDatasetFrameLabelsRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ListDatasetFrameLabelsRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ListDatasetFrameLabelsRequestValidationError{}
-
-// Validate checks the field values on ListDatasetFrameLabelsResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ListDatasetFrameLabelsResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ListDatasetFrameLabelsResponse with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// ListDatasetFrameLabelsResponseMultiError, or nil if none found.
-func (m *ListDatasetFrameLabelsResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ListDatasetFrameLabelsResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	for idx, item := range m.GetItem() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ListDatasetFrameLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, ListDatasetFrameLabelsResponseValidationError{
-						field:  fmt.Sprintf("Item[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ListDatasetFrameLabelsResponseValidationError{
-					field:  fmt.Sprintf("Item[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	if len(errors) > 0 {
-		return ListDatasetFrameLabelsResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// ListDatasetFrameLabelsResponseMultiError is an error wrapping multiple
-// validation errors returned by ListDatasetFrameLabelsResponse.ValidateAll()
-// if the designated constraints aren't met.
-type ListDatasetFrameLabelsResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ListDatasetFrameLabelsResponseMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ListDatasetFrameLabelsResponseMultiError) AllErrors() []error { return m }
-
-// ListDatasetFrameLabelsResponseValidationError is the validation error
-// returned by ListDatasetFrameLabelsResponse.Validate if the designated
-// constraints aren't met.
-type ListDatasetFrameLabelsResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ListDatasetFrameLabelsResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ListDatasetFrameLabelsResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ListDatasetFrameLabelsResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ListDatasetFrameLabelsResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ListDatasetFrameLabelsResponseValidationError) ErrorName() string {
-	return "ListDatasetFrameLabelsResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ListDatasetFrameLabelsResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sListDatasetFrameLabelsResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ListDatasetFrameLabelsResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ListDatasetFrameLabelsResponseValidationError{}
-
 // Validate checks the field values on ListDatasetsRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -537,11 +297,11 @@ func (m *ListDatasetsRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Label
-
 	// no validation rules for Search
 
 	// no validation rules for Sort
+
+	// no validation rules for Project
 
 	// no validation rules for Page
 
@@ -1516,11 +1276,11 @@ func (m *ListDatasetRevisionsResponse) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetRevisions()).(type) {
+		switch v := interface{}(m.GetItems()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, ListDatasetRevisionsResponseValidationError{
-					field:  "Revisions",
+					field:  "Items",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -1528,16 +1288,16 @@ func (m *ListDatasetRevisionsResponse) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, ListDatasetRevisionsResponseValidationError{
-					field:  "Revisions",
+					field:  "Items",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetRevisions()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetItems()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ListDatasetRevisionsResponseValidationError{
-				field:  "Revisions",
+				field:  "Items",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -2471,48 +2231,11 @@ func (m *GetDatasetBlobResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Name
-
-	// no validation rules for Type
-
-	// no validation rules for Size
-
-	// no validation rules for Path
-
-	// no validation rules for Id
-
 	// no validation rules for Lfs
 
 	// no validation rules for Content
 
-	if all {
-		switch v := interface{}(m.GetCommit()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetDatasetBlobResponseValidationError{
-					field:  "Commit",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, GetDatasetBlobResponseValidationError{
-					field:  "Commit",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetCommit()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return GetDatasetBlobResponseValidationError{
-				field:  "Commit",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Url
 
 	if len(errors) > 0 {
 		return GetDatasetBlobResponseMultiError(errors)
@@ -2624,8 +2347,6 @@ func (m *Dataset) validate(all bool) error {
 	// no validation rules for Nickname
 
 	// no validation rules for DefaultBranch
-
-	// no validation rules for Task
 
 	// no validation rules for NumRows
 

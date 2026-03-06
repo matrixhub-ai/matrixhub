@@ -61,7 +61,7 @@ func (*ListDatasetTaskLabelsRequest) Descriptor() ([]byte, []int) {
 
 type ListDatasetTaskLabelsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Item          []*Label               `protobuf:"bytes,1,rep,name=item,proto3" json:"item,omitempty"`
+	Items         []*Label               `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -96,107 +96,28 @@ func (*ListDatasetTaskLabelsResponse) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ListDatasetTaskLabelsResponse) GetItem() []*Label {
+func (x *ListDatasetTaskLabelsResponse) GetItems() []*Label {
 	if x != nil {
-		return x.Item
-	}
-	return nil
-}
-
-type ListDatasetFrameLabelsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListDatasetFrameLabelsRequest) Reset() {
-	*x = ListDatasetFrameLabelsRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListDatasetFrameLabelsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListDatasetFrameLabelsRequest) ProtoMessage() {}
-
-func (x *ListDatasetFrameLabelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListDatasetFrameLabelsRequest.ProtoReflect.Descriptor instead.
-func (*ListDatasetFrameLabelsRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{2}
-}
-
-type ListDatasetFrameLabelsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Item          []*Label               `protobuf:"bytes,1,rep,name=item,proto3" json:"item,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListDatasetFrameLabelsResponse) Reset() {
-	*x = ListDatasetFrameLabelsResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListDatasetFrameLabelsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListDatasetFrameLabelsResponse) ProtoMessage() {}
-
-func (x *ListDatasetFrameLabelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListDatasetFrameLabelsResponse.ProtoReflect.Descriptor instead.
-func (*ListDatasetFrameLabelsResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *ListDatasetFrameLabelsResponse) GetItem() []*Label {
-	if x != nil {
-		return x.Item
+		return x.Items
 	}
 	return nil
 }
 
 type ListDatasetsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Label         string                 `protobuf:"bytes,1,opt,name=label,proto3" json:"label,omitempty"`
+	Label         []string               `protobuf:"bytes,1,rep,name=label,proto3" json:"label,omitempty"`
 	Search        string                 `protobuf:"bytes,2,opt,name=search,proto3" json:"search,omitempty"`
 	Sort          string                 `protobuf:"bytes,3,opt,name=sort,proto3" json:"sort,omitempty"`
-	Page          int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Project       string                 `protobuf:"bytes,4,opt,name=project,proto3" json:"project,omitempty"`
+	Page          int32                  `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListDatasetsRequest) Reset() {
 	*x = ListDatasetsRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[4]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -208,7 +129,7 @@ func (x *ListDatasetsRequest) String() string {
 func (*ListDatasetsRequest) ProtoMessage() {}
 
 func (x *ListDatasetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[4]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -221,14 +142,14 @@ func (x *ListDatasetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasetsRequest.ProtoReflect.Descriptor instead.
 func (*ListDatasetsRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{4}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ListDatasetsRequest) GetLabel() string {
+func (x *ListDatasetsRequest) GetLabel() []string {
 	if x != nil {
 		return x.Label
 	}
-	return ""
+	return nil
 }
 
 func (x *ListDatasetsRequest) GetSearch() string {
@@ -241,6 +162,13 @@ func (x *ListDatasetsRequest) GetSearch() string {
 func (x *ListDatasetsRequest) GetSort() string {
 	if x != nil {
 		return x.Sort
+	}
+	return ""
+}
+
+func (x *ListDatasetsRequest) GetProject() string {
+	if x != nil {
+		return x.Project
 	}
 	return ""
 }
@@ -269,7 +197,7 @@ type ListDatasetsResponse struct {
 
 func (x *ListDatasetsResponse) Reset() {
 	*x = ListDatasetsResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[5]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +209,7 @@ func (x *ListDatasetsResponse) String() string {
 func (*ListDatasetsResponse) ProtoMessage() {}
 
 func (x *ListDatasetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[5]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +222,7 @@ func (x *ListDatasetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasetsResponse.ProtoReflect.Descriptor instead.
 func (*ListDatasetsResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{5}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ListDatasetsResponse) GetItems() []*Dataset {
@@ -321,7 +249,7 @@ type GetDatasetRequest struct {
 
 func (x *GetDatasetRequest) Reset() {
 	*x = GetDatasetRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[6]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -333,7 +261,7 @@ func (x *GetDatasetRequest) String() string {
 func (*GetDatasetRequest) ProtoMessage() {}
 
 func (x *GetDatasetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[6]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -346,7 +274,7 @@ func (x *GetDatasetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetRequest.ProtoReflect.Descriptor instead.
 func (*GetDatasetRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{6}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetDatasetRequest) GetProject() string {
@@ -373,7 +301,7 @@ type CreateDatasetRequest struct {
 
 func (x *CreateDatasetRequest) Reset() {
 	*x = CreateDatasetRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[7]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -385,7 +313,7 @@ func (x *CreateDatasetRequest) String() string {
 func (*CreateDatasetRequest) ProtoMessage() {}
 
 func (x *CreateDatasetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[7]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -398,7 +326,7 @@ func (x *CreateDatasetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDatasetRequest.ProtoReflect.Descriptor instead.
 func (*CreateDatasetRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{7}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateDatasetRequest) GetProject() string {
@@ -423,7 +351,7 @@ type CreateDatasetResponse struct {
 
 func (x *CreateDatasetResponse) Reset() {
 	*x = CreateDatasetResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[8]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -435,7 +363,7 @@ func (x *CreateDatasetResponse) String() string {
 func (*CreateDatasetResponse) ProtoMessage() {}
 
 func (x *CreateDatasetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[8]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +376,7 @@ func (x *CreateDatasetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDatasetResponse.ProtoReflect.Descriptor instead.
 func (*CreateDatasetResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{8}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{6}
 }
 
 type DeleteDatasetRequest struct {
@@ -461,7 +389,7 @@ type DeleteDatasetRequest struct {
 
 func (x *DeleteDatasetRequest) Reset() {
 	*x = DeleteDatasetRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[9]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -473,7 +401,7 @@ func (x *DeleteDatasetRequest) String() string {
 func (*DeleteDatasetRequest) ProtoMessage() {}
 
 func (x *DeleteDatasetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[9]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -486,7 +414,7 @@ func (x *DeleteDatasetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDatasetRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDatasetRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{9}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DeleteDatasetRequest) GetProject() string {
@@ -511,7 +439,7 @@ type DeleteDatasetResponse struct {
 
 func (x *DeleteDatasetResponse) Reset() {
 	*x = DeleteDatasetResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[10]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -523,7 +451,7 @@ func (x *DeleteDatasetResponse) String() string {
 func (*DeleteDatasetResponse) ProtoMessage() {}
 
 func (x *DeleteDatasetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[10]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -536,7 +464,7 @@ func (x *DeleteDatasetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDatasetResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDatasetResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{10}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{8}
 }
 
 type ListDatasetRevisionsRequest struct {
@@ -549,7 +477,7 @@ type ListDatasetRevisionsRequest struct {
 
 func (x *ListDatasetRevisionsRequest) Reset() {
 	*x = ListDatasetRevisionsRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[11]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -561,7 +489,7 @@ func (x *ListDatasetRevisionsRequest) String() string {
 func (*ListDatasetRevisionsRequest) ProtoMessage() {}
 
 func (x *ListDatasetRevisionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[11]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -574,7 +502,7 @@ func (x *ListDatasetRevisionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasetRevisionsRequest.ProtoReflect.Descriptor instead.
 func (*ListDatasetRevisionsRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{11}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListDatasetRevisionsRequest) GetProject() string {
@@ -593,14 +521,14 @@ func (x *ListDatasetRevisionsRequest) GetName() string {
 
 type ListDatasetRevisionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Revisions     *Revisions             `protobuf:"bytes,1,opt,name=revisions,proto3" json:"revisions,omitempty"`
+	Items         *Revisions             `protobuf:"bytes,1,opt,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListDatasetRevisionsResponse) Reset() {
 	*x = ListDatasetRevisionsResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[12]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -612,7 +540,7 @@ func (x *ListDatasetRevisionsResponse) String() string {
 func (*ListDatasetRevisionsResponse) ProtoMessage() {}
 
 func (x *ListDatasetRevisionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[12]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -625,12 +553,12 @@ func (x *ListDatasetRevisionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasetRevisionsResponse.ProtoReflect.Descriptor instead.
 func (*ListDatasetRevisionsResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{12}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *ListDatasetRevisionsResponse) GetRevisions() *Revisions {
+func (x *ListDatasetRevisionsResponse) GetItems() *Revisions {
 	if x != nil {
-		return x.Revisions
+		return x.Items
 	}
 	return nil
 }
@@ -651,7 +579,7 @@ type ListDatasetCommitsRequest struct {
 
 func (x *ListDatasetCommitsRequest) Reset() {
 	*x = ListDatasetCommitsRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[13]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -663,7 +591,7 @@ func (x *ListDatasetCommitsRequest) String() string {
 func (*ListDatasetCommitsRequest) ProtoMessage() {}
 
 func (x *ListDatasetCommitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[13]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -676,7 +604,7 @@ func (x *ListDatasetCommitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasetCommitsRequest.ProtoReflect.Descriptor instead.
 func (*ListDatasetCommitsRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{13}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListDatasetCommitsRequest) GetProject() string {
@@ -731,7 +659,7 @@ type ListDatasetCommitsResponse struct {
 
 func (x *ListDatasetCommitsResponse) Reset() {
 	*x = ListDatasetCommitsResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[14]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -743,7 +671,7 @@ func (x *ListDatasetCommitsResponse) String() string {
 func (*ListDatasetCommitsResponse) ProtoMessage() {}
 
 func (x *ListDatasetCommitsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[14]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -756,7 +684,7 @@ func (x *ListDatasetCommitsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasetCommitsResponse.ProtoReflect.Descriptor instead.
 func (*ListDatasetCommitsResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{14}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListDatasetCommitsResponse) GetItems() []*Commit {
@@ -784,7 +712,7 @@ type GetDatasetCommitRequest struct {
 
 func (x *GetDatasetCommitRequest) Reset() {
 	*x = GetDatasetCommitRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[15]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -796,7 +724,7 @@ func (x *GetDatasetCommitRequest) String() string {
 func (*GetDatasetCommitRequest) ProtoMessage() {}
 
 func (x *GetDatasetCommitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[15]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -809,7 +737,7 @@ func (x *GetDatasetCommitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetCommitRequest.ProtoReflect.Descriptor instead.
 func (*GetDatasetCommitRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{15}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetDatasetCommitRequest) GetProject() string {
@@ -845,7 +773,7 @@ type GetDatasetTreeRequest struct {
 
 func (x *GetDatasetTreeRequest) Reset() {
 	*x = GetDatasetTreeRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[16]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -857,7 +785,7 @@ func (x *GetDatasetTreeRequest) String() string {
 func (*GetDatasetTreeRequest) ProtoMessage() {}
 
 func (x *GetDatasetTreeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[16]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -870,7 +798,7 @@ func (x *GetDatasetTreeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetTreeRequest.ProtoReflect.Descriptor instead.
 func (*GetDatasetTreeRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{16}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetDatasetTreeRequest) GetProject() string {
@@ -902,15 +830,15 @@ func (x *GetDatasetTreeRequest) GetPath() string {
 }
 
 type GetDatasetTreeResponse struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	Items         []*GetDatasetBlobResponse `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*Files               `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetDatasetTreeResponse) Reset() {
 	*x = GetDatasetTreeResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[17]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -922,7 +850,7 @@ func (x *GetDatasetTreeResponse) String() string {
 func (*GetDatasetTreeResponse) ProtoMessage() {}
 
 func (x *GetDatasetTreeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[17]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -935,10 +863,10 @@ func (x *GetDatasetTreeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetTreeResponse.ProtoReflect.Descriptor instead.
 func (*GetDatasetTreeResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{17}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *GetDatasetTreeResponse) GetItems() []*GetDatasetBlobResponse {
+func (x *GetDatasetTreeResponse) GetItems() []*Files {
 	if x != nil {
 		return x.Items
 	}
@@ -957,7 +885,7 @@ type GetDatasetBlobRequest struct {
 
 func (x *GetDatasetBlobRequest) Reset() {
 	*x = GetDatasetBlobRequest{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[18]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -969,7 +897,7 @@ func (x *GetDatasetBlobRequest) String() string {
 func (*GetDatasetBlobRequest) ProtoMessage() {}
 
 func (x *GetDatasetBlobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[18]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -982,7 +910,7 @@ func (x *GetDatasetBlobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetBlobRequest.ProtoReflect.Descriptor instead.
 func (*GetDatasetBlobRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{18}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetDatasetBlobRequest) GetProject() string {
@@ -1015,21 +943,16 @@ func (x *GetDatasetBlobRequest) GetPath() string {
 
 type GetDatasetBlobResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type          FileType               `protobuf:"varint,2,opt,name=type,proto3,enum=matrixhub.v1alpha1.FileType" json:"type,omitempty"`
-	Size          int64                  `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
-	Path          string                 `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
-	Id            string                 `protobuf:"bytes,5,opt,name=id,proto3" json:"id,omitempty"`
-	Lfs           bool                   `protobuf:"varint,6,opt,name=lfs,proto3" json:"lfs,omitempty"`
-	Content       string                 `protobuf:"bytes,7,opt,name=content,proto3" json:"content,omitempty"`
-	Commit        *Commit                `protobuf:"bytes,8,opt,name=commit,proto3" json:"commit,omitempty"`
+	Lfs           bool                   `protobuf:"varint,1,opt,name=lfs,proto3" json:"lfs,omitempty"`
+	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Url           string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetDatasetBlobResponse) Reset() {
 	*x = GetDatasetBlobResponse{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[19]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1041,7 +964,7 @@ func (x *GetDatasetBlobResponse) String() string {
 func (*GetDatasetBlobResponse) ProtoMessage() {}
 
 func (x *GetDatasetBlobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[19]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1054,42 +977,7 @@ func (x *GetDatasetBlobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetBlobResponse.ProtoReflect.Descriptor instead.
 func (*GetDatasetBlobResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{19}
-}
-
-func (x *GetDatasetBlobResponse) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *GetDatasetBlobResponse) GetType() FileType {
-	if x != nil {
-		return x.Type
-	}
-	return FileType_DIR
-}
-
-func (x *GetDatasetBlobResponse) GetSize() int64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
-}
-
-func (x *GetDatasetBlobResponse) GetPath() string {
-	if x != nil {
-		return x.Path
-	}
-	return ""
-}
-
-func (x *GetDatasetBlobResponse) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetDatasetBlobResponse) GetLfs() bool {
@@ -1106,11 +994,11 @@ func (x *GetDatasetBlobResponse) GetContent() string {
 	return ""
 }
 
-func (x *GetDatasetBlobResponse) GetCommit() *Commit {
+func (x *GetDatasetBlobResponse) GetUrl() string {
 	if x != nil {
-		return x.Commit
+		return x.Url
 	}
-	return nil
+	return ""
 }
 
 type Dataset struct {
@@ -1120,23 +1008,22 @@ type Dataset struct {
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	DefaultBranch string                 `protobuf:"bytes,5,opt,name=default_branch,json=defaultBranch,proto3" json:"default_branch,omitempty"`
-	Task          string                 `protobuf:"bytes,6,opt,name=task,proto3" json:"task,omitempty"`
-	NumRows       string                 `protobuf:"bytes,7,opt,name=num_rows,json=numRows,proto3" json:"num_rows,omitempty"`
-	License       string                 `protobuf:"bytes,8,opt,name=license,proto3" json:"license,omitempty"`
-	Labels        []*Label               `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty"`
-	Size          string                 `protobuf:"bytes,10,opt,name=size,proto3" json:"size,omitempty"`
-	CloneUrls     *CloneUrls             `protobuf:"bytes,11,opt,name=clone_urls,json=cloneUrls,proto3" json:"clone_urls,omitempty"`
-	ReadmeContent string                 `protobuf:"bytes,12,opt,name=readme_content,json=readmeContent,proto3" json:"readme_content,omitempty"`
-	Downloads     int64                  `protobuf:"varint,13,opt,name=downloads,proto3" json:"downloads,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	NumRows       string                 `protobuf:"bytes,6,opt,name=num_rows,json=numRows,proto3" json:"num_rows,omitempty"`
+	License       string                 `protobuf:"bytes,7,opt,name=license,proto3" json:"license,omitempty"`
+	Labels        []*Label               `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty"`
+	Size          string                 `protobuf:"bytes,9,opt,name=size,proto3" json:"size,omitempty"`
+	CloneUrls     *CloneUrls             `protobuf:"bytes,10,opt,name=clone_urls,json=cloneUrls,proto3" json:"clone_urls,omitempty"`
+	ReadmeContent string                 `protobuf:"bytes,11,opt,name=readme_content,json=readmeContent,proto3" json:"readme_content,omitempty"`
+	Downloads     int64                  `protobuf:"varint,12,opt,name=downloads,proto3" json:"downloads,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Dataset) Reset() {
 	*x = Dataset{}
-	mi := &file_v1alpha1_dataset_proto_msgTypes[20]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1148,7 +1035,7 @@ func (x *Dataset) String() string {
 func (*Dataset) ProtoMessage() {}
 
 func (x *Dataset) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_dataset_proto_msgTypes[20]
+	mi := &file_v1alpha1_dataset_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1161,7 +1048,7 @@ func (x *Dataset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Dataset.ProtoReflect.Descriptor instead.
 func (*Dataset) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{20}
+	return file_v1alpha1_dataset_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Dataset) GetId() int32 {
@@ -1195,13 +1082,6 @@ func (x *Dataset) GetNickname() string {
 func (x *Dataset) GetDefaultBranch() string {
 	if x != nil {
 		return x.DefaultBranch
-	}
-	return ""
-}
-
-func (x *Dataset) GetTask() string {
-	if x != nil {
-		return x.Task
 	}
 	return ""
 }
@@ -1274,18 +1154,16 @@ var File_v1alpha1_dataset_proto protoreflect.FileDescriptor
 const file_v1alpha1_dataset_proto_rawDesc = "" +
 	"\n" +
 	"\x16v1alpha1/dataset.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\x1a\x14v1alpha1/utils.proto\x1a\x14v1alpha1/model.proto\"\x1e\n" +
-	"\x1cListDatasetTaskLabelsRequest\"N\n" +
-	"\x1dListDatasetTaskLabelsResponse\x12-\n" +
-	"\x04item\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x04item\"\x1f\n" +
-	"\x1dListDatasetFrameLabelsRequest\"O\n" +
-	"\x1eListDatasetFrameLabelsResponse\x12-\n" +
-	"\x04item\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x04item\"\x88\x01\n" +
+	"\x1cListDatasetTaskLabelsRequest\"P\n" +
+	"\x1dListDatasetTaskLabelsResponse\x12/\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x05items\"\xa2\x01\n" +
 	"\x13ListDatasetsRequest\x12\x14\n" +
-	"\x05label\x18\x01 \x01(\tR\x05label\x12\x16\n" +
+	"\x05label\x18\x01 \x03(\tR\x05label\x12\x16\n" +
 	"\x06search\x18\x02 \x01(\tR\x06search\x12\x12\n" +
-	"\x04sort\x18\x03 \x01(\tR\x04sort\x12\x12\n" +
-	"\x04page\x18\x04 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\"\x89\x01\n" +
+	"\x04sort\x18\x03 \x01(\tR\x04sort\x12\x18\n" +
+	"\aproject\x18\x04 \x01(\tR\aproject\x12\x12\n" +
+	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\"\x89\x01\n" +
 	"\x14ListDatasetsResponse\x121\n" +
 	"\x05items\x18\x01 \x03(\v2\x1b.matrixhub.v1alpha1.DatasetR\x05items\x12>\n" +
 	"\n" +
@@ -1304,9 +1182,9 @@ const file_v1alpha1_dataset_proto_rawDesc = "" +
 	"\x15DeleteDatasetResponse\"]\n" +
 	"\x1bListDatasetRevisionsRequest\x12!\n" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12\x1b\n" +
-	"\x04name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\"[\n" +
-	"\x1cListDatasetRevisionsResponse\x12;\n" +
-	"\trevisions\x18\x01 \x01(\v2\x1d.matrixhub.v1alpha1.RevisionsR\trevisions\"\xbc\x01\n" +
+	"\x04name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\"S\n" +
+	"\x1cListDatasetRevisionsResponse\x123\n" +
+	"\x05items\x18\x01 \x01(\v2\x1d.matrixhub.v1alpha1.RevisionsR\x05items\"\xbc\x01\n" +
 	"\x19ListDatasetCommitsRequest\x12!\n" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12\x1b\n" +
 	"\x04name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\x12\x1a\n" +
@@ -1327,43 +1205,37 @@ const file_v1alpha1_dataset_proto_rawDesc = "" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12\x1b\n" +
 	"\x04name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\x12\x1a\n" +
 	"\brevision\x18\x03 \x01(\tR\brevision\x12\x12\n" +
-	"\x04path\x18\x04 \x01(\tR\x04path\"Z\n" +
-	"\x16GetDatasetTreeResponse\x12@\n" +
-	"\x05items\x18\x01 \x03(\v2*.matrixhub.v1alpha1.GetDatasetBlobResponseR\x05items\"\x87\x01\n" +
+	"\x04path\x18\x04 \x01(\tR\x04path\"I\n" +
+	"\x16GetDatasetTreeResponse\x12/\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.FilesR\x05items\"\x87\x01\n" +
 	"\x15GetDatasetBlobRequest\x12!\n" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12\x1b\n" +
 	"\x04name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\x12\x1a\n" +
 	"\brevision\x18\x03 \x01(\tR\brevision\x12\x12\n" +
-	"\x04path\x18\x04 \x01(\tR\x04path\"\xf6\x01\n" +
-	"\x16GetDatasetBlobResponse\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x120\n" +
-	"\x04type\x18\x02 \x01(\x0e2\x1c.matrixhub.v1alpha1.FileTypeR\x04type\x12\x12\n" +
-	"\x04size\x18\x03 \x01(\x03R\x04size\x12\x12\n" +
-	"\x04path\x18\x04 \x01(\tR\x04path\x12\x0e\n" +
-	"\x02id\x18\x05 \x01(\tR\x02id\x12\x10\n" +
-	"\x03lfs\x18\x06 \x01(\bR\x03lfs\x12\x18\n" +
-	"\acontent\x18\a \x01(\tR\acontent\x122\n" +
-	"\x06commit\x18\b \x01(\v2\x1a.matrixhub.v1alpha1.CommitR\x06commit\"\xdb\x03\n" +
+	"\x04path\x18\x04 \x01(\tR\x04path\"V\n" +
+	"\x16GetDatasetBlobResponse\x12\x10\n" +
+	"\x03lfs\x18\x01 \x01(\bR\x03lfs\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\"\xc7\x03\n" +
 	"\aDataset\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x18\n" +
 	"\aproject\x18\x02 \x01(\tR\aproject\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1a\n" +
 	"\bnickname\x18\x04 \x01(\tR\bnickname\x12%\n" +
-	"\x0edefault_branch\x18\x05 \x01(\tR\rdefaultBranch\x12\x12\n" +
-	"\x04task\x18\x06 \x01(\tR\x04task\x12\x19\n" +
-	"\bnum_rows\x18\a \x01(\tR\anumRows\x12\x18\n" +
-	"\alicense\x18\b \x01(\tR\alicense\x121\n" +
-	"\x06labels\x18\t \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x06labels\x12\x12\n" +
-	"\x04size\x18\n" +
-	" \x01(\tR\x04size\x12<\n" +
+	"\x0edefault_branch\x18\x05 \x01(\tR\rdefaultBranch\x12\x19\n" +
+	"\bnum_rows\x18\x06 \x01(\tR\anumRows\x12\x18\n" +
+	"\alicense\x18\a \x01(\tR\alicense\x121\n" +
+	"\x06labels\x18\b \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x06labels\x12\x12\n" +
+	"\x04size\x18\t \x01(\tR\x04size\x12<\n" +
 	"\n" +
-	"clone_urls\x18\v \x01(\v2\x1d.matrixhub.v1alpha1.CloneUrlsR\tcloneUrls\x12%\n" +
-	"\x0ereadme_content\x18\f \x01(\tR\rreadmeContent\x12\x1c\n" +
-	"\tdownloads\x18\r \x01(\x03R\tdownloads\x12\x1d\n" +
+	"clone_urls\x18\n" +
+	" \x01(\v2\x1d.matrixhub.v1alpha1.CloneUrlsR\tcloneUrls\x12%\n" +
+	"\x0ereadme_content\x18\v \x01(\tR\rreadmeContent\x12\x1c\n" +
+	"\tdownloads\x18\f \x01(\x03R\tdownloads\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x0e \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x0f \x01(\tR\tupdatedAt2\xa1\f\n" +
+	"updated_at\x18\x0e \x01(\tR\tupdatedAt2\xa1\f\n" +
 	"\bDatasets\x12\xa8\x01\n" +
 	"\x15ListDatasetTaskLabels\x120.matrixhub.v1alpha1.ListDatasetTaskLabelsRequest\x1a1.matrixhub.v1alpha1.ListDatasetTaskLabelsResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1alpha1/datasets/task-labels\x12\x81\x01\n" +
 	"\fListDatasets\x12'.matrixhub.v1alpha1.ListDatasetsRequest\x1a(.matrixhub.v1alpha1.ListDatasetsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1alpha1/datasets\x12\x81\x01\n" +
@@ -1389,74 +1261,69 @@ func file_v1alpha1_dataset_proto_rawDescGZIP() []byte {
 	return file_v1alpha1_dataset_proto_rawDescData
 }
 
-var file_v1alpha1_dataset_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_v1alpha1_dataset_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_v1alpha1_dataset_proto_goTypes = []any{
-	(*ListDatasetTaskLabelsRequest)(nil),   // 0: matrixhub.v1alpha1.ListDatasetTaskLabelsRequest
-	(*ListDatasetTaskLabelsResponse)(nil),  // 1: matrixhub.v1alpha1.ListDatasetTaskLabelsResponse
-	(*ListDatasetFrameLabelsRequest)(nil),  // 2: matrixhub.v1alpha1.ListDatasetFrameLabelsRequest
-	(*ListDatasetFrameLabelsResponse)(nil), // 3: matrixhub.v1alpha1.ListDatasetFrameLabelsResponse
-	(*ListDatasetsRequest)(nil),            // 4: matrixhub.v1alpha1.ListDatasetsRequest
-	(*ListDatasetsResponse)(nil),           // 5: matrixhub.v1alpha1.ListDatasetsResponse
-	(*GetDatasetRequest)(nil),              // 6: matrixhub.v1alpha1.GetDatasetRequest
-	(*CreateDatasetRequest)(nil),           // 7: matrixhub.v1alpha1.CreateDatasetRequest
-	(*CreateDatasetResponse)(nil),          // 8: matrixhub.v1alpha1.CreateDatasetResponse
-	(*DeleteDatasetRequest)(nil),           // 9: matrixhub.v1alpha1.DeleteDatasetRequest
-	(*DeleteDatasetResponse)(nil),          // 10: matrixhub.v1alpha1.DeleteDatasetResponse
-	(*ListDatasetRevisionsRequest)(nil),    // 11: matrixhub.v1alpha1.ListDatasetRevisionsRequest
-	(*ListDatasetRevisionsResponse)(nil),   // 12: matrixhub.v1alpha1.ListDatasetRevisionsResponse
-	(*ListDatasetCommitsRequest)(nil),      // 13: matrixhub.v1alpha1.ListDatasetCommitsRequest
-	(*ListDatasetCommitsResponse)(nil),     // 14: matrixhub.v1alpha1.ListDatasetCommitsResponse
-	(*GetDatasetCommitRequest)(nil),        // 15: matrixhub.v1alpha1.GetDatasetCommitRequest
-	(*GetDatasetTreeRequest)(nil),          // 16: matrixhub.v1alpha1.GetDatasetTreeRequest
-	(*GetDatasetTreeResponse)(nil),         // 17: matrixhub.v1alpha1.GetDatasetTreeResponse
-	(*GetDatasetBlobRequest)(nil),          // 18: matrixhub.v1alpha1.GetDatasetBlobRequest
-	(*GetDatasetBlobResponse)(nil),         // 19: matrixhub.v1alpha1.GetDatasetBlobResponse
-	(*Dataset)(nil),                        // 20: matrixhub.v1alpha1.Dataset
-	(*Label)(nil),                          // 21: matrixhub.v1alpha1.Label
-	(*Pagination)(nil),                     // 22: matrixhub.v1alpha1.Pagination
-	(*Revisions)(nil),                      // 23: matrixhub.v1alpha1.Revisions
-	(*Commit)(nil),                         // 24: matrixhub.v1alpha1.Commit
-	(FileType)(0),                          // 25: matrixhub.v1alpha1.FileType
-	(*CloneUrls)(nil),                      // 26: matrixhub.v1alpha1.CloneUrls
+	(*ListDatasetTaskLabelsRequest)(nil),  // 0: matrixhub.v1alpha1.ListDatasetTaskLabelsRequest
+	(*ListDatasetTaskLabelsResponse)(nil), // 1: matrixhub.v1alpha1.ListDatasetTaskLabelsResponse
+	(*ListDatasetsRequest)(nil),           // 2: matrixhub.v1alpha1.ListDatasetsRequest
+	(*ListDatasetsResponse)(nil),          // 3: matrixhub.v1alpha1.ListDatasetsResponse
+	(*GetDatasetRequest)(nil),             // 4: matrixhub.v1alpha1.GetDatasetRequest
+	(*CreateDatasetRequest)(nil),          // 5: matrixhub.v1alpha1.CreateDatasetRequest
+	(*CreateDatasetResponse)(nil),         // 6: matrixhub.v1alpha1.CreateDatasetResponse
+	(*DeleteDatasetRequest)(nil),          // 7: matrixhub.v1alpha1.DeleteDatasetRequest
+	(*DeleteDatasetResponse)(nil),         // 8: matrixhub.v1alpha1.DeleteDatasetResponse
+	(*ListDatasetRevisionsRequest)(nil),   // 9: matrixhub.v1alpha1.ListDatasetRevisionsRequest
+	(*ListDatasetRevisionsResponse)(nil),  // 10: matrixhub.v1alpha1.ListDatasetRevisionsResponse
+	(*ListDatasetCommitsRequest)(nil),     // 11: matrixhub.v1alpha1.ListDatasetCommitsRequest
+	(*ListDatasetCommitsResponse)(nil),    // 12: matrixhub.v1alpha1.ListDatasetCommitsResponse
+	(*GetDatasetCommitRequest)(nil),       // 13: matrixhub.v1alpha1.GetDatasetCommitRequest
+	(*GetDatasetTreeRequest)(nil),         // 14: matrixhub.v1alpha1.GetDatasetTreeRequest
+	(*GetDatasetTreeResponse)(nil),        // 15: matrixhub.v1alpha1.GetDatasetTreeResponse
+	(*GetDatasetBlobRequest)(nil),         // 16: matrixhub.v1alpha1.GetDatasetBlobRequest
+	(*GetDatasetBlobResponse)(nil),        // 17: matrixhub.v1alpha1.GetDatasetBlobResponse
+	(*Dataset)(nil),                       // 18: matrixhub.v1alpha1.Dataset
+	(*Label)(nil),                         // 19: matrixhub.v1alpha1.Label
+	(*Pagination)(nil),                    // 20: matrixhub.v1alpha1.Pagination
+	(*Revisions)(nil),                     // 21: matrixhub.v1alpha1.Revisions
+	(*Commit)(nil),                        // 22: matrixhub.v1alpha1.Commit
+	(*Files)(nil),                         // 23: matrixhub.v1alpha1.Files
+	(*CloneUrls)(nil),                     // 24: matrixhub.v1alpha1.CloneUrls
 }
 var file_v1alpha1_dataset_proto_depIdxs = []int32{
-	21, // 0: matrixhub.v1alpha1.ListDatasetTaskLabelsResponse.item:type_name -> matrixhub.v1alpha1.Label
-	21, // 1: matrixhub.v1alpha1.ListDatasetFrameLabelsResponse.item:type_name -> matrixhub.v1alpha1.Label
-	20, // 2: matrixhub.v1alpha1.ListDatasetsResponse.items:type_name -> matrixhub.v1alpha1.Dataset
-	22, // 3: matrixhub.v1alpha1.ListDatasetsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	23, // 4: matrixhub.v1alpha1.ListDatasetRevisionsResponse.revisions:type_name -> matrixhub.v1alpha1.Revisions
-	24, // 5: matrixhub.v1alpha1.ListDatasetCommitsResponse.items:type_name -> matrixhub.v1alpha1.Commit
-	22, // 6: matrixhub.v1alpha1.ListDatasetCommitsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	19, // 7: matrixhub.v1alpha1.GetDatasetTreeResponse.items:type_name -> matrixhub.v1alpha1.GetDatasetBlobResponse
-	25, // 8: matrixhub.v1alpha1.GetDatasetBlobResponse.type:type_name -> matrixhub.v1alpha1.FileType
-	24, // 9: matrixhub.v1alpha1.GetDatasetBlobResponse.commit:type_name -> matrixhub.v1alpha1.Commit
-	21, // 10: matrixhub.v1alpha1.Dataset.labels:type_name -> matrixhub.v1alpha1.Label
-	26, // 11: matrixhub.v1alpha1.Dataset.clone_urls:type_name -> matrixhub.v1alpha1.CloneUrls
-	0,  // 12: matrixhub.v1alpha1.Datasets.ListDatasetTaskLabels:input_type -> matrixhub.v1alpha1.ListDatasetTaskLabelsRequest
-	4,  // 13: matrixhub.v1alpha1.Datasets.ListDatasets:input_type -> matrixhub.v1alpha1.ListDatasetsRequest
-	6,  // 14: matrixhub.v1alpha1.Datasets.GetDataset:input_type -> matrixhub.v1alpha1.GetDatasetRequest
-	7,  // 15: matrixhub.v1alpha1.Datasets.CreateDataset:input_type -> matrixhub.v1alpha1.CreateDatasetRequest
-	9,  // 16: matrixhub.v1alpha1.Datasets.DeleteDataset:input_type -> matrixhub.v1alpha1.DeleteDatasetRequest
-	11, // 17: matrixhub.v1alpha1.Datasets.ListDatasetRevisions:input_type -> matrixhub.v1alpha1.ListDatasetRevisionsRequest
-	13, // 18: matrixhub.v1alpha1.Datasets.ListDatasetCommits:input_type -> matrixhub.v1alpha1.ListDatasetCommitsRequest
-	15, // 19: matrixhub.v1alpha1.Datasets.GetDatasetCommit:input_type -> matrixhub.v1alpha1.GetDatasetCommitRequest
-	16, // 20: matrixhub.v1alpha1.Datasets.GetDatasetTree:input_type -> matrixhub.v1alpha1.GetDatasetTreeRequest
-	18, // 21: matrixhub.v1alpha1.Datasets.GetDatasetBlob:input_type -> matrixhub.v1alpha1.GetDatasetBlobRequest
-	1,  // 22: matrixhub.v1alpha1.Datasets.ListDatasetTaskLabels:output_type -> matrixhub.v1alpha1.ListDatasetTaskLabelsResponse
-	5,  // 23: matrixhub.v1alpha1.Datasets.ListDatasets:output_type -> matrixhub.v1alpha1.ListDatasetsResponse
-	20, // 24: matrixhub.v1alpha1.Datasets.GetDataset:output_type -> matrixhub.v1alpha1.Dataset
-	8,  // 25: matrixhub.v1alpha1.Datasets.CreateDataset:output_type -> matrixhub.v1alpha1.CreateDatasetResponse
-	10, // 26: matrixhub.v1alpha1.Datasets.DeleteDataset:output_type -> matrixhub.v1alpha1.DeleteDatasetResponse
-	12, // 27: matrixhub.v1alpha1.Datasets.ListDatasetRevisions:output_type -> matrixhub.v1alpha1.ListDatasetRevisionsResponse
-	14, // 28: matrixhub.v1alpha1.Datasets.ListDatasetCommits:output_type -> matrixhub.v1alpha1.ListDatasetCommitsResponse
-	24, // 29: matrixhub.v1alpha1.Datasets.GetDatasetCommit:output_type -> matrixhub.v1alpha1.Commit
-	17, // 30: matrixhub.v1alpha1.Datasets.GetDatasetTree:output_type -> matrixhub.v1alpha1.GetDatasetTreeResponse
-	19, // 31: matrixhub.v1alpha1.Datasets.GetDatasetBlob:output_type -> matrixhub.v1alpha1.GetDatasetBlobResponse
-	22, // [22:32] is the sub-list for method output_type
-	12, // [12:22] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	19, // 0: matrixhub.v1alpha1.ListDatasetTaskLabelsResponse.items:type_name -> matrixhub.v1alpha1.Label
+	18, // 1: matrixhub.v1alpha1.ListDatasetsResponse.items:type_name -> matrixhub.v1alpha1.Dataset
+	20, // 2: matrixhub.v1alpha1.ListDatasetsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	21, // 3: matrixhub.v1alpha1.ListDatasetRevisionsResponse.items:type_name -> matrixhub.v1alpha1.Revisions
+	22, // 4: matrixhub.v1alpha1.ListDatasetCommitsResponse.items:type_name -> matrixhub.v1alpha1.Commit
+	20, // 5: matrixhub.v1alpha1.ListDatasetCommitsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	23, // 6: matrixhub.v1alpha1.GetDatasetTreeResponse.items:type_name -> matrixhub.v1alpha1.Files
+	19, // 7: matrixhub.v1alpha1.Dataset.labels:type_name -> matrixhub.v1alpha1.Label
+	24, // 8: matrixhub.v1alpha1.Dataset.clone_urls:type_name -> matrixhub.v1alpha1.CloneUrls
+	0,  // 9: matrixhub.v1alpha1.Datasets.ListDatasetTaskLabels:input_type -> matrixhub.v1alpha1.ListDatasetTaskLabelsRequest
+	2,  // 10: matrixhub.v1alpha1.Datasets.ListDatasets:input_type -> matrixhub.v1alpha1.ListDatasetsRequest
+	4,  // 11: matrixhub.v1alpha1.Datasets.GetDataset:input_type -> matrixhub.v1alpha1.GetDatasetRequest
+	5,  // 12: matrixhub.v1alpha1.Datasets.CreateDataset:input_type -> matrixhub.v1alpha1.CreateDatasetRequest
+	7,  // 13: matrixhub.v1alpha1.Datasets.DeleteDataset:input_type -> matrixhub.v1alpha1.DeleteDatasetRequest
+	9,  // 14: matrixhub.v1alpha1.Datasets.ListDatasetRevisions:input_type -> matrixhub.v1alpha1.ListDatasetRevisionsRequest
+	11, // 15: matrixhub.v1alpha1.Datasets.ListDatasetCommits:input_type -> matrixhub.v1alpha1.ListDatasetCommitsRequest
+	13, // 16: matrixhub.v1alpha1.Datasets.GetDatasetCommit:input_type -> matrixhub.v1alpha1.GetDatasetCommitRequest
+	14, // 17: matrixhub.v1alpha1.Datasets.GetDatasetTree:input_type -> matrixhub.v1alpha1.GetDatasetTreeRequest
+	16, // 18: matrixhub.v1alpha1.Datasets.GetDatasetBlob:input_type -> matrixhub.v1alpha1.GetDatasetBlobRequest
+	1,  // 19: matrixhub.v1alpha1.Datasets.ListDatasetTaskLabels:output_type -> matrixhub.v1alpha1.ListDatasetTaskLabelsResponse
+	3,  // 20: matrixhub.v1alpha1.Datasets.ListDatasets:output_type -> matrixhub.v1alpha1.ListDatasetsResponse
+	18, // 21: matrixhub.v1alpha1.Datasets.GetDataset:output_type -> matrixhub.v1alpha1.Dataset
+	6,  // 22: matrixhub.v1alpha1.Datasets.CreateDataset:output_type -> matrixhub.v1alpha1.CreateDatasetResponse
+	8,  // 23: matrixhub.v1alpha1.Datasets.DeleteDataset:output_type -> matrixhub.v1alpha1.DeleteDatasetResponse
+	10, // 24: matrixhub.v1alpha1.Datasets.ListDatasetRevisions:output_type -> matrixhub.v1alpha1.ListDatasetRevisionsResponse
+	12, // 25: matrixhub.v1alpha1.Datasets.ListDatasetCommits:output_type -> matrixhub.v1alpha1.ListDatasetCommitsResponse
+	22, // 26: matrixhub.v1alpha1.Datasets.GetDatasetCommit:output_type -> matrixhub.v1alpha1.Commit
+	15, // 27: matrixhub.v1alpha1.Datasets.GetDatasetTree:output_type -> matrixhub.v1alpha1.GetDatasetTreeResponse
+	17, // 28: matrixhub.v1alpha1.Datasets.GetDatasetBlob:output_type -> matrixhub.v1alpha1.GetDatasetBlobResponse
+	19, // [19:29] is the sub-list for method output_type
+	9,  // [9:19] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_dataset_proto_init() }
@@ -1472,7 +1339,7 @@ func file_v1alpha1_dataset_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_dataset_proto_rawDesc), len(file_v1alpha1_dataset_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

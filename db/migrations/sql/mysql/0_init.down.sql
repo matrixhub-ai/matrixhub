@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS access_tokens;
 DROP TABLE IF EXISTS datasets;
 DROP TABLE IF EXISTS models;
 DROP TABLE IF EXISTS models_labels;
+DROP TABLE IF EXISTS datasets;
+DROP TABLE IF EXISTS datasets_labels;
 DROP TABLE IF EXISTS labels;
 DROP TABLE IF EXISTS members_roles_projects;
 DROP TABLE IF EXISTS projects;

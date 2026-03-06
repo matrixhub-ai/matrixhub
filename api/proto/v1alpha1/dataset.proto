@@ -67,22 +67,16 @@ message ListDatasetTaskLabelsRequest {
 }
 
 message ListDatasetTaskLabelsResponse {
-  repeated Label item = 1;
-}
-
-message ListDatasetFrameLabelsRequest {
-}
-
-message ListDatasetFrameLabelsResponse {
-  repeated Label item = 1;
+  repeated Label items = 1;
 }
 
 message ListDatasetsRequest {
-  string label = 1;
+  repeated string label = 1;
   string search = 2;
   string sort = 3;
-  int32 page = 4;
-  int32 page_size = 5;
+  string project = 4;
+  int32 page = 5;
+  int32 page_size = 6;
 }
 
 message ListDatasetsResponse {
@@ -100,16 +94,14 @@ message CreateDatasetRequest {
   string name = 2 [(validate.rules).string.min_len = 1];
 }
 
-message CreateDatasetResponse {
-}
+message CreateDatasetResponse {}
 
 message DeleteDatasetRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
   string name = 2 [(validate.rules).string.min_len = 1];
 }
 
-message DeleteDatasetResponse {
-}
+message DeleteDatasetResponse {}
 
 message ListDatasetRevisionsRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
@@ -117,7 +109,7 @@ message ListDatasetRevisionsRequest {
 }
 
 message ListDatasetRevisionsResponse {
-  Revisions revisions = 1;
+  Revisions items = 1;
 }
 
 message ListDatasetCommitsRequest {
@@ -150,7 +142,7 @@ message GetDatasetTreeRequest {
 }
 
 message GetDatasetTreeResponse {
-  repeated GetDatasetBlobResponse items = 1;
+  repeated Files items = 1;
 }
 
 message GetDatasetBlobRequest {
@@ -161,14 +153,9 @@ message GetDatasetBlobRequest {
 }
 
 message GetDatasetBlobResponse {
-  string name = 1;
-  FileType type = 2;
-  int64 size = 3;
-  string path = 4;
-  string id = 5;
-  bool lfs = 6;
-  string content = 7;
-  Commit commit = 8;
+  bool lfs = 1;
+  string content = 2;
+  string url = 3;
 }
 
 message Dataset {
@@ -177,14 +164,13 @@ message Dataset {
   string name = 3;
   string nickname = 4;
   string default_branch = 5;
-  string task = 6;
-  string num_rows = 7;
-  string license = 8;
-  repeated Label labels = 9;
-  string size = 10;
-  CloneUrls clone_urls = 11;
-  string readme_content = 12;
-  int64 downloads = 13;
-  string created_at = 14;
-  string updated_at = 15;
+  string num_rows = 6;
+  string license = 7;
+  repeated Label labels = 8;
+  string size = 9;
+  CloneUrls clone_urls = 10;
+  string readme_content = 11;
+  int64 downloads = 12;
+  string created_at = 13;
+  string updated_at = 14;
 }

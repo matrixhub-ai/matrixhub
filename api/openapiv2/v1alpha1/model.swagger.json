@@ -614,7 +614,7 @@
       ],
       "default": "DIR"
     },
-    "v1alpha1GetModelBlobResponse": {
+    "v1alpha1Files": {
       "type": "object",
       "properties": {
         "name": {
@@ -623,24 +623,36 @@
         "type": {
           "$ref": "#/definitions/v1alpha1FileType"
         },
+        "path": {
+          "type": "string"
+        },
         "size": {
           "type": "string",
           "format": "int64"
         },
-        "path": {
+        "lfs": {
+          "type": "boolean"
+        },
+        "Sha256": {
           "type": "string"
         },
-        "id": {
-          "type": "string"
-        },
+        "commit": {
+          "$ref": "#/definitions/v1alpha1Commit",
+          "title": "commit with out diffs\nonly file type have commit"
+        }
+      }
+    },
+    "v1alpha1GetModelBlobResponse": {
+      "type": "object",
+      "properties": {
         "lfs": {
           "type": "boolean"
         },
         "content": {
           "type": "string"
         },
-        "commit": {
-          "$ref": "#/definitions/v1alpha1Commit"
+        "url": {
+          "type": "string"
         }
       }
     },
@@ -651,7 +663,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v1alpha1GetModelBlobResponse"
+            "$ref": "#/definitions/v1alpha1Files"
           }
         }
       }
@@ -674,7 +686,7 @@
     "v1alpha1ListModelFrameLabelsResponse": {
       "type": "object",
       "properties": {
-        "item": {
+        "items": {
           "type": "array",
           "items": {
             "type": "object",
@@ -686,7 +698,7 @@
     "v1alpha1ListModelRevisionsResponse": {
       "type": "object",
       "properties": {
-        "revisions": {
+        "items": {
           "$ref": "#/definitions/v1alpha1Revisions"
         }
       }
@@ -694,7 +706,7 @@
     "v1alpha1ListModelTaskLabelsResponse": {
       "type": "object",
       "properties": {
-        "item": {
+        "items": {
           "type": "array",
           "items": {
             "type": "object",
@@ -706,7 +718,7 @@
     "v1alpha1ListModelsResponse": {
       "type": "object",
       "properties": {
-        "item": {
+        "items": {
           "type": "array",
           "items": {
             "type": "object",

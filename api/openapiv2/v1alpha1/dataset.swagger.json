@@ -38,7 +38,11 @@
             "name": "label",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           },
           {
             "name": "search",
@@ -48,6 +52,12 @@
           },
           {
             "name": "sort",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "project",
             "in": "query",
             "required": false,
             "type": "string"
@@ -573,9 +583,6 @@
         "defaultBranch": {
           "type": "string"
         },
-        "task": {
-          "type": "string"
-        },
         "numRows": {
           "type": "string"
         },
@@ -638,7 +645,7 @@
       ],
       "default": "DIR"
     },
-    "v1alpha1GetDatasetBlobResponse": {
+    "v1alpha1Files": {
       "type": "object",
       "properties": {
         "name": {
@@ -647,24 +654,36 @@
         "type": {
           "$ref": "#/definitions/v1alpha1FileType"
         },
+        "path": {
+          "type": "string"
+        },
         "size": {
           "type": "string",
           "format": "int64"
         },
-        "path": {
+        "lfs": {
+          "type": "boolean"
+        },
+        "Sha256": {
           "type": "string"
         },
-        "id": {
-          "type": "string"
-        },
+        "commit": {
+          "$ref": "#/definitions/v1alpha1Commit",
+          "title": "commit with out diffs\nonly file type have commit"
+        }
+      }
+    },
+    "v1alpha1GetDatasetBlobResponse": {
+      "type": "object",
+      "properties": {
         "lfs": {
           "type": "boolean"
         },
         "content": {
           "type": "string"
         },
-        "commit": {
-          "$ref": "#/definitions/v1alpha1Commit"
+        "url": {
+          "type": "string"
         }
       }
     },
@@ -675,7 +694,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v1alpha1GetDatasetBlobResponse"
+            "$ref": "#/definitions/v1alpha1Files"
           }
         }
       }
@@ -698,7 +717,7 @@
     "v1alpha1ListDatasetRevisionsResponse": {
       "type": "object",
       "properties": {
-        "revisions": {
+        "items": {
           "$ref": "#/definitions/v1alpha1Revisions"
         }
       }
@@ -706,7 +725,7 @@
     "v1alpha1ListDatasetTaskLabelsResponse": {
       "type": "object",
       "properties": {
-        "item": {
+        "items": {
           "type": "array",
           "items": {
             "type": "object",

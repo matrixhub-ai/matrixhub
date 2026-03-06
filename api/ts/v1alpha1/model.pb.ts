@@ -21,14 +21,14 @@ export type ListModelTaskLabelsRequest = {
 }
 
 export type ListModelTaskLabelsResponse = {
-  item?: Label[]
+  items?: Label[]
 }
 
 export type ListModelFrameLabelsRequest = {
 }
 
 export type ListModelFrameLabelsResponse = {
-  item?: Label[]
+  items?: Label[]
 }
 
 export type ListModelsRequest = {
@@ -41,7 +41,7 @@ export type ListModelsRequest = {
 }
 
 export type ListModelsResponse = {
-  item?: Model[]
+  items?: Model[]
   pagination?: MatrixhubV1alpha1Utils.Pagination
 }
 
@@ -72,7 +72,7 @@ export type ListModelRevisionsRequest = {
 }
 
 export type ListModelRevisionsResponse = {
-  revisions?: Revisions
+  items?: Revisions
 }
 
 export type Revisions = {
@@ -107,8 +107,18 @@ export type GetModelTreeRequest = {
   path?: string
 }
 
+export type Files = {
+  name?: string
+  type?: FileType
+  path?: string
+  size?: string
+  lfs?: boolean
+  sha256?: string
+  commit?: Commit
+}
+
 export type GetModelTreeResponse = {
-  items?: GetModelBlobResponse[]
+  items?: Files[]
 }
 
 export type GetModelBlobRequest = {
@@ -119,14 +129,9 @@ export type GetModelBlobRequest = {
 }
 
 export type GetModelBlobResponse = {
-  name?: string
-  type?: FileType
-  size?: string
-  path?: string
-  id?: string
   lfs?: boolean
   content?: string
-  commit?: Commit
+  url?: string
 }
 
 export type Model = {
