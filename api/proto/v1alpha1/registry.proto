@@ -2,23 +2,19 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
-
-import "v1alpha1/utils.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "v1alpha1/utils.proto";
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 service Registries {
   rpc ListRegistries(ListRegistriesRequest) returns (ListRegistriesResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/registries"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/registries"};
   }
 
   rpc GetRegistry(GetRegistryRequest) returns (GetRegistryResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/registries/{id}"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/registries/{id}"};
   }
 
   rpc CreateRegistry(CreateRegistryRequest) returns (CreateRegistryResponse) {
@@ -36,9 +32,7 @@ service Registries {
   }
 
   rpc DeleteRegistry(DeleteRegistryRequest) returns (DeleteRegistryResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1alpha1/registries/{id}"
-    };
+    option (google.api.http) = {delete: "/api/v1alpha1/registries/{id}"};
   }
 
   rpc PingRegistry(PingRegistryRequest) returns (PingRegistryResponse) {

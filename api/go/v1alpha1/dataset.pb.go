@@ -1273,7 +1273,7 @@ var File_v1alpha1_dataset_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_dataset_proto_rawDesc = "" +
 	"\n" +
-	"\x16v1alpha1/dataset.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\x1a\x14v1alpha1/utils.proto\x1a\x14v1alpha1/model.proto\"\x1e\n" +
+	"\x16v1alpha1/dataset.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x14v1alpha1/model.proto\x1a\x14v1alpha1/utils.proto\x1a\x17validate/validate.proto\"\x1e\n" +
 	"\x1cListDatasetTaskLabelsRequest\"N\n" +
 	"\x1dListDatasetTaskLabelsResponse\x12-\n" +
 	"\x04item\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x04item\"\x1f\n" +
@@ -1464,8 +1464,8 @@ func file_v1alpha1_dataset_proto_init() {
 	if File_v1alpha1_dataset_proto != nil {
 		return
 	}
-	file_v1alpha1_utils_proto_init()
 	file_v1alpha1_model_proto_init()
+	file_v1alpha1_utils_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

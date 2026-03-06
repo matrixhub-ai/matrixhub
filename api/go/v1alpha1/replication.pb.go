@@ -1588,7 +1588,7 @@ var File_v1alpha1_replication_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_replication_proto_rawDesc = "" +
 	"\n" +
-	"\x1av1alpha1/replication.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x14v1alpha1/utils.proto\x1a\x17v1alpha1/registry.proto\"\xa5\x02\n" +
+	"\x1av1alpha1/replication.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17v1alpha1/registry.proto\x1a\x14v1alpha1/utils.proto\"\xa5\x02\n" +
 	"\x0ePullBasePolicy\x12,\n" +
 	"\x12source_registry_id\x18\x01 \x01(\rR\x10sourceRegistryId\x12#\n" +
 	"\rresource_name\x18\x02 \x01(\tR\fresourceName\x12G\n" +
@@ -1817,8 +1817,8 @@ func file_v1alpha1_replication_proto_init() {
 	if File_v1alpha1_replication_proto != nil {
 		return
 	}
-	file_v1alpha1_utils_proto_init()
 	file_v1alpha1_registry_proto_init()
+	file_v1alpha1_utils_proto_init()
 	file_v1alpha1_replication_proto_msgTypes[2].OneofWrappers = []any{
 		(*ReplicationItem_PullBasePolicy)(nil),
 		(*ReplicationItem_PushBasePolicy)(nil),

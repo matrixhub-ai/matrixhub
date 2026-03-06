@@ -2,28 +2,22 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
-
 import "google/api/annotations.proto";
-import "validate/validate.proto";
-import "v1alpha1/utils.proto";
 import "v1alpha1/model.proto";
+import "v1alpha1/utils.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 service Datasets {
   rpc ListDatasetTaskLabels(ListDatasetTaskLabelsRequest) returns (ListDatasetTaskLabelsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets/task-labels"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets/task-labels"};
   }
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets"};
   }
   rpc GetDataset(GetDatasetRequest) returns (Dataset) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets/{project}/{name}"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets/{project}/{name}"};
   }
   rpc CreateDataset(CreateDatasetRequest) returns (CreateDatasetResponse) {
     option (google.api.http) = {
@@ -32,46 +26,32 @@ service Datasets {
     };
   }
   rpc DeleteDataset(DeleteDatasetRequest) returns (DeleteDatasetResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1alpha1/datasets/{project}/{name}"
-    };
+    option (google.api.http) = {delete: "/api/v1alpha1/datasets/{project}/{name}"};
   }
   rpc ListDatasetRevisions(ListDatasetRevisionsRequest) returns (ListDatasetRevisionsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets/{project}/{name}/revisions"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets/{project}/{name}/revisions"};
   }
   rpc ListDatasetCommits(ListDatasetCommitsRequest) returns (ListDatasetCommitsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets/{project}/{name}/commits"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets/{project}/{name}/commits"};
   }
   rpc GetDatasetCommit(GetDatasetCommitRequest) returns (Commit) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets/{project}/{name}/commits/{id}"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets/{project}/{name}/commits/{id}"};
   }
   rpc GetDatasetTree(GetDatasetTreeRequest) returns (GetDatasetTreeResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets/{project}/{name}/tree"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets/{project}/{name}/tree"};
   }
   rpc GetDatasetBlob(GetDatasetBlobRequest) returns (GetDatasetBlobResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/datasets/{project}/{name}/blob"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/datasets/{project}/{name}/blob"};
   }
 }
 
-message ListDatasetTaskLabelsRequest {
-}
+message ListDatasetTaskLabelsRequest {}
 
 message ListDatasetTaskLabelsResponse {
   repeated Label item = 1;
 }
 
-message ListDatasetFrameLabelsRequest {
-}
+message ListDatasetFrameLabelsRequest {}
 
 message ListDatasetFrameLabelsResponse {
   repeated Label item = 1;
@@ -100,16 +80,14 @@ message CreateDatasetRequest {
   string name = 2 [(validate.rules).string.min_len = 1];
 }
 
-message CreateDatasetResponse {
-}
+message CreateDatasetResponse {}
 
 message DeleteDatasetRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
   string name = 2 [(validate.rules).string.min_len = 1];
 }
 
-message DeleteDatasetResponse {
-}
+message DeleteDatasetResponse {}
 
 message ListDatasetRevisionsRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
@@ -172,7 +150,7 @@ message GetDatasetBlobResponse {
 }
 
 message Dataset {
-  int32  id = 1;
+  int32 id = 1;
   string project = 2;
   string name = 3;
   string nickname = 4;

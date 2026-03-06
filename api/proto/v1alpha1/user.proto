@@ -2,18 +2,16 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
-
 import "google/api/annotations.proto";
-import "validate/validate.proto";
-import "v1alpha1/utils.proto";
 import "google/protobuf/timestamp.proto";
+import "v1alpha1/utils.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 service Users {
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/users"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/users"};
   }
 
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
@@ -24,15 +22,11 @@ service Users {
   }
 
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/users/{id}"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/users/{id}"};
   }
 
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1alpha1/users/{id}"
-    };
+    option (google.api.http) = {delete: "/api/v1alpha1/users/{id}"};
   }
 
   rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse) {
@@ -108,8 +102,7 @@ message SetUserSysAdminRequest {
   bool sysadmin_flag = 2;
 }
 
-message SetUserSysAdminResponse {
-}
+message SetUserSysAdminResponse {}
 
 message ResetUserPasswordRequest {
   string id = 1 [(validate.rules).string.min_len = 1];

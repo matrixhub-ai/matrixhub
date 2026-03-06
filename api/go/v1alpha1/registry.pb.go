@@ -1071,7 +1071,7 @@ var File_v1alpha1_registry_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_registry_proto_rawDesc = "" +
 	"\n" +
-	"\x17v1alpha1/registry.proto\x12\x12matrixhub.v1alpha1\x1a\x14v1alpha1/utils.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb9\x03\n" +
+	"\x17v1alpha1/registry.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1alpha1/utils.proto\"\xb9\x03\n" +
 	"\bRegistry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +

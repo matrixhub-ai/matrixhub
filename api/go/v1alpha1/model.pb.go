@@ -1773,7 +1773,7 @@ var File_v1alpha1_model_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x14v1alpha1/model.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\x1a\x14v1alpha1/utils.proto\"\x1c\n" +
+	"\x14v1alpha1/model.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x14v1alpha1/utils.proto\x1a\x17validate/validate.proto\"\x1c\n" +
 	"\x1aListModelTaskLabelsRequest\"L\n" +
 	"\x1bListModelTaskLabelsResponse\x12-\n" +
 	"\x04item\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x04item\"\x1d\n" +

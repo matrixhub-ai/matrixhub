@@ -69,16 +69,20 @@ go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.7
 go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts@v1.1.2
 go install github.com/envoyproxy/protoc-gen-validate@v1.3.0
+go install github.com/bufbuild/buf/cmd/buf@v1.65.0
 
 VERSIONS=(
   "v1alpha1"
 )
+
 
 rm -rf "${GO_DIR}" "${SWAGGER_DIR}" "${TS_DIR}"
 
 mkdir -p "${GO_DIR}" "${SWAGGER_DIR}" "${TS_DIR}"
 
 for version in ${VERSIONS[@]}; do
+  # Format proto files using buf
+  buf format -w "${PROTO_DIR}/${version}"
   protoc "${PROTO_DIR}/${version}"/*.proto \
     --proto_path=".:${PROTOVENDOR_DIR}" \
     --proto_path=".:${PROTO_DIR}" \

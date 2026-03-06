@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
-
 import "google/api/annotations.proto";
-import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
-import "validate/validate.proto";
+import "google/protobuf/wrappers.proto";
 import "v1alpha1/role.proto";
 import "v1alpha1/utils.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 service Projects {
   rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {
@@ -19,14 +19,10 @@ service Projects {
     };
   }
   rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/projects"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/projects"};
   }
   rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/projects/{name}"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/projects/{name}"};
   }
   rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse) {
     option (google.api.http) = {
@@ -35,14 +31,10 @@ service Projects {
     };
   }
   rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1alpha1/projects/{name}"
-    };
+    option (google.api.http) = {delete: "/api/v1alpha1/projects/{name}"};
   }
   rpc ListProjectMembers(ListProjectMembersRequest) returns (ListProjectMembersResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/projects/{name}/members"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/projects/{name}/members"};
   }
   rpc AddProjectMemberWithRole(AddProjectMemberWithRoleRequest) returns (AddProjectMemberWithRoleResponse) {
     option (google.api.http) = {
@@ -66,7 +58,7 @@ service Projects {
 
 message CreateProjectRequest {
   string name = 1 [(validate.rules).string = {
-    min_len: 2,
+    min_len: 2
     pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$"
   }];
   ProjectType type = 2;
@@ -74,8 +66,7 @@ message CreateProjectRequest {
   string organization = 4;
 }
 
-message CreateProjectResponse {
-}
+message CreateProjectResponse {}
 
 message ListProjectsRequest {
   string name = 1;
@@ -115,8 +106,7 @@ message UpdateProjectRequest {
   ProjectType type = 2;
 }
 
-message UpdateProjectResponse {
-}
+message UpdateProjectResponse {}
 
 message Project {
   string name = 1;
@@ -134,8 +124,8 @@ enum ProjectType {
 }
 
 message ListProjectMembersRequest {
-  string name = 1[(validate.rules).string.min_len = 1];
-  string member_name = 2[(validate.rules).string.min_len = 1];
+  string name = 1 [(validate.rules).string.min_len = 1];
+  string member_name = 2 [(validate.rules).string.min_len = 1];
   int32 page = 3;
   int32 page_size = 4;
 }

@@ -2,17 +2,15 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
-
 import "google/api/annotations.proto";
-import "validate/validate.proto";
 import "v1alpha1/role.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 service CurrentUser {
   rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/current-user"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/current-user"};
   }
   rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {
     option (google.api.http) = {
@@ -21,9 +19,7 @@ service CurrentUser {
     };
   }
   rpc ListAccessTokens(ListAccessTokensRequest) returns (ListAccessTokensResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/current-user/access-tokens"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/current-user/access-tokens"};
   }
   rpc CreateAccessToken(CreateAccessTokenRequest) returns (CreateAccessTokenResponse) {
     option (google.api.http) = {
@@ -32,15 +28,11 @@ service CurrentUser {
     };
   }
   rpc DeleteAccessToken(DeleteAccessTokenRequest) returns (DeleteAccessTokenResponse) {
-    option (google.api.http) = {
-      delete: "/apis/v1alpha1/current-user/access-tokens/{id}"
-    };
+    option (google.api.http) = {delete: "/apis/v1alpha1/current-user/access-tokens/{id}"};
   }
 
   rpc GetProjectRoles(GetProjectRolesRequest) returns (GetProjectRolesResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/current-user/projects/role"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/current-user/projects/role"};
   }
 }
 
@@ -51,9 +43,7 @@ message ResetPasswordRequest {
 
 message ResetPasswordResponse {}
 
-
-message ListAccessTokensRequest {
-}
+message ListAccessTokensRequest {}
 
 message ListAccessTokensResponse {
   repeated AccessToken items = 1;
@@ -74,7 +64,10 @@ enum AccessTokenStatus {
 }
 
 message CreateAccessTokenRequest {
-  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 125}];
+  string name = 1 [(validate.rules).string = {
+    min_len: 1
+    max_len: 125
+  }];
   string expired_at = 2;
 }
 
@@ -92,10 +85,9 @@ message GetProjectRolesResponse {
   map<string, ProjectRoleType> project_roles = 1;
 }
 
-message GetCurrentUserRequest{
-}
+message GetCurrentUserRequest {}
 
-message GetCurrentUserResponse{
+message GetCurrentUserResponse {
   string id = 1;
   string username = 2;
   bool is_admin = 3;

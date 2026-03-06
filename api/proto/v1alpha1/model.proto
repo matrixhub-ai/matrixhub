@@ -2,32 +2,24 @@ syntax = "proto3";
 
 package matrixhub.v1alpha1;
 
-option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
-
 import "google/api/annotations.proto";
-import "validate/validate.proto";
 import "v1alpha1/utils.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 service Models {
   rpc ListModelTaskLabels(ListModelTaskLabelsRequest) returns (ListModelTaskLabelsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/task-labels"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/task-labels"};
   }
   rpc ListModelFrameLabels(ListModelFrameLabelsRequest) returns (ListModelFrameLabelsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/library-labels"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/library-labels"};
   }
   rpc ListModels(ListModelsRequest) returns (ListModelsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models"};
   }
   rpc GetModel(GetModelRequest) returns (Model) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/{project}/{name}"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/{project}/{name}"};
   }
   rpc CreateModel(CreateModelRequest) returns (CreateModelResponse) {
     option (google.api.http) = {
@@ -36,53 +28,39 @@ service Models {
     };
   }
   rpc DeleteModel(DeleteModelRequest) returns (DeleteModelResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1alpha1/models/{project}/{name}"
-    };
+    option (google.api.http) = {delete: "/api/v1alpha1/models/{project}/{name}"};
   }
   rpc ListModelRevisions(ListModelRevisionsRequest) returns (ListModelRevisionsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/{project}/{name}/revisions"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/{project}/{name}/revisions"};
   }
   rpc ListModelCommits(ListModelCommitsRequest) returns (ListModelCommitsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/{project}/{name}/commits"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/{project}/{name}/commits"};
   }
   rpc GetModelCommit(GetModelCommitRequest) returns (Commit) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/{project}/{name}/commits/{id}"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/{project}/{name}/commits/{id}"};
   }
   rpc GetModelTree(GetModelTreeRequest) returns (GetModelTreeResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/{project}/{name}/tree"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/{project}/{name}/tree"};
   }
   rpc GetModelBlob(GetModelBlobRequest) returns (GetModelBlobResponse) {
-    option (google.api.http) = {
-      get: "/api/v1alpha1/models/{project}/{name}/blob"
-    };
+    option (google.api.http) = {get: "/api/v1alpha1/models/{project}/{name}/blob"};
   }
 }
 
-message ListModelTaskLabelsRequest {
-}
+message ListModelTaskLabelsRequest {}
 
 message ListModelTaskLabelsResponse {
   repeated Label item = 1;
 }
 
-message ListModelFrameLabelsRequest {
-}
+message ListModelFrameLabelsRequest {}
 
 message ListModelFrameLabelsResponse {
   repeated Label item = 1;
 }
 
 message ListModelsRequest {
-  repeated  string label = 1;
+  repeated string label = 1;
   string search = 2;
   string sort = 3;
   string project = 4;
@@ -105,16 +83,14 @@ message CreateModelRequest {
   string name = 2 [(validate.rules).string.min_len = 1];
 }
 
-message CreateModelResponse {
-}
+message CreateModelResponse {}
 
 message DeleteModelRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
   string name = 2 [(validate.rules).string.min_len = 1];
 }
 
-message DeleteModelResponse {
-}
+message DeleteModelResponse {}
 
 message ListModelRevisionsRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
@@ -182,7 +158,7 @@ message GetModelBlobResponse {
 }
 
 message Model {
-  int32  id = 1;
+  int32 id = 1;
   string name = 2;
   string nickname = 3;
   string default_branch = 4;

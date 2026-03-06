@@ -1280,7 +1280,7 @@ var File_v1alpha1_project_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_project_proto_rawDesc = "" +
 	"\n" +
-	"\x16v1alpha1/project.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\x1a\x13v1alpha1/role.proto\x1a\x14v1alpha1/utils.proto\"\xf6\x01\n" +
+	"\x16v1alpha1/project.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x13v1alpha1/role.proto\x1a\x14v1alpha1/utils.proto\x1a\x17validate/validate.proto\"\xf6\x01\n" +
 	"\x14CreateProjectRequest\x12G\n" +
 	"\x04name\x18\x01 \x01(\tB3\xfaB0r.\x10\x022*^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$R\x04name\x123\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeR\x04type\x12<\n" +

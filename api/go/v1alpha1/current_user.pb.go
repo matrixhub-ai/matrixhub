@@ -664,7 +664,7 @@ var File_v1alpha1_current_user_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_current_user_proto_rawDesc = "" +
 	"\n" +
-	"\x1bv1alpha1/current_user.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\x1a\x13v1alpha1/role.proto\"n\n" +
+	"\x1bv1alpha1/current_user.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x13v1alpha1/role.proto\x1a\x17validate/validate.proto\"n\n" +
 	"\x14ResetPasswordRequest\x12*\n" +
 	"\fold_password\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\voldPassword\x12*\n" +
 	"\fnew_password\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\vnewPassword\"\x17\n" +
