@@ -125,7 +125,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewProjectHandler(projectService),
 		handler.NewUserHandler(repos.User),
 		handler.NewCurrentUserHandler(repos.User),
-		handler.NewRegistryHandler(),
+		handler.NewRegistryHandler(repos.Registry),
 		handler.NewDatasetHandler(),
 	}
 
