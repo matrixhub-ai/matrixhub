@@ -1,43 +1,43 @@
-# 目录结构与职责边界
+# Directory Structure And Responsibility Boundaries
 
-本文件定义 `ui/` 的目标结构与增量迁移方向。
+This document defines the target structure of `ui/` and the direction for incremental migration.
 
-## 当前稳定边界
+## Current Stable Boundaries
 
-- `src/routes`：路由适配层
-- `src/features`：feature 目录与非平凡页面实现
-- `src/i18n`：国际化启动、语言检测、资源加载
-- `src/locales`：语言资源
-- `src/main.tsx`、`src/router.tsx`、`src/mantineTheme.ts`：应用级基础设施
+- `src/routes`: route adapter layer
+- `src/features`: feature folders and non-trivial page implementation
+- `src/i18n`: i18n bootstrap, language detection, and resource loading
+- `src/locales`: translation resources
+- `src/main.tsx`, `src/router.tsx`, `src/mantineTheme.ts`: app-level infrastructure
 
-## 推荐职责
+## Recommended Responsibilities
 
 ### `src/routes`
 
-负责：
+Owns:
 
 - `createFileRoute(...)`
-- 路由层布局
-- `redirect`、`beforeLoad`
-- 路由参数、搜索参数、元信息
-- 极简单的静态页面
+- route-level layout
+- `redirect` and `beforeLoad`
+- route params, search params, and metadata
+- very simple static pages
 
-不负责：
+Does not own:
 
-- 新增复杂页面 UI
-- 业务逻辑编排
-- 大段状态管理
+- new complex page UI
+- business-flow orchestration
+- large blocks of state management
 
 ### `src/features`
 
-负责：
+Owns:
 
-- feature 级页面
-- feature 内部组件
-- feature 内部 hooks、types、utils
-- 路由之外的页面 UI 与业务组织
+- feature-level pages
+- feature-local components
+- feature-local hooks, types, and utils
+- page UI and business composition outside the route layer
 
-推荐结构按需生长，不强制一次性补齐：
+Suggested structure should grow only when needed. Do not force every folder to exist upfront:
 
 ```text
 src/features/{feature}/
@@ -50,22 +50,22 @@ src/features/{feature}/
 
 ### `src/i18n`
 
-负责 i18n 运行时装配，不承载业务文案定义。
+Owns i18n runtime wiring. It should not become the home for business copy.
 
 ### `src/locales`
 
-负责多语言资源，按语言目录组织。
+Owns translation resources, organized by language.
 
-## 渐进迁移规则
+## Gradual Migration Rules
 
-- 现有路由文件里的简单占位 UI 可以暂时保留。
-- 新增非平凡页面时，应优先放入 `src/features`，再由 `src/routes` 挂载。
-- 如果正在修改的路由文件已经承担了大量 UI，优先顺手抽出对应 feature page。
-- 不要为了“显得完整”而预先引入新的顶层架构层。
+- Simple placeholder UI inside existing route files may remain temporarily.
+- For any new non-trivial page, prefer putting the implementation in `src/features` and mounting it from `src/routes`.
+- If a route file you are already touching has accumulated a large amount of UI, prefer extracting a feature page while you are there.
+- Do not introduce new top-level architecture layers just to make the structure look more complete.
 
-## 推荐映射
+## Example Mapping
 
-以 `projects` 列表页为例：
+For a `projects` list page:
 
 ```text
 src/routes/(auth)/(app)/projects/index.tsx
@@ -74,4 +74,4 @@ src/locales/en/projects.json
 src/locales/zh/projects.json
 ```
 
-路由文件负责挂载页面，页面实现落在 feature 内。
+The route file mounts the page. The actual page implementation lives in the feature.

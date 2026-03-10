@@ -1,24 +1,24 @@
-# 评审清单
+# Review Checklist
 
-这份清单用于快速判断一个改动是否符合当前 UI 约定。
+Use this checklist to quickly judge whether a change still follows the current UI conventions.
 
-## 必看项
+## Must Check
 
-- 改动范围是否足够小、足够清晰
-- 如果是新页面，是否先完成页面规划
-- 路由文件是否仍然主要承担路由职责
-- 新增用户可见文案是否进入 locale
-- 是否继续沿用 Mantine 与现有项目模式
+- Is the change small enough in scope and clear enough in intent?
+- If this is a new page, was page planning done first?
+- Does the route file still mainly own route responsibilities?
+- Was new user-facing copy added to locale files?
+- Does the implementation continue the existing Mantine and project patterns?
 
-## 需要补文档的情况
+## When Documentation Should Be Updated
 
-- 默认技术栈有变化
-- 目录边界有变化
-- 团队新增了稳定约定
-- 需要一个可复用的新 example
+- The default stack changes
+- The directory boundaries change
+- The team adds a new stable convention
+- A new reusable example is needed
 
-## 基础检查
+## Basic Validation
 
-- 至少运行与改动相关的 `pnpm lint`
-- 至少运行与改动相关的 `pnpm typecheck`
-- 未验证项需要在说明里写清楚
+- Run at least the relevant `pnpm lint`
+- Run at least the relevant `pnpm typecheck`
+- Any unverified part should be called out clearly in the final note

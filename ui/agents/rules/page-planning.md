@@ -1,57 +1,57 @@
-# 页面规划规则
+# Page Planning Rules
 
-新页面先做 page plan，再写代码。
+For a new page, do the page plan before writing code.
 
-目标不是产出大文档，而是先把信息来源、页面边界、状态和 API 对齐，避免实现过程中反复返工。
+The goal is not to produce a large document. The goal is to align inputs, page boundaries, states, and API needs early enough to avoid rework.
 
-## 开始顺序
+## Recommended Sequence
 
-1. 先看 `ui/.planning/<task-slug>/task.md`，确认任务目标、参考资料和待确认问题
-2. 看需求与路由入口
-3. 看 `modao` 原型稿，确认页面流程和信息结构
-4. 看 `figma`，确认视觉层级、布局和组件形态
-5. 看相邻页面、现有组件和 Mantine 现有模式
-6. 如果页面依赖数据，同时补 API plan
-7. page plan 确认后再开始写 route 和 feature 代码
+1. Read `ui/.planning/<task-slug>/task.md` first to confirm the task goal, references, and open questions
+2. Review the requirement and route entry point
+3. Review the `modao` prototype to understand flow and information structure
+4. Review `figma` to understand visual hierarchy, layout, and component shape
+5. Review adjacent pages, existing components, and current Mantine patterns
+6. If the page depends on data, add the API notes as part of the plan
+7. Start route and feature implementation only after the page plan is aligned
 
-## 输入冲突时怎么判断
+## How To Resolve Conflicting Inputs
 
-- `modao` 主要回答“页面要做什么、流程怎么走”
-- `figma` 主要回答“页面长什么样、层级怎么排”
-- `figma` 不完整时，优先参考现有已实现页面和 Mantine 规范补齐
-- 不要因为局部设计缺失就临时发明一套新的页面模式
+- `modao` primarily answers what the page needs to do and how the flow should work
+- `figma` primarily answers what the page should look like and how the hierarchy should read
+- If `figma` is incomplete, fill the gap by following existing implemented pages and Mantine conventions first
+- Do not invent a brand-new page pattern just because part of the design is missing
 
-## page plan 至少要回答的内容
+## A Page Plan Should At Least Answer
 
-1. 页面对应哪个 route、哪个 feature
-2. route 文件只做适配，还是需要独立 feature page
-3. 页面拆成哪些主要区块或组件
-4. 页面有哪些用户可见文案，需要哪些 locale key
-5. 页面有哪些状态：loading / empty / error / success
-6. 哪些内容来自 `figma`，哪些缺口由现有代码和 Mantine 补齐
-7. 页面依赖哪些 API 数据、读操作和写操作
+1. Which route and which feature the page belongs to
+2. Whether the route file should stay as a thin adapter or whether a separate feature page is needed
+3. What the main sections or components of the page are
+4. Which user-facing copy is needed and which locale keys should be added
+5. Which states the page has: loading, empty, error, and success
+6. Which parts come from `figma`, and which gaps should be filled by existing code and Mantine
+7. Which API reads and writes the page depends on
 
-## 组件拆分原则
+## Component Split Guidelines
 
-- route 文件只保留路由接入、参数、重定向、元信息
-- 完整页面进入 `src/features/{feature}/pages`
-- 明显独立且会复用的区块，再拆到 `components/`
-- 规划阶段不要过度拆成很细的组件树
+- Keep route files focused on route wiring, params, redirects, and metadata
+- Put full page implementations under `src/features/{feature}/pages`
+- Only split into `components/` when a section is meaningfully independent and likely reusable
+- Do not over-plan a deeply nested component tree at the planning stage
 
-## 协作原则
+## Working Principles
 
-- 先从现有代码学模式，再补必要规则
-- 新页面优先先做 page plan，再做实现
-- 拿不准时选更小、更容易回滚的改动
-- 规则变化要落到文档里，不要只留在聊天记录里
+- Learn from existing code patterns first, then add rules only when necessary
+- For a new page, do the page plan first and implementation second
+- When uncertain, choose the smaller change that is easier to roll back
+- If a rule changes, write it down in the docs instead of leaving it in chat history only
 
-## 推荐产物
+## Recommended Artifact
 
-优先维护一份简短、真实可执行的 page plan，可以作为 `task.md` 的一个小节。
+Prefer maintaining one short, real, executable page plan. It can live as a section inside `task.md`.
 
-可以放在：
+Typical locations:
 
-- PR 描述
-- 需求文档中的页面规划小节
-- `ui/.planning/<task-slug>/task.md` 的页面规划小节
-- `ui/agents/examples/page-plan-example.md` 的同类格式
+- the PR description
+- a page-planning section in the requirement doc
+- a page-planning section in `ui/.planning/<task-slug>/task.md`
+- a document following the format of `ui/agents/examples/page-plan-example.md`

@@ -1,5 +1,5 @@
-# API 相关规则
+# API Notes
 
-当前暂不对 API 层做固定目录、封装方式或接入模式约束。
+At the moment, the API layer does not have a fixed directory structure, abstraction pattern, or integration mode.
 
-如果本轮实现需要补接口说明、字段约束或待确认问题，先写在 `ui/.planning/<task-slug>/task.md`，等工作流稳定后再沉淀长期规则。
+If the current task needs API notes, field constraints, or open questions, write them in `ui/.planning/<task-slug>/task.md` first. Promote them into long-term rules only after the workflow becomes stable.
