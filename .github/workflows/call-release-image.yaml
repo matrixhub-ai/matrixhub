@@ -15,6 +15,10 @@ on:
       tagoverride:
         required: false
         type: string
+      add_sha_tag:
+        required: false
+        type: boolean
+        default: false
 
 permissions: write-all
 
@@ -55,6 +59,10 @@ jobs:
               # it is invalid if the ref is branch name "xx/xx/xx"
               echo "imagetag=${image_ref##*/}" >> $GITHUB_ENV
           fi
+          # Generate short SHA for tagging
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_ENV
+          echo "add_sha_tag=${{ inputs.add_sha_tag }}" >> $GITHUB_ENV
           # Convert repository name to lowercase for Docker tag
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           echo "repo_lower=${REPO_LOWER}" >> $GITHUB_ENV
@@ -82,6 +90,7 @@ jobs:
           platforms: ${{ env.BUILD_PLATFORM }}
           tags: |
             ${{ env.ONLINE_REGISTER }}/${{ env.repo_lower }}:${{ env.imagetag }}
+            ${{ env.add_sha_tag == 'true' && format('{0}/{1}:{2}-{3}', env.ONLINE_REGISTER, env.repo_lower, env.imagetag, env.short_sha) || '' }}
           build-args: |
             GOPROXY=https://proxy.golang.org,direct
 

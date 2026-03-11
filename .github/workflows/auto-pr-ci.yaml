@@ -49,6 +49,7 @@ jobs:
               - 'Makefile*'
               - '**/Makefile*'
               - '**/Dockerfile'
+              - 'ui/**'
             all_e2e:
               - 'test/**'
 

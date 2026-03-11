@@ -13,4 +13,5 @@ jobs:
     with:
       ref: 'main'
       tagoverride: 'latest'
+      add_sha_tag: true
     secrets: inherit

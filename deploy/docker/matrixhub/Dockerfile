@@ -7,6 +7,7 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 
 ARG LD_FLAGS
+ARG NODE_IMAGE_VERSION=22
 
 ##########################################
 
@@ -37,7 +38,15 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go build -ldflags="${LD_FLAGS}" -o /matrixhub ./cmd/matrixhub
 
 ##########################################
+FROM ${BASE_IMAGE_PREFIX}/node:${NODE_IMAGE_VERSION} AS ui
+WORKDIR /app/ui
+COPY ui /app/ui/
+COPY api /app/api/
+RUN corepack enable
+RUN pnpm install --frozen-lockfile
+RUN pnpm build
 
+##########################################
 FROM ${BASE_IMAGE_PREFIX}/library/alpine:${ALPINE_VERSION} AS matrixhub
 
 RUN --mount=type=cache,target=/var/cache/apk \
@@ -47,6 +56,8 @@ RUN --mount=type=cache,target=/var/cache/apk \
 COPY --from=builder /matrixhub /usr/local/bin/matrixhub
 
 COPY db/migrations /etc/matrixhub/migrations
+
+COPY --from=ui /app/ui/dist /app
 
 EXPOSE 9527
 
