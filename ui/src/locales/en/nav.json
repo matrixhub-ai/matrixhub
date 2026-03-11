@@ -1,0 +1,10 @@
+{
+  "models": "Models",
+  "datasets": "Datasets",
+  "projectManagement": "Projects",
+  "profile": "Profile",
+  "logout": "Log Out",
+  "createModel": "Create Model",
+  "createDataset": "Create Dataset",
+  "settings": "Platform Settings"
+}
