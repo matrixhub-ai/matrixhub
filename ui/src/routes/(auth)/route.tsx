@@ -1,27 +1,32 @@
 import {
   AppShell,
-  Avatar,
   Box,
   Flex,
-  Group, Menu,
+  Group,
+  Menu,
   NavLink,
-  Text, UnstyledButton,
+  Text,
+  UnstyledButton,
 } from '@mantine/core'
 import {
   createFileRoute,
-  Link, linkOptions,
-  Outlet, useMatchRoute,
+  Link,
+  linkOptions,
+  Outlet,
 } from '@tanstack/react-router'
+import { use } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import ArrowDownIcon from '@/assets/svgs/arrow-down.svg?react'
 import DatasetIcon from '@/assets/svgs/dataset.svg?react'
+import DefaultAvatarIcon from '@/assets/svgs/default-avatar.svg?react'
 import LogoIcon from '@/assets/svgs/logo.svg?react'
 import LogOutIcon from '@/assets/svgs/logout.svg?react'
 import ModelIcon from '@/assets/svgs/model.svg?react'
 import ProjectIcon from '@/assets/svgs/project.svg?react'
 import SettingsIcon from '@/assets/svgs/settings.svg?react'
 import UserIcon from '@/assets/svgs/user.svg?react'
+import { CurrentUserContext } from '@/context/current-user-context.tsx'
 import { Route as DatasetsRoute } from '@/routes/(auth)/(app)/datasets'
 import { Route as CreateDatasetRoute } from '@/routes/(auth)/(app)/datasets/new'
 import { Route as ModelsRoute } from '@/routes/(auth)/(app)/models'
@@ -76,7 +81,6 @@ function AppNavbar() {
       to: ProjectsRoute.to,
     },
   ])
-  const matchRoute = useMatchRoute()
 
   return (
     <Group
@@ -84,35 +88,33 @@ function AppNavbar() {
       wrap="nowrap"
     >
       {navRoutes.map((route) => {
-        const isActive = !!matchRoute({
-          to: route.to,
-          fuzzy: true,
-        })
-
         return (
-          <NavLink
-            key={route.to}
-            label={route.label}
-            component={Link}
-            to={route.to}
-            leftSection={<route.icon width={20} />}
-            active={isActive}
-            styles={{
-              root: {
-                width: 'auto',
-                height: '32px',
-                borderRadius: 'var(--mantine-radius-lg)',
-                fontWeight: '600',
-                color: isActive ? 'var(--nl-color)' : '#868E96',
-              },
-              section: {
-                marginInlineEnd: '8px',
-              },
-              label: {
-                whiteSpace: 'nowrap',
-              },
-            }}
-          />
+          <Link key={route.to} to={route.to}>
+            {({ isActive }) => (
+              <NavLink
+                key={route.to}
+                label={route.label}
+                component={Box}
+                leftSection={<route.icon width={20} height={20} />}
+                active={isActive}
+                styles={{
+                  root: {
+                    width: 'auto',
+                    height: '32px',
+                    borderRadius: 'var(--mantine-radius-lg)',
+                    fontWeight: '600',
+                    color: isActive ? 'var(--nl-color)' : '#868E96',
+                  },
+                  section: {
+                    marginInlineEnd: '8px',
+                  },
+                  label: {
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              />
+            )}
+          </Link>
         )
       })}
     </Group>
@@ -121,6 +123,7 @@ function AppNavbar() {
 
 function AccountMenu() {
   const { t } = useTranslation()
+  const currentUser = use(CurrentUserContext)
   const menuItems = linkOptions([
     {
       label: t('nav.profile'),
@@ -154,13 +157,11 @@ function AccountMenu() {
           <Group
             gap="var(--mantine-spacing-sm)"
             wrap="nowrap"
+            py={10}
           >
-            <Avatar
-              radius="xl"
-              size={24}
-            />
+            <DefaultAvatarIcon width={24} height={24} />
             <Text size="sm">
-              Admin
+              {currentUser?.username ?? ''}
             </Text>
             <ArrowDownIcon width={16} />
           </Group>
@@ -172,7 +173,7 @@ function AccountMenu() {
           menuItems.map(item => (
             <Menu.Item
               key={item.label}
-              leftSection={<item.icon width={16} color="#868E96" />}
+              leftSection={<item.icon width={16} height={16} color="#868E96" />}
               component={Link}
               to={item.to}
             >
