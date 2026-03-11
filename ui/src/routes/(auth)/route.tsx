@@ -22,6 +22,7 @@ import ModelIcon from '@/assets/svgs/model.svg?react'
 import ProjectIcon from '@/assets/svgs/project.svg?react'
 import SettingsIcon from '@/assets/svgs/settings.svg?react'
 import UserIcon from '@/assets/svgs/user.svg?react'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { Route as DatasetsRoute } from '@/routes/(auth)/(app)/datasets'
 import { Route as CreateDatasetRoute } from '@/routes/(auth)/(app)/datasets/new'
 import { Route as ModelsRoute } from '@/routes/(auth)/(app)/models'
@@ -215,7 +216,11 @@ function AppLayout() {
             <AppNavbar />
           </Group>
 
-          <AccountMenu />
+          <Group gap="lg">
+            <LanguageSwitcher />
+
+            <AccountMenu />
+          </Group>
         </Flex>
       </AppShell.Header>
 
