@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/pkg/repository"
 )
 
@@ -74,6 +75,10 @@ func (g *gitRepo) ListRevisions(ctx context.Context, project, name string) (*git
 
 	var tags, branches []*git.Revision
 	tagrefs, err := repo.Tag()
+	if err != nil {
+		return nil, err
+	}
+
 	for _, t := range tagrefs {
 		tags = append(tags, &git.Revision{
 			Name: t.Name,
@@ -263,7 +268,12 @@ func (g *gitRepo) GetBlob(ctx context.Context, project, name, revision, path str
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
+	defer func(reader io.ReadCloser) {
+		err := reader.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}(reader)
 
 	// Read blob content
 	var buf bytes.Buffer
