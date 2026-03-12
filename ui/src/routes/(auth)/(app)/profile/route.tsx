@@ -2,7 +2,7 @@ import {
   Box, Group, Stack, Tabs, Text,
 } from '@mantine/core'
 import {
-  createFileRoute, Link, Outlet, useMatchRoute,
+  createFileRoute, Link, linkOptions, Outlet, useMatchRoute,
 } from '@tanstack/react-router'
 import { use } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -21,7 +21,7 @@ function Profile() {
   const { t } = useTranslation()
   const currentUser = use(CurrentUserContext)
 
-  const profileTabs = [
+  const profileTabs = linkOptions([
     {
       label: t('profile.securitySetting'),
       value: 'security',
@@ -32,17 +32,14 @@ function Profile() {
       value: 'access-token',
       to: AccessTokenRoute.to,
     },
-  ]
+  ])
 
   const matchRoute = useMatchRoute()
   const activeTab = profileTabs.find(tab => matchRoute({ to: tab.to }))?.value || profileTabs[0].value
 
   return (
     <Stack gap="lg">
-      <Group
-        gap="xs"
-        px={28}
-      >
+      <Group gap="xs">
         <UserIcon
           width={32}
           height={32}
@@ -76,24 +73,18 @@ function Profile() {
         value={activeTab}
       >
         <Tabs.List>
-          {profileTabs.map((tab) => {
+          {profileTabs.map(({
+            label, value, ...linkProps
+          }) => {
             return (
               // TODO: tab style should keep same in different page
               <Tabs.Tab
-                key={tab.value}
-                value={tab.value}
-                renderRoot={props => (
-                  <Link
-                    to={tab.to}
-                    {...props}
-                    style={{
-                      ...(props.style ?? {}),
-                      marginRight: '16px',
-                    }}
-                  />
-                )}
+                key={value}
+                value={value}
+                component={Link}
+                {...linkProps}
               >
-                {tab.label}
+                {label}
               </Tabs.Tab>
             )
           })}

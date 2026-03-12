@@ -1,4 +1,3 @@
-import { CurrentUser } from '@matrixhub/api-ts/v1alpha1/current_user.pb.ts'
 import {
   createRootRoute, Outlet, HeadContent,
 } from '@tanstack/react-router'
@@ -9,7 +8,8 @@ import i18n from '@/i18n'
 export const Route = createRootRoute({
   loader: async () => {
     // TODO: Add error handling
-    return await CurrentUser.GetCurrentUser({})
+    // return await CurrentUser.GetCurrentUser({})
+    return { username: 'Admin' }
   },
   component: RootComponent,
   head: () => ({
