@@ -23,7 +23,6 @@ import { Route as authappProfileIndexRouteImport } from './routes/(auth)/(app)/p
 import { Route as authappModelsIndexRouteImport } from './routes/(auth)/(app)/models/index'
 import { Route as authappDatasetsIndexRouteImport } from './routes/(auth)/(app)/datasets/index'
 import { Route as authappProfileSecurityRouteImport } from './routes/(auth)/(app)/profile/security'
-import { Route as authappProfileLanguageRouteImport } from './routes/(auth)/(app)/profile/language'
 import { Route as authappProfileAccessTokenRouteImport } from './routes/(auth)/(app)/profile/access-token'
 import { Route as authappModelsNewRouteImport } from './routes/(auth)/(app)/models/new'
 import { Route as authappDatasetsNewRouteImport } from './routes/(auth)/(app)/datasets/new'
@@ -113,11 +112,6 @@ const authappDatasetsIndexRoute = authappDatasetsIndexRouteImport.update({
 const authappProfileSecurityRoute = authappProfileSecurityRouteImport.update({
   id: '/security',
   path: '/security',
-  getParentRoute: () => authappProfileRouteRoute,
-} as any)
-const authappProfileLanguageRoute = authappProfileLanguageRouteImport.update({
-  id: '/language',
-  path: '/language',
   getParentRoute: () => authappProfileRouteRoute,
 } as any)
 const authappProfileAccessTokenRoute =
@@ -260,7 +254,6 @@ export interface FileRoutesByFullPath {
   '/datasets/new': typeof authappDatasetsNewRoute
   '/models/new': typeof authappModelsNewRoute
   '/profile/access-token': typeof authappProfileAccessTokenRoute
-  '/profile/language': typeof authappProfileLanguageRoute
   '/profile/security': typeof authappProfileSecurityRoute
   '/datasets/': typeof authappDatasetsIndexRoute
   '/models/': typeof authappModelsIndexRoute
@@ -295,7 +288,6 @@ export interface FileRoutesByTo {
   '/datasets/new': typeof authappDatasetsNewRoute
   '/models/new': typeof authappModelsNewRoute
   '/profile/access-token': typeof authappProfileAccessTokenRoute
-  '/profile/language': typeof authappProfileLanguageRoute
   '/profile/security': typeof authappProfileSecurityRoute
   '/datasets': typeof authappDatasetsIndexRoute
   '/models': typeof authappModelsIndexRoute
@@ -334,7 +326,6 @@ export interface FileRoutesById {
   '/(auth)/(app)/datasets/new': typeof authappDatasetsNewRoute
   '/(auth)/(app)/models/new': typeof authappModelsNewRoute
   '/(auth)/(app)/profile/access-token': typeof authappProfileAccessTokenRoute
-  '/(auth)/(app)/profile/language': typeof authappProfileLanguageRoute
   '/(auth)/(app)/profile/security': typeof authappProfileSecurityRoute
   '/(auth)/(app)/datasets/': typeof authappDatasetsIndexRoute
   '/(auth)/(app)/models/': typeof authappModelsIndexRoute
@@ -373,7 +364,6 @@ export interface FileRouteTypes {
     | '/datasets/new'
     | '/models/new'
     | '/profile/access-token'
-    | '/profile/language'
     | '/profile/security'
     | '/datasets/'
     | '/models/'
@@ -408,7 +398,6 @@ export interface FileRouteTypes {
     | '/datasets/new'
     | '/models/new'
     | '/profile/access-token'
-    | '/profile/language'
     | '/profile/security'
     | '/datasets'
     | '/models'
@@ -446,7 +435,6 @@ export interface FileRouteTypes {
     | '/(auth)/(app)/datasets/new'
     | '/(auth)/(app)/models/new'
     | '/(auth)/(app)/profile/access-token'
-    | '/(auth)/(app)/profile/language'
     | '/(auth)/(app)/profile/security'
     | '/(auth)/(app)/datasets/'
     | '/(auth)/(app)/models/'
@@ -575,13 +563,6 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/profile/security'
       preLoaderRoute: typeof authappProfileSecurityRouteImport
-      parentRoute: typeof authappProfileRouteRoute
-    }
-    '/(auth)/(app)/profile/language': {
-      id: '/(auth)/(app)/profile/language'
-      path: '/language'
-      fullPath: '/profile/language'
-      preLoaderRoute: typeof authappProfileLanguageRouteImport
       parentRoute: typeof authappProfileRouteRoute
     }
     '/(auth)/(app)/profile/access-token': {
@@ -757,14 +738,12 @@ const authAdminRouteRouteWithChildren = authAdminRouteRoute._addFileChildren(
 
 interface authappProfileRouteRouteChildren {
   authappProfileAccessTokenRoute: typeof authappProfileAccessTokenRoute
-  authappProfileLanguageRoute: typeof authappProfileLanguageRoute
   authappProfileSecurityRoute: typeof authappProfileSecurityRoute
   authappProfileIndexRoute: typeof authappProfileIndexRoute
 }
 
 const authappProfileRouteRouteChildren: authappProfileRouteRouteChildren = {
   authappProfileAccessTokenRoute: authappProfileAccessTokenRoute,
-  authappProfileLanguageRoute: authappProfileLanguageRoute,
   authappProfileSecurityRoute: authappProfileSecurityRoute,
   authappProfileIndexRoute: authappProfileIndexRoute,
 }

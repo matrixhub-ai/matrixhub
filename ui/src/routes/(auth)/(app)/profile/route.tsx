@@ -11,7 +11,6 @@ import DefaultAvatarIcon from '@/assets/svgs/default-avatar.svg?react'
 import UserIcon from '@/assets/svgs/user.svg?react'
 import { CurrentUserContext } from '@/context/current-user-context.tsx'
 import { Route as AccessTokenRoute } from '@/routes/(auth)/(app)/profile/access-token'
-import { Route as LanguageRoute } from '@/routes/(auth)/(app)/profile/language'
 import { Route as SecurityRoute } from '@/routes/(auth)/(app)/profile/security'
 
 export const Route = createFileRoute('/(auth)/(app)/profile')({
@@ -32,11 +31,6 @@ function Profile() {
       label: t('profile.accessToken'),
       value: 'access-token',
       to: AccessTokenRoute.to,
-    },
-    {
-      label: t('profile.languageSetting'),
-      value: 'language',
-      to: LanguageRoute.to,
     },
   ]
 
