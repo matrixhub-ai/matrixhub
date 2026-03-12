@@ -4,7 +4,7 @@
   "uploadFiles": "Upload Dataset Files",
   "downloadDataset": "Download Dataset",
   "project": "Project",
-  "datasetSize": "Dataset Size",
+  "size": "Dataset Size",
   "updatedAt": "Updated",
   "detail": {
     "desc": "Dataset Introduction",

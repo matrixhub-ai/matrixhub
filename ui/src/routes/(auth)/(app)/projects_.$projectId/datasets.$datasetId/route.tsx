@@ -11,6 +11,7 @@ import {
   Tooltip,
   Box,
 } from '@mantine/core'
+// import { Datasets } from '@matrixhub/api-ts/v1alpha1/dataset.pb.ts'
 import {
   Outlet,
   Link,
@@ -20,18 +21,28 @@ import {
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import {
-  IconCopy,
-  IconUpload,
-  IconDownload,
-  IconFile,
-  IconLicense,
-} from './-icons'
+// import ApacheIcon from '@/assets/svgs/apache.svg?react'
+import CopyIcon from '@/assets/svgs/copy.svg?react'
+import DownloadIcon from '@/assets/svgs/download.svg?react'
+import FileIcon from '@/assets/svgs/file.svg?react'
+import UploadIcon from '@/assets/svgs/upload-cloud.svg?react'
 
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId',
 )({
   component: DatasetLayout,
+  // loader: async ({ params }) => {
+  // const dataset = await Datasets.GetDataset({
+  //   project: params.projectId,
+  //   name: params.datasetId,
+  // })
+
+  // console.log('Loaded dataset:', dataset)
+  loader: async () => {
+    return {
+      dataset: MOCK_META,
+    }
+  },
 })
 
 // TODO: Replace with real API data
@@ -94,7 +105,7 @@ function DataSetHeader({
                   onClick={copy}
                   size={24}
                 >
-                  <IconCopy size={18} />
+                  <CopyIcon />
                 </ActionIcon>
               </Tooltip>
             )}
@@ -103,15 +114,14 @@ function DataSetHeader({
 
         <Group gap="sm">
           <Button
-            variant="outline"
             size="xs"
-            leftSection={<IconUpload />}
+            leftSection={<UploadIcon />}
           >
             {t('dataset.uploadFiles')}
           </Button>
           <Button
             size="xs"
-            leftSection={<IconDownload />}
+            leftSection={<DownloadIcon />}
           >
             {t('dataset.downloadDataset')}
           </Button>
@@ -123,7 +133,7 @@ function DataSetHeader({
         <Badge
           variant="light"
           color="gray"
-          leftSection={<IconFile />}
+          leftSection={<FileIcon />}
           size="lg"
           radius="xl"
           fw={600}
@@ -133,7 +143,7 @@ function DataSetHeader({
         <Badge
           variant="light"
           color="gray"
-          leftSection={<IconDownload />}
+          leftSection={<DownloadIcon />}
           size="lg"
           radius="xl"
           fw={600}
@@ -143,23 +153,23 @@ function DataSetHeader({
         <Badge
           variant="light"
           color="gray"
-          leftSection={<IconDownload />}
+          leftSection={<DownloadIcon fill="var(--mantine-color-grape-6)" color="var(--mantine-color-grape-6)" />}
           size="lg"
           radius="xl"
           fw={600}
         >
           {meta.downloads}
         </Badge>
-        <Badge
+        {/* <Badge
           variant="light"
           color="gray"
-          leftSection={<IconLicense />}
+          leftSection={<ApacheIcon />}
           size="lg"
           radius="xl"
           fw={600}
         >
           {meta.license}
-        </Badge>
+        </Badge> */}
       </Group>
 
       {/* Row 3: Metadata */}
@@ -170,7 +180,7 @@ function DataSetHeader({
           {projectId}
         </Text>
         <Text size="sm" c="dimmed">
-          {t('dataset.datasetSize')}
+          {t('dataset.size')}
           ：
           {meta.size}
         </Text>
@@ -190,6 +200,8 @@ function DatasetLayout() {
   const {
     projectId, datasetId,
   } = Route.useParams()
+
+  // const { dataset } = Route.useLoaderData()
 
   const tabRoutes = linkOptions([
     {
@@ -229,16 +241,6 @@ function DatasetLayout() {
     to: tab.to,
   }))?.id || 'desc'
 
-  const getStyle = (id: string) => {
-    return {
-      color: id === activeTab ? 'var(--mantine-color-gray-7)' : 'var(--mantine-color-gray-6)',
-      fontSize: 'var(--mantine-font-size-sm)',
-      fontWeight: 600,
-      lineHeight: 'var(--mantine-line-height-xs)',
-      padding: '8px 12px',
-    }
-  }
-
   return (
     <>
       <Box>
@@ -257,7 +259,12 @@ function DatasetLayout() {
                 key={label}
                 value={id}
                 component={Link}
-                style={getStyle(id)}
+                fw={600}
+                fz="sm"
+                lh="xs"
+                px="12px"
+                py="8px"
+                c={id === activeTab ? 'var(--mantine-color-gray-7)' : 'var(--mantine-color-gray-6)'}
                 {...linkProps}
               >
                 {label}

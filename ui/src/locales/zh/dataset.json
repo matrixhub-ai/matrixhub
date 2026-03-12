@@ -4,7 +4,7 @@
   "uploadFiles": "上传数据集文件",
   "downloadDataset": "下载数据集",
   "project": "所属项目",
-  "datasetSize": "模型大小",
+  "size": "模型大小",
   "updatedAt": "更新时间",
   "detail": {
     "desc": "数据集介绍",
