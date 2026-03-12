@@ -40,11 +40,14 @@ func (r *Repository) Commits(ref string, limit int) ([]Commit, error) {
 	var commits []Commit
 	err = commitIter.ForEach(func(c *object.Commit) error {
 		commits = append(commits, Commit{
-			SHA:     c.Hash.String(),
-			Message: c.Message,
-			Author:  c.Author.Name,
-			Email:   c.Author.Email,
-			Date:    c.Author.When.Format("2006-01-02T15:04:05Z"),
+			SHA:            c.Hash.String(),
+			Message:        c.Message,
+			Author:         c.Author.Name,
+			Email:          c.Author.Email,
+			Date:           c.Author.When.Format("2006-01-02T15:04:05Z"),
+			CommitterName:  c.Committer.Name,
+			CommitterEmail: c.Committer.Email,
+			CommitterDate:  c.Committer.When.Format("2006-01-02T15:04:05Z"),
 		})
 		if len(commits) >= limit {
 			return io.EOF // Stop after reaching the limit
@@ -59,9 +62,59 @@ func (r *Repository) Commits(ref string, limit int) ([]Commit, error) {
 }
 
 type Commit struct {
-	SHA     string `json:"sha"`
-	Message string `json:"message"`
-	Author  string `json:"author"`
-	Email   string `json:"email"`
-	Date    string `json:"date"`
+	SHA            string `json:"sha"`
+	Message        string `json:"message"`
+	Author         string `json:"author"`
+	Email          string `json:"email"`
+	Date           string `json:"date"`
+	CommitterName  string `json:"committer_name"`
+	CommitterEmail string `json:"committer_email"`
+	CommitterDate  string `json:"committer_date"`
+}
+
+// GetCommit retrieves a specific commit by its SHA hash
+func (r *Repository) GetCommit(sha string) (*Commit, error) {
+	hash := plumbing.NewHash(sha)
+	commit, err := r.repo.CommitObject(hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit object: %w", err)
+	}
+
+	return &Commit{
+		SHA:            commit.Hash.String(),
+		Message:        commit.Message,
+		Author:         commit.Author.Name,
+		Email:          commit.Author.Email,
+		Date:           commit.Author.When.Format("2006-01-02T15:04:05Z"),
+		CommitterName:  commit.Committer.Name,
+		CommitterEmail: commit.Committer.Email,
+		CommitterDate:  commit.Committer.When.Format("2006-01-02T15:04:05Z"),
+	}, nil
+}
+
+// GetCommitDiff retrieves the diff between a commit and its parent as a unified diff string
+func (r *Repository) GetCommitDiff(sha string) (string, error) {
+	hash := plumbing.NewHash(sha)
+	commit, err := r.repo.CommitObject(hash)
+	if err != nil {
+		return "", fmt.Errorf("failed to get commit object: %w", err)
+	}
+
+	if len(commit.ParentHashes) == 0 {
+		// Initial commit, no parent to compare
+		return "", nil
+	}
+
+	parentCommit, err := r.repo.CommitObject(commit.ParentHashes[0])
+	if err != nil {
+		return "", fmt.Errorf("failed to get parent commit: %w", err)
+	}
+
+	// Generate patch between parent and current commit
+	patch, err := parentCommit.Patch(commit)
+	if err != nil {
+		return "", fmt.Errorf("failed to get patch: %w", err)
+	}
+
+	return patch.String(), nil
 }

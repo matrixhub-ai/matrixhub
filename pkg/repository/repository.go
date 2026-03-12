@@ -173,3 +173,32 @@ func (r *Repository) IsMirror() (bool, string, error) {
 	}
 	return isMirror, sourceURL, nil
 }
+
+type Reference struct {
+	Name   string
+	Hash   string
+	Target string
+}
+
+func (r *Repository) Tag() ([]Reference, error) {
+	tagrefs, err := r.repo.Tags()
+	if err != nil {
+		return nil, err
+	}
+
+	var tags []Reference
+	err = tagrefs.ForEach(func(t *plumbing.Reference) error {
+		tags = append(tags, Reference{
+			Name:   t.Name().String(),
+			Hash:   t.Hash().String(),
+			Target: t.Target().String(),
+		})
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}
