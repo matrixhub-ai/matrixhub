@@ -1,0 +1,9 @@
+{
+  "uploadFiles": "上传数据集文件",
+  "downloadDataset": "下载数据集",
+  "detail": {
+    "desc": "数据集介绍",
+    "tree": "数据集文件",
+    "setting": "数据集设置"
+  }
+}

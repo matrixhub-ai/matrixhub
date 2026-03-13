@@ -1,0 +1,9 @@
+{
+  "upload": "Upload Model Files",
+  "download": "Download Model",
+  "detail": {
+    "desc": "Model Introduction",
+    "tree": "Model Files",
+    "setting": "Settings"
+  }
+}
