@@ -1,17 +1,28 @@
 import {
+  AppShell,
   Group,
   NavLink,
   ScrollArea,
   Stack,
+  Text,
+  rem,
 } from '@mantine/core'
 import {
   createFileRoute,
   Link,
+  linkOptions,
   Outlet,
-  useRouter,
-  useRouterState,
+  useMatchRoute,
 } from '@tanstack/react-router'
-import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import AdminRegistriesIcon from '@/assets/svgs/admin-registries-nav.svg?react'
+import AdminReplicationsIcon from '@/assets/svgs/admin-replications-nav.svg?react'
+import AdminUsersIcon from '@/assets/svgs/admin-users-nav.svg?react'
+import SettingsIcon from '@/assets/svgs/settings.svg?react'
+import { Route as AdminRegistriesRoute } from '@/routes/(auth)/admin/registries'
+import { Route as AdminReplicationsRoute } from '@/routes/(auth)/admin/replications'
+import { Route as AdminUsersRoute } from '@/routes/(auth)/admin/users'
 
 export const Route = createFileRoute('/(auth)/admin')({
   component: AdminLayout,
@@ -21,37 +32,61 @@ export const Route = createFileRoute('/(auth)/admin')({
 })
 
 function AdminNavbar() {
-  const router = useRouter()
-  const activeRouteIds = useRouterState({
-    select: state => state.matches.map(match => match.routeId),
-  })
+  const { t } = useTranslation()
+  const navRoutes = linkOptions([
+    {
+      label: t('admin.users'),
+      icon: AdminUsersIcon,
+      to: AdminUsersRoute.to,
+    },
+    {
+      label: t('admin.registries'),
+      icon: AdminRegistriesIcon,
+      to: AdminRegistriesRoute.to,
+    },
+    {
+      label: t('admin.replications'),
+      icon: AdminReplicationsIcon,
+      to: AdminReplicationsRoute.to,
+    },
+  ])
 
-  const adminRoute = router.routesById['/(auth)/admin']
-  const navRoutes = useMemo(() => {
-    const children = adminRoute?.children
-
-    if (!children) {
-      return []
-    }
-
-    return Object.values(children)
-      .filter(route => typeof route.options.staticData?.navName === 'string')
-      .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))
-  }, [adminRoute])
+  const matchRoute = useMatchRoute()
 
   return (
-    <ScrollArea>
-      <Stack gap={0}>
+    <ScrollArea
+      type="scroll"
+      offsetScrollbars="y"
+      style={{
+        flex: 1,
+        minHeight: 0,
+      }}
+      scrollbarSize={0}
+    >
+      <Stack gap="sm" pb="lg">
         {navRoutes.map((route) => {
-          const isActive = activeRouteIds.includes(route.id)
+          const Icon = route.icon
+          const isActive = !!matchRoute({
+            to: route.to,
+            fuzzy: true,
+          })
 
           return (
             <NavLink
-              key={route.id}
-              label={route.options.staticData?.navName ?? route.id}
+              key={route.to}
+              label={route.label}
+              leftSection={<Icon fontSize={rem(16)} />}
               component={Link}
               to={route.to}
               active={isActive}
+              h={32}
+              fs="sm"
+              bdrs="sm"
+              styles={{
+                label: {
+                  whiteSpace: 'nowrap',
+                },
+              }}
             />
           )
         })}
@@ -61,28 +96,56 @@ function AdminNavbar() {
 }
 
 function AdminLayout() {
+  const { t } = useTranslation()
+
   return (
-    <Group
-      align="flex-start"
-      wrap="nowrap"
-      gap={0}
-      style={{ height: '100%' }}
+    <AppShell
+      mode="static"
+      navbar={{
+        width: 220,
+        breakpoint: '0em',
+      }}
     >
-      <nav style={{
-        width: 200,
-        flexShrink: 0,
-      }}
+      <AppShell.Navbar
+        component="nav"
+        mih={0}
+        my="lg"
+        px="md"
+        h="calc(100% - var(--mantine-spacing-lg) * 2)"
       >
-        {/* Placeholder to display admin routes */}
+        {/* FIXME: color: Gray80 */}
+        <Group
+          h={30}
+          wrap="nowrap"
+          pl={4}
+          gap={6}
+          c="gray.7"
+          mb="lg"
+        >
+          <SettingsIcon
+            width={rem(30)}
+            height={rem(30)}
+            style={{ flexShrink: 0 }}
+          />
+          <Text
+            size="md"
+            fw={600}
+            lh={rem(24)}
+            truncate
+          >
+            {t('nav.settings')}
+          </Text>
+        </Group>
+
         <AdminNavbar />
-      </nav>
-      <div style={{
-        flex: 1,
-        padding: 'var(--mantine-spacing-md)',
-      }}
+      </AppShell.Navbar>
+
+      <AppShell.Main
+        component="div"
+        miw={0}
       >
         <Outlet />
-      </div>
-    </Group>
+      </AppShell.Main>
+    </AppShell>
   )
 }

@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as authRouteRouteImport } from './routes/(auth)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as authAdminRouteRouteImport } from './routes/(auth)/admin/route'
+import { Route as authappRouteRouteImport } from './routes/(auth)/(app)/route'
 import { Route as authAdminIndexRouteImport } from './routes/(auth)/admin/index'
 import { Route as authAdminUsersRouteImport } from './routes/(auth)/admin/users'
 import { Route as authAdminReplicationsRouteImport } from './routes/(auth)/admin/replications'
@@ -61,6 +62,10 @@ const authAdminRouteRoute = authAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => authRouteRoute,
 } as any)
+const authappRouteRoute = authappRouteRouteImport.update({
+  id: '/(app)',
+  getParentRoute: () => authRouteRoute,
+} as any)
 const authAdminIndexRoute = authAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -82,40 +87,40 @@ const authAdminRegistriesRoute = authAdminRegistriesRouteImport.update({
   getParentRoute: () => authAdminRouteRoute,
 } as any)
 const authappProjectsIndexRoute = authappProjectsIndexRouteImport.update({
-  id: '/(app)/projects/',
+  id: '/projects/',
   path: '/projects/',
-  getParentRoute: () => authRouteRoute,
+  getParentRoute: () => authappRouteRoute,
 } as any)
 const authappProfileIndexRoute = authappProfileIndexRouteImport.update({
-  id: '/(app)/profile/',
+  id: '/profile/',
   path: '/profile/',
-  getParentRoute: () => authRouteRoute,
+  getParentRoute: () => authappRouteRoute,
 } as any)
 const authappModelsIndexRoute = authappModelsIndexRouteImport.update({
-  id: '/(app)/models/',
+  id: '/models/',
   path: '/models/',
-  getParentRoute: () => authRouteRoute,
+  getParentRoute: () => authappRouteRoute,
 } as any)
 const authappDatasetsIndexRoute = authappDatasetsIndexRouteImport.update({
-  id: '/(app)/datasets/',
+  id: '/datasets/',
   path: '/datasets/',
-  getParentRoute: () => authRouteRoute,
+  getParentRoute: () => authappRouteRoute,
 } as any)
 const authappModelsNewRoute = authappModelsNewRouteImport.update({
-  id: '/(app)/models/new',
+  id: '/models/new',
   path: '/models/new',
-  getParentRoute: () => authRouteRoute,
+  getParentRoute: () => authappRouteRoute,
 } as any)
 const authappDatasetsNewRoute = authappDatasetsNewRouteImport.update({
-  id: '/(app)/datasets/new',
+  id: '/datasets/new',
   path: '/datasets/new',
-  getParentRoute: () => authRouteRoute,
+  getParentRoute: () => authappRouteRoute,
 } as any)
 const authappProjectsProjectIdRouteRoute =
   authappProjectsProjectIdRouteRouteImport.update({
-    id: '/(app)/projects/$projectId',
+    id: '/projects/$projectId',
     path: '/projects/$projectId',
-    getParentRoute: () => authRouteRoute,
+    getParentRoute: () => authappRouteRoute,
   } as any)
 const authAdminReplicationsReplicationIdExecutionsRoute =
   authAdminReplicationsReplicationIdExecutionsRouteImport.update({
@@ -149,15 +154,15 @@ const authappProjectsProjectIdDatasetsIndexRoute =
   } as any)
 const authappProjectsProjectIdModelsModelIdRouteRoute =
   authappProjectsProjectIdModelsModelIdRouteRouteImport.update({
-    id: '/(app)/projects_/$projectId/models/$modelId',
+    id: '/projects_/$projectId/models/$modelId',
     path: '/projects/$projectId/models/$modelId',
-    getParentRoute: () => authRouteRoute,
+    getParentRoute: () => authappRouteRoute,
   } as any)
 const authappProjectsProjectIdDatasetsDatasetIdRouteRoute =
   authappProjectsProjectIdDatasetsDatasetIdRouteRouteImport.update({
-    id: '/(app)/projects_/$projectId/datasets/$datasetId',
+    id: '/projects_/$projectId/datasets/$datasetId',
     path: '/projects/$projectId/datasets/$datasetId',
-    getParentRoute: () => authRouteRoute,
+    getParentRoute: () => authappRouteRoute,
   } as any)
 const authappProjectsProjectIdModelsModelIdSettingsIndexRoute =
   authappProjectsProjectIdModelsModelIdSettingsIndexRouteImport.update({
@@ -292,6 +297,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/(auth)': typeof authRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/(auth)/(app)': typeof authappRouteRouteWithChildren
   '/(auth)/admin': typeof authAdminRouteRouteWithChildren
   '/(auth)/admin/registries': typeof authAdminRegistriesRoute
   '/(auth)/admin/replications': typeof authAdminReplicationsRoute
@@ -393,6 +399,7 @@ export interface FileRouteTypes {
     | '/'
     | '/(auth)'
     | '/login'
+    | '/(auth)/(app)'
     | '/(auth)/admin'
     | '/(auth)/admin/registries'
     | '/(auth)/admin/replications'
@@ -460,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authAdminRouteRouteImport
       parentRoute: typeof authRouteRoute
     }
+    '/(auth)/(app)': {
+      id: '/(auth)/(app)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof authappRouteRouteImport
+      parentRoute: typeof authRouteRoute
+    }
     '/(auth)/admin/': {
       id: '/(auth)/admin/'
       path: '/'
@@ -493,49 +507,49 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects/'
       preLoaderRoute: typeof authappProjectsIndexRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/profile/': {
       id: '/(auth)/(app)/profile/'
       path: '/profile'
       fullPath: '/profile/'
       preLoaderRoute: typeof authappProfileIndexRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/models/': {
       id: '/(auth)/(app)/models/'
       path: '/models'
       fullPath: '/models/'
       preLoaderRoute: typeof authappModelsIndexRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/datasets/': {
       id: '/(auth)/(app)/datasets/'
       path: '/datasets'
       fullPath: '/datasets/'
       preLoaderRoute: typeof authappDatasetsIndexRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/models/new': {
       id: '/(auth)/(app)/models/new'
       path: '/models/new'
       fullPath: '/models/new'
       preLoaderRoute: typeof authappModelsNewRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/datasets/new': {
       id: '/(auth)/(app)/datasets/new'
       path: '/datasets/new'
       fullPath: '/datasets/new'
       preLoaderRoute: typeof authappDatasetsNewRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/projects/$projectId': {
       id: '/(auth)/(app)/projects/$projectId'
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId'
       preLoaderRoute: typeof authappProjectsProjectIdRouteRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/admin/replications_/$replicationId/executions': {
       id: '/(auth)/admin/replications_/$replicationId/executions'
@@ -577,14 +591,14 @@ declare module '@tanstack/react-router' {
       path: '/projects/$projectId/models/$modelId'
       fullPath: '/projects/$projectId/models/$modelId'
       preLoaderRoute: typeof authappProjectsProjectIdModelsModelIdRouteRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/projects_/$projectId/datasets/$datasetId': {
       id: '/(auth)/(app)/projects_/$projectId/datasets/$datasetId'
       path: '/projects/$projectId/datasets/$datasetId'
       fullPath: '/projects/$projectId/datasets/$datasetId'
       preLoaderRoute: typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteImport
-      parentRoute: typeof authRouteRoute
+      parentRoute: typeof authappRouteRoute
     }
     '/(auth)/(app)/projects_/$projectId/models/$modelId/settings/': {
       id: '/(auth)/(app)/projects_/$projectId/models/$modelId/settings/'
@@ -658,27 +672,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface authAdminRouteRouteChildren {
-  authAdminRegistriesRoute: typeof authAdminRegistriesRoute
-  authAdminReplicationsRoute: typeof authAdminReplicationsRoute
-  authAdminUsersRoute: typeof authAdminUsersRoute
-  authAdminIndexRoute: typeof authAdminIndexRoute
-  authAdminReplicationsReplicationIdExecutionsRoute: typeof authAdminReplicationsReplicationIdExecutionsRoute
-}
-
-const authAdminRouteRouteChildren: authAdminRouteRouteChildren = {
-  authAdminRegistriesRoute: authAdminRegistriesRoute,
-  authAdminReplicationsRoute: authAdminReplicationsRoute,
-  authAdminUsersRoute: authAdminUsersRoute,
-  authAdminIndexRoute: authAdminIndexRoute,
-  authAdminReplicationsReplicationIdExecutionsRoute:
-    authAdminReplicationsReplicationIdExecutionsRoute,
-}
-
-const authAdminRouteRouteWithChildren = authAdminRouteRoute._addFileChildren(
-  authAdminRouteRouteChildren,
-)
 
 interface authappProjectsProjectIdRouteRouteChildren {
   authappProjectsProjectIdDatasetsIndexRoute: typeof authappProjectsProjectIdDatasetsIndexRoute
@@ -758,8 +751,7 @@ const authappProjectsProjectIdModelsModelIdRouteRouteWithChildren =
     authappProjectsProjectIdModelsModelIdRouteRouteChildren,
   )
 
-interface authRouteRouteChildren {
-  authAdminRouteRoute: typeof authAdminRouteRouteWithChildren
+interface authappRouteRouteChildren {
   authappProjectsProjectIdRouteRoute: typeof authappProjectsProjectIdRouteRouteWithChildren
   authappDatasetsNewRoute: typeof authappDatasetsNewRoute
   authappModelsNewRoute: typeof authappModelsNewRoute
@@ -771,8 +763,7 @@ interface authRouteRouteChildren {
   authappProjectsProjectIdModelsModelIdRouteRoute: typeof authappProjectsProjectIdModelsModelIdRouteRouteWithChildren
 }
 
-const authRouteRouteChildren: authRouteRouteChildren = {
-  authAdminRouteRoute: authAdminRouteRouteWithChildren,
+const authappRouteRouteChildren: authappRouteRouteChildren = {
   authappProjectsProjectIdRouteRoute:
     authappProjectsProjectIdRouteRouteWithChildren,
   authappDatasetsNewRoute: authappDatasetsNewRoute,
@@ -785,6 +776,41 @@ const authRouteRouteChildren: authRouteRouteChildren = {
     authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren,
   authappProjectsProjectIdModelsModelIdRouteRoute:
     authappProjectsProjectIdModelsModelIdRouteRouteWithChildren,
+}
+
+const authappRouteRouteWithChildren = authappRouteRoute._addFileChildren(
+  authappRouteRouteChildren,
+)
+
+interface authAdminRouteRouteChildren {
+  authAdminRegistriesRoute: typeof authAdminRegistriesRoute
+  authAdminReplicationsRoute: typeof authAdminReplicationsRoute
+  authAdminUsersRoute: typeof authAdminUsersRoute
+  authAdminIndexRoute: typeof authAdminIndexRoute
+  authAdminReplicationsReplicationIdExecutionsRoute: typeof authAdminReplicationsReplicationIdExecutionsRoute
+}
+
+const authAdminRouteRouteChildren: authAdminRouteRouteChildren = {
+  authAdminRegistriesRoute: authAdminRegistriesRoute,
+  authAdminReplicationsRoute: authAdminReplicationsRoute,
+  authAdminUsersRoute: authAdminUsersRoute,
+  authAdminIndexRoute: authAdminIndexRoute,
+  authAdminReplicationsReplicationIdExecutionsRoute:
+    authAdminReplicationsReplicationIdExecutionsRoute,
+}
+
+const authAdminRouteRouteWithChildren = authAdminRouteRoute._addFileChildren(
+  authAdminRouteRouteChildren,
+)
+
+interface authRouteRouteChildren {
+  authappRouteRoute: typeof authappRouteRouteWithChildren
+  authAdminRouteRoute: typeof authAdminRouteRouteWithChildren
+}
+
+const authRouteRouteChildren: authRouteRouteChildren = {
+  authappRouteRoute: authappRouteRouteWithChildren,
+  authAdminRouteRoute: authAdminRouteRouteWithChildren,
 }
 
 const authRouteRouteWithChildren = authRouteRoute._addFileChildren(

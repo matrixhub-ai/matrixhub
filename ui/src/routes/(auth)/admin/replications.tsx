@@ -1,17 +1,20 @@
-import { Title } from '@mantine/core'
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+
+import AdminReplicationsIcon from '@/assets/svgs/admin-replications-nav.svg?react'
+import { AdminPageLayout } from '@/features/admin/components/admin-page-layout'
 
 export const Route = createFileRoute('/(auth)/admin/replications')({
   component: RouteComponent,
-  staticData: {
-    navName: 'Replications',
-  },
 })
 
 function RouteComponent() {
+  const { t } = useTranslation()
+
   return (
-    <div>
-      <Title order={3}>Replications</Title>
-    </div>
+    <AdminPageLayout
+      icon={AdminReplicationsIcon}
+      title={t('admin.replications')}
+    />
   )
 }

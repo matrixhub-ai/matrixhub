@@ -1,11 +1,11 @@
 import {
   AppShell,
   Avatar,
-  Box,
   Flex,
   Group, Menu,
   NavLink,
   Text, UnstyledButton,
+  rem,
 } from '@mantine/core'
 import {
   createFileRoute,
@@ -32,7 +32,7 @@ import { Route as ProjectsRoute } from '@/routes/(auth)/(app)/projects'
 import { Route as AdminRoute } from '@/routes/(auth)/admin'
 
 export const Route = createFileRoute('/(auth)')({
-  component: AppLayout,
+  component: AuthLayout,
 })
 
 function AppLogo() {
@@ -45,7 +45,7 @@ function AppLogo() {
         gap={8}
         wrap="nowrap"
       >
-        <LogoIcon width={36} />
+        <LogoIcon fontSize={rem(36)} />
         <Text
           fw={600}
           size="xl"
@@ -96,7 +96,11 @@ function AppNavbar() {
             label={route.label}
             component={Link}
             to={route.to}
-            leftSection={<route.icon width={20} />}
+            leftSection={(
+              <route.icon
+                fontSize={rem(20)}
+              />
+            )}
             active={isActive}
             styles={{
               root: {
@@ -163,7 +167,9 @@ function AccountMenu() {
             <Text size="sm">
               Admin
             </Text>
-            <ArrowDownIcon width={16} />
+            <ArrowDownIcon
+              fontSize={rem(16)}
+            />
           </Group>
         </UnstyledButton>
       </Menu.Target>
@@ -173,7 +179,12 @@ function AccountMenu() {
           menuItems.map(item => (
             <Menu.Item
               key={item.label}
-              leftSection={<item.icon width={16} color="#868E96" />}
+              leftSection={(
+                <item.icon
+                  fontSize={rem(16)}
+                  color="#868E96"
+                />
+              )}
               component={Link}
               to={item.to}
             >
@@ -182,7 +193,12 @@ function AccountMenu() {
           ))
         }
         <Menu.Item
-          leftSection={<LogOutIcon width={16} />}
+          leftSection={(
+            <LogOutIcon
+              fontSize={rem(16)}
+              color="#868E96"
+            />
+          )}
         >
           {t('nav.logout')}
         </Menu.Item>
@@ -191,7 +207,7 @@ function AccountMenu() {
   )
 }
 
-function AppLayout() {
+function AuthLayout() {
   return (
     <AppShell
       mode="static"
@@ -231,21 +247,7 @@ function AppLayout() {
           },
         }}
       >
-        <Box
-          style={{
-            width: '86vw',
-            height: '100%',
-            maxWidth: '1760px',
-            minWidth: '1100px',
-            margin: '0 auto',
-            padding: '0 32px',
-            boxSizing: 'content-box',
-          }}
-        >
-          <Box pt={20} h="100%">
-            <Outlet />
-          </Box>
-        </Box>
+        <Outlet />
       </AppShell.Main>
     </AppShell>
   )
