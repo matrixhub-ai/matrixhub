@@ -88,6 +88,7 @@ message ListModelsRequest {
   string project = 4;
   int32 page = 5;
   int32 page_size = 6;
+  bool popular = 7;
 }
 
 message ListModelsResponse {

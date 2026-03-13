@@ -48,6 +48,7 @@ func (d *datasetDB) List(ctx context.Context, filter *model.Filter) ([]*dataset.
 		Table("datasets d").
 		Select(`d.id, d.name, d.project_id, d.default_branch,
 				d.num_rows, d.size, d.readme_content,
+				d.is_popular,
 				d.created_at, d.updated_at,
 				p.name as project_name`).
 		Joins("INNER JOIN projects p ON d.project_id = p.id")
@@ -70,6 +71,11 @@ func (d *datasetDB) List(ctx context.Context, filter *model.Filter) ([]*dataset.
 				WHERE dl.dataset_id = d.id AND l.name = ?
 			)`, label)
 		}
+	}
+
+	// Apply popular filter
+	if filter.Popular != nil && *filter.Popular {
+		query = query.Where("d.is_popular = ?", 1)
 	}
 
 	// Get total count

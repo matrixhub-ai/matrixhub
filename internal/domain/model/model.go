@@ -53,6 +53,7 @@ type Filter struct {
 	Sort     string
 	Page     int32
 	PageSize int32
+	Popular  *bool // filter by popular flag (true = only popular, false/nil = all)
 }
 
 // IModelRepo defines the repository interface for model operations.

@@ -151,6 +151,7 @@ func (mh *ModelHandler) ListModels(ctx context.Context, request *modelv1alpha1.L
 		Project:  request.Project,
 		Page:     request.Page,
 		PageSize: request.PageSize,
+		Popular:  &request.Popular, // Pass popular parameter to filter
 	}
 
 	// Call service

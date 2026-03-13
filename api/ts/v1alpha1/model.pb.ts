@@ -38,6 +38,7 @@ export type ListModelsRequest = {
   project?: string
   page?: number
   pageSize?: number
+  popular?: boolean
 }
 
 export type ListModelsResponse = {

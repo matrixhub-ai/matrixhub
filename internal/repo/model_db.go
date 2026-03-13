@@ -72,6 +72,11 @@ func (m *modelDB) List(ctx context.Context, filter *model.Filter) ([]*model.Mode
 		}
 	}
 
+	// Apply popular filter
+	if filter.Popular != nil && *filter.Popular {
+		query = query.Where("m.is_popular = ?", 1)
+	}
+
 	// Get total count
 	var total int64
 	if err := query.Count(&total).Error; err != nil {

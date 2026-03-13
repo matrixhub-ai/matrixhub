@@ -111,6 +111,7 @@ type ListDatasetsRequest struct {
 	Project       string                 `protobuf:"bytes,4,opt,name=project,proto3" json:"project,omitempty"`
 	Page          int32                  `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Popular       bool                   `protobuf:"varint,7,opt,name=popular,proto3" json:"popular,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -185,6 +186,13 @@ func (x *ListDatasetsRequest) GetPageSize() int32 {
 		return x.PageSize
 	}
 	return 0
+}
+
+func (x *ListDatasetsRequest) GetPopular() bool {
+	if x != nil {
+		return x.Popular
+	}
+	return false
 }
 
 type ListDatasetsResponse struct {
@@ -1132,14 +1140,15 @@ const file_v1alpha1_dataset_proto_rawDesc = "" +
 	"\x16v1alpha1/dataset.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\x1a\x14v1alpha1/utils.proto\x1a\x14v1alpha1/model.proto\"\x1e\n" +
 	"\x1cListDatasetTaskLabelsRequest\"P\n" +
 	"\x1dListDatasetTaskLabelsResponse\x12/\n" +
-	"\x05items\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x05items\"\xa2\x01\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x05items\"\xbc\x01\n" +
 	"\x13ListDatasetsRequest\x12\x14\n" +
 	"\x05label\x18\x01 \x03(\tR\x05label\x12\x16\n" +
 	"\x06search\x18\x02 \x01(\tR\x06search\x12\x12\n" +
 	"\x04sort\x18\x03 \x01(\tR\x04sort\x12\x18\n" +
 	"\aproject\x18\x04 \x01(\tR\aproject\x12\x12\n" +
 	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\"\x89\x01\n" +
+	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\x12\x18\n" +
+	"\apopular\x18\a \x01(\bR\apopular\"\x89\x01\n" +
 	"\x14ListDatasetsResponse\x121\n" +
 	"\x05items\x18\x01 \x03(\v2\x1b.matrixhub.v1alpha1.DatasetR\x05items\x12>\n" +
 	"\n" +

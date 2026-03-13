@@ -307,6 +307,8 @@ func (m *ListDatasetsRequest) validate(all bool) error {
 
 	// no validation rules for PageSize
 
+	// no validation rules for Popular
+
 	if len(errors) > 0 {
 		return ListDatasetsRequestMultiError(errors)
 	}

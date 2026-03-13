@@ -111,15 +111,16 @@ CREATE TABLE IF NOT EXISTS `models_labels`
 
 CREATE TABLE IF NOT EXISTS `datasets`
 (
-    `id`              bigint       NOT NULL AUTO_INCREMENT COMMENT 'Dataset ID',
-    `name`            varchar(255) NOT NULL COMMENT 'Dataset name',
-    `project_id`      int          NOT NULL COMMENT 'Reference to projects.id',
-    `default_branch`  varchar(64)  NOT NULL DEFAULT 'main' COMMENT 'Default branch name',
-    `num_rows`        varchar(64)  NOT NULL DEFAULT '' COMMENT 'Number of rows in dataset',
-    `size`            bigint       NOT NULL DEFAULT 0 COMMENT 'Dataset size in Bytes',
-    `readme_content`  longtext     NOT NULL COMMENT 'Dataset README content',
-    `created_at`      timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`      timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT 'Dataset ID',
+    `name`           varchar(255) NOT NULL COMMENT 'Dataset name',
+    `project_id`     int          NOT NULL COMMENT 'Reference to projects.id',
+    `default_branch` varchar(64)  NOT NULL DEFAULT 'main' COMMENT 'Default branch name',
+    `is_popular`     tinyint(1)   NOT NULL DEFAULT 0 COMMENT 'popular dataset flag',
+    `num_rows`       varchar(64)  NOT NULL DEFAULT '' COMMENT 'Number of rows in dataset',
+    `size`           bigint       NOT NULL DEFAULT 0 COMMENT 'Dataset size in Bytes',
+    `readme_content` longtext     NOT NULL COMMENT 'Dataset README content',
+    `created_at`     timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`     timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uniq_project_name` (`project_id`, `name`),
     KEY `idx_updated_at` (`updated_at`),
@@ -138,50 +139,50 @@ CREATE TABLE IF NOT EXISTS `datasets_labels`
 
 CREATE TABLE IF NOT EXISTS `access_tokens`
 (
-    `id`         int          NOT NULL AUTO_INCREMENT,
-    `name`       varchar(64)  NOT NULL,
-    `user_id`    CHAR(36)     NOT NULL,
-    `created_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`         int         NOT NULL AUTO_INCREMENT,
+    `name`       varchar(64) NOT NULL,
+    `user_id`    CHAR(36)    NOT NULL,
+    `created_at` timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `replication_rules`
 (
-    `id`          int          NOT NULL AUTO_INCREMENT,
-    `created_at`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`         int       NOT NULL AUTO_INCREMENT,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `replication_tasks`
 (
-    `id`                  int          NOT NULL AUTO_INCREMENT,
+    `id`                  int       NOT NULL AUTO_INCREMENT,
     `replication_rule_id` int,
-    `created_at`          timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`          timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `created_at`          timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`          timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `sync_jobs`
 (
-    `id`                    int           NOT NULL AUTO_INCREMENT,
-    `remote_registry_id`    int           NOT NULL,
-    `remote_project_name`   varchar(255)  NOT NULL,
-    `remote_resource_name`  varchar(255)  NOT NULL,
-    `project_name`          varchar(255),
-    `resource_name`         varchar(255)  NOT NULL,
-    `resource_type`         varchar(64)   NOT NULL,
-    `sync_type`             varchar(64)   NOT NULL,
-    `replication_task_id`   int,
-    `complete_percents`     int,
-    `created_at`            timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`            timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`                   int          NOT NULL AUTO_INCREMENT,
+    `remote_registry_id`   int          NOT NULL,
+    `remote_project_name`  varchar(255) NOT NULL,
+    `remote_resource_name` varchar(255) NOT NULL,
+    `project_name`         varchar(255),
+    `resource_name`        varchar(255) NOT NULL,
+    `resource_type`        varchar(64)  NOT NULL,
+    `sync_type`            varchar(64)  NOT NULL,
+    `replication_task_id`  int,
+    `complete_percents`    int,
+    `created_at`           timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`           timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-INSERT INTO `roles` (`name`, `permissions`, `scope`) VALUES
-    ('platform_admin', '*', 'platform'),
-    ('project_admin', '*', 'project'),
-    ('project_editor', 'read,write', 'project'),
-    ('project_viewer', 'read', 'project');
+INSERT INTO `roles` (`name`, `permissions`, `scope`)
+VALUES ('platform_admin', '*', 'platform'),
+       ('project_admin', '*', 'project'),
+       ('project_editor', 'read,write', 'project'),
+       ('project_viewer', 'read', 'project');

@@ -32,6 +32,7 @@ type Dataset struct {
 	License       string        `json:"license" db:"license"`
 	Size          int64         `json:"size" db:"size"`
 	ReadmeContent string        `json:"readmeContent" db:"readme_content"`
+	IsPopular     bool          `json:"isPopular" db:"is_popular"`
 	Labels        []model.Label `json:"labels" db:"-" gorm:"-"`
 	CreatedAt     time.Time     `json:"createdAt" db:"created_at"`
 	UpdatedAt     time.Time     `json:"updatedAt" db:"updated_at"`

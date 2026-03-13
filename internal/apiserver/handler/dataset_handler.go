@@ -116,6 +116,7 @@ func (h *DatasetHandler) ListDatasets(ctx context.Context, request *datasetv1alp
 		Project:  request.Project,
 		Page:     request.Page,
 		PageSize: request.PageSize,
+		Popular:  &request.Popular, // Pass popular parameter to filter
 	}
 
 	// Call service
