@@ -20,7 +20,7 @@ const MOCK_DATA: Model = {
   labels: [
     {
       id: 1,
-      name: '文本分类',
+      name: 'Image-to-Text',
       category: Category.TASK,
       createdAt: '2024-01-01T12:00:00Z',
       updatedAt: '2024-01-01T12:00:00Z',
@@ -30,19 +30,42 @@ const MOCK_DATA: Model = {
   updatedAt: '2021-12-17 12:12',
 }
 
+const ProjectsRolesMock = {
+  projectRoles: {
+    project1: 'admin',
+  },
+}
+
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId',
 )({
   component: ModelLayout,
   // loader: async ({ params }) => {
-  //   const model = await Models.GetModel({
-  //     project: params.projectId,
-  //     name: params.modelId,
-  //   })
+  //   const [modelRes, prosRoleRes] = await Promise.allSettled([
+  //     Models.GetModel({
+  //       project: params.projectId,
+  //       name: params.modelId,
+  //     }),
+  //     CurrentUser.GetProjectRoles({}),
+  //   ])
+
+  //   if (modelRes.status === 'rejected') {
+  //     throw new Error(`Failed to load model: ${modelRes.reason}`)
+  //   }
+
+  //   if (prosRoleRes.status === 'rejected') {
+  //     throw new Error(`Failed to load project roles: ${prosRoleRes.reason}`)
+  //   }
+
+  //   return {
+  //     model: modelRes.value,
+  //     projectRoles: prosRoleRes.value,
+  //   }
   // },
   loader: async () => {
     return {
       model: MOCK_DATA,
+      projectRoles: ProjectsRolesMock,
     }
   },
 })
@@ -54,7 +77,11 @@ function ModelLayout() {
     projectId, modelId,
   } = Route.useParams()
 
-  const { model } = Route.useLoaderData()
+  const {
+    model, projectRoles,
+  } = Route.useLoaderData()
+
+  const hasProjectRole = Object.hasOwn(projectRoles.projectRoles ?? {}, projectId)
 
   const tabRoutes = linkOptions([
     {
@@ -77,22 +104,24 @@ function ModelLayout() {
         _splat: 'test/data',
       },
     },
-    {
-      id: 'settings',
-      label: t('model.detail.setting'),
-      to: '/projects/$projectId/models/$modelId/settings',
-      params: {
-        projectId,
-        modelId,
-      },
-    },
+    ...(hasProjectRole
+      ? [{
+          id: 'settings',
+          label: t('model.detail.setting'),
+          to: '/projects/$projectId/models/$modelId/settings',
+          params: {
+            projectId,
+            modelId,
+          },
+        }]
+      : []),
   ])
 
   const matchRoute = useMatchRoute()
 
   const activeTab = tabRoutes.find(tab => matchRoute({
     to: tab.to,
-  }))?.id || tabRoutes[0].id
+  }))?.id || 'desc'
 
   return (
     <>
@@ -120,7 +149,7 @@ function ModelLayout() {
               label, ...linkProps
             }) => (
               <Tabs.Tab
-                key={label}
+                key={id}
                 value={id}
                 component={Link}
                 fw={600}

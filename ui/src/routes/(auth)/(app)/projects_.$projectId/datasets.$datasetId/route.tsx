@@ -27,7 +27,7 @@ const MOCK_DATA: Dataset = {
   labels: [
     {
       id: 1,
-      name: '文本分类',
+      name: 'Text',
       category: Category.TASK,
       createdAt: '2024-01-01T12:00:00Z',
       updatedAt: '2024-01-01T12:00:00Z',
@@ -35,23 +35,42 @@ const MOCK_DATA: Dataset = {
   ],
 }
 
+const ProjectsRolesMock = {
+  projectRoles: {
+    project1: 'admin',
+  },
+}
+
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId',
 )({
   component: DatasetLayout,
   // loader: async ({ params }) => {
-  //   const dataset = await Datasets.GetDataset({
-  //     project: params.projectId,
-  //     name: params.datasetId,
-  //   })
+  //   const [datasetRes, prosRoleRes] = await Promise.allSettled([
+  //     Datasets.GetDataset({
+  //       project: params.projectId,
+  //       name: params.datasetId,
+  //     }),
+  //     CurrentUser.GetProjectRoles({}),
+  //   ])
+
+  //   if (datasetRes.status === 'rejected') {
+  //     throw new Error(`Failed to load dataset: ${datasetRes.reason}`)
+  //   }
+
+  //   if (prosRoleRes.status === 'rejected') {
+  //     throw new Error(`Failed to load project roles: ${prosRoleRes.reason}`)
+  //   }
 
   //   return {
-  //     dataset,
+  //     dataset: datasetRes.value,
+  //     projectRoles: prosRoleRes.value,
   //   }
   // },
   loader: async () => {
     return {
       dataset: MOCK_DATA,
+      projectRoles: ProjectsRolesMock,
     }
   },
 })
@@ -63,7 +82,11 @@ function DatasetLayout() {
     projectId, datasetId,
   } = Route.useParams()
 
-  const { dataset } = Route.useLoaderData()
+  const {
+    dataset, projectRoles,
+  } = Route.useLoaderData()
+
+  const hasProjectRole = Object.hasOwn(projectRoles.projectRoles ?? {}, projectId)
 
   const tabRoutes = linkOptions([
     {
@@ -86,15 +109,17 @@ function DatasetLayout() {
         _splat: 'test/data',
       },
     },
-    {
-      id: 'settings',
-      label: t('dataset.detail.setting'),
-      to: '/projects/$projectId/datasets/$datasetId/settings',
-      params: {
-        projectId,
-        datasetId,
-      },
-    },
+    ...(hasProjectRole
+      ? [{
+          id: 'settings',
+          label: t('dataset.detail.setting'),
+          to: '/projects/$projectId/datasets/$datasetId/settings',
+          params: {
+            projectId,
+            datasetId,
+          },
+        }]
+      : []),
   ])
 
   const matchRoute = useMatchRoute()
