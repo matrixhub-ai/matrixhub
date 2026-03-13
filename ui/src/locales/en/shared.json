@@ -1,0 +1,6 @@
+{
+  "total": "Total: {{count}}",
+  "refresh": "Refresh",
+  "batchDelete": "Delete ({{count}})",
+  "search": "Search"
+}
