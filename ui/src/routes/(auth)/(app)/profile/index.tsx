@@ -1,12 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+
+import { Route as SecurityRoute } from '@/routes/(auth)/(app)/profile/security'
 
 export const Route = createFileRoute('/(auth)/(app)/profile/')({
-  component: RouteComponent,
-  staticData: {
-    navName: 'Profile',
+  beforeLoad: () => {
+    throw redirect({
+      to: SecurityRoute.to,
+    })
   },
 })
-
-function RouteComponent() {
-  return <div>Profile Page</div>
-}
