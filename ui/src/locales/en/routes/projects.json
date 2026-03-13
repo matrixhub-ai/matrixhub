@@ -1,0 +1,51 @@
+{
+  "title": "Project Management",
+  "description": "Demo list built on top of the shared data table wrapper.",
+  "searchPlaceholder": "Search by project name",
+  "refresh": "Refresh",
+  "create": "Create Project",
+  "table": {
+    "name": "Project Name",
+    "visibility": "Visibility",
+    "proxy": "Proxy",
+    "modelCount": "Models",
+    "datasetCount": "Datasets",
+    "updatedAt": "Last Updated",
+    "actions": "Actions",
+    "empty": "No projects found",
+    "loading": "Loading projects...",
+    "recordsPerPage": "Rows per page",
+    "pagination": "{{from}}-{{to}} of {{total}} projects"
+  },
+  "visibility": {
+    "private": "Private",
+    "public": "Public"
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "createModal": {
+    "title": "Create Project",
+    "nameLabel": "Project Name",
+    "public": "Public",
+    "proxyLabel": "Proxy",
+    "proxyHint": "Proxy is available only after the upstream registry is prepared. For organization-level models, fill in the organization name; for personal models, fill in the username.",
+    "registryLabel": "Registry",
+    "organizationLabel": "Organization / User",
+    "organizationPlaceholder": "For example: Qwen"
+  },
+  "deleteModal": {
+    "title": "Delete Project",
+    "message": "Are you sure you want to delete \"{{name}}\"?"
+  },
+  "actions": {
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "validation": {
+    "nameRequired": "Project name is required",
+    "organizationRequired": "Organization or user is required when proxy is enabled"
+  }
+}

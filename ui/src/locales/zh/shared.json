@@ -1,0 +1,6 @@
+{
+  "total": "共 {{count}} 条",
+  "refresh": "刷新",
+  "batchDelete": "删除 ({{count}})",
+  "search": "搜索"
+}

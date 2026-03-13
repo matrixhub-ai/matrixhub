@@ -1,0 +1,51 @@
+{
+  "title": "项目管理",
+  "description": "基于共享 data table 封装的项目列表示例页。",
+  "searchPlaceholder": "请输入项目名称搜索",
+  "refresh": "刷新",
+  "create": "创建项目",
+  "table": {
+    "name": "项目名称",
+    "visibility": "类型",
+    "proxy": "代理",
+    "modelCount": "模型数量",
+    "datasetCount": "数据集数量",
+    "updatedAt": "最新更新时间",
+    "actions": "操作",
+    "empty": "暂无项目数据",
+    "loading": "正在加载项目...",
+    "recordsPerPage": "每页",
+    "pagination": "第 {{from}}-{{to}} 条，共 {{total}} 条"
+  },
+  "visibility": {
+    "private": "私有",
+    "public": "公开"
+  },
+  "boolean": {
+    "yes": "是",
+    "no": "否"
+  },
+  "createModal": {
+    "title": "创建项目",
+    "nameLabel": "项目名称",
+    "public": "公开",
+    "proxyLabel": "代理",
+    "proxyHint": "代理需要先准备好上游仓库。组织级模型请填写 Organization 名称，个人模型请填写用户名。",
+    "registryLabel": "上游仓库",
+    "organizationLabel": "Organization / 用户名",
+    "organizationPlaceholder": "例如：Qwen"
+  },
+  "deleteModal": {
+    "title": "删除项目",
+    "message": "确定要删除项目「{{name}}」吗？"
+  },
+  "actions": {
+    "delete": "删除",
+    "cancel": "取消",
+    "confirm": "确定"
+  },
+  "validation": {
+    "nameRequired": "请输入项目名称",
+    "organizationRequired": "开启代理后请填写 Organization 或用户名"
+  }
+}
