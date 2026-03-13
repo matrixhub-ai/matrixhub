@@ -222,7 +222,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewProjectHandler(repos.Project),
 		handler.NewUserHandler(repos.User),
 		handler.NewCurrentUserHandler(repos.User),
-		handler.NewRegistryHandler(),
+		handler.NewRegistryHandler(repos.Registry),
 		handler.NewDatasetHandler(datasetService),
 		handler.NewModelHandler(modelService),
 	}
