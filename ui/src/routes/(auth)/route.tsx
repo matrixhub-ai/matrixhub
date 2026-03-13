@@ -216,7 +216,7 @@ function AppLayout() {
             <AppNavbar />
           </Group>
 
-          <Group gap="lg">
+          <Group gap="md" wrap="nowrap">
             <LanguageSwitcher />
 
             <AccountMenu />
