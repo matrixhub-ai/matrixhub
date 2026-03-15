@@ -27,8 +27,6 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/db"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
-
-	_ "github.com/lib/pq"
 )
 
 type Repos struct {
@@ -41,6 +39,7 @@ type Repos struct {
 	Label      model.ILabelRepo
 	Git        git.IGitRepo
 	Dataset    dataset.IDatasetRepo
+	Session    user.ISessionRepo
 }
 
 func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror) *Repos {
@@ -58,6 +57,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 
 	repos.Project = NewProjectDBRepo(repos.DB)
 	repos.User = NewUserRepo(repos.DB)
+	repos.Session = NewSessionRepository(repos.DB)
 	repos.Model = NewModelDB(repos.DB)
 	repos.Label = NewLabelDB(repos.DB)
 	repos.Git = NewGitDB(repos.GitStorage, repos.GitMirror)
@@ -67,11 +67,11 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 }
 
 func (r *Repos) Close() error {
-	dbconn, err := r.DB.DB()
+	dbConn, err := r.DB.DB()
 	if err != nil {
 		return err
 	}
-	if err := dbconn.Close(); err != nil {
+	if err = dbConn.Close(); err != nil {
 		return err
 	}
 

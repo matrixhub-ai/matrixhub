@@ -57,7 +57,7 @@ enum UserSource {
 }
 
 message User {
-  string id = 1;
+  uint32 id = 1;
   string username = 2;
   string email = 3;
   bool is_admin = 4;
@@ -74,7 +74,7 @@ message CreateUserRequest {
 message CreateUserResponse {}
 
 message ListUsersRequest {
-  int32 page = 1;
+  int32 page = 1 [(validate.rules).int32.gt = 0];
   int32 page_size = 2;
   string search = 3;
 }
@@ -85,11 +85,11 @@ message ListUsersResponse {
 }
 
 message GetUserRequest {
-  string id = 1 [(validate.rules).string.min_len = 1];
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
 
 message GetUserResponse {
-  string id = 1;
+  uint32 id = 1;
   string username = 2;
   string email = 3;
   bool is_admin = 4;
@@ -98,13 +98,13 @@ message GetUserResponse {
 }
 
 message DeleteUserRequest {
-  string id = 1 [(validate.rules).string.min_len = 1];
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
 
 message DeleteUserResponse {}
 
 message SetUserSysAdminRequest {
-  string id = 1 [(validate.rules).string.min_len = 1];
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
   bool sysadmin_flag = 2;
 }
 
@@ -112,7 +112,7 @@ message SetUserSysAdminResponse {
 }
 
 message ResetUserPasswordRequest {
-  string id = 1 [(validate.rules).string.min_len = 1];
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
   string password = 2 [(validate.rules).string.min_len = 1];
 }
 

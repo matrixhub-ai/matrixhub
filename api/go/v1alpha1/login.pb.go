@@ -84,7 +84,7 @@ func (x *LoginRequest) GetRememberMe() bool {
 
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Cookies       []*Cookie              `protobuf:"bytes,1,rep,name=cookies,proto3" json:"cookies,omitempty"`
+	Cookie        string                 `protobuf:"bytes,1,opt,name=cookie,proto3" json:"cookie,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -119,101 +119,9 @@ func (*LoginResponse) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_login_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *LoginResponse) GetCookies() []*Cookie {
+func (x *LoginResponse) GetCookie() string {
 	if x != nil {
-		return x.Cookies
-	}
-	return nil
-}
-
-type Cookie struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	Path          string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	MaxAge        int32                  `protobuf:"varint,4,opt,name=max_age,json=maxAge,proto3" json:"max_age,omitempty"`
-	Domain        string                 `protobuf:"bytes,5,opt,name=domain,proto3" json:"domain,omitempty"`
-	Secure        bool                   `protobuf:"varint,6,opt,name=secure,proto3" json:"secure,omitempty"`
-	SameSite      string                 `protobuf:"bytes,7,opt,name=same_site,json=sameSite,proto3" json:"same_site,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Cookie) Reset() {
-	*x = Cookie{}
-	mi := &file_v1alpha1_login_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Cookie) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Cookie) ProtoMessage() {}
-
-func (x *Cookie) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_login_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Cookie.ProtoReflect.Descriptor instead.
-func (*Cookie) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_login_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *Cookie) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *Cookie) GetValue() string {
-	if x != nil {
-		return x.Value
-	}
-	return ""
-}
-
-func (x *Cookie) GetPath() string {
-	if x != nil {
-		return x.Path
-	}
-	return ""
-}
-
-func (x *Cookie) GetMaxAge() int32 {
-	if x != nil {
-		return x.MaxAge
-	}
-	return 0
-}
-
-func (x *Cookie) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *Cookie) GetSecure() bool {
-	if x != nil {
-		return x.Secure
-	}
-	return false
-}
-
-func (x *Cookie) GetSameSite() string {
-	if x != nil {
-		return x.SameSite
+		return x.Cookie
 	}
 	return ""
 }
@@ -226,7 +134,7 @@ type LogoutRequest struct {
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_v1alpha1_login_proto_msgTypes[3]
+	mi := &file_v1alpha1_login_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -238,7 +146,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_login_proto_msgTypes[3]
+	mi := &file_v1alpha1_login_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -251,7 +159,7 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_login_proto_rawDescGZIP(), []int{3}
+	return file_v1alpha1_login_proto_rawDescGZIP(), []int{2}
 }
 
 type LogoutResponse struct {
@@ -262,7 +170,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_v1alpha1_login_proto_msgTypes[4]
+	mi := &file_v1alpha1_login_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -274,7 +182,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_login_proto_msgTypes[4]
+	mi := &file_v1alpha1_login_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -287,7 +195,7 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_login_proto_rawDescGZIP(), []int{4}
+	return file_v1alpha1_login_proto_rawDescGZIP(), []int{3}
 }
 
 var File_v1alpha1_login_proto protoreflect.FileDescriptor
@@ -299,17 +207,9 @@ const file_v1alpha1_login_proto_rawDesc = "" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x1f\n" +
 	"\vremember_me\x18\x03 \x01(\bR\n" +
-	"rememberMe\"E\n" +
-	"\rLoginResponse\x124\n" +
-	"\acookies\x18\x01 \x03(\v2\x1a.matrixhub.v1alpha1.CookieR\acookies\"\xac\x01\n" +
-	"\x06Cookie\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\tR\x04path\x12\x17\n" +
-	"\amax_age\x18\x04 \x01(\x05R\x06maxAge\x12\x16\n" +
-	"\x06domain\x18\x05 \x01(\tR\x06domain\x12\x16\n" +
-	"\x06secure\x18\x06 \x01(\bR\x06secure\x12\x1b\n" +
-	"\tsame_site\x18\a \x01(\tR\bsameSite\"\x0f\n" +
+	"rememberMe\"'\n" +
+	"\rLoginResponse\x12\x16\n" +
+	"\x06cookie\x18\x01 \x01(\tR\x06cookie\"\x0f\n" +
 	"\rLogoutRequest\"\x10\n" +
 	"\x0eLogoutResponse2\xe7\x01\n" +
 	"\x05Login\x12l\n" +
@@ -328,25 +228,23 @@ func file_v1alpha1_login_proto_rawDescGZIP() []byte {
 	return file_v1alpha1_login_proto_rawDescData
 }
 
-var file_v1alpha1_login_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_v1alpha1_login_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_v1alpha1_login_proto_goTypes = []any{
 	(*LoginRequest)(nil),   // 0: matrixhub.v1alpha1.LoginRequest
 	(*LoginResponse)(nil),  // 1: matrixhub.v1alpha1.LoginResponse
-	(*Cookie)(nil),         // 2: matrixhub.v1alpha1.Cookie
-	(*LogoutRequest)(nil),  // 3: matrixhub.v1alpha1.LogoutRequest
-	(*LogoutResponse)(nil), // 4: matrixhub.v1alpha1.LogoutResponse
+	(*LogoutRequest)(nil),  // 2: matrixhub.v1alpha1.LogoutRequest
+	(*LogoutResponse)(nil), // 3: matrixhub.v1alpha1.LogoutResponse
 }
 var file_v1alpha1_login_proto_depIdxs = []int32{
-	2, // 0: matrixhub.v1alpha1.LoginResponse.cookies:type_name -> matrixhub.v1alpha1.Cookie
-	0, // 1: matrixhub.v1alpha1.Login.Login:input_type -> matrixhub.v1alpha1.LoginRequest
-	3, // 2: matrixhub.v1alpha1.Login.Logout:input_type -> matrixhub.v1alpha1.LogoutRequest
-	1, // 3: matrixhub.v1alpha1.Login.Login:output_type -> matrixhub.v1alpha1.LoginResponse
-	4, // 4: matrixhub.v1alpha1.Login.Logout:output_type -> matrixhub.v1alpha1.LogoutResponse
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 0: matrixhub.v1alpha1.Login.Login:input_type -> matrixhub.v1alpha1.LoginRequest
+	2, // 1: matrixhub.v1alpha1.Login.Logout:input_type -> matrixhub.v1alpha1.LogoutRequest
+	1, // 2: matrixhub.v1alpha1.Login.Login:output_type -> matrixhub.v1alpha1.LoginResponse
+	3, // 3: matrixhub.v1alpha1.Login.Logout:output_type -> matrixhub.v1alpha1.LogoutResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_login_proto_init() }
@@ -360,7 +258,7 @@ func file_v1alpha1_login_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_login_proto_rawDesc), len(file_v1alpha1_login_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

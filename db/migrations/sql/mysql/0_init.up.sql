@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `projects`
 
 CREATE TABLE IF NOT EXISTS `users`
 (
-    `id`         varchar(36)  NOT NULL,
+    `id`         bigint       NOT NULL AUTO_INCREMENT,
     `username`   varchar(255) NOT NULL,
     `password`   varchar(255) NOT NULL default "",
     `email`      varchar(255) NOT NULL default "",
@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS `access_tokens`
     `id`         int          NOT NULL AUTO_INCREMENT,
     `name`       varchar(64)  NOT NULL,
     `user_id`    CHAR(36)     NOT NULL,
+    `secret`     VARCHAR(128),
     `created_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
@@ -185,3 +186,10 @@ INSERT INTO `roles` (`name`, `permissions`, `scope`) VALUES
     ('project_admin', '*', 'project'),
     ('project_editor', 'read,write', 'project'),
     ('project_viewer', 'read', 'project');
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token CHAR(43) COLLATE utf8mb4_bin PRIMARY KEY,
+    data BLOB NOT NULL,
+    expiry TIMESTAMP(6) NOT NULL,
+    INDEX sessions_expiry_idx (expiry)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

@@ -29,17 +29,7 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  repeated Cookie cookies = 1;
-}
-
-message Cookie {
-  string name = 1;
-  string value = 2;
-  string path = 3;
-  int32 max_age = 4;
-  string domain = 5;
-  bool secure = 6;
-  string same_site = 7;
+  string cookie = 1;
 }
 
 message LogoutRequest {}

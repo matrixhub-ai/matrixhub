@@ -14,7 +14,7 @@ export enum UserSource {
 }
 
 export type User = {
-  id?: string
+  id?: number
   username?: string
   email?: string
   isAdmin?: boolean
@@ -43,11 +43,11 @@ export type ListUsersResponse = {
 }
 
 export type GetUserRequest = {
-  id?: string
+  id?: number
 }
 
 export type GetUserResponse = {
-  id?: string
+  id?: number
   username?: string
   email?: string
   isAdmin?: boolean
@@ -56,14 +56,14 @@ export type GetUserResponse = {
 }
 
 export type DeleteUserRequest = {
-  id?: string
+  id?: number
 }
 
 export type DeleteUserResponse = {
 }
 
 export type SetUserSysAdminRequest = {
-  id?: string
+  id?: number
   sysadminFlag?: boolean
 }
 
@@ -71,7 +71,7 @@ export type SetUserSysAdminResponse = {
 }
 
 export type ResetUserPasswordRequest = {
-  id?: string
+  id?: number
   password?: string
 }
 
