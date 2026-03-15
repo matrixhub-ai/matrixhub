@@ -37,9 +37,18 @@ func (u *UserRepo) CreateUser(ctx context.Context, user user.User) error {
 	return u.db.WithContext(ctx).Create(&user).Error
 }
 
-func (u *UserRepo) GetUser(ctx context.Context, id string) (*user.User, error) {
+func (u *UserRepo) GetUser(ctx context.Context, id int) (*user.User, error) {
 	var user user.User
 	err := u.db.WithContext(ctx).Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (u *UserRepo) GetUserByName(ctx context.Context, username string) (*user.User, error) {
+	var user user.User
+	err := u.db.WithContext(ctx).Where("username = ?", username).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +73,7 @@ func (u *UserRepo) ListUsers(ctx context.Context, page, pageSize int, search str
 	return
 }
 
-func (u *UserRepo) DeleteUser(ctx context.Context, id string) error {
+func (u *UserRepo) DeleteUser(ctx context.Context, id int) error {
 	return u.db.WithContext(ctx).Where("id = ?", id).Delete(&user.User{}).Error
 }
 

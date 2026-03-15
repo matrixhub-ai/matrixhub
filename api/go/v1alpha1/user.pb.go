@@ -73,7 +73,7 @@ func (UserSource) EnumDescriptor() ([]byte, []int) {
 
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	IsAdmin       bool                   `protobuf:"varint,4,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
@@ -113,11 +113,11 @@ func (*User) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_user_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *User) GetId() string {
+func (x *User) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 func (x *User) GetUsername() string {
@@ -365,7 +365,7 @@ func (x *ListUsersResponse) GetPagination() *Pagination {
 
 type GetUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -400,16 +400,16 @@ func (*GetUserRequest) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_user_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetUserRequest) GetId() string {
+func (x *GetUserRequest) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 type GetUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	IsAdmin       bool                   `protobuf:"varint,4,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
@@ -449,11 +449,11 @@ func (*GetUserResponse) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_user_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetUserResponse) GetId() string {
+func (x *GetUserResponse) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 func (x *GetUserResponse) GetUsername() string {
@@ -493,7 +493,7 @@ func (x *GetUserResponse) GetCreatedAt() *timestamppb.Timestamp {
 
 type DeleteUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -528,11 +528,11 @@ func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_user_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *DeleteUserRequest) GetId() string {
+func (x *DeleteUserRequest) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 type DeleteUserResponse struct {
@@ -573,7 +573,7 @@ func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
 
 type SetUserSysAdminRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	SysadminFlag  bool                   `protobuf:"varint,2,opt,name=sysadmin_flag,json=sysadminFlag,proto3" json:"sysadmin_flag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -609,11 +609,11 @@ func (*SetUserSysAdminRequest) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_user_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *SetUserSysAdminRequest) GetId() string {
+func (x *SetUserSysAdminRequest) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 func (x *SetUserSysAdminRequest) GetSysadminFlag() bool {
@@ -661,7 +661,7 @@ func (*SetUserSysAdminResponse) Descriptor() ([]byte, []int) {
 
 type ResetUserPasswordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -697,11 +697,11 @@ func (*ResetUserPasswordRequest) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_user_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *ResetUserPasswordRequest) GetId() string {
+func (x *ResetUserPasswordRequest) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 func (x *ResetUserPasswordRequest) GetPassword() string {
@@ -753,7 +753,7 @@ const file_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
 	"\x13v1alpha1/user.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\x1a\x14v1alpha1/utils.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd6\x01\n" +
 	"\x04User\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x19\n" +
 	"\bis_admin\x18\x04 \x01(\bR\aisAdmin\x126\n" +
@@ -764,9 +764,9 @@ const file_v1alpha1_user_proto_rawDesc = "" +
 	"\busername\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\busername\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\bpassword\x12\x19\n" +
 	"\bis_admin\x18\x03 \x01(\bR\aisAdmin\"\x14\n" +
-	"\x12CreateUserResponse\"[\n" +
-	"\x10ListUsersRequest\x12\x12\n" +
-	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\x12CreateUserResponse\"d\n" +
+	"\x10ListUsersRequest\x12\x1b\n" +
+	"\x04page\x18\x01 \x01(\x05B\a\xfaB\x04\x1a\x02 \x00R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
 	"\x06search\x18\x03 \x01(\tR\x06search\"\x83\x01\n" +
 	"\x11ListUsersResponse\x12.\n" +
@@ -775,9 +775,9 @@ const file_v1alpha1_user_proto_rawDesc = "" +
 	"pagination\x18\x02 \x01(\v2\x1e.matrixhub.v1alpha1.PaginationR\n" +
 	"pagination\")\n" +
 	"\x0eGetUserRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x02id\"\xe1\x01\n" +
+	"\x02id\x18\x01 \x01(\rB\a\xfaB\x04*\x02 \x00R\x02id\"\xe1\x01\n" +
 	"\x0fGetUserResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x19\n" +
 	"\bis_admin\x18\x04 \x01(\bR\aisAdmin\x126\n" +
@@ -785,14 +785,14 @@ const file_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\",\n" +
 	"\x11DeleteUserRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x02id\"\x14\n" +
+	"\x02id\x18\x01 \x01(\rB\a\xfaB\x04*\x02 \x00R\x02id\"\x14\n" +
 	"\x12DeleteUserResponse\"V\n" +
 	"\x16SetUserSysAdminRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x02id\x12#\n" +
+	"\x02id\x18\x01 \x01(\rB\a\xfaB\x04*\x02 \x00R\x02id\x12#\n" +
 	"\rsysadmin_flag\x18\x02 \x01(\bR\fsysadminFlag\"\x19\n" +
 	"\x17SetUserSysAdminResponse\"X\n" +
 	"\x18ResetUserPasswordRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x02id\x12#\n" +
+	"\x02id\x18\x01 \x01(\rB\a\xfaB\x04*\x02 \x00R\x02id\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\bpassword\"\x1b\n" +
 	"\x19ResetUserPasswordResponse*@\n" +
 	"\n" +

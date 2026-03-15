@@ -20,6 +20,7 @@ import (
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	userv1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
@@ -42,6 +43,9 @@ func (u *UserHandler) CreateUser(ctx context.Context, request *userv1alpha1.Crea
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	if _, err := u.userRepo.GetUserByName(ctx, request.Username); err == nil {
+		return nil, status.Error(codes.InvalidArgument, "user already exists")
+	}
 	if err := u.userRepo.CreateUser(ctx, user.User{
 		Username: request.Username,
 		Password: request.Password,
@@ -56,14 +60,14 @@ func (u *UserHandler) GetUser(ctx context.Context, request *userv1alpha1.GetUser
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	user, err := u.userRepo.GetUser(ctx, request.Id)
+	user, err := u.userRepo.GetUser(ctx, int(request.Id))
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &userv1alpha1.GetUserResponse{
-		Id:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
+		Id:        uint32(user.ID),
+		Username:  user.Username,
+		CreatedAt: timestamppb.New(user.CreatedAt),
 	}, nil
 }
 
@@ -71,7 +75,7 @@ func (u *UserHandler) DeleteUser(ctx context.Context, request *userv1alpha1.Dele
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := u.userRepo.DeleteUser(ctx, request.Id); err != nil {
+	if err := u.userRepo.DeleteUser(ctx, int(request.Id)); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -89,9 +93,9 @@ func (u *UserHandler) ListUsers(ctx context.Context, request *userv1alpha1.ListU
 
 	result := lo.Map(users, func(item *user.User, index int) *userv1alpha1.User {
 		return &userv1alpha1.User{
-			Id:       item.ID,
-			Username: item.Username,
-			Email:    item.Email,
+			Id:        uint32(item.ID),
+			Username:  item.Username,
+			CreatedAt: timestamppb.New(item.CreatedAt),
 		}
 	})
 
@@ -108,7 +112,7 @@ func (u *UserHandler) ListUsers(ctx context.Context, request *userv1alpha1.ListU
 func (u *UserHandler) RegisterToServer(options *ServerOptions) {
 	// Register GRPC Handler
 	userv1alpha1.RegisterUsersServer(options.GRPCServer, u)
-	if err := userv1alpha1.RegisterUsersHandlerServer(context.Background(), options.GatewayMux, u); err != nil {
+	if err := userv1alpha1.RegisterUsersHandlerFromEndpoint(context.Background(), options.GatewayMux, options.GRPCAddr, options.GRPCDialOpt); err != nil {
 		log.Errorf("register handler error: %s", err.Error())
 	}
 }

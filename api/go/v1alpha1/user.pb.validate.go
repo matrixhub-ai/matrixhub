@@ -422,7 +422,16 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Page
+	if m.GetPage() <= 0 {
+		err := ListUsersRequestValidationError{
+			field:  "Page",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for PageSize
 
@@ -693,10 +702,10 @@ func (m *GetUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 1 {
+	if m.GetId() <= 0 {
 		err := GetUserRequestValidationError{
 			field:  "Id",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err
@@ -943,10 +952,10 @@ func (m *DeleteUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 1 {
+	if m.GetId() <= 0 {
 		err := DeleteUserRequestValidationError{
 			field:  "Id",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err
@@ -1158,10 +1167,10 @@ func (m *SetUserSysAdminRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 1 {
+	if m.GetId() <= 0 {
 		err := SetUserSysAdminRequestValidationError{
 			field:  "Id",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err
@@ -1375,10 +1384,10 @@ func (m *ResetUserPasswordRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 1 {
+	if m.GetId() <= 0 {
 		err := ResetUserPasswordRequestValidationError{
 			field:  "Id",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err

@@ -12,20 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package handler
+package utils
 
 import (
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"google.golang.org/grpc"
+	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
-type ServerOptions struct {
-	GatewayMux  *runtime.ServeMux
-	GRPCServer  *grpc.Server
-	GRPCAddr    string
-	GRPCDialOpt []grpc.DialOption
+type Duration struct {
+	time.Duration
 }
 
-type IHandler interface {
-	RegisterToServer(*ServerOptions)
+func (d *Duration) UnmarshalYAML(value *yaml.Node) error {
+	if value.Value == "" {
+		d.Duration = 0
+		return nil
+	}
+	dur, err := time.ParseDuration(value.Value)
+	if err != nil {
+		return err
+	}
+	d.Duration = dur
+	return nil
 }

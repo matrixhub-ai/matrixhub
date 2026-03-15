@@ -110,33 +110,6 @@
         }
       }
     },
-    "v1alpha1Cookie": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "maxAge": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "domain": {
-          "type": "string"
-        },
-        "secure": {
-          "type": "boolean"
-        },
-        "sameSite": {
-          "type": "string"
-        }
-      }
-    },
     "v1alpha1LoginRequest": {
       "type": "object",
       "properties": {
@@ -154,12 +127,8 @@
     "v1alpha1LoginResponse": {
       "type": "object",
       "properties": {
-        "cookies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1alpha1Cookie"
-          }
+        "cookie": {
+          "type": "string"
         }
       }
     },

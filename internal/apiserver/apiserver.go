@@ -37,11 +37,13 @@ import (
 	gitstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/handler"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/internal/repo"
@@ -86,11 +88,28 @@ func NewAPIServer(config *config.Config) *APIServer {
 		}),
 	)
 
+	httpServer := &http.Server{
+		Handler:           engine,
+		ReadHeaderTimeout: 30 * time.Second,
+	}
+
+	server := &APIServer{
+		config:     config,
+		debug:      config.Debug,
+		httpServer: httpServer,
+		engine:     engine,
+		gatewayMux: gatewayMux,
+		port:       config.APIServer.Port,
+	}
+
+	server.initHandlersServicesRepos()
+
 	streamMiddleware := []grpc.StreamServerInterceptor{
 		grpc_recovery.StreamServerInterceptor(),
 	}
 	unaryMiddleware := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(),
+		middleware.AuthInterceptor(server.repos.Session),
 	}
 
 	grpcServer := grpc.NewServer(
@@ -103,28 +122,11 @@ func NewAPIServer(config *config.Config) *APIServer {
 		grpc.MaxSendMsgSize(maxGrpcMsgSize),
 		grpc.MaxRecvMsgSize(maxGrpcMsgSize),
 	)
-	httpServer := &http.Server{
-		Handler:           engine,
-		ReadHeaderTimeout: 30 * time.Second,
-	}
-
-	server := &APIServer{
-		config:     config,
-		debug:      config.Debug,
-		httpServer: httpServer,
-		engine:     engine,
-		gatewayMux: gatewayMux,
-		grpcServer: grpcServer,
-		port:       config.APIServer.Port,
-	}
+	server.grpcServer = grpcServer
 
 	server.initGitHooks()
 	server.initGitStorage()
-
-	server.initHandlersServicesRepos()
-
 	server.httpServer.Handler = server.initBackends(server.httpServer.Handler)
-
 	server.registerRoutersAndHandlers()
 
 	return server
@@ -254,6 +256,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		server.gitStorage.sharedMirror,
 	)
 
+	// init domain services, add if needed
 	modelService := model.NewModelService(
 		repos.Model,
 		repos.Label,
@@ -264,10 +267,11 @@ func (server *APIServer) initHandlersServicesRepos() {
 		repos.Label,
 		repos.Git,
 	)
+	userService := user.NewUserService(repos.Session, repos.User)
 
 	// init handlers
 	handlers := []handler.IHandler{
-		handler.NewLoginHandler(),
+		handler.NewLoginHandler(userService),
 		handler.NewProjectHandler(repos.Project),
 		handler.NewUserHandler(repos.User),
 		handler.NewCurrentUserHandler(repos.User),
@@ -304,6 +308,12 @@ func (server *APIServer) registerRoutersAndHandlers() {
 	options := &handler.ServerOptions{
 		GatewayMux: server.gatewayMux,
 		GRPCServer: server.grpcServer,
+		GRPCAddr:   fmt.Sprintf(":%d", server.port),
+		GRPCDialOpt: []grpc.DialOption{
+			grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(
+				grpc.MaxCallRecvMsgSize(maxGrpcMsgSize),
+				grpc.MaxCallSendMsgSize(maxGrpcMsgSize),
+			)},
 	}
 
 	for _, h := range server.handlers {

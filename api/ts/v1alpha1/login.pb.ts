@@ -12,17 +12,7 @@ export type LoginRequest = {
 }
 
 export type LoginResponse = {
-  cookies?: Cookie[]
-}
-
-export type Cookie = {
-  name?: string
-  value?: string
-  path?: string
-  maxAge?: number
-  domain?: string
-  secure?: boolean
-  sameSite?: string
+  cookie?: string
 }
 
 export type LogoutRequest = {
