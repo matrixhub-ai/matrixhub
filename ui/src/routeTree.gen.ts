@@ -18,10 +18,14 @@ import { Route as authAdminIndexRouteImport } from './routes/(auth)/admin/index'
 import { Route as authAdminUsersRouteImport } from './routes/(auth)/admin/users'
 import { Route as authAdminReplicationsRouteImport } from './routes/(auth)/admin/replications'
 import { Route as authAdminRegistriesRouteImport } from './routes/(auth)/admin/registries'
+import { Route as authappProfileRouteRouteImport } from './routes/(auth)/(app)/profile/route'
 import { Route as authappProjectsIndexRouteImport } from './routes/(auth)/(app)/projects/index'
 import { Route as authappProfileIndexRouteImport } from './routes/(auth)/(app)/profile/index'
 import { Route as authappModelsIndexRouteImport } from './routes/(auth)/(app)/models/index'
 import { Route as authappDatasetsIndexRouteImport } from './routes/(auth)/(app)/datasets/index'
+import { Route as authappProfileSecurityRouteImport } from './routes/(auth)/(app)/profile/security'
+import { Route as authappProfileLanguageRouteImport } from './routes/(auth)/(app)/profile/language'
+import { Route as authappProfileAccessTokenRouteImport } from './routes/(auth)/(app)/profile/access-token'
 import { Route as authappModelsNewRouteImport } from './routes/(auth)/(app)/models/new'
 import { Route as authappDatasetsNewRouteImport } from './routes/(auth)/(app)/datasets/new'
 import { Route as authappProjectsProjectIdRouteRouteImport } from './routes/(auth)/(app)/projects/$projectId/route'
@@ -86,15 +90,20 @@ const authAdminRegistriesRoute = authAdminRegistriesRouteImport.update({
   path: '/registries',
   getParentRoute: () => authAdminRouteRoute,
 } as any)
+const authappProfileRouteRoute = authappProfileRouteRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => authappRouteRoute,
+} as any)
 const authappProjectsIndexRoute = authappProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
   getParentRoute: () => authappRouteRoute,
 } as any)
 const authappProfileIndexRoute = authappProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
-  getParentRoute: () => authappRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => authappProfileRouteRoute,
 } as any)
 const authappModelsIndexRoute = authappModelsIndexRouteImport.update({
   id: '/models/',
@@ -106,6 +115,22 @@ const authappDatasetsIndexRoute = authappDatasetsIndexRouteImport.update({
   path: '/datasets/',
   getParentRoute: () => authappRouteRoute,
 } as any)
+const authappProfileSecurityRoute = authappProfileSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => authappProfileRouteRoute,
+} as any)
+const authappProfileLanguageRoute = authappProfileLanguageRouteImport.update({
+  id: '/language',
+  path: '/language',
+  getParentRoute: () => authappProfileRouteRoute,
+} as any)
+const authappProfileAccessTokenRoute =
+  authappProfileAccessTokenRouteImport.update({
+    id: '/access-token',
+    path: '/access-token',
+    getParentRoute: () => authappProfileRouteRoute,
+  } as any)
 const authappModelsNewRoute = authappModelsNewRouteImport.update({
   id: '/models/new',
   path: '/models/new',
@@ -231,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin': typeof authAdminRouteRouteWithChildren
+  '/profile': typeof authappProfileRouteRouteWithChildren
   '/admin/registries': typeof authAdminRegistriesRoute
   '/admin/replications': typeof authAdminReplicationsRoute
   '/admin/users': typeof authAdminUsersRoute
@@ -238,6 +264,9 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId': typeof authappProjectsProjectIdRouteRouteWithChildren
   '/datasets/new': typeof authappDatasetsNewRoute
   '/models/new': typeof authappModelsNewRoute
+  '/profile/access-token': typeof authappProfileAccessTokenRoute
+  '/profile/language': typeof authappProfileLanguageRoute
+  '/profile/security': typeof authappProfileSecurityRoute
   '/datasets/': typeof authappDatasetsIndexRoute
   '/models/': typeof authappModelsIndexRoute
   '/profile/': typeof authappProfileIndexRoute
@@ -270,6 +299,9 @@ export interface FileRoutesByTo {
   '/projects/$projectId': typeof authappProjectsProjectIdRouteRouteWithChildren
   '/datasets/new': typeof authappDatasetsNewRoute
   '/models/new': typeof authappModelsNewRoute
+  '/profile/access-token': typeof authappProfileAccessTokenRoute
+  '/profile/language': typeof authappProfileLanguageRoute
+  '/profile/security': typeof authappProfileSecurityRoute
   '/datasets': typeof authappDatasetsIndexRoute
   '/models': typeof authappModelsIndexRoute
   '/profile': typeof authappProfileIndexRoute
@@ -299,6 +331,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/(auth)/(app)': typeof authappRouteRouteWithChildren
   '/(auth)/admin': typeof authAdminRouteRouteWithChildren
+  '/(auth)/(app)/profile': typeof authappProfileRouteRouteWithChildren
   '/(auth)/admin/registries': typeof authAdminRegistriesRoute
   '/(auth)/admin/replications': typeof authAdminReplicationsRoute
   '/(auth)/admin/users': typeof authAdminUsersRoute
@@ -306,6 +339,9 @@ export interface FileRoutesById {
   '/(auth)/(app)/projects/$projectId': typeof authappProjectsProjectIdRouteRouteWithChildren
   '/(auth)/(app)/datasets/new': typeof authappDatasetsNewRoute
   '/(auth)/(app)/models/new': typeof authappModelsNewRoute
+  '/(auth)/(app)/profile/access-token': typeof authappProfileAccessTokenRoute
+  '/(auth)/(app)/profile/language': typeof authappProfileLanguageRoute
+  '/(auth)/(app)/profile/security': typeof authappProfileSecurityRoute
   '/(auth)/(app)/datasets/': typeof authappDatasetsIndexRoute
   '/(auth)/(app)/models/': typeof authappModelsIndexRoute
   '/(auth)/(app)/profile/': typeof authappProfileIndexRoute
@@ -334,6 +370,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin'
+    | '/profile'
     | '/admin/registries'
     | '/admin/replications'
     | '/admin/users'
@@ -341,6 +378,9 @@ export interface FileRouteTypes {
     | '/projects/$projectId'
     | '/datasets/new'
     | '/models/new'
+    | '/profile/access-token'
+    | '/profile/language'
+    | '/profile/security'
     | '/datasets/'
     | '/models/'
     | '/profile/'
@@ -373,6 +413,9 @@ export interface FileRouteTypes {
     | '/projects/$projectId'
     | '/datasets/new'
     | '/models/new'
+    | '/profile/access-token'
+    | '/profile/language'
+    | '/profile/security'
     | '/datasets'
     | '/models'
     | '/profile'
@@ -401,6 +444,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/(auth)/(app)'
     | '/(auth)/admin'
+    | '/(auth)/(app)/profile'
     | '/(auth)/admin/registries'
     | '/(auth)/admin/replications'
     | '/(auth)/admin/users'
@@ -408,6 +452,9 @@ export interface FileRouteTypes {
     | '/(auth)/(app)/projects/$projectId'
     | '/(auth)/(app)/datasets/new'
     | '/(auth)/(app)/models/new'
+    | '/(auth)/(app)/profile/access-token'
+    | '/(auth)/(app)/profile/language'
+    | '/(auth)/(app)/profile/security'
     | '/(auth)/(app)/datasets/'
     | '/(auth)/(app)/models/'
     | '/(auth)/(app)/profile/'
@@ -502,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authAdminRegistriesRouteImport
       parentRoute: typeof authAdminRouteRoute
     }
+    '/(auth)/(app)/profile': {
+      id: '/(auth)/(app)/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof authappProfileRouteRouteImport
+      parentRoute: typeof authappRouteRoute
+    }
     '/(auth)/(app)/projects/': {
       id: '/(auth)/(app)/projects/'
       path: '/projects'
@@ -511,10 +565,10 @@ declare module '@tanstack/react-router' {
     }
     '/(auth)/(app)/profile/': {
       id: '/(auth)/(app)/profile/'
-      path: '/profile'
+      path: '/'
       fullPath: '/profile/'
       preLoaderRoute: typeof authappProfileIndexRouteImport
-      parentRoute: typeof authappRouteRoute
+      parentRoute: typeof authappProfileRouteRoute
     }
     '/(auth)/(app)/models/': {
       id: '/(auth)/(app)/models/'
@@ -529,6 +583,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/datasets/'
       preLoaderRoute: typeof authappDatasetsIndexRouteImport
       parentRoute: typeof authappRouteRoute
+    }
+    '/(auth)/(app)/profile/security': {
+      id: '/(auth)/(app)/profile/security'
+      path: '/security'
+      fullPath: '/profile/security'
+      preLoaderRoute: typeof authappProfileSecurityRouteImport
+      parentRoute: typeof authappProfileRouteRoute
+    }
+    '/(auth)/(app)/profile/language': {
+      id: '/(auth)/(app)/profile/language'
+      path: '/language'
+      fullPath: '/profile/language'
+      preLoaderRoute: typeof authappProfileLanguageRouteImport
+      parentRoute: typeof authappProfileRouteRoute
+    }
+    '/(auth)/(app)/profile/access-token': {
+      id: '/(auth)/(app)/profile/access-token'
+      path: '/access-token'
+      fullPath: '/profile/access-token'
+      preLoaderRoute: typeof authappProfileAccessTokenRouteImport
+      parentRoute: typeof authappProfileRouteRoute
     }
     '/(auth)/(app)/models/new': {
       id: '/(auth)/(app)/models/new'
@@ -673,6 +748,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface authappProfileRouteRouteChildren {
+  authappProfileAccessTokenRoute: typeof authappProfileAccessTokenRoute
+  authappProfileLanguageRoute: typeof authappProfileLanguageRoute
+  authappProfileSecurityRoute: typeof authappProfileSecurityRoute
+  authappProfileIndexRoute: typeof authappProfileIndexRoute
+}
+
+const authappProfileRouteRouteChildren: authappProfileRouteRouteChildren = {
+  authappProfileAccessTokenRoute: authappProfileAccessTokenRoute,
+  authappProfileLanguageRoute: authappProfileLanguageRoute,
+  authappProfileSecurityRoute: authappProfileSecurityRoute,
+  authappProfileIndexRoute: authappProfileIndexRoute,
+}
+
+const authappProfileRouteRouteWithChildren =
+  authappProfileRouteRoute._addFileChildren(authappProfileRouteRouteChildren)
+
 interface authappProjectsProjectIdRouteRouteChildren {
   authappProjectsProjectIdDatasetsIndexRoute: typeof authappProjectsProjectIdDatasetsIndexRoute
   authappProjectsProjectIdMembersIndexRoute: typeof authappProjectsProjectIdMembersIndexRoute
@@ -752,25 +844,25 @@ const authappProjectsProjectIdModelsModelIdRouteRouteWithChildren =
   )
 
 interface authappRouteRouteChildren {
+  authappProfileRouteRoute: typeof authappProfileRouteRouteWithChildren
   authappProjectsProjectIdRouteRoute: typeof authappProjectsProjectIdRouteRouteWithChildren
   authappDatasetsNewRoute: typeof authappDatasetsNewRoute
   authappModelsNewRoute: typeof authappModelsNewRoute
   authappDatasetsIndexRoute: typeof authappDatasetsIndexRoute
   authappModelsIndexRoute: typeof authappModelsIndexRoute
-  authappProfileIndexRoute: typeof authappProfileIndexRoute
   authappProjectsIndexRoute: typeof authappProjectsIndexRoute
   authappProjectsProjectIdDatasetsDatasetIdRouteRoute: typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren
   authappProjectsProjectIdModelsModelIdRouteRoute: typeof authappProjectsProjectIdModelsModelIdRouteRouteWithChildren
 }
 
 const authappRouteRouteChildren: authappRouteRouteChildren = {
+  authappProfileRouteRoute: authappProfileRouteRouteWithChildren,
   authappProjectsProjectIdRouteRoute:
     authappProjectsProjectIdRouteRouteWithChildren,
   authappDatasetsNewRoute: authappDatasetsNewRoute,
   authappModelsNewRoute: authappModelsNewRoute,
   authappDatasetsIndexRoute: authappDatasetsIndexRoute,
   authappModelsIndexRoute: authappModelsIndexRoute,
-  authappProfileIndexRoute: authappProfileIndexRoute,
   authappProjectsIndexRoute: authappProjectsIndexRoute,
   authappProjectsProjectIdDatasetsDatasetIdRouteRoute:
     authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren,
