@@ -3,6 +3,7 @@ import {
 } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
 
+import { CurrentUserContext } from '@/context/current-user-context.tsx'
 import i18n from '@/i18n'
 
 const TanStackRouterDevtools = import.meta.env.DEV
@@ -14,15 +15,12 @@ const TanStackRouterDevtools = import.meta.env.DEV
   : () => null
 
 export const Route = createRootRoute({
-  component: () => (
-    <>
-      <HeadContent />
-      <Outlet />
-      <Suspense fallback={null}>
-        <TanStackRouterDevtools initialIsOpen={false} />
-      </Suspense>
-    </>
-  ),
+  loader: async () => {
+    // TODO: Add error handling
+    // return await CurrentUser.GetCurrentUser({})
+    return { username: 'Admin' }
+  },
+  component: RootComponent,
   head: () => ({
     meta: [{
       title: i18n.t('translation.title'),
@@ -35,3 +33,19 @@ export const Route = createRootRoute({
     ],
   }),
 })
+
+function RootComponent() {
+  const user = Route.useLoaderData()
+
+  return (
+    <>
+      <HeadContent />
+      <CurrentUserContext value={user}>
+        <Outlet />
+      </CurrentUserContext>
+      <Suspense fallback={null}>
+        <TanStackRouterDevtools initialIsOpen={false} />
+      </Suspense>
+    </>
+  )
+}
