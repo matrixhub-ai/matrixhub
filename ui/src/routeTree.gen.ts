@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as authRouteRouteImport } from './routes/(auth)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as authAdminRouteRouteImport } from './routes/(auth)/admin/route'
@@ -50,6 +51,11 @@ import { Route as authappProjectsProjectIdDatasetsDatasetIdBlobRefSplatRouteImpo
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const authRouteRoute = authRouteRouteImport.update({
@@ -255,6 +261,7 @@ const authappProjectsProjectIdDatasetsDatasetIdBlobRefSplatRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/login': typeof LoginRoute
   '/admin': typeof authAdminRouteRouteWithChildren
   '/profile': typeof authappProfileRouteRouteWithChildren
@@ -292,6 +299,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/login': typeof LoginRoute
   '/admin/registries': typeof authAdminRegistriesRoute
   '/admin/replications': typeof authAdminReplicationsRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/(auth)': typeof authRouteRouteWithChildren
+  '/$': typeof SplatRoute
   '/login': typeof LoginRoute
   '/(auth)/(app)': typeof authappRouteRouteWithChildren
   '/(auth)/admin': typeof authAdminRouteRouteWithChildren
@@ -368,6 +377,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$'
     | '/login'
     | '/admin'
     | '/profile'
@@ -405,6 +415,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$'
     | '/login'
     | '/admin/registries'
     | '/admin/replications'
@@ -440,6 +451,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/(auth)'
+    | '/$'
     | '/login'
     | '/(auth)/(app)'
     | '/(auth)/admin'
@@ -480,6 +492,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   authRouteRoute: typeof authRouteRouteWithChildren
+  SplatRoute: typeof SplatRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -490,6 +503,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(auth)': {
@@ -912,6 +932,7 @@ const authRouteRouteWithChildren = authRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   authRouteRoute: authRouteRouteWithChildren,
+  SplatRoute: SplatRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

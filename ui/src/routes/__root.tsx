@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react'
 
 import { CurrentUserContext } from '@/context/current-user-context'
 import i18n from '@/i18n'
+import { AuthProvider } from '@/provider/auth'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -61,7 +62,8 @@ function RootComponent() {
   const user = Route.useLoaderData()
 
   return (
-    <>
+    // TODO FIX
+    <AuthProvider>
       <HeadContent />
       <CurrentUserContext value={user}>
         <Outlet />
@@ -69,6 +71,6 @@ function RootComponent() {
       <Suspense fallback={null}>
         <TanStackDevtools />
       </Suspense>
-    </>
+    </AuthProvider>
   )
 }

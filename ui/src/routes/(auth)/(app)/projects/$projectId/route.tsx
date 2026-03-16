@@ -5,13 +5,14 @@ import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { IconApiApp as ProjectIcon } from '@tabler/icons-react'
 import {
   createFileRoute,
-  notFound,
   Outlet,
   useLocation,
   useMatchRoute,
   useNavigate,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+
+import { NotFoundRouteError } from '@/utils/routerAccess'
 
 export const Route = createFileRoute('/(auth)/(app)/projects/$projectId')({
   loader: async ({ params: { projectId } }) => {
@@ -21,14 +22,13 @@ export const Route = createFileRoute('/(auth)/(app)/projects/$projectId')({
       })
 
       if (!res) {
-        // TODO: replace this with the dedicated 404 page once it's implemented.
-        throw notFound()
+        throw new NotFoundRouteError()
       }
 
       return { project: res }
     } catch (error) {
       console.error('Failed to load project data:', error)
-      throw notFound()
+      throw new NotFoundRouteError()
     }
   },
   component: RouteComponent,
