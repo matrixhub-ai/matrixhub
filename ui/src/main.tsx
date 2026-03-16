@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client'
 import './i18n/index.ts'
 import '@mantine/core/styles.css'
 import './index.css'
-import { mantineTheme } from './mantineTheme'
+import { mantineTheme, cssVariablesResolver } from './mantineTheme'
 import { router } from './router.tsx'
 
 const rootElement = document.getElementById('root')
@@ -17,7 +17,7 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <MantineProvider theme={mantineTheme}>
+    <MantineProvider theme={mantineTheme} cssVariablesResolver={cssVariablesResolver}>
       <RouterProvider router={router} />
     </MantineProvider>
   </StrictMode>,
