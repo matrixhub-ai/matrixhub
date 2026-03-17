@@ -16,6 +16,7 @@ export default defineConfig(
     'node_modules',
     'src/routeTree.gen.ts',
     '.vscode',
+    'public/api-proxy-sw.js',
     '.agents',
   ]),
 

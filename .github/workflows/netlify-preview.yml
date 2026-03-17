@@ -1,0 +1,77 @@
+name: Netlify Preview Deploy
+
+on:
+  pull_request:
+    paths:
+      - ui/**
+      - api/ts/**
+
+defaults:
+  run:
+    working-directory: ui
+
+jobs:
+  deploy:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    environment: test
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-ui
+
+      - name: Build (dev-deploy mode)
+        run: pnpm run build
+        env:
+          VITE_DEV_DEPLOY: 'true'
+
+      - name: Deploy to Netlify
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          output=$(npx netlify-cli deploy --dir=dist --no-build --json)
+          url=$(echo "$output" | jq -r '.deploy_url')
+          echo "deploy_url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployUrl = '${{ steps.deploy.outputs.deploy_url }}';
+            const body = [
+              '### Netlify Preview Deploy',
+              '',
+              `**Preview URL:** ${deployUrl}`,
+              '',
+              '> Open the preview and configure the backend API server URL to start testing.',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user?.login === 'github-actions[bot]' &&
+              c.body?.includes('Netlify Preview Deploy')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

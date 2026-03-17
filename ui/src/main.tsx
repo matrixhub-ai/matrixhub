@@ -21,6 +21,7 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
+<<<<<<< HEAD
 createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -31,3 +32,20 @@ createRoot(rootElement).render(
     </QueryClientProvider>
   </StrictMode>,
 )
+=======
+if (import.meta.env.VITE_DEV_DEPLOY) {
+  // Dev deploy mode: dynamically import dev app with Service Worker API proxy.
+  // This entire branch is dead-code-eliminated in production builds.
+  import('./features/dev-deploy/DevApp').then(({ mountDevApp }) => {
+    mountDevApp(rootElement)
+  })
+} else {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <MantineProvider theme={mantineTheme}>
+        <RouterProvider router={router} />
+      </MantineProvider>
+    </StrictMode>,
+  )
+}
+>>>>>>> 9c3f91d (chore(ui): support deploy pr preview)
