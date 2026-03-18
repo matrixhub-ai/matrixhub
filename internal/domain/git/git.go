@@ -41,6 +41,7 @@ type Commit struct {
 	AuthorDate     time.Time `json:"authorDate"`
 	CommitterName  string    `json:"committerName"`
 	CommitterEmail string    `json:"committerEmail"`
+	CommitterDate  time.Time `json:"committerDate"`
 	Diff           string    `json:"diff"`
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
