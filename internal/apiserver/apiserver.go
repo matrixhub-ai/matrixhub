@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -31,10 +32,12 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	backendlfs "github.com/matrixhub-ai/hfd/pkg/backend/lfs"
+	backendssh "github.com/matrixhub-ai/hfd/pkg/backend/ssh"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/receive"
+	hfdssh "github.com/matrixhub-ai/hfd/pkg/ssh"
 	gitstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
@@ -61,12 +64,14 @@ type APIServer struct {
 	debug      bool
 	cmux       cmux.CMux
 	httpServer *http.Server
+	sshServer  *backendssh.Server
 	engine     *gin.Engine
 	gatewayMux *runtime.ServeMux
 	grpcServer *grpc.Server
 	port       int
 
 	gitHooks   gitHooks
+	gitAuth    gitAuth
 	gitStorage gitStorage
 
 	repos    *repo.Repos
@@ -103,8 +108,10 @@ func NewAPIServer(config *config.Config) *APIServer {
 		port:       config.APIServer.Port,
 	}
 
+	server.initGitAuth()
 	server.initGitHooks()
 	server.initGitStorage()
+	server.initSSHBackend()
 	server.initHandlersServicesRepos()
 
 	// Register authn + authz middleware (must be after initHandlersServicesRepos)
@@ -180,6 +187,45 @@ func (server *APIServer) initGitHooks() {
 	server.gitHooks.mirrorRefFilterFunc = mirrorRefFilterFunc
 }
 
+type gitAuth struct {
+	basicAuthValidator authenticate.BasicAuthValidator
+	publicKeyValidator authenticate.PublicKeyValidator
+	tokenValidator     authenticate.TokenValidator
+	tokenSignValidator authenticate.TokenSignValidator
+}
+
+func (server *APIServer) initGitAuth() {
+	// TODO: implement real validators that validate the credentials and return the corresponding user info.
+	// For now, we just return true for all validators to allow all requests to pass through.
+	// This is not secure and should be replaced with real implementations.
+
+	basicAuthValidator := authenticate.BasicAuthValidatorFunc(func(ctx context.Context, username, password string) (user string, next, ok bool, err error) {
+		// validate username and password, return true if valid, false if invalid, or an error if there's an error during validation
+		return "", false, true, nil
+	})
+
+	publicKeyValidator := authenticate.PublicKeyValidatorFunc(func(ctx context.Context, username string, keyType string, marshaledKey []byte) (user string, next, ok bool, err error) {
+		// validate the public key for the given username, return true if valid, false if invalid, or an error if there's an error during validation
+		return "", false, true, nil
+	})
+
+	tokenValidator := authenticate.TokenValidatorFunc(func(ctx context.Context, token string) (user string, next, ok bool, err error) {
+		// validate the token, return true if valid, false if invalid, or an error if there's an error during validation
+		return "", false, true, nil
+	})
+
+	// TODO: Use a proper secret management solution to manage the token signing secret.
+	// Generating and validating temporary tokens.
+	// Currently only used to provide http lfs download in ssh ports.
+	tmpTokenSecret := []byte("secret-xxxxxx")
+	tokenSignValidator := authenticate.NewTokenSignValidator(tmpTokenSecret)
+
+	server.gitAuth.basicAuthValidator = basicAuthValidator
+	server.gitAuth.publicKeyValidator = publicKeyValidator
+	server.gitAuth.tokenValidator = tokenValidator
+	server.gitAuth.tokenSignValidator = tokenSignValidator
+}
+
 type gitStorage struct {
 	storage      *gitstorage.Storage
 	lfsStorage   lfs.Storage
@@ -223,6 +269,9 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 	permissionHookFunc := server.gitHooks.permissionHookFunc
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
 	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
+	basicAuthValidator := server.gitAuth.basicAuthValidator
+	tokenValidator := server.gitAuth.tokenValidator
+	tokenSignValidator := server.gitAuth.tokenSignValidator
 
 	handler = backendhf.NewHandler(
 		backendhf.WithStorage(storage),
@@ -258,8 +307,49 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 	)
 
 	handler = authenticate.AnonymousAuthenticateHandler(handler)
+	handler = authenticate.TokenValidatorHandler(tokenValidator, handler)
+	handler = authenticate.TokenSignValidatorHandler(tokenSignValidator, handler)
+	handler = authenticate.BasicAuthHandler(basicAuthValidator, handler)
 
 	return handler
+}
+
+func (server *APIServer) initSSHBackend() {
+	if server.config.APIServer.SSHPort == 0 {
+		return
+	}
+
+	hostKeyPath := server.config.APIServer.SSHHostKeyPath
+
+	storage := server.gitStorage.storage
+	sharedMirror := server.gitStorage.sharedMirror
+	permissionHookFunc := server.gitHooks.permissionHookFunc
+	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
+	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
+	basicAuthValidator := server.gitAuth.basicAuthValidator
+	publicKeyValidator := server.gitAuth.publicKeyValidator
+	tokenSignValidator := server.gitAuth.tokenSignValidator
+
+	data, _ := os.ReadFile(hostKeyPath)
+	hostKeySigner, _ := hfdssh.ParseHostKeyFile(data)
+	// TODO: handle error and edge cases for host key file (e.g. file not exist, invalid format, etc.)
+
+	sshOpts := []backendssh.Option{
+		backendssh.WithStorage(storage),
+		backendssh.WithHostKey(hostKeySigner),
+		backendssh.WithPermissionHookFunc(permissionHookFunc),
+		backendssh.WithPreReceiveHookFunc(preReceiveHookFunc),
+		backendssh.WithPostReceiveHookFunc(postReceiveHookFunc),
+		backendssh.WithMirror(sharedMirror),
+		backendssh.WithLFSURL(server.config.APIServer.HostURL),
+		backendssh.WithBasicAuthValidator(basicAuthValidator),
+		backendssh.WithPublicKeyValidator(publicKeyValidator),
+		backendssh.WithTokenSignValidator(tokenSignValidator),
+	}
+
+	sshServer := backendssh.NewServer(sshOpts...)
+
+	server.sshServer = sshServer
 }
 
 type Services struct {
@@ -421,6 +511,17 @@ func (server *APIServer) Start() <-chan error {
 			log.Errorw("run api server failed", "error", err)
 		}
 	}()
+
+	if server.config.APIServer.SSHPort != 0 {
+		go func() {
+			sshAddr := fmt.Sprintf(":%d", server.config.APIServer.SSHPort)
+			log.Infof("SSH protocol server is listening on %s", sshAddr)
+			if err := server.sshServer.ListenAndServe(context.Background(), sshAddr); err != nil {
+				errorCh <- err
+				log.Errorw("run SSH protocol server failed", "addr", sshAddr, "error", err)
+			}
+		}()
+	}
 
 	return errorCh
 }

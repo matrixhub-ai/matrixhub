@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
+	hfdssh "github.com/matrixhub-ai/hfd/pkg/ssh"
 	"github.com/spf13/viper"
 
 	"github.com/matrixhub-ai/matrixhub/internal/infra/db"
@@ -38,7 +39,10 @@ type Config struct {
 }
 
 type APIServerConfig struct {
-	Port int `yaml:"port" validate:"required"`
+	Port           int    `yaml:"port" validate:"required"`
+	SSHPort        int    `yaml:"sshPort"`
+	SSHHostKeyPath string `yaml:"sshHostKeyPath"`
+	HostURL        string `yaml:"hostURL"`
 }
 
 type UIConfig struct {
@@ -72,6 +76,40 @@ func Init(configPath, sqlPath string) (*Config, error) {
 	if cfg.DataDir == "" {
 		log.Warn("dataDir is not set, using default ./data")
 		cfg.DataDir = "./data"
+	}
+
+	if cfg.APIServer.SSHPort != 0 {
+		hostKeyPath := cfg.APIServer.SSHHostKeyPath
+		if hostKeyPath == "" {
+			absRootDir, err := filepath.Abs(cfg.DataDir)
+			if err != nil {
+				return nil, fmt.Errorf("error getting absolute path of data directory: %w", err)
+			}
+			hostKeyPath = filepath.Join(absRootDir, "ssh_host_rsa_key")
+		}
+		data, err := os.ReadFile(hostKeyPath)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return nil, fmt.Errorf("error reading SSH host key file: %w", err)
+			}
+			_, err = hfdssh.GenerateAndSaveHostKey(hostKeyPath, hfdssh.KeyTypeRSA)
+			if err != nil {
+				return nil, fmt.Errorf("error generating SSH host key: %w", err)
+			}
+			log.Infof("Generated SSH host key at %s", hostKeyPath)
+		} else {
+			_, err := hfdssh.ParseHostKeyFile(data)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing SSH host key file: %w", err)
+			}
+		}
+
+		cfg.APIServer.SSHHostKeyPath = hostKeyPath
+	}
+
+	if cfg.APIServer.HostURL == "" {
+		cfg.APIServer.HostURL = fmt.Sprintf("http://localhost:%d", cfg.APIServer.Port)
+		log.Warnf("hostURL is not set, using default %s", cfg.APIServer.HostURL)
 	}
 
 	err := os.MkdirAll(cfg.DataDir, os.ModePerm)
