@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS sync_jobs;
-DROP TABLE IF EXISTS replication_tasks;
-DROP TABLE IF EXISTS replication_rules;
+DROP TABLE IF EXISTS sync_tasks;
+DROP TABLE IF EXISTS sync_policies;
 DROP TABLE IF EXISTS access_tokens;
 DROP TABLE IF EXISTS datasets;
 DROP TABLE IF EXISTS models;

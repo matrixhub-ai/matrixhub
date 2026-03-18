@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package replication
+package syncpolicy
 
 import (
 	"context"
@@ -21,7 +21,7 @@ import (
 )
 
 // Todo: change it according to requirement
-type ReplicationRule struct {
+type SyncPolicy struct {
 	ID                 int
 	Name               string
 	Description        string
@@ -34,10 +34,10 @@ type ReplicationRule struct {
 	SyncType           string
 }
 
-type IReplicationRuleRepo interface {
-	CreateReplicationRule(ctx context.Context, rule *ReplicationRule) error
-	GetReplicationRule(ctx context.Context, rule *ReplicationRule) (*ReplicationRule, error)
-	UpdateReplicationRule(ctx context.Context, rule *ReplicationRule) error
-	DeleteReplicationRule(ctx context.Context, rule *ReplicationRule) error
-	GenerateReplicationTaskAndSyncJobs(ctx context.Context, rule *ReplicationRule) (*ReplicationTask, []*syncjob.SyncJob, error)
+type ISyncPolicyRepo interface {
+	CreateSyncPolicy(ctx context.Context, policy *SyncPolicy) error
+	GetSyncPolicy(ctx context.Context, policy *SyncPolicy) (*SyncPolicy, error)
+	UpdateSyncPolicy(ctx context.Context, policy *SyncPolicy) error
+	DeleteSyncPolicy(ctx context.Context, policy *SyncPolicy) error
+	GenerateSyncTaskAndSyncJobs(ctx context.Context, policy *SyncPolicy) (*SyncTask, []*syncjob.SyncJob, error)
 }

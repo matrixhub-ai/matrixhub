@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package replication
+package syncpolicy
 
 import (
 	"context"
 )
 
-type ReplicationTask struct {
-	ID                int
-	ReplicationRuleID int
-	CompletePercents  int
+type SyncTask struct {
+	ID               int
+	SyncPolicyID     int
+	CompletePercents int
 }
 
-type IReplicationTaskRepo interface {
-	CreateReplicationTask(ctx context.Context, task *ReplicationTask) (*ReplicationTask, error)
-	GetReplicationTask(ctx context.Context, task *ReplicationTask) (*ReplicationTask, error)
-	UpdateReplicationTask(ctx context.Context, task *ReplicationTask) error
-	DeleteReplicationTask(ctx context.Context, task *ReplicationTask) error
-	ListReplicationTasksByRuleID()
+type ISyncTaskRepo interface {
+	CreateSyncTask(ctx context.Context, task *SyncTask) (*SyncTask, error)
+	GetSyncTask(ctx context.Context, task *SyncTask) (*SyncTask, error)
+	UpdateSyncTask(ctx context.Context, task *SyncTask) error
+	DeleteSyncTask(ctx context.Context, task *SyncTask) error
+	ListSyncTasksByPolicyID()
 }

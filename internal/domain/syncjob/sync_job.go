@@ -27,12 +27,12 @@ type SyncJob struct {
 	ResourceName       string
 	ResourceType       string
 	SyncType           string
-	ReplicationTaskID  int
+	SyncTaskID         int
 	CompletePercents   int
 }
 
-func (p *SyncJob) HasReplicationTask() bool {
-	return p.ReplicationTaskID > 0
+func (p *SyncJob) HasSyncTask() bool {
+	return p.SyncTaskID > 0
 }
 
 type ISyncJobRepo interface {

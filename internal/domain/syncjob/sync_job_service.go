@@ -70,7 +70,7 @@ func (sjs *SyncJobService) ExecuteSyncJob(ctx context.Context, syncJob *SyncJob)
 	}
 	prj, err := sjs.projectRepo.GetProjectByName(ctx, syncJob.ProjectName)
 	if err != nil {
-		if syncJob.HasReplicationTask() {
+		if syncJob.HasSyncTask() {
 			prj = &project.Project{
 				Name: syncJob.ProjectName,
 			}

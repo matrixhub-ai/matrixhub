@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS `access_tokens`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `replication_rules`
+CREATE TABLE IF NOT EXISTS `sync_policies`
 (
     `id`         int       NOT NULL AUTO_INCREMENT,
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -156,10 +156,10 @@ CREATE TABLE IF NOT EXISTS `replication_rules`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `replication_tasks`
+CREATE TABLE IF NOT EXISTS `sync_tasks`
 (
     `id`                  int       NOT NULL AUTO_INCREMENT,
-    `replication_rule_id` int,
+    `sync_policy_id` int,
     `created_at`          timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`          timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `sync_jobs`
     `resource_name`        varchar(255) NOT NULL,
     `resource_type`        varchar(64)  NOT NULL,
     `sync_type`            varchar(64)  NOT NULL,
-    `replication_task_id`  int,
+    `sync_task_id`  int,
     `complete_percents`    int,
     `created_at`           timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`           timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
