@@ -2,9 +2,7 @@
 /* eslint-disable @eslint-react/web-api/no-leaked-event-listener */
 /* eslint-disable react-refresh/only-export-components */
 import { MantineProvider } from '@mantine/core'
-import { RouterProvider } from '@tanstack/react-router'
 import {
-  StrictMode,
   useCallback,
   useEffect,
   useRef,
@@ -13,9 +11,8 @@ import {
 import { createRoot } from 'react-dom/client'
 
 import '@mantine/core/styles.css'
-import '../../index.css'
-import { mantineTheme } from '../../mantineTheme'
-import { router } from '../../router'
+import './index.css'
+import { mantineTheme } from './mantineTheme'
 
 const STORAGE_KEY = 'dev-api-proxy-target'
 
@@ -300,7 +297,13 @@ function DevToolbar({
 
 type Phase = 'loading' | 'config' | 'cert-check' | 'cert-untrusted' | 'ready'
 
-function DevAppRoot() {
+function DevAppRoot({
+  RealApp,
+}: {
+  RealApp: React.FC<{
+    DevPlaceholder: React.FC
+  }>
+}) {
   const {
     ready: swReady, sendTarget,
   } = useServiceWorker()
@@ -404,15 +407,13 @@ function DevAppRoot() {
   }
 
   return (
-    <StrictMode>
-      <MantineProvider theme={mantineTheme}>
-        <RouterProvider router={router} />
-        <DevToolbar target={apiTarget} onEdit={() => setPhase('config')} />
-      </MantineProvider>
-    </StrictMode>
+    <RealApp
+      DevPlaceholder={() => <DevToolbar target={apiTarget} onEdit={() => setPhase('config')} />}
+    >
+    </RealApp>
   )
 }
 
-export function mountDevApp(rootElement: HTMLElement) {
-  createRoot(rootElement).render(<DevAppRoot />)
+export function mountDevApp(rootElement: HTMLElement, RealApp: React.FC) {
+  createRoot(rootElement).render(<DevAppRoot RealApp={RealApp} />)
 }

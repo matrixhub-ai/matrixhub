@@ -33,7 +33,8 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          output=$(npx netlify-cli deploy --dir=dist --no-build --json)
+          alias="pr-${{ github.event.pull_request.number }}"
+          output=$(npx netlify-cli deploy --dir=dist --no-build --alias "$alias" --json)
           url=$(echo "$output" | jq -r '.deploy_url')
           echo "deploy_url=$url" >> "$GITHUB_OUTPUT"
 
@@ -47,7 +48,7 @@ jobs:
               '',
               `**Preview URL:** ${deployUrl}`,
               '',
-              '> Open the preview and configure the backend API server URL to start testing.',
+              '> This PR uses a stable preview URL alias, so backend configuration can be reused across redeploys for the same PR.',
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
