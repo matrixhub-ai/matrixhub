@@ -7,9 +7,12 @@ import {
 import svgr from 'vite-plugin-svgr'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
+import { devDeployPlugin } from './vite/devDeployPlugin'
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const devDeployEnabled = env.VITE_DEV_DEPLOY === 'true' || process.env.VITE_DEV_DEPLOY === 'true'
 
   return {
     base: env.VITE_UI_BASE_PATH ?? '/',
@@ -36,6 +39,10 @@ export default defineConfig(({ mode }) => {
         babel: {
           plugins: [['babel-plugin-react-compiler']],
         },
+      }),
+      devDeployPlugin({
+        enabled: devDeployEnabled,
+        serviceWorkerPath: `${env.VITE_UI_BASE_PATH ?? '/'}api-proxy-sw.js`,
       }),
       tsconfigPaths(),
       svgr(),
