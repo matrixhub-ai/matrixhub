@@ -23,8 +23,10 @@ export function devDeployPlugin({
         const bootstrapScript = [
           '<script type="module">',
           '  import { bootstrapDevDeploy } from "/src/dev-deploy/bootstrap.ts"',
-          '  await bootstrapDevDeploy({',
+          '  bootstrapDevDeploy({',
           `    serviceWorkerPath: ${JSON.stringify(serviceWorkerPath)},`,
+          '  }).catch((error) => {',
+          '    console.error("Dev deploy bootstrap failed", error)',
           '  })',
           '</script>',
         ].join('\n')

@@ -424,7 +424,15 @@ export async function bootstrapDevDeploy({
       toolbar.setTarget(apiTarget)
     })
 
-    await import('../main.tsx')
+    const rootElement = document.getElementById('root')
+
+    if (!rootElement) {
+      throw new Error('Root element not found.')
+    }
+
+    const { mountApp } = await import('../app.tsx')
+
+    mountApp(rootElement)
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'Unknown error.'
 
