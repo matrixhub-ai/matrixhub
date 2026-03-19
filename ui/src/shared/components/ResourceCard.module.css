@@ -1,0 +1,35 @@
+.card {
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 150ms ease;
+}
+
+.title {
+  color: var(--mantine-color-gray-8);
+  transition: color 150ms ease;
+}
+
+.card[data-interactive]:hover {
+  border-color: var(--mantine-color-cyan-6);
+  cursor: pointer;
+}
+
+.card[data-interactive]:focus-visible,
+.card[data-interactive]:focus-within {
+  border-color: var(--mantine-color-cyan-6);
+}
+
+.card[data-interactive]:focus-visible {
+  outline: 2px solid var(--mantine-color-cyan-6);
+  outline-offset: 2px;
+}
+
+
+.badgeRow {
+  overflow: hidden;
+}
+
+.iconSlot {
+  display: flex;
+  flex-shrink: 0;
+}

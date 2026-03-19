@@ -1,10 +1,12 @@
 import {
-  createRootRoute, Outlet, HeadContent,
+  createRootRouteWithContext, Outlet, HeadContent,
 } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
 
 import { CurrentUserContext } from '@/context/current-user-context.tsx'
 import i18n from '@/i18n'
+
+import type { QueryClient } from '@tanstack/react-query'
 
 const TanStackRouterDevtools = import.meta.env.DEV
   ? lazy(() =>
@@ -14,7 +16,9 @@ const TanStackRouterDevtools = import.meta.env.DEV
     )
   : () => null
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+}>()({
   loader: async () => {
     // TODO: Add error handling
     // return await CurrentUser.GetCurrentUser({})

@@ -1,6 +1,8 @@
 {
-  "total": "共 {{count}} 条",
+  "search": "搜索",
   "refresh": "刷新",
-  "batchDelete": "删除 ({{count}})",
-  "search": "搜索"
+  "batchDelete": "删除已选 {{count}} 项",
+  "total": "共 {{count}} 条",
+  "sortOrderAsc": "升序",
+  "sortOrderDesc": "降序"
 }

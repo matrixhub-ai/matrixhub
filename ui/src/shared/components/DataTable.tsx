@@ -1,13 +1,21 @@
 import {
   type BoxProps,
+  Button,
+  Center,
   type PaperProps,
+  Stack,
   type TableProps as MantineTableProps,
+  Text,
 } from '@mantine/core'
 import { MantineReactTable } from 'mantine-react-table'
+import { useTranslation } from 'react-i18next'
 
-import { CollectionLayout } from './CollectionLayout'
+import { Pagination } from './Pagination'
+import {
+  SearchToolbar,
+  type SearchToolbarProps,
+} from './SearchToolbar'
 
-import type { CollectionToolbarProps } from './CollectionLayout'
 import type { Pagination as PaginationData } from '@matrixhub/api-ts/v1alpha1/utils.pb'
 import type {
   MRT_ColumnDef,
@@ -21,6 +29,35 @@ import type {
   Dispatch, ReactNode, SetStateAction,
 } from 'react'
 
+// -- Toolbar types --
+
+export interface DataTableToolbarProps {
+  /** Show search input. Provide a placeholder string or `true` to use default. */
+  searchPlaceholder?: string | boolean
+  /** Controlled search value. */
+  searchValue?: string
+  /** Called when search input changes. */
+  onSearchChange?: (value: string) => void
+  /** Extra props forwarded to the default SearchToolbar. */
+  searchToolbarProps?: Omit<
+    SearchToolbarProps,
+    'searchPlaceholder' | 'searchValue' | 'onSearchChange' | 'children'
+  >
+
+  /** Show refresh button when provided. */
+  onRefresh?: () => void
+
+  /** Number of selected items. Shows batch-delete button when > 0 and `onBatchDelete` is provided. */
+  selectedCount?: number
+  /** Called when batch-delete button is clicked. */
+  onBatchDelete?: () => void
+
+  /** Slot: replaces the entire toolbar row. Receives default toolbar as children for composition. */
+  renderToolbar?: (defaultToolbar: ReactNode) => ReactNode
+  /** Slot: extra actions rendered after built-in buttons. */
+  toolbarExtra?: ReactNode
+}
+
 /**
  * Common props for resource table wrappers (e.g. ProjectsTable, ModelsTable).
  * Provides the standard set of pagination, search, selection, and action props
@@ -33,6 +70,10 @@ export interface TableProps<T> {
   loading?: boolean
   searchValue?: string
   onSearchChange?: (value: string) => void
+  searchToolbarProps?: Omit<
+    SearchToolbarProps,
+    'searchPlaceholder' | 'searchValue' | 'onSearchChange' | 'children'
+  >
   onRefresh?: () => void
   onDelete: (item: T) => void
   onBatchDelete?: () => void
@@ -43,7 +84,7 @@ export interface TableProps<T> {
   toolbarExtra?: ReactNode
 }
 
-interface DataTableProps<TData extends MRT_RowData> extends CollectionToolbarProps {
+interface DataTableProps<TData extends MRT_RowData> extends DataTableToolbarProps {
   /** Row data array */
   data: TData[]
   /** Column definitions */
@@ -95,6 +136,12 @@ interface DataTableProps<TData extends MRT_RowData> extends CollectionToolbarPro
   >
 }
 
+// -- Internal helpers --
+
+function hasContent(value: ReactNode) {
+  return value !== null && value !== undefined && value !== false && value !== ''
+}
+
 function mergeTableOptionProps<TData extends MRT_RowData, TProps extends object>(
   defaults: TProps,
   props:
@@ -119,6 +166,8 @@ function mergeTableOptionProps<TData extends MRT_RowData, TProps extends object>
   }
 }
 
+// -- DataTable --
+
 const emptyRowsFallback = () => null
 
 export function DataTable<TData extends MRT_RowData>({
@@ -139,10 +188,11 @@ export function DataTable<TData extends MRT_RowData>({
   enableRowActions = false,
   renderRowActions,
   positionActionsColumn,
-  // Toolbar (passed through to CollectionLayout)
+  // Toolbar
   searchPlaceholder,
   searchValue,
   onSearchChange,
+  searchToolbarProps,
   onRefresh,
   selectedCount,
   onBatchDelete,
@@ -156,6 +206,7 @@ export function DataTable<TData extends MRT_RowData>({
   // Escape hatch
   tableOptions,
 }: DataTableProps<TData>) {
+  const { t } = useTranslation()
   const {
     initialState,
     mantinePaperProps,
@@ -164,6 +215,7 @@ export function DataTable<TData extends MRT_RowData>({
     state: extraState,
     ...restTableOptions
   } = tableOptions ?? {}
+
   const tableState = {
     isLoading: loading,
     showSkeletons: loading,
@@ -171,24 +223,73 @@ export function DataTable<TData extends MRT_RowData>({
     ...(rowSelection !== undefined ? { rowSelection } : {}),
   }
 
+  // Toolbar
+  const showBatchDelete = (selectedCount ?? 0) > 0 && !!onBatchDelete
+  const showSearch = !!searchPlaceholder
+  const searchPlaceholderText = typeof searchPlaceholder === 'string'
+    ? searchPlaceholder
+    : t('shared.search')
+  const showToolbar = !!(searchPlaceholder || onRefresh || showBatchDelete || toolbarExtra)
+  const defaultToolbar = showToolbar
+    ? (
+        <SearchToolbar
+          {...searchToolbarProps}
+          searchPlaceholder={showSearch ? searchPlaceholderText : undefined}
+          searchValue={searchValue}
+          onSearchChange={onSearchChange}
+          searchInputProps={{
+            maw: 360,
+            style: { flex: 1 },
+            w: '100%',
+            mb: 'md',
+            ...searchToolbarProps?.searchInputProps,
+          }}
+
+        >
+          {showBatchDelete && (
+            <Button
+              color="red"
+              variant="light"
+              onClick={onBatchDelete}
+            >
+              {t('shared.batchDelete', { count: selectedCount })}
+            </Button>
+          )}
+          {onRefresh && (
+            <Button
+              variant="default"
+              onClick={onRefresh}
+              loading={loading}
+            >
+              {t('shared.refresh')}
+            </Button>
+          )}
+          {toolbarExtra}
+        </SearchToolbar>
+      )
+    : null
+
+  const toolbar = renderToolbar
+    ? renderToolbar(defaultToolbar)
+    : defaultToolbar
+
+  // Empty state
+  const hasEmptyTitle = hasContent(emptyTitle)
+  const hasEmptyDescription = hasContent(emptyDescription)
+  const showEmptyState = data.length === 0 && !loading && (hasEmptyTitle || hasEmptyDescription)
+
+  // Pagination
+  const totalPages = pagination?.pages
+    ?? (
+      pagination?.total && pagination?.pageSize
+        ? Math.ceil(pagination.total / pagination.pageSize)
+        : 0
+    )
+
   return (
-    <CollectionLayout
-      hasItems={data.length > 0}
-      pagination={pagination}
-      page={page}
-      loading={loading}
-      emptyTitle={emptyTitle}
-      emptyDescription={emptyDescription}
-      onPageChange={onPageChange}
-      searchPlaceholder={searchPlaceholder}
-      searchValue={searchValue}
-      onSearchChange={onSearchChange}
-      onRefresh={onRefresh}
-      selectedCount={selectedCount}
-      onBatchDelete={onBatchDelete}
-      renderToolbar={renderToolbar}
-      toolbarExtra={toolbarExtra}
-    >
+    <Stack gap={0} miw={0}>
+      {toolbar}
+
       <MantineReactTable
         columns={columns}
         data={data}
@@ -280,6 +381,26 @@ export function DataTable<TData extends MRT_RowData>({
           bg: row.getIsSelected() ? 'var(--mantine-color-cyan-light)' : undefined,
         })}
       />
-    </CollectionLayout>
+
+      {showEmptyState && (
+        <Center py="xl">
+          <Stack align="center" gap="xs">
+            {hasEmptyTitle && <Text fw={500}>{emptyTitle}</Text>}
+            {hasEmptyDescription && (
+              <Text size="sm" c="dimmed">
+                {emptyDescription}
+              </Text>
+            )}
+          </Stack>
+        </Center>
+      )}
+
+      <Pagination
+        total={pagination?.total ?? 0}
+        totalPages={totalPages}
+        page={page}
+        onPageChange={onPageChange}
+      />
+    </Stack>
   )
 }

@@ -5,14 +5,11 @@ import {
   Stack,
   Title,
 } from '@mantine/core'
-import { useDebouncedCallback } from '@mantine/hooks'
 import {
   getRouteApi,
-  useRouter,
   useRouterState,
 } from '@tanstack/react-router'
 import {
-  startTransition,
   useCallback,
   useMemo,
   useState,
@@ -29,10 +26,8 @@ const projectsRouteApi = getRouteApi('/(auth)/(app)/projects/')
 
 export function ProjectsPage() {
   const { t } = useTranslation()
-  const router = useRouter()
   const navigate = projectsRouteApi.useNavigate()
   const search = projectsRouteApi.useSearch()
-  const [query, setQuery] = useState(search.query ?? '')
   const {
     projects,
     pagination,
@@ -42,30 +37,21 @@ export function ProjectsPage() {
   })
   const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({})
 
-  const updateSearchQuery = useDebouncedCallback((value: string) => {
-    const nextQuery = value.trim()
-
-    if (nextQuery === search.query) {
+  const handleSearchChange = useCallback((value: string) => {
+    if (value === (search.query ?? '')) {
       return
     }
 
     setRowSelection({})
-    startTransition(() => {
-      void navigate({
-        replace: true,
-        search: prev => ({
-          ...prev,
-          page: 1,
-          query: nextQuery,
-        }),
-      })
+    void navigate({
+      replace: true,
+      search: prev => ({
+        ...prev,
+        page: 1,
+        query: value,
+      }),
     })
-  }, 300)
-
-  const handleSearchChange = useCallback((value: string) => {
-    setQuery(value)
-    updateSearchQuery(value)
-  }, [updateSearchQuery])
+  }, [navigate, search.query])
 
   const handleCreate = () => {
     // TODO: open create project modal
@@ -90,21 +76,16 @@ export function ProjectsPage() {
 
   const handleRefresh = useCallback(() => {
     setRowSelection({})
-    void router.invalidate({
-      filter: match => match.routeId === '/(auth)/(app)/projects/',
-      sync: true,
-    })
-  }, [router])
+    // TODO： refresh projects list, currently we rely on router's loading state which is not ideal
+  }, [])
 
   const handlePageChange = useCallback((page: number) => {
     setRowSelection({})
-    startTransition(() => {
-      void navigate({
-        search: prev => ({
-          ...prev,
-          page,
-        }),
-      })
+    void navigate({
+      search: prev => ({
+        ...prev,
+        page,
+      }),
     })
   }, [navigate])
 
@@ -123,7 +104,7 @@ export function ProjectsPage() {
             pagination={pagination}
             loading={loading}
             page={search.page ?? 1}
-            searchValue={query}
+            searchValue={search.query ?? ''}
             onSearchChange={handleSearchChange}
             onRefresh={handleRefresh}
             onDelete={handleDelete}

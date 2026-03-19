@@ -1,6 +1,6 @@
 import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { createFileRoute } from '@tanstack/react-router'
-import z from 'zod'
+import { z } from 'zod'
 
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage'
 
@@ -9,13 +9,7 @@ const DEFAULT_PROJECTS_PAGE_SIZE = 10
 
 const pSearchParamSchema = z.object({
   page: z.coerce.number().int().nonnegative().optional().catch(DEFAULT_PROJECTS_PAGE),
-  query: z.string().optional().transform((value) => {
-    if (value === undefined) {
-      return value
-    }
-
-    return value.trim()
-  }),
+  query: z.string().trim().optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/(auth)/(app)/projects/')({

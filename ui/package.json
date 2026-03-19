@@ -15,16 +15,19 @@
     "@mantine/core": "^8.3.13",
     "@mantine/dates": "8.3.13",
     "@mantine/hooks": "^8.3.13",
+    "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-router": "^1.166.6",
     "@tanstack/react-router-devtools": "^1.166.6",
     "dayjs": "^1.11.20",
+    "filesize": "^11.0.13",
+    "human-format": "^1.2.1",
     "i18next": "^25.8.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "mantine-react-table": "2.0.0-beta.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-i18next": "^16.5.3",
-    "zod": "~4.3.6"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^2.8.0",

@@ -1,6 +1,8 @@
 {
-  "total": "Total: {{count}}",
+  "search": "Search",
   "refresh": "Refresh",
-  "batchDelete": "Delete ({{count}})",
-  "search": "Search"
+  "batchDelete": "Delete {{count}} selected",
+  "total": "Total {{count}}",
+  "sortOrderAsc": "Asc",
+  "sortOrderDesc": "Desc"
 }
