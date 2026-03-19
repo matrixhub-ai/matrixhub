@@ -3,6 +3,20 @@
 
 let apiTarget = null
 
+function buildTargetUrl(requestUrl, target) {
+  const sourceUrl = new URL(requestUrl)
+  const targetUrl = new URL(target)
+  const basePath = targetUrl.pathname === '/'
+    ? ''
+    : targetUrl.pathname.replace(/\/+$/, '')
+
+  targetUrl.pathname = `${basePath}${sourceUrl.pathname}`.replace(/\/{2,}/g, '/')
+  targetUrl.search = sourceUrl.search
+  targetUrl.hash = ''
+
+  return targetUrl
+}
+
 self.addEventListener('install', () => {
   self.skipWaiting()
 })
@@ -23,7 +37,8 @@ self.addEventListener('fetch', (event) => {
   if (!apiTarget || !url.pathname.startsWith('/api')) {
     return
   }
-  const targetUrl = new URL(url.pathname + url.search, apiTarget)
+
+  const targetUrl = buildTargetUrl(event.request.url, apiTarget)
 
   const headers = new Headers(event.request.headers)
   headers.delete('host')

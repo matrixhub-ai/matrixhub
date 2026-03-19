@@ -19,6 +19,26 @@ import { router } from '../../router'
 
 const STORAGE_KEY = 'dev-api-proxy-target'
 
+function normalizeApiTarget(target: string) {
+  try {
+    const url = new URL(target.trim())
+
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return null
+    }
+
+    const trimmedPath = url.pathname.replace(/\/+$/, '')
+
+    url.pathname = trimmedPath || '/'
+    url.search = ''
+    url.hash = ''
+
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+
 function useServiceWorker() {
   const swRef = useRef<ServiceWorker | null>(null)
   const [ready, setReady] = useState(false)
@@ -112,6 +132,7 @@ function ConfigModal({
   onSubmit: (url: string) => void
 }) {
   const [value, setValue] = useState(defaultValue)
+  const normalizedTarget = normalizeApiTarget(value)
 
   return (
     <div style={modalOverlay}>
@@ -129,29 +150,41 @@ function ConfigModal({
           fontSize: 14,
         }}
         >
-          Enter the backend API server URL to proxy
+          Enter the backend base URL to proxy
           {' '}
           <code>/api</code>
           {' '}
-          requests.
+          requests. Both
+          {' '}
+          <code>https://host</code>
+          {' '}
+          and
+          {' '}
+          <code>https://host/path</code>
+          {' '}
+          are supported.
         </p>
         <input
           type="url"
-          placeholder="https://192.168.1.100:4443"
+          placeholder="https://192.168.1.100:4443/backend"
           value={value}
           onChange={e => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && value.trim()) {
-              onSubmit(value.trim())
+            if (e.key === 'Enter' && normalizedTarget) {
+              onSubmit(normalizedTarget)
             }
           }}
           style={inputStyle}
         />
         <button
           type="button"
-          disabled={!value.trim()}
-          onClick={() => onSubmit(value.trim())}
-          style={btnStyle(!!value.trim())}
+          disabled={!normalizedTarget}
+          onClick={() => {
+            if (normalizedTarget) {
+              onSubmit(normalizedTarget)
+            }
+          }}
+          style={btnStyle(!!normalizedTarget)}
         >
           Connect
         </button>
@@ -190,7 +223,7 @@ function CertTrustPrompt({
         </p>
         <button
           type="button"
-          onClick={() => window.open(`${target}/api`, '_blank')}
+          onClick={() => window.open(target, '_blank')}
           style={{
             ...btnStyle(true),
             background: '#f59f00',
@@ -291,15 +324,25 @@ function DevAppRoot() {
   }, [swReady])
 
   function applyTarget(target: string) {
-    localStorage.setItem(STORAGE_KEY, target)
-    sendTarget(target)
-    setApiTarget(target)
+    const normalizedTarget = normalizeApiTarget(target)
+
+    if (!normalizedTarget) {
+      localStorage.removeItem(STORAGE_KEY)
+      setApiTarget('')
+      setPhase('config')
+
+      return
+    }
+
+    localStorage.setItem(STORAGE_KEY, normalizedTarget)
+    sendTarget(normalizedTarget)
+    setApiTarget(normalizedTarget)
     // Check connectivity
     setPhase('cert-check')
-    fetch(target, { mode: 'no-cors' })
+    fetch(normalizedTarget, { mode: 'no-cors' })
       .then(() => setPhase('ready'))
       .catch(() => {
-        if (target.startsWith('https')) {
+        if (normalizedTarget.startsWith('https')) {
           setPhase('cert-untrusted')
         } else {
           // HTTP backend unreachable - still proceed, will fail on API calls
