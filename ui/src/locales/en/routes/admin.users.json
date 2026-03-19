@@ -1,0 +1,32 @@
+{
+  "title": "User Management",
+  "searchPlaceholder": "Search by username",
+  "toolbar": {
+    "batchDelete": "Batch Delete",
+    "create": "Create User"
+  },
+  "errors": {
+    "loadTitle": "Failed to load users"
+  },
+  "table": {
+    "username": "Username",
+    "admin": "Platform Admin",
+    "source": "Source",
+    "createdAt": "Created At",
+    "actions": "Actions",
+    "empty": "No users found"
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "source": {
+    "local": "Built-in"
+  },
+  "actions": {
+    "setAdmin": "Set Admin",
+    "revokeAdmin": "Revoke Admin",
+    "resetPassword": "Reset Password",
+    "delete": "Delete"
+  }
+}

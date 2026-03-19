@@ -99,6 +99,7 @@ See `tanstack-integration.md` for the complete error handling strategy.
 - If the required wrapper does not exist yet, create or extend the project table wrapper first, then use that wrapper in the page
 - Put stable shared table wrappers under `src/shared/components/data-table/` unless the project later adopts a different shared location
 - Centralize shared table styling and behavior in the wrapper, including pagination, loading states, empty states, row actions, selection behavior, and similar concerns
+- For route-backed list pages that use the shared table wrapper, keep query/search params, pagination navigation, refresh triggers, and row-selection state in the page layer or a shared hook such as `src/shared/hooks/useRouteListState.ts`; feature table components should stay focused on columns, cells, and feature-specific toolbar/actions
 - Do not introduce a different table abstraction or second table library for the same class of UI without agreement
 
 ## Feature Page Splitting Guidelines

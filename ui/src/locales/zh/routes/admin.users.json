@@ -1,0 +1,31 @@
+{
+  "title": "用户管理",
+  "searchPlaceholder": "输入用户名搜索",
+  "toolbar": {
+    "create": "创建用户"
+  },
+  "errors": {
+    "loadTitle": "加载用户失败"
+  },
+  "table": {
+    "username": "用户名",
+    "admin": "平台管理员",
+    "source": "来源",
+    "createdAt": "创建时间",
+    "actions": "操作",
+    "empty": "暂无用户数据"
+  },
+  "boolean": {
+    "yes": "是",
+    "no": "否"
+  },
+  "source": {
+    "local": "内置"
+  },
+  "actions": {
+    "setAdmin": "设为管理员",
+    "revokeAdmin": "取消管理权限",
+    "resetPassword": "重置密码",
+    "delete": "删除"
+  }
+}
