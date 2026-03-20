@@ -14,7 +14,6 @@ jobs:
   deploy:
     name: Deploy Preview
     runs-on: ubuntu-latest
-    environment: test
     permissions:
       pull-requests: write
     steps:
