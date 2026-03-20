@@ -38,97 +38,15 @@ import '@mantine/notifications/styles.css'
 
 ### QueryClient with Global Caches
 
-Configure `QueryCache` and `MutationCache` in `src/queryClient.ts` for centralized notification handling:
+The `QueryCache` and `MutationCache` are configured in `src/queryClient.ts` for centralized notification handling. The `NotificationMeta` type in `src/types/tanstack-query.ts` defines the shared meta shape. See the actual implementation in those files for the authoritative source.
 
-```ts
-import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
-import { notifications } from '@mantine/notifications'
-import { i18n } from './i18n'
+Key points:
 
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message
-  return String(error)
-}
-
-export const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      // Only notify for background refetch failures
-      // (queries that already had data in cache)
-      if (query.state.data !== undefined && !query.meta?.skipNotification) {
-        notifications.show({
-          title: i18n.t('common.backgroundRefreshFailed'),
-          message: getErrorMessage(error),
-          color: 'red',
-        })
-      }
-    },
-  }),
-  mutationCache: new MutationCache({
-    onSuccess: (_data, _variables, _context, mutation) => {
-      const meta = mutation.meta
-      if (meta?.skipNotification) return
-
-      // Show success notification
-      if (meta?.successMessage) {
-        notifications.show({
-          message: meta.successMessage,
-          color: 'green',
-        })
-      }
-
-      // Auto-invalidate related queries
-      if (meta?.invalidates) {
-        for (const key of meta.invalidates) {
-          queryClient.invalidateQueries({ queryKey: key })
-        }
-      }
-    },
-    onError: (error, _variables, _context, mutation) => {
-      const meta = mutation.meta
-      if (meta?.skipNotification) return
-
-      notifications.show({
-        title: meta?.errorMessage ?? i18n.t('common.operationFailed'),
-        message: getErrorMessage(error),
-        color: 'red',
-      })
-    },
-  }),
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
-      refetchOnWindowFocus: false,
-      retry: 0,
-    },
-  },
-})
-```
-
-### Type Registration
-
-Register the meta shape in `src/types/tanstack-query.d.ts`:
-
-```ts
-import '@tanstack/react-query'
-
-declare module '@tanstack/react-query' {
-  interface Register {
-    defaultError: Error
-    defaultMeta: {
-      /** Notification message shown on success */
-      successMessage?: string
-      /** Notification title shown on error */
-      errorMessage?: string
-      /** Skip all notifications for this query/mutation */
-      skipNotification?: boolean
-      /** Query keys to invalidate on mutation success */
-      invalidates?: readonly unknown[][]
-    }
-  }
-}
-```
+- `QueryCache.onError` only notifies for background refetch failures (queries that already had data in cache)
+- `MutationCache.onSuccess` shows success notification and auto-invalidates related queries via `meta.invalidates`
+- `MutationCache.onError` shows error notification with `meta.errorMessage` as the title
+- Both caches respect `meta.skipNotification` to suppress notifications
+- Cast `mutation.meta` / `query.meta` as `NotificationMeta | undefined` when reading (pnpm strict hoisting prevents module augmentation on `@tanstack/query-core`)
 
 ## Full-Stack Feature Pattern
 

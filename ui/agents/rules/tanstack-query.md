@@ -82,23 +82,24 @@ export function deleteProjectMutationOptions() {
 }
 ```
 
-## Global Type Registration
+## Notification Meta Type
 
-Register the default error and meta types in `src/types/tanstack-query.d.ts` so every query and mutation shares a consistent shape:
+The `NotificationMeta` interface in `src/types/tanstack-query.ts` defines the shared meta shape for query and mutation notification behavior. Use `as NotificationMeta` when reading `mutation.meta` or `query.meta` in the global caches (see `src/queryClient.ts`).
+
+When passing `meta` to `mutationOptions()` or `queryOptions()`, use the `NotificationMeta` type to ensure consistency:
 
 ```ts
-import '@tanstack/react-query'
+import type { NotificationMeta } from '@/types/tanstack-query'
 
-declare module '@tanstack/react-query' {
-  interface Register {
-    defaultError: ApiError
-    defaultMeta: {
-      successMessage?: string
-      errorMessage?: string
-      skipNotification?: boolean
-      invalidates?: readonly unknown[][]
-    }
-  }
+export function deleteProjectMutationOptions(): ... {
+  return mutationOptions({
+    mutationFn: ...,
+    meta: {
+      successMessage: '...',
+      errorMessage: '...',
+      invalidates: [projectKeys.lists()],
+    } satisfies NotificationMeta,
+  })
 }
 ```
 

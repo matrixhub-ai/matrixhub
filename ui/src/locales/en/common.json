@@ -6,5 +6,7 @@
   "modelSize": "Size",
   "colon": ": ",
   "confirm": "Confirm",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "backgroundRefreshFailed": "Background refresh failed",
+  "operationFailed": "Operation failed"
 }

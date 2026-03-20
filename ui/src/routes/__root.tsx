@@ -8,10 +8,29 @@ import i18n from '@/i18n'
 
 import type { QueryClient } from '@tanstack/react-query'
 
-const TanStackRouterDevtools = import.meta.env.DEV
+const TanStackDevtools = import.meta.env.DEV
   ? lazy(() =>
-      import('@tanstack/react-router-devtools').then(m => ({
-        default: m.TanStackRouterDevtools,
+      Promise.all([
+        import('@tanstack/react-devtools'),
+        import('@tanstack/react-query-devtools'),
+        import('@tanstack/react-router-devtools'),
+        import('@tanstack/react-form-devtools'),
+      ]).then(([devtools, queryDevtools, routerDevtools, formDevtools]) => ({
+        default: () => (
+          <devtools.TanStackDevtools
+            plugins={[
+              {
+                name: 'TanStack Query',
+                render: <queryDevtools.ReactQueryDevtoolsPanel />,
+              },
+              {
+                name: 'TanStack Router',
+                render: <routerDevtools.TanStackRouterDevtoolsPanel />,
+              },
+              formDevtools.formDevtoolsPlugin(),
+            ]}
+          />
+        ),
       })),
     )
   : () => null
@@ -48,7 +67,7 @@ function RootComponent() {
         <Outlet />
       </CurrentUserContext>
       <Suspense fallback={null}>
-        <TanStackRouterDevtools initialIsOpen={false} />
+        <TanStackDevtools />
       </Suspense>
     </>
   )
