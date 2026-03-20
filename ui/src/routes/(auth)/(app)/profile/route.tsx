@@ -1,6 +1,7 @@
 import {
   Box, Group, Stack, Tabs, Text,
 } from '@mantine/core'
+import { IconUser } from '@tabler/icons-react'
 import {
   createFileRoute, Link, linkOptions, Outlet, useMatchRoute,
 } from '@tanstack/react-router'
@@ -11,8 +12,6 @@ import DefaultAvatarIcon from '@/assets/svgs/default-avatar.svg?react'
 import { CurrentUserContext } from '@/context/current-user-context'
 import { Route as AccessTokenRoute } from '@/routes/(auth)/(app)/profile/access-token'
 import { Route as SecurityRoute } from '@/routes/(auth)/(app)/profile/security'
-
-import UserIcon from '@/assets/svgs/user.svg?react'
 
 export const Route = createFileRoute('/(auth)/(app)/profile')({
   component: Profile,
@@ -41,10 +40,7 @@ function Profile() {
   return (
     <Stack gap="lg">
       <Group gap="xs">
-        <UserIcon
-          width={32}
-          height={32}
-        />
+        <IconUser size={32} />
         <Text
           size="lg"
           fw={600}
