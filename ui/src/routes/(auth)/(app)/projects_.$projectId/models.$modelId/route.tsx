@@ -4,6 +4,7 @@ import {
   Tabs,
 } from '@mantine/core'
 import { Models } from '@matrixhub/api-ts/v1alpha1/model.pb.ts'
+import { IconCloudUpload, IconDownload } from '@tabler/icons-react'
 import {
   Outlet, useMatchRoute, createFileRoute, linkOptions, Link,
 } from '@tanstack/react-router'
@@ -15,9 +16,6 @@ import { Route as ModelSettingsRoute } from './settings'
 import { Route as ModelTreeRoute } from './tree/$ref/$'
 
 import { Route as ModelIndexRoute } from './index'
-
-import DownloadIcon from '@/assets/svgs/download.svg?react'
-import UploadIcon from '@/assets/svgs/upload-cloud.svg?react'
 
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId',
@@ -89,22 +87,8 @@ function ModelDetailLayout() {
           labels={model.labels}
           actions={(
             <>
-              <Button
-                size="xs"
-                color="cyan"
-                variant="light"
-                leftSection={<UploadIcon size={16} />}
-              >
-                {t('model.upload')}
-              </Button>
-              <Button
-                size="xs"
-                color="cyan"
-                variant="light"
-                leftSection={<DownloadIcon size={16} />}
-              >
-                {t('model.download')}
-              </Button>
+              <Button size="xs" color="cyan" variant="light" leftSection={<IconCloudUpload size={16} />}>{t('model.upload')}</Button>
+              <Button size="xs" color="cyan" variant="light" leftSection={<IconDownload size={16} />}>{t('model.download')}</Button>
             </>
           )}
         />
