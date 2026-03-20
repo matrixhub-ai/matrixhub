@@ -11,6 +11,7 @@ This document combines the current UI stack and the key rules around Mantine, Ta
 - `Mantine v8`
 - `TanStack Router`
 - `TanStack Form`
+- `TanStack Query`
 - `Zod`
 - `react-i18next`
 - `ESLint v9`
@@ -49,13 +50,25 @@ This document combines the current UI stack and the key rules around Mantine, Ta
 
 ## Router
 
+Baseline rules — see `tanstack-router.md` for full conventions.
+
 - All route files belong in `src/routes`
 - Every route file should explicitly export `Route`
 - Route files own route definitions, layouts, redirects, and metadata
 - Non-trivial pages should live in `src/features` and be mounted by the route
 - Do not let complex business logic stay in route files long term
 
+## Data Fetching
+
+See `tanstack-query.md` for full conventions. Key rules:
+
+- Use `queryOptions()` / `mutationOptions()` factories — never inline query config
+- Use query key factory objects per feature
+- Use `MutationCache` / `QueryCache` for global error/success notifications via Mantine — see `tanstack-integration.md`
+
 ## Forms
+
+Baseline rules — see `tanstack-form.md` for full conventions and Mantine binding patterns.
 
 - Use `@tanstack/react-form` for all forms in this project
 - Use `Zod` as the default validation and schema definition approach for form data
@@ -63,55 +76,18 @@ This document combines the current UI stack and the key rules around Mantine, Ta
 - Prefer TanStack Form validators backed by `Zod` schemas instead of duplicating validation logic by hand
 - Use TanStack Form validators for field-level validation and `onSubmit` validation for form-level or cross-field rules
 - Keep Mantine as the field UI layer; bind TanStack Form state to Mantine component props such as `value`, `checked`, `onChange`, and `error`
+- Connect form `onSubmit` to TanStack Query mutations — see `tanstack-integration.md` for the full pattern
 
-Example:
+## Error Notifications
 
-```tsx
-import { TextInput } from '@mantine/core'
-import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
+See `tanstack-integration.md` for the complete error handling strategy.
 
-const nameSchema = z.string().trim().min(1, 'Project name is required')
-
-function CreateProjectForm() {
-  const form = useForm({
-    defaultValues: {
-      name: '',
-      description: '',
-    },
-    onSubmit: async ({ value }) => {
-      await createProject(value)
-    },
-  })
-
-  return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault()
-        form.handleSubmit()
-      }}
-    >
-      <form.Field
-        name="name"
-        validators={{
-          onChange: ({ value }) => {
-            const result = nameSchema.safeParse(value)
-            return result.success ? undefined : result.error.issues[0]?.message
-          },
-        }}
-        children={(field) => (
-          <TextInput
-            label={t('projects.nameLabel')}
-            value={field.state.value}
-            onChange={(event) => field.handleChange(event.currentTarget.value)}
-            error={field.state.meta.errors?.[0]}
-          />
-        )}
-      />
-    </form>
-  )
-}
-```
+- All API errors must surface through Mantine notifications (`@mantine/notifications`)
+- Mutation errors: handled globally by `MutationCache.onError`
+- Background query refetch errors: handled globally by `QueryCache.onError`
+- Route load errors: handled by route `errorComponent`
+- Form validation errors: shown inline via Mantine component `error` prop
+- Do not add per-component `try-catch` or `notifications.show()` for API errors
 
 ## Tables
 

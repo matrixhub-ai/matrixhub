@@ -10,6 +10,10 @@ Default project rules, collaboration conventions, and example materials live in 
 2. Then read the relevant docs under `ui/agents/`:
    - `ui/agents/rules/structure.md` for boundaries and folder responsibility
    - `ui/agents/rules/implementation.md` for stack and implementation constraints
+   - `ui/agents/rules/tanstack-query.md` for TanStack Query conventions
+   - `ui/agents/rules/tanstack-form.md` for TanStack Form conventions
+   - `ui/agents/rules/tanstack-router.md` for TanStack Router conventions
+   - `ui/agents/rules/tanstack-integration.md` for Query+Form+Router integration and error notifications
    - `ui/agents/rules/page-planning.md` for new page work
    - `ui/agents/rules/api-layer.md` for generated SDK usage
    - `ui/agents/collaboration/review-checklist.md` when reviewing or before handoff
