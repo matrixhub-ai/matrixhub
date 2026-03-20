@@ -4,6 +4,7 @@ import {
   Tabs,
 } from '@mantine/core'
 import { Models } from '@matrixhub/api-ts/v1alpha1/model.pb.ts'
+import { IconCloudUpload as UploadIcon, IconDownload as DownloadIcon } from '@tabler/icons-react'
 import {
   Outlet, useMatchRoute, createFileRoute, linkOptions, Link,
 } from '@tanstack/react-router'
@@ -15,9 +16,6 @@ import { Route as ModelSettingsRoute } from './settings'
 import { Route as ModelTreeRoute } from './tree/$ref/$'
 
 import { Route as ModelIndexRoute } from './index'
-
-import DownloadIcon from '@/assets/svgs/download.svg?react'
-import UploadIcon from '@/assets/svgs/upload-cloud.svg?react'
 
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId',
