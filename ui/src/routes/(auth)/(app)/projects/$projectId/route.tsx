@@ -2,6 +2,7 @@ import {
   Box, Group, Space, Tabs, Text,
 } from '@mantine/core'
 import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
+import { IconApiApp as ProjectIcon } from '@tabler/icons-react'
 import {
   createFileRoute,
   notFound,
@@ -11,8 +12,6 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-
-import ProjectIcon from '@/assets/svgs/project.svg?react'
 
 export const Route = createFileRoute('/(auth)/(app)/projects/$projectId')({
   loader: async ({ params: { projectId } }) => {
@@ -77,7 +76,7 @@ function RouteComponent() {
     <Box>
       <Space h="lg" />
       <Group gap={4} wrap="nowrap">
-        <ProjectIcon width={20} height={20} style={{ color: 'var(--mantine-gray-7)' }} />
+        <ProjectIcon size={20} style={{ color: 'var(--mantine-gray-7)' }} />
         <Text size="md" c="gray.8">
           {projectId}
           {' '}

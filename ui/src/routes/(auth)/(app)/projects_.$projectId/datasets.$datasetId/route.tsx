@@ -7,6 +7,10 @@ import {
 import { type Dataset } from '@matrixhub/api-ts/v1alpha1/dataset.pb.ts'
 import { Category } from '@matrixhub/api-ts/v1alpha1/model.pb'
 import {
+  IconCloudUpload as UploadIcon,
+  IconDownload as DownloadIcon,
+} from '@tabler/icons-react'
+import {
   Outlet,
   Link,
   createFileRoute,
@@ -15,8 +19,6 @@ import {
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import DownloadIcon from '@/assets/svgs/download.svg?react'
-import UploadIcon from '@/assets/svgs/upload-cloud.svg?react'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
 
 import { Route as DatasetSettingsRoute } from './settings'
@@ -141,8 +143,22 @@ function DatasetLayout() {
           labels={dataset.labels}
           actions={(
             <>
-              <Button size="xs" color="cyan" variant="light" leftSection={<UploadIcon fill="cyan" />}>{t('dataset.uploadFiles')}</Button>
-              <Button size="xs" color="cyan" variant="light" leftSection={<DownloadIcon fill="cyan" />}>{t('dataset.downloadDataset')}</Button>
+              <Button
+                size="xs"
+                color="cyan"
+                variant="light"
+                leftSection={<UploadIcon size={16} />}
+              >
+                {t('dataset.uploadFiles')}
+              </Button>
+              <Button
+                size="xs"
+                color="cyan"
+                variant="light"
+                leftSection={<DownloadIcon size={16} />}
+              >
+                {t('dataset.downloadDataset')}
+              </Button>
             </>
           )}
         />

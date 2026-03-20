@@ -8,16 +8,18 @@ import {
 } from '@mantine/core'
 import { Category } from '@matrixhub/api-ts/v1alpha1/model.pb'
 import {
+  IconBinaryTree as BinaryTreeIcon,
+  IconClock as ClockIcon,
+  IconCube as ModelIcon,
+  IconPhotoUp as PhotoUpIcon,
+} from '@tabler/icons-react'
+import {
   getRouteApi,
   Link,
 } from '@tanstack/react-router'
 import { startTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import BinaryTreeIcon from '@/assets/svgs/binary-tree.svg?react'
-import ClockIcon from '@/assets/svgs/clock.svg?react'
-import ModelIcon from '@/assets/svgs/model.svg?react'
-import PhotoUpIcon from '@/assets/svgs/photo-up.svg?react'
 import PytorchIcon from '@/assets/svgs/pytorch.svg?react'
 import {
   PAGE_SIZE,
@@ -79,7 +81,7 @@ export function ProjectModelsPage() {
     {
       value: 'updatedAt',
       label: t('projects.detail.modelsPage.sortFieldUpdatedAt'),
-      icon: <ClockIcon width={16} height={16} />,
+      icon: <ClockIcon size={16} />,
     },
   ]
 
@@ -107,8 +109,7 @@ export function ProjectModelsPage() {
           libraryCategory: Category.LIBRARY,
           taskIcon: (
             <PhotoUpIcon
-              width={16}
-              height={16}
+              size={16}
               style={{ color: 'var(--mantine-color-blue-4)' }}
             />
           ),
@@ -117,8 +118,7 @@ export function ProjectModelsPage() {
             : undefined,
           parameterCountIcon: (
             <BinaryTreeIcon
-              width={16}
-              height={16}
+              size={16}
               style={{ color: 'var(--mantine-color-violet-4)' }}
             />
           ),
@@ -185,7 +185,7 @@ export function ProjectModelsPage() {
             h={32}
             px="md"
             radius={6}
-            leftSection={<ModelIcon width={16} height={16} />}
+            leftSection={<ModelIcon size={16} />}
             component={Link}
             to="/models/new"
           >

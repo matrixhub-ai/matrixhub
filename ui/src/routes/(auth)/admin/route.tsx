@@ -7,6 +7,7 @@ import {
   Text,
   rem,
 } from '@mantine/core'
+import { IconSettings as SettingsIcon } from '@tabler/icons-react'
 import {
   createFileRoute,
   Link,
@@ -16,13 +17,9 @@ import {
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import AdminRegistriesIcon from '@/assets/svgs/admin-registries-nav.svg?react'
-import AdminReplicationsIcon from '@/assets/svgs/admin-replications-nav.svg?react'
-import AdminUsersIcon from '@/assets/svgs/admin-users-nav.svg?react'
-import SettingsIcon from '@/assets/svgs/settings.svg?react'
-import { Route as AdminRegistriesRoute } from '@/routes/(auth)/admin/registries'
-import { Route as AdminReplicationsRoute } from '@/routes/(auth)/admin/replications'
-import { Route as AdminUsersRoute } from '@/routes/(auth)/admin/users'
+import { Route as AdminRegistriesRoute, Icon as AdminRegistriesIcon } from '@/routes/(auth)/admin/registries'
+import { Route as AdminReplicationsRoute, Icon as AdminReplicationsIcon } from '@/routes/(auth)/admin/replications'
+import { Route as AdminUsersRoute, Icon as AdminUsersIcon } from '@/routes/(auth)/admin/users'
 
 export const Route = createFileRoute('/(auth)/admin')({
   component: AdminLayout,
@@ -75,7 +72,7 @@ function AdminNavbar() {
             <NavLink
               key={route.to}
               label={route.label}
-              leftSection={<Icon fontSize={rem(16)} />}
+              leftSection={<Icon size={rem(16)} />}
               component={Link}
               to={route.to}
               active={isActive}
@@ -123,8 +120,7 @@ function AdminLayout() {
           mb="lg"
         >
           <SettingsIcon
-            width={rem(30)}
-            height={rem(30)}
+            size={rem(30)}
             style={{ flexShrink: 0 }}
           />
           <Text

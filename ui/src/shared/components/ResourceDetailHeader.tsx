@@ -8,12 +8,13 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { type Label } from '@matrixhub/api-ts/v1alpha1/model.pb.ts'
+import {
+  IconCopy as CopyIcon,
+  IconFileDescription as FileIcon,
+} from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import CopyIcon from '@/assets/svgs/copy.svg?react'
-import FileIcon from '@/assets/svgs/file.svg?react'
 
 interface ResourceDetailHeaderProps {
   projectId: string
@@ -73,7 +74,7 @@ export function ResourceDetailHeader({
             }) => (
               <Tooltip label={copied ? t('common.copied') : t('common.copyName')} withArrow>
                 <ActionIcon variant="subtle" color="gray" onClick={copy} size={24}>
-                  <CopyIcon />
+                  <CopyIcon size={16} />
                 </ActionIcon>
               </Tooltip>
             )}
@@ -85,7 +86,16 @@ export function ResourceDetailHeader({
       {labels?.length && (
         <Group gap={8} mb={12}>
           {labels.map(label => (
-            <Badge key={label.id} variant="light" color="gray" leftSection={<FileIcon />} size="md" radius="xl" fw={600} h={24}>
+            <Badge
+              key={label.id}
+              variant="light"
+              color="gray"
+              leftSection={<FileIcon size={14} />}
+              size="md"
+              radius="xl"
+              fw={600}
+              h={24}
+            >
               {label.name}
             </Badge>
           ))}

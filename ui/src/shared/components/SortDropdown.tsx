@@ -3,13 +3,12 @@ import {
   Popover,
   UnstyledButton,
 } from '@mantine/core'
+import { IconSortDescending as SortDescIcon } from '@tabler/icons-react'
 import {
   useId,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import SortDescIcon from '@/assets/svgs/sort-desc.svg?react'
 
 import classes from './SortDropdown.module.css'
 
@@ -110,7 +109,7 @@ export function SortDropdown({
                 data-order={order}
                 data-refreshing={refreshing}
               >
-                <SortDescIcon width={16} height={16} />
+                <SortDescIcon size={16} />
               </span>
             </UnstyledButton>
           </Box>

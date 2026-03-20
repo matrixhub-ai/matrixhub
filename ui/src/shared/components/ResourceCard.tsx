@@ -5,8 +5,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core'
-
-import DotsIcon from '@/assets/svgs/dots.svg?react'
+import { IconDots as DotsIcon } from '@tabler/icons-react'
 
 import classes from './ResourceCard.module.css'
 

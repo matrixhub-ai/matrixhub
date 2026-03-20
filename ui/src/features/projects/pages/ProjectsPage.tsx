@@ -5,6 +5,7 @@ import {
   Stack,
   Title,
 } from '@mantine/core'
+import { IconApiApp as ProjectIcon } from '@tabler/icons-react'
 import {
   getRouteApi,
   useRouterState,
@@ -15,8 +16,6 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import ProjectIcon from '@/assets/svgs/project.svg?react'
 
 import { ProjectsTable } from '../components/ProjectsTable'
 
@@ -92,7 +91,7 @@ export function ProjectsPage() {
   return (
     <Stack gap="lg">
       <Group gap="sm">
-        <ProjectIcon width={24} />
+        <ProjectIcon size={24} />
         <Title order={2}>{t('routes.projects.title')}</Title>
       </Group>
 

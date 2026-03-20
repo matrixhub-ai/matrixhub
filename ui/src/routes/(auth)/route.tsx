@@ -2,26 +2,32 @@ import {
   AppShell,
   Avatar,
   Flex,
-  Group, Menu,
+  Group,
+  Menu,
   NavLink,
-  Text, UnstyledButton,
+  Text,
+  UnstyledButton,
   rem,
 } from '@mantine/core'
 import {
+  IconChevronDown as ArrowDownIcon,
+  IconCube as ModelIcon,
+  IconDatabase as DatasetIcon,
+  IconLogout as LogOutIcon,
+  IconSettings as SettingsIcon,
+  IconUser as UserIcon,
+  IconApiApp as ProjectIcon,
+} from '@tabler/icons-react'
+import {
   createFileRoute,
-  Link, linkOptions,
-  Outlet, useMatchRoute,
+  Link,
+  linkOptions,
+  Outlet,
+  useMatchRoute,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import ArrowDownIcon from '@/assets/svgs/arrow-down.svg?react'
-import DatasetIcon from '@/assets/svgs/dataset.svg?react'
 import LogoIcon from '@/assets/svgs/logo.svg?react'
-import LogOutIcon from '@/assets/svgs/logout.svg?react'
-import ModelIcon from '@/assets/svgs/model.svg?react'
-import ProjectIcon from '@/assets/svgs/project.svg?react'
-import SettingsIcon from '@/assets/svgs/settings.svg?react'
-import UserIcon from '@/assets/svgs/user.svg?react'
 import { Route as DatasetsRoute } from '@/routes/(auth)/(app)/datasets'
 import { Route as CreateDatasetRoute } from '@/routes/(auth)/(app)/datasets/new'
 import { Route as ModelsRoute } from '@/routes/(auth)/(app)/models'
@@ -116,7 +122,7 @@ function AppNavbar() {
             activeOptions={{ exact: true }}
             leftSection={(
               <route.icon
-                fontSize={rem(20)}
+                size={rem(20)}
               />
             )}
             active={isActive}
@@ -186,7 +192,7 @@ function AccountMenu() {
               Admin
             </Text>
             <ArrowDownIcon
-              fontSize={rem(16)}
+              size={rem(16)}
             />
           </Group>
         </UnstyledButton>
@@ -199,8 +205,8 @@ function AccountMenu() {
               key={item.label}
               leftSection={(
                 <item.icon
-                  fontSize={rem(16)}
-                  color="#868E96"
+                  size={rem(16)}
+                  color="var(--mantine-color-gray-6)"
                 />
               )}
               component={Link}
@@ -213,8 +219,8 @@ function AccountMenu() {
         <Menu.Item
           leftSection={(
             <LogOutIcon
-              fontSize={rem(16)}
-              color="#868E96"
+              size={rem(16)}
+              color="var(--mantine-color-gray-6)"
             />
           )}
         >

@@ -6,13 +6,12 @@ import {
   type TextInputProps,
 } from '@mantine/core'
 import { useDebouncedCallback } from '@mantine/hooks'
+import { IconSearch as SearchIcon } from '@tabler/icons-react'
 import {
   startTransition,
   useEffect,
   useRef,
 } from 'react'
-
-import SearchIcon from '@/assets/svgs/search.svg?react'
 
 import type { ReactNode } from 'react'
 
@@ -83,8 +82,7 @@ export function SearchToolbar({
           placeholder={searchPlaceholder}
           leftSection={(
             <SearchIcon
-              width={16}
-              height={16}
+              size={16}
               style={{ color: 'var(--mantine-color-gray-5)' }}
             />
           )}

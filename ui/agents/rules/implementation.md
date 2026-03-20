@@ -41,6 +41,9 @@ This document combines the current UI stack and the key rules around Mantine, Ta
 ## Figma Assets
 
 - Committed SVG assets belong under `src/assets/svgs`
+- Before committing a new icon SVG from Figma, first check whether `@tabler/icons-react` already provides a suitable icon and prefer the package when it does
+- Only add a committed SVG icon when no suitable Tabler icon exists, or when the asset is brand-specific and must preserve its exact shape
+- When a Figma icon has no suitable Tabler equivalent, confirm the download or save step before adding a new SVG asset
 - Do not leave reusable SVG markup inline in route or component files unless the SVG must be generated dynamically
 - Temporary exports and comparisons may live under `.planning/<task>/`
 

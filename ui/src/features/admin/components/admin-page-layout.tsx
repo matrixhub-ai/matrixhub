@@ -5,15 +5,12 @@ import {
   rem,
 } from '@mantine/core'
 
-import type {
-  ComponentType,
-  ReactNode,
-  SVGProps,
-} from 'react'
+import type { TablerIcon } from '@tabler/icons-react'
+import type { ReactNode } from 'react'
 
 interface AdminPageLayoutProps {
   children?: ReactNode
-  icon: ComponentType<SVGProps<SVGSVGElement>>
+  icon: TablerIcon
   title: string
 }
 
@@ -34,7 +31,7 @@ export function AdminPageLayout({
         align="center"
       >
         <Icon
-          fontSize={rem(28)}
+          size={rem(28)}
           style={{ flexShrink: 0 }}
         />
         <Title

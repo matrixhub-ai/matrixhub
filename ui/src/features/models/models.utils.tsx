@@ -1,9 +1,11 @@
+import {
+  IconClock as ClockIcon,
+  IconCube as ModelIcon,
+  IconApiApp as ProjectIcon,
+} from '@tabler/icons-react'
 import { filesize } from 'filesize'
 import humanFormat from 'human-format'
 
-import ClockIcon from '@/assets/svgs/clock.svg?react'
-import ModelIcon from '@/assets/svgs/model.svg?react'
-import ProjectIcon from '@/assets/svgs/project.svg?react'
 import { formatDateTime } from '@/shared/utils/date'
 
 import type {
@@ -76,17 +78,17 @@ export function buildModelMetaItems(
   return [
     {
       key: 'project',
-      icon: options?.projectIcon ?? <ProjectIcon width={20} height={20} />,
+      icon: options?.projectIcon ?? <ProjectIcon size={20} />,
       value: model.project ?? projectId,
     },
     {
       key: 'size',
-      icon: options?.sizeIcon ?? <ModelIcon width={20} height={20} />,
+      icon: options?.sizeIcon ?? <ModelIcon size={20} />,
       value: formatStorageSize(model.size),
     },
     {
       key: 'updatedAt',
-      icon: options?.updatedAtIcon ?? <ClockIcon width={20} height={20} />,
+      icon: options?.updatedAtIcon ?? <ClockIcon size={20} />,
       value: formatDateTime(model.updatedAt),
     },
   ]
