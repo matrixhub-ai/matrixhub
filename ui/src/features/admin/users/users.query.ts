@@ -9,7 +9,7 @@ export const ADMIN_USERS_PAGE_SIZE = 10
 
 export interface AdminUsersSearch {
   page: number
-  query: string
+  query?: string
 }
 
 export const adminUsersKeys = {

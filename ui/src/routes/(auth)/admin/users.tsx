@@ -12,7 +12,11 @@ const DEFAULT_USERS_PAGE = 1
 
 const usersSearchSchema = z.object({
   page: z.coerce.number().int().gte(1).catch(DEFAULT_USERS_PAGE),
-  query: z.string().transform(value => value.trim()).catch(''),
+  query: z.string().optional().transform((value) => {
+    const nextValue = value?.trim()
+
+    return nextValue || undefined
+  }),
 })
 
 export const Route = createFileRoute('/(auth)/admin/users')({

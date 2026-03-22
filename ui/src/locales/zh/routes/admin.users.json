@@ -2,6 +2,7 @@
   "title": "用户管理",
   "searchPlaceholder": "输入用户名搜索",
   "toolbar": {
+    "batchDelete": "批量删除",
     "create": "创建用户"
   },
   "errors": {
