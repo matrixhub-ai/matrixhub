@@ -20,16 +20,14 @@ export function devDeployPlugin({
           return html
         }
 
-        const bootstrapScript = [
-          '<script type="module">',
-          '  import { bootstrapDevDeploy } from "/src/dev-deploy/bootstrap.ts"',
-          '  bootstrapDevDeploy({',
-          `    serviceWorkerPath: ${JSON.stringify(serviceWorkerPath)},`,
-          '  }).catch((error) => {',
-          '    console.error("Dev deploy bootstrap failed", error)',
-          '  })',
-          '</script>',
-        ].join('\n')
+        const bootstrapScript = `<script type="module">
+  import { bootstrapDevDeploy } from "/src/dev-deploy/bootstrap.ts"
+  bootstrapDevDeploy({
+    serviceWorkerPath: ${JSON.stringify(serviceWorkerPath)},
+  }).catch((error) => {
+    console.error("Dev deploy bootstrap failed", error)
+  })
+</script>`
 
         return html.replace(MAIN_ENTRY_SCRIPT_PATTERN, bootstrapScript)
       },

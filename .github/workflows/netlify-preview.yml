@@ -6,6 +6,10 @@ on:
       - ui/**
       - api/ts/**
 
+concurrency:
+  group: netlify-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: ui
@@ -18,6 +22,47 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v6
+
+      - name: Delete old comment & post deploying status
+        id: comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- netlify-preview -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user?.login === 'github-actions[bot]' &&
+              c.body?.startsWith(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+              });
+            }
+
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              marker,
+              '### Netlify Preview Deploy',
+              '',
+              `**Status:** :hourglass_flowing_sand: Deploying preview... ([view logs](${runUrl}))`,
+            ].join('\n');
+
+            const { data: created } = await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+            core.setOutput('comment_id', created.id);
 
       - uses: ./.github/actions/setup-ui
 
@@ -37,41 +82,48 @@ jobs:
           url=$(echo "$output" | jq -r '.deploy_url')
           echo "deploy_url=$url" >> "$GITHUB_OUTPUT"
 
-      - name: Comment on PR
+      - name: Update comment — success
+        if: success()
         uses: actions/github-script@v7
         with:
           script: |
+            const marker = '<!-- netlify-preview -->';
             const deployUrl = '${{ steps.deploy.outputs.deploy_url }}';
             const body = [
+              marker,
               '### Netlify Preview Deploy',
+              '',
+              `**Status:** :white_check_mark: Deploy successful!`,
               '',
               `**Preview URL:** ${deployUrl}`,
               '',
               '> This PR uses a stable preview URL alias, so backend configuration can be reused across redeploys for the same PR.',
             ].join('\n');
 
-            const { data: comments } = await github.rest.issues.listComments({
+            await github.rest.issues.updateComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              comment_id: ${{ steps.comment.outputs.comment_id }},
+              body,
             });
-            const existing = comments.find(c =>
-              c.user?.login === 'github-actions[bot]' &&
-              c.body?.includes('Netlify Preview Deploy')
-            );
 
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
+      - name: Update comment — failure
+        if: failure() && steps.comment.outputs.comment_id
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- netlify-preview -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              marker,
+              '### Netlify Preview Deploy',
+              '',
+              `**Status:** :x: Deploy failed — [view logs](${runUrl})`,
+            ].join('\n');
+
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: ${{ steps.comment.outputs.comment_id }},
+              body,
+            });
