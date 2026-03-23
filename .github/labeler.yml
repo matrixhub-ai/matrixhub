@@ -1,0 +1,3 @@
+component:ui:
+  - changed-files:
+      - any-glob-to-any-file: 'ui/**'
