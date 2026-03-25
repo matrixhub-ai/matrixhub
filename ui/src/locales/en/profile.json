@@ -26,5 +26,11 @@
   "deleteToken": "Delete Token",
   "deleteTokenConfirm": "Are you sure you want to delete token {{name}}? This action cannot be undone.",
   "tokenCreated": "Token created successfully",
-  "tokenDeleted": "Token deleted successfully"
+  "validity": "Validity",
+  "tokenDeleted": "Token deleted successfully",
+  "expireNever": "Never",
+  "expireCustom": "Custom",
+  "expireTime": "Expiration Date",
+  "expireTimeError": "Expiration date must be later than now",
+  "passwordComplexity": "Password must contain at least one uppercase letter, one lowercase letter, and one number."
 }
