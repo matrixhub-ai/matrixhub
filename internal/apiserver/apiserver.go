@@ -29,7 +29,6 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
-	backendhf "github.com/matrixhub-ai/hfd/pkg/backend/hf"
 	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	backendlfs "github.com/matrixhub-ai/hfd/pkg/backend/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
@@ -42,6 +41,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/handler"
+	backendhf "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
