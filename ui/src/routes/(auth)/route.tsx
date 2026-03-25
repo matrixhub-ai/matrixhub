@@ -9,6 +9,7 @@ import {
   UnstyledButton,
   rem,
 } from '@mantine/core'
+import { Login } from '@matrixhub/api-ts/v1alpha1/login.pb'
 import {
   IconChevronDown as ArrowDownIcon,
   IconCube as ModelIcon,
@@ -18,6 +19,7 @@ import {
   IconUser as UserIcon,
   IconApiApp as ProjectIcon,
 } from '@tabler/icons-react'
+import { useMutation } from '@tanstack/react-query'
 import {
   createFileRoute,
   Link,
@@ -197,6 +199,15 @@ function AccountMenu() {
     ? [...baseMenuItems, ...adminMenuItem]
     : baseMenuItems
 
+  const {
+    mutate: logout,
+  } = useMutation({
+    mutationFn: () => Login.Logout({}),
+    onSuccess: () => {
+      window.location.reload()
+    },
+  })
+
   return (
     <Menu
       shadow="md"
@@ -247,6 +258,7 @@ function AccountMenu() {
               color="var(--mantine-color-gray-6)"
             />
           )}
+          onClick={() => logout()}
         >
           {t('nav.logout')}
         </Menu.Item>
