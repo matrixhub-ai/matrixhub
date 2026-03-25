@@ -41,3 +41,5 @@ config/config-dev.yaml
 web/node_modules
 
 website/node_modules
+
+/tmp
