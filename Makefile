@@ -146,3 +146,8 @@ chart.build: ## Build Helm chart package
 .PHONY: genproto
 genproto:
 	@./scripts/update-proto-gen.sh
+
+# Generate HTTP client SDK for testing. Output: test/client. Run when swagger changes.
+.PHONY: gen_openapi_sdk
+gen_openapi_sdk:
+	@./scripts/gen_openapi_sdk.sh

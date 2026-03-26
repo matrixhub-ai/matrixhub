@@ -76,11 +76,11 @@ export MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL}"
 case ${TEST_LEVEL} in
     "smoke")
         echo "Running smoke tests..."
-        ginkgo -v --timeout=10m ./test/e2e/...
+        ginkgo -v --timeout=10m ./test/e2e_apiserver/...
         ;;
     "all")
         echo "Running all E2E tests..."
-        ginkgo -v --timeout=20m ./test/e2e/...
+        ginkgo -v --timeout=20m ./test/e2e_apiserver/...
         ;;
     *)
         echo "Unknown test level: ${TEST_LEVEL}"

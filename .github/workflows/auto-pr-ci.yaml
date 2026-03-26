@@ -49,10 +49,16 @@ jobs:
               - 'Makefile*'
               - '**/Makefile*'
               - '**/Dockerfile'
-              - 'ui/**'
             all_e2e:
               - 'test/**'
-
+              - '**/*.sh'
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'deploy/charts/**'
+              - 'Makefile*'
+              - '**/Makefile*'
+              - '**/Dockerfile'
       - name: Get Ref
         id: get_ref
         run: |
