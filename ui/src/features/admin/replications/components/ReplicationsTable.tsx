@@ -10,7 +10,10 @@ import { useTranslation } from 'react-i18next'
 
 import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
 
-import { getReplicationRowId } from '../replications.utils'
+import {
+  formatReplicationBandwidth,
+  getReplicationRowId,
+} from '../replications.utils'
 
 import type { Registry } from '@matrixhub/api-ts/v1alpha1/registry.pb'
 import type { SyncPolicyItem } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
@@ -197,11 +200,9 @@ export function ReplicationsTable({
       id: 'bandwidth',
       header: t('routes.admin.replications.table.bandwidth'),
       accessorFn: (row) => {
-        if (!row.bandwidth || row.bandwidth === '-1' || row.bandwidth === '0') {
-          return t('routes.admin.replications.bandwidth.unlimited')
-        }
+        const formatted = formatReplicationBandwidth(row.bandwidth)
 
-        return row.bandwidth
+        return formatted || t('routes.admin.replications.bandwidth.unlimited')
       },
     },
   ], [localLabel, t])
