@@ -1,7 +1,7 @@
 name: Netlify Preview Deploy
 
 on:
-  pull_request:
+  pull_request_target:
     paths:
       - ui/**
       - api/ts/**
@@ -22,6 +22,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Delete old comment & post deploying status
         id: comment
