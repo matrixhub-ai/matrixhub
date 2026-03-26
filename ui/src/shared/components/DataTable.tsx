@@ -248,17 +248,19 @@ export function DataTable<TData extends MRT_RowData>({
               <IconRefresh size={24} />
             </ActionIcon>
           )}
-          <Button
-            color="red"
-            variant="light"
-            disabled={!showBatchDelete}
-            leftSection={<IconTrash size={16} />}
-            onClick={onBatchDelete}
-          >
-            {!selectedCount
-              ? t('shared.batchDelete')
-              : t('shared.batchDeleteWithCount', { count: selectedCount })}
-          </Button>
+          {onBatchDelete && (
+            <Button
+              color="red"
+              variant="light"
+              disabled={!showBatchDelete}
+              leftSection={<IconTrash size={16} />}
+              onClick={onBatchDelete}
+            >
+              {!selectedCount
+                ? t('shared.batchDelete')
+                : t('shared.batchDeleteWithCount', { count: selectedCount })}
+            </Button>
+          )}
 
           {toolbarExtra}
         </SearchToolbar>

@@ -95,7 +95,7 @@ function ProjectActionsCell({
   )
 }
 
-export type ProjectsTableProps = Omit<DataTableProps<Project>, 'onBatchDelete' | 'columns'> & {
+export type ProjectsTableProps = Omit<DataTableProps<Project>, 'columns'> & {
   onDelete?: (project: Project) => void
 }
 
