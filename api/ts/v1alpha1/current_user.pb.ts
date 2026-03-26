@@ -29,7 +29,7 @@ export type ListAccessTokensResponse = {
 }
 
 export type AccessToken = {
-  id?: string
+  id?: number
   name?: string
   status?: AccessTokenStatus
   createdAt?: string
@@ -38,14 +38,15 @@ export type AccessToken = {
 
 export type CreateAccessTokenRequest = {
   name?: string
-  expiredAt?: string
+  expireAt?: string
 }
 
 export type CreateAccessTokenResponse = {
+  token?: string
 }
 
 export type DeleteAccessTokenRequest = {
-  id?: string
+  id?: number
 }
 
 export type DeleteAccessTokenResponse = {
@@ -78,10 +79,10 @@ export class CurrentUser {
     return fm.fetchReq<ListAccessTokensRequest, ListAccessTokensResponse>(`/api/v1alpha1/current-user/access-tokens?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CreateAccessToken(req: CreateAccessTokenRequest, initReq?: fm.InitReq): Promise<CreateAccessTokenResponse> {
-    return fm.fetchReq<CreateAccessTokenRequest, CreateAccessTokenResponse>(`/apis/v1alpha1/current-user/access-tokens`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<CreateAccessTokenRequest, CreateAccessTokenResponse>(`/api/v1alpha1/current-user/access-tokens`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static DeleteAccessToken(req: DeleteAccessTokenRequest, initReq?: fm.InitReq): Promise<DeleteAccessTokenResponse> {
-    return fm.fetchReq<DeleteAccessTokenRequest, DeleteAccessTokenResponse>(`/apis/v1alpha1/current-user/access-tokens/${req["id"]}`, {...initReq, method: "DELETE"})
+    return fm.fetchReq<DeleteAccessTokenRequest, DeleteAccessTokenResponse>(`/api/v1alpha1/current-user/access-tokens/${req["id"]}`, {...initReq, method: "DELETE"})
   }
   static GetProjectRoles(req: GetProjectRolesRequest, initReq?: fm.InitReq): Promise<GetProjectRolesResponse> {
     return fm.fetchReq<GetProjectRolesRequest, GetProjectRolesResponse>(`/api/v1alpha1/current-user/projects/role?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

@@ -144,7 +144,7 @@ func request_CurrentUser_DeleteAccessToken_0(ctx context.Context, marshaler runt
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	protoReq.Id, err = runtime.String(val)
+	protoReq.Id, err = runtime.Uint32(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -162,7 +162,7 @@ func local_request_CurrentUser_DeleteAccessToken_0(ctx context.Context, marshale
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	protoReq.Id, err = runtime.String(val)
+	protoReq.Id, err = runtime.Uint32(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -263,7 +263,7 @@ func RegisterCurrentUserHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/CreateAccessToken", runtime.WithHTTPPathPattern("/apis/v1alpha1/current-user/access-tokens"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/CreateAccessToken", runtime.WithHTTPPathPattern("/api/v1alpha1/current-user/access-tokens"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -283,7 +283,7 @@ func RegisterCurrentUserHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/DeleteAccessToken", runtime.WithHTTPPathPattern("/apis/v1alpha1/current-user/access-tokens/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/DeleteAccessToken", runtime.WithHTTPPathPattern("/api/v1alpha1/current-user/access-tokens/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -412,7 +412,7 @@ func RegisterCurrentUserHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/CreateAccessToken", runtime.WithHTTPPathPattern("/apis/v1alpha1/current-user/access-tokens"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/CreateAccessToken", runtime.WithHTTPPathPattern("/api/v1alpha1/current-user/access-tokens"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -429,7 +429,7 @@ func RegisterCurrentUserHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/DeleteAccessToken", runtime.WithHTTPPathPattern("/apis/v1alpha1/current-user/access-tokens/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/matrixhub.v1alpha1.CurrentUser/DeleteAccessToken", runtime.WithHTTPPathPattern("/api/v1alpha1/current-user/access-tokens/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -466,8 +466,8 @@ var (
 	pattern_CurrentUser_GetCurrentUser_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1alpha1", "current-user"}, ""))
 	pattern_CurrentUser_ResetPassword_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1alpha1", "current-user", "reset-password"}, ""))
 	pattern_CurrentUser_ListAccessTokens_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1alpha1", "current-user", "access-tokens"}, ""))
-	pattern_CurrentUser_CreateAccessToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"apis", "v1alpha1", "current-user", "access-tokens"}, ""))
-	pattern_CurrentUser_DeleteAccessToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"apis", "v1alpha1", "current-user", "access-tokens", "id"}, ""))
+	pattern_CurrentUser_CreateAccessToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1alpha1", "current-user", "access-tokens"}, ""))
+	pattern_CurrentUser_DeleteAccessToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "v1alpha1", "current-user", "access-tokens", "id"}, ""))
 	pattern_CurrentUser_GetProjectRoles_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"api", "v1alpha1", "current-user", "projects", "role"}, ""))
 )
 

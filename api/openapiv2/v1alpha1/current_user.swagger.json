@@ -58,6 +58,67 @@
         "tags": [
           "CurrentUser"
         ]
+      },
+      "post": {
+        "operationId": "CurrentUser_CreateAccessToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateAccessTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateAccessTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CurrentUser"
+        ]
+      }
+    },
+    "/api/v1alpha1/current-user/access-tokens/{id}": {
+      "delete": {
+        "operationId": "CurrentUser_DeleteAccessToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1DeleteAccessTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CurrentUser"
+        ]
       }
     },
     "/api/v1alpha1/current-user/projects/role": {
@@ -113,68 +174,6 @@
           "CurrentUser"
         ]
       }
-    },
-    "/apis/v1alpha1/current-user/access-tokens": {
-      "post": {
-        "operationId": "CurrentUser_CreateAccessToken",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1alpha1CreateAccessTokenResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1alpha1CreateAccessTokenRequest"
-            }
-          }
-        ],
-        "tags": [
-          "CurrentUser"
-        ]
-      }
-    },
-    "/apis/v1alpha1/current-user/access-tokens/{id}": {
-      "delete": {
-        "operationId": "CurrentUser_DeleteAccessToken",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1alpha1DeleteAccessTokenResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "CurrentUser"
-        ]
-      }
     }
   },
   "definitions": {
@@ -210,7 +209,8 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int64"
         },
         "name": {
           "type": "string"
@@ -241,13 +241,18 @@
         "name": {
           "type": "string"
         },
-        "expiredAt": {
+        "expireAt": {
           "type": "string"
         }
       }
     },
     "v1alpha1CreateAccessTokenResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
     },
     "v1alpha1DeleteAccessTokenResponse": {
       "type": "object"

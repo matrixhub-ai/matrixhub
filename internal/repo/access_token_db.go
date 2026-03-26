@@ -26,7 +26,13 @@ type accessTokenRepo struct {
 	db *gorm.DB
 }
 
-func (a *accessTokenRepo) GetAccessToken(ctx context.Context, userId int, id string) (*user.AccessToken, error) {
+func (a *accessTokenRepo) GetByTokenHash(ctx context.Context, hash string) (*user.AccessToken, error) {
+	var ak user.AccessToken
+	err := a.db.WithContext(ctx).Where("token_hash = ?", hash).Find(&ak).Error
+	return &ak, err
+}
+
+func (a *accessTokenRepo) GetAccessToken(ctx context.Context, userId, id int) (*user.AccessToken, error) {
 	var ak user.AccessToken
 	err := a.db.WithContext(ctx).Where("id = ? and user_id = ?", id, userId).First(&ak).Error
 	if err != nil {
@@ -45,7 +51,7 @@ func (a *accessTokenRepo) CreateAccessToken(ctx context.Context, token user.Acce
 	return a.db.WithContext(ctx).Create(&token).Error
 }
 
-func (a *accessTokenRepo) DeleteAccessToken(ctx context.Context, userId int, id string) error {
+func (a *accessTokenRepo) DeleteAccessToken(ctx context.Context, userId, id int) error {
 	return a.db.WithContext(ctx).Where("id = ? and user_id = ?", id, userId).Delete(&user.AccessToken{}).Error
 }
 

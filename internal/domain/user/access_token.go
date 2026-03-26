@@ -20,17 +20,21 @@ import (
 )
 
 type AccessToken struct {
-	Id        string `gorm:"primary_key"`
+	Id        int `gorm:"primary_key"`
 	Name      string
 	UserId    int
-	Content   string
+	TokenHash string
 	Enabled   bool
+	ExpireAt  *time.Time
 	CreatedAt time.Time
-	ExpiredAt *time.Time
 }
 
 func (at AccessToken) IsExpired(t time.Time) bool {
-	return at.ExpiredAt != nil && at.ExpiredAt.Before(t)
+	return at.ExpireAt != nil && at.ExpireAt.Before(t)
+}
+
+func (at AccessToken) IsValid(t time.Time) bool {
+	return at.Enabled && !at.IsExpired(t)
 }
 
 func (AccessToken) TableName() string {
@@ -38,8 +42,9 @@ func (AccessToken) TableName() string {
 }
 
 type IAccessTokenRepo interface {
-	GetAccessToken(ctx context.Context, userId int, id string) (*AccessToken, error)
+	GetByTokenHash(ctx context.Context, hash string) (*AccessToken, error)
+	GetAccessToken(ctx context.Context, userId, id int) (*AccessToken, error)
 	ListUserAccessTokens(ctx context.Context, userId int) ([]*AccessToken, error)
 	CreateAccessToken(ctx context.Context, token AccessToken) error
-	DeleteAccessToken(ctx context.Context, userId int, id string) error
+	DeleteAccessToken(ctx context.Context, userId, id int) error
 }

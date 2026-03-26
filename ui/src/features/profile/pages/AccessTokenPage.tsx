@@ -59,7 +59,7 @@ export function AccessTokenPage() {
 
   const nameSchema = z.string().min(1, { error: t('common.validation.fieldRequired', { field: t('profile.tokenName') }) })
 
-  const expiredAtSchema = z.string().min(1, { error: t('common.validation.fieldRequired', { field: t('profile.expireTime') }) })
+  const expireAtSchema = z.string().min(1, { error: t('common.validation.fieldRequired', { field: t('profile.expireTime') }) })
     .refine(value => dayjs(value).startOf('day').isAfter(dayjs().startOf('day')), { error: t('profile.expireTimeError') })
 
   const {
@@ -78,12 +78,12 @@ export function AccessTokenPage() {
   const form = useForm({
     defaultValues: {
       name: '',
-      expiredAt: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+      expireAt: dayjs().add(1, 'day').format('YYYY-MM-DD'),
     },
     onSubmit: ({ value }) => {
       createToken({
         ...value,
-        expiredAt: validityValue === 'custom' ? String(dayjs(value.expiredAt).unix()) : '',
+        expireAt: validityValue === 'custom' ? String(dayjs(value.expireAt).unix()) : '',
       })
     },
   })
@@ -92,7 +92,7 @@ export function AccessTokenPage() {
     setValidityValue(v as 'never' | 'custom')
 
     if (v === 'never') {
-      form.resetField('expiredAt')
+      form.resetField('expireAt')
     }
   }
 
@@ -181,8 +181,8 @@ export function AccessTokenPage() {
         </Radio.Group>
         {validityValue === 'custom' && (
           <form.Field
-            name="expiredAt"
-            validators={{ onChange: expiredAtSchema }}
+            name="expireAt"
+            validators={{ onChange: expireAtSchema }}
           >
             {({
               state, handleChange,

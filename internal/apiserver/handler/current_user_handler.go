@@ -16,16 +16,20 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
 type CurrentUserHandler struct {
@@ -72,17 +76,17 @@ func (cu *CurrentUserHandler) ListAccessTokens(ctx context.Context, request *v1a
 	return &v1alpha1.ListAccessTokensResponse{
 		Items: lo.Map(aks, func(item *user.AccessToken, _ int) *v1alpha1.AccessToken {
 			expiredAt := ""
-			if item.ExpiredAt != nil {
-				expiredAt = strconv.Itoa(int(item.ExpiredAt.Unix()))
+			if item.ExpireAt != nil {
+				expiredAt = strconv.Itoa(int(item.ExpireAt.Unix()))
 			}
 			status := v1alpha1.AccessTokenStatus_ACCESS_TOKEN_STATUS_UNKNOWN
-			if item.ExpiredAt == nil || item.ExpiredAt.After(time.Now()) {
+			if item.ExpireAt == nil || item.ExpireAt.After(time.Now()) {
 				status = v1alpha1.AccessTokenStatus_ACCESS_TOKEN_STATUS_VALID
-			} else if time.Now().After(*item.ExpiredAt) {
+			} else if time.Now().After(*item.ExpireAt) {
 				status = v1alpha1.AccessTokenStatus_ACCESS_TOKEN_STATUS_EXPIRED
 			}
 			return &v1alpha1.AccessToken{
-				Id:        item.Id,
+				Id:        uint32(item.Id),
 				Name:      item.Name,
 				Status:    status,
 				CreatedAt: strconv.Itoa(int(item.CreatedAt.Unix())),
@@ -90,7 +94,6 @@ func (cu *CurrentUserHandler) ListAccessTokens(ctx context.Context, request *v1a
 			}
 		}),
 	}, nil
-
 }
 
 func (cu *CurrentUserHandler) CreateAccessToken(ctx context.Context, request *v1alpha1.CreateAccessTokenRequest) (*v1alpha1.CreateAccessTokenResponse, error) {
@@ -98,8 +101,8 @@ func (cu *CurrentUserHandler) CreateAccessToken(ctx context.Context, request *v1
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	var expireAt *time.Time
-	if request.GetExpiredAt() != "" {
-		expire, err := strconv.Atoi(request.GetExpiredAt())
+	if request.GetExpireAt() != "" {
+		expire, err := strconv.Atoi(request.GetExpireAt())
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
@@ -107,24 +110,39 @@ func (cu *CurrentUserHandler) CreateAccessToken(ctx context.Context, request *v1
 		expireAt = &expTime
 	}
 
-	ak := user.AccessToken{
-		Name:      request.GetName(),
-		UserId:    user.GetCurrentUserId(ctx),
-		Enabled:   true,
-		ExpiredAt: expireAt,
-	}
-	if err := cu.accessTokenRepo.CreateAccessToken(ctx, ak); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+	for attempt := 1; attempt <= utils.MaxTokenRetries; attempt++ {
+		raw, hash, err := utils.GenerateToken()
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+
+		ak := user.AccessToken{
+			Name:      request.GetName(),
+			UserId:    user.GetCurrentUserId(ctx),
+			TokenHash: hash,
+			Enabled:   true,
+			ExpireAt:  expireAt,
+		}
+		err = cu.accessTokenRepo.CreateAccessToken(ctx, ak)
+		if err == nil {
+			return &v1alpha1.CreateAccessTokenResponse{
+				Token: raw,
+			}, nil
+		}
+		if errors.Is(err, gorm.ErrDuplicatedKey) && attempt < utils.MaxTokenRetries {
+			continue
+		}
+		return nil, status.Error(codes.Internal, fmt.Sprintf("token: persist (attempt %d): %s", attempt, err))
 	}
 
-	return &v1alpha1.CreateAccessTokenResponse{}, nil
+	return nil, status.Error(codes.Internal, "token: exceeded max retries — this should never happen")
 }
 
 func (cu *CurrentUserHandler) DeleteAccessToken(ctx context.Context, request *v1alpha1.DeleteAccessTokenRequest) (*v1alpha1.DeleteAccessTokenResponse, error) {
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := cu.accessTokenRepo.DeleteAccessToken(ctx, user.GetCurrentUserId(ctx), request.GetId()); err != nil {
+	if err := cu.accessTokenRepo.DeleteAccessToken(ctx, user.GetCurrentUserId(ctx), int(request.GetId())); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -144,9 +162,10 @@ func (cu *CurrentUserHandler) RegisterToServer(options *ServerOptions) {
 	}
 }
 
-func NewCurrentUserHandler(repo user.IUserRepo) IHandler {
+func NewCurrentUserHandler(userRepo user.IUserRepo, akRepo user.IAccessTokenRepo) IHandler {
 	handler := &CurrentUserHandler{
-		userRepo: repo,
+		userRepo:        userRepo,
+		accessTokenRepo: akRepo,
 	}
 
 	return handler

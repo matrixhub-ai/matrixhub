@@ -137,16 +137,18 @@ CREATE TABLE IF NOT EXISTS `datasets_labels`
     CONSTRAINT `fk_dataset_labels_label_id` FOREIGN KEY (`label_id`) REFERENCES `labels` (`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'Dataset to labels mapping';
 
-CREATE TABLE IF NOT EXISTS `access_tokens`
-(
-    `id`         int         NOT NULL AUTO_INCREMENT,
-    `name`       varchar(64) NOT NULL,
-    `user_id`    CHAR(36)    NOT NULL,
-    `secret`     VARCHAR(128),
-    `created_at` timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+CREATE TABLE `access_tokens` (
+     `id` int NOT NULL AUTO_INCREMENT,
+     `name` varchar(64) NOT NULL,
+     `user_id` bigint NOT NULL,
+     `token_hash` varchar(128) NOT NULL DEFAULT '',
+     `enabled` tinyint(1) NOT NULL DEFAULT '0',
+     `expire_at` timestamp NULL DEFAULT NULL,
+     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `uniq_token_hash` (`token_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `sync_policies`
 (

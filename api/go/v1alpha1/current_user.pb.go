@@ -242,7 +242,7 @@ func (x *ListAccessTokensResponse) GetItems() []*AccessToken {
 
 type AccessToken struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Status        AccessTokenStatus      `protobuf:"varint,3,opt,name=status,proto3,enum=matrixhub.v1alpha1.AccessTokenStatus" json:"status,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
@@ -281,11 +281,11 @@ func (*AccessToken) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *AccessToken) GetId() string {
+func (x *AccessToken) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 func (x *AccessToken) GetName() string {
@@ -319,7 +319,7 @@ func (x *AccessToken) GetExpiredAt() string {
 type CreateAccessTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ExpiredAt     string                 `protobuf:"bytes,2,opt,name=expired_at,json=expiredAt,proto3" json:"expired_at,omitempty"`
+	ExpireAt      string                 `protobuf:"bytes,2,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -361,15 +361,16 @@ func (x *CreateAccessTokenRequest) GetName() string {
 	return ""
 }
 
-func (x *CreateAccessTokenRequest) GetExpiredAt() string {
+func (x *CreateAccessTokenRequest) GetExpireAt() string {
 	if x != nil {
-		return x.ExpiredAt
+		return x.ExpireAt
 	}
 	return ""
 }
 
 type CreateAccessTokenResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -404,9 +405,16 @@ func (*CreateAccessTokenResponse) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{6}
 }
 
+func (x *CreateAccessTokenResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
 type DeleteAccessTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -441,11 +449,11 @@ func (*DeleteAccessTokenRequest) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *DeleteAccessTokenRequest) GetId() string {
+func (x *DeleteAccessTokenRequest) GetId() uint32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 type DeleteAccessTokenResponse struct {
@@ -673,20 +681,20 @@ const file_v1alpha1_current_user_proto_rawDesc = "" +
 	"\x18ListAccessTokensResponse\x125\n" +
 	"\x05items\x18\x01 \x03(\v2\x1f.matrixhub.v1alpha1.AccessTokenR\x05items\"\xae\x01\n" +
 	"\vAccessToken\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12=\n" +
 	"\x06status\x18\x03 \x01(\x0e2%.matrixhub.v1alpha1.AccessTokenStatusR\x06status\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"expired_at\x18\x05 \x01(\tR\texpiredAt\"X\n" +
+	"expired_at\x18\x05 \x01(\tR\texpiredAt\"V\n" +
 	"\x18CreateAccessTokenRequest\x12\x1d\n" +
-	"\x04name\x18\x01 \x01(\tB\t\xfaB\x06r\x04\x10\x01\x18}R\x04name\x12\x1d\n" +
-	"\n" +
-	"expired_at\x18\x02 \x01(\tR\texpiredAt\"\x1b\n" +
-	"\x19CreateAccessTokenResponse\"4\n" +
-	"\x18DeleteAccessTokenRequest\x12\x18\n" +
-	"\x02id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x02id\"\x1b\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xfaB\x06r\x04\x10\x01\x18}R\x04name\x12\x1b\n" +
+	"\texpire_at\x18\x02 \x01(\tR\bexpireAt\"1\n" +
+	"\x19CreateAccessTokenResponse\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\"*\n" +
+	"\x18DeleteAccessTokenRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\"\x1b\n" +
 	"\x19DeleteAccessTokenResponse\"\x18\n" +
 	"\x16GetProjectRolesRequest\"\xe3\x01\n" +
 	"\x17GetProjectRolesResponse\x12b\n" +
@@ -702,13 +710,13 @@ const file_v1alpha1_current_user_proto_rawDesc = "" +
 	"\x11AccessTokenStatus\x12\x1f\n" +
 	"\x1bACCESS_TOKEN_STATUS_UNKNOWN\x10\x00\x12\x1d\n" +
 	"\x19ACCESS_TOKEN_STATUS_VALID\x10\x01\x12\x1f\n" +
-	"\x1bACCESS_TOKEN_STATUS_EXPIRED\x10\x022\xcd\a\n" +
+	"\x1bACCESS_TOKEN_STATUS_EXPIRED\x10\x022\xcb\a\n" +
 	"\vCurrentUser\x12\x8b\x01\n" +
 	"\x0eGetCurrentUser\x12).matrixhub.v1alpha1.GetCurrentUserRequest\x1a*.matrixhub.v1alpha1.GetCurrentUserResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1alpha1/current-user\x12\x9a\x01\n" +
 	"\rResetPassword\x12(.matrixhub.v1alpha1.ResetPasswordRequest\x1a).matrixhub.v1alpha1.ResetPasswordResponse\"4\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1alpha1/current-user/reset-password\x12\x9f\x01\n" +
-	"\x10ListAccessTokens\x12+.matrixhub.v1alpha1.ListAccessTokensRequest\x1a,.matrixhub.v1alpha1.ListAccessTokensResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1alpha1/current-user/access-tokens\x12\xa6\x01\n" +
-	"\x11CreateAccessToken\x12,.matrixhub.v1alpha1.CreateAccessTokenRequest\x1a-.matrixhub.v1alpha1.CreateAccessTokenResponse\"4\x82\xd3\xe4\x93\x02.:\x01*\")/apis/v1alpha1/current-user/access-tokens\x12\xa8\x01\n" +
-	"\x11DeleteAccessToken\x12,.matrixhub.v1alpha1.DeleteAccessTokenRequest\x1a-.matrixhub.v1alpha1.DeleteAccessTokenResponse\"6\x82\xd3\xe4\x93\x020*./apis/v1alpha1/current-user/access-tokens/{id}\x12\x9c\x01\n" +
+	"\x10ListAccessTokens\x12+.matrixhub.v1alpha1.ListAccessTokensRequest\x1a,.matrixhub.v1alpha1.ListAccessTokensResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1alpha1/current-user/access-tokens\x12\xa5\x01\n" +
+	"\x11CreateAccessToken\x12,.matrixhub.v1alpha1.CreateAccessTokenRequest\x1a-.matrixhub.v1alpha1.CreateAccessTokenResponse\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1alpha1/current-user/access-tokens\x12\xa7\x01\n" +
+	"\x11DeleteAccessToken\x12,.matrixhub.v1alpha1.DeleteAccessTokenRequest\x1a-.matrixhub.v1alpha1.DeleteAccessTokenResponse\"5\x82\xd3\xe4\x93\x02/*-/api/v1alpha1/current-user/access-tokens/{id}\x12\x9c\x01\n" +
 	"\x0fGetProjectRoles\x12*.matrixhub.v1alpha1.GetProjectRolesRequest\x1a+.matrixhub.v1alpha1.GetProjectRolesResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1alpha1/current-user/projects/roleB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
 
 var (

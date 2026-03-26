@@ -33,20 +33,21 @@ import (
 )
 
 type Repos struct {
-	DB         *gorm.DB
-	GitStorage *gitstorage.Storage
-	GitMirror  *mirror.Mirror
-	Project    project.IProjectRepo
-	User       user.IUserRepo
-	Registry   registry.IRegistryRepo
-	Model      model.IModelRepo
-	Label      model.ILabelRepo
-	Git        git.IGitRepo
-	Dataset    dataset.IDatasetRepo
-	Session    user.ISessionRepo
-	SyncPolicy syncpolicy.ISyncPolicyRepo
-	SyncTask   syncpolicy.ISyncTaskRepo
-	SyncJob    syncjob.ISyncJobRepo
+	DB          *gorm.DB
+	GitStorage  *gitstorage.Storage
+	GitMirror   *mirror.Mirror
+	Project     project.IProjectRepo
+	User        user.IUserRepo
+	Registry    registry.IRegistryRepo
+	Model       model.IModelRepo
+	Label       model.ILabelRepo
+	Git         git.IGitRepo
+	Dataset     dataset.IDatasetRepo
+	Session     user.ISessionRepo
+	AccessToken user.IAccessTokenRepo
+	SyncPolicy  syncpolicy.ISyncPolicyRepo
+	SyncTask    syncpolicy.ISyncTaskRepo
+	SyncJob     syncjob.ISyncJobRepo
 }
 
 func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror) *Repos {
@@ -65,6 +66,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.Project = NewProjectDBRepo(repos.DB)
 	repos.User = NewUserRepo(repos.DB)
 	repos.Session = NewSessionRepository(repos.DB)
+	repos.AccessToken = NewAccessTokenRepo(repos.DB)
 	repos.Model = NewModelDB(repos.DB)
 	repos.Label = NewLabelDB(repos.DB)
 	repos.Git = NewGitDB(repos.GitStorage, repos.GitMirror)

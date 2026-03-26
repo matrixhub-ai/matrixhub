@@ -35,9 +35,6 @@ var (
 	_ = sort.Sort
 )
 
-// define the regex for a UUID once up-front
-var _current_user_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on ResetPasswordRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -644,7 +641,7 @@ func (m *CreateAccessTokenRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for ExpiredAt
+	// no validation rules for ExpireAt
 
 	if len(errors) > 0 {
 		return CreateAccessTokenRequestMultiError(errors)
@@ -748,6 +745,8 @@ func (m *CreateAccessTokenResponse) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Token
+
 	if len(errors) > 0 {
 		return CreateAccessTokenResponseMultiError(errors)
 	}
@@ -850,28 +849,10 @@ func (m *DeleteAccessTokenRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = DeleteAccessTokenRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return DeleteAccessTokenRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *DeleteAccessTokenRequest) _validateUuid(uuid string) error {
-	if matched := _current_user_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil

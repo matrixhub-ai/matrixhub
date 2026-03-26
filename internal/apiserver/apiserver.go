@@ -29,7 +29,6 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
-	backendhf "github.com/matrixhub-ai/hfd/pkg/backend/hf"
 	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	backendlfs "github.com/matrixhub-ai/hfd/pkg/backend/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
@@ -42,6 +41,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/handler"
+	backendhf "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
@@ -261,6 +261,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhf.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendhf.WithPostReceiveHookFunc(postReceiveHookFunc),
 		backendhf.WithLFSStorage(lfsStorage),
+		backendhf.WithMiddlewares(middleware.HFAuthenticationMiddleware(server.repos.AccessToken)),
 	)
 
 	handler = backendlfs.NewHandler(
@@ -327,7 +328,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewLoginHandler(userService),
 		handler.NewProjectHandler(repos.Project),
 		handler.NewUserHandler(repos.User),
-		handler.NewCurrentUserHandler(repos.User),
+		handler.NewCurrentUserHandler(repos.User, repos.AccessToken),
 		handler.NewRegistryHandler(repos.Registry),
 		handler.NewDatasetHandler(datasetService),
 		handler.NewModelHandler(modelService),

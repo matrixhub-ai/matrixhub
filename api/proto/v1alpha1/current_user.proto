@@ -27,13 +27,13 @@ service CurrentUser {
   }
   rpc CreateAccessToken(CreateAccessTokenRequest) returns (CreateAccessTokenResponse) {
     option (google.api.http) = {
-      post: "/apis/v1alpha1/current-user/access-tokens"
+      post: "/api/v1alpha1/current-user/access-tokens"
       body: "*"
     };
   }
   rpc DeleteAccessToken(DeleteAccessTokenRequest) returns (DeleteAccessTokenResponse) {
     option (google.api.http) = {
-      delete: "/apis/v1alpha1/current-user/access-tokens/{id}"
+      delete: "/api/v1alpha1/current-user/access-tokens/{id}"
     };
   }
 
@@ -60,7 +60,7 @@ message ListAccessTokensResponse {
 }
 
 message AccessToken {
-  string id = 1;
+  uint32 id = 1;
   string name = 2;
   AccessTokenStatus status = 3;
   string created_at = 4;
@@ -75,13 +75,15 @@ enum AccessTokenStatus {
 
 message CreateAccessTokenRequest {
   string name = 1 [(validate.rules).string = {min_len: 1, max_len: 125}];
-  string expired_at = 2;
+  string expire_at = 2;
 }
 
-message CreateAccessTokenResponse {}
+message CreateAccessTokenResponse {
+  string token = 2;
+}
 
 message DeleteAccessTokenRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  uint32 id = 1;
 }
 
 message DeleteAccessTokenResponse {}
