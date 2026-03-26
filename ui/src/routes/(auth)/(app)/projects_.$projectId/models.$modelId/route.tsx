@@ -3,24 +3,20 @@ import {
   Button,
   Tabs,
 } from '@mantine/core'
-import { Models } from '@matrixhub/api-ts/v1alpha1/model.pb.ts'
 import { IconDownload, IconCloudUpload } from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import {
   Outlet, useMatchRoute, createFileRoute, linkOptions, Link,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { projectRolesQueryOptions } from '@/features/auth/auth.query'
+import { modelQueryOptions, modelRevisionsQueryOptions } from '@/features/models/models.query'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
-import { queryClient } from '@/queryClient'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
-import {
-  forbiddenError,
-  isSdkPermissionDenied,
-  isSdkNotFound,
-  notFoundError,
-} from '@/utils/routerAccess'
 
+import { Route as ModelBlobRoute } from './blob/$ref/$'
+import { Route as ModelCommitRoute } from './commit/$commitId'
+import { Route as ModelCommitsRoute } from './commits/$ref'
 import { Route as ModelSettingsRoute } from './settings'
 import { Route as ModelTreeRoute } from './tree/$ref/$'
 
@@ -30,32 +26,13 @@ export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId',
 )({
   component: ModelDetailLayout,
-  loader: async ({ params }) => {
-    const projectRoles = await queryClient.ensureQueryData(projectRolesQueryOptions())
-    let model: Awaited<ReturnType<typeof Models.GetModel>>
-
-    // if the project is private and user has no access, will throw error
-    try {
-      model = await Models.GetModel({
-        project: params.projectId,
-        name: params.modelId,
-      })
-    } catch (e) {
-      if (isSdkPermissionDenied(e)) {
-        throw forbiddenError()
-      }
-
-      if (isSdkNotFound(e)) {
-        throw notFoundError()
-      }
-
-      throw e
-    }
-
-    return {
-      model,
-      projectRoles: projectRoles,
-    }
+  loader: async ({
+    context, params,
+  }) => {
+    return await Promise.allSettled([
+      context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId)),
+      context.queryClient.ensureQueryData(modelRevisionsQueryOptions(params.projectId, params.modelId)),
+    ])
   },
 })
 
@@ -65,10 +42,10 @@ function ModelDetailLayout() {
     projectId, modelId,
   } = Route.useParams()
 
-  const {
-    model, projectRoles,
-  } = Route.useLoaderData()
-  const hasProjectRole = Boolean(projectRoles.projectRoles?.[projectId])
+  const { data: model } = useSuspenseQuery(modelQueryOptions(projectId, modelId))
+
+  // FIXME: project roles should get from context
+  const hasProjectRole = true
 
   const tabRoutes = linkOptions([
     {
@@ -87,8 +64,7 @@ function ModelDetailLayout() {
       params: {
         projectId,
         modelId,
-        // TODO: use real ref
-        ref: 'main',
+        ref: model.defaultBranch ?? 'main',
       },
     },
     ...(hasProjectRole
@@ -105,7 +81,16 @@ function ModelDetailLayout() {
   ])
 
   const matchRoute = useMatchRoute()
-  const activeTab = tabRoutes.find(tab => matchRoute({ to: tab.to }))?.id || tabRoutes[0].id
+  const isTreeTabRoute = (
+    !!matchRoute({ to: ModelTreeRoute.to })
+    || !!matchRoute({ to: ModelBlobRoute.to })
+    || !!matchRoute({ to: ModelCommitRoute.to })
+    || !!matchRoute({ to: ModelCommitsRoute.to })
+  )
+
+  const activeTab = isTreeTabRoute
+    ? 'tree'
+    : (tabRoutes.find(tab => matchRoute({ to: tab.to }))?.id || tabRoutes[0].id)
 
   return (
     <Box pt={20} pb={32}>
@@ -142,10 +127,7 @@ function ModelDetailLayout() {
         </Tabs.List>
       </Tabs>
 
-      <Box>
-        {activeTab === 'desc' && <div>Description Page</div>}
-        <Outlet />
-      </Box>
+      <Outlet />
     </Box>
   )
 }

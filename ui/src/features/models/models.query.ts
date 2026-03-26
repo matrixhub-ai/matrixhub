@@ -1,10 +1,12 @@
-import { Models } from '@matrixhub/api-ts/v1alpha1/model.pb'
+import {
+  type GetModelTreeRequest, type ListModelCommitsRequest, Models,
+} from '@matrixhub/api-ts/v1alpha1/model.pb'
 import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import {
-  keepPreviousData,
-  queryOptions,
-  useQuery,
+  keepPreviousData, queryOptions, useQuery,
 } from '@tanstack/react-query'
+
+import { MODEL_COMMITS_PAGE_SIZE } from '@/utils/constants.ts'
 
 import type { ModelsCatalogSearch } from '@/routes/(auth)/(app)/models'
 
@@ -41,6 +43,33 @@ export const modelKeys = {
   taskLabels: () => [...modelKeys.all, 'task-labels'] as const,
   libraryLabels: () => [...modelKeys.all, 'library-labels'] as const,
   projects: () => [...modelKeys.all, 'projects'] as const,
+  commits: () => [...modelKeys.all, 'commit-list'] as const,
+  commitDetails: () => [...modelKeys.all, 'commit-detail'] as const,
+  details: () => [...modelKeys.all, 'detail'] as const,
+  detail: (projectId: string, modelName: string) => [...modelKeys.details(), projectId, modelName] as const,
+  commitsList: (projectId: string, modelName: string, params: Pick<ListModelCommitsRequest, 'revision' | 'page'>) => [
+    ...modelKeys.commits(), projectId, modelName, params,
+  ] as const,
+  commitDetail: (projectId: string, modelName: string, commitId: string) => [
+    ...modelKeys.commitDetails(),
+    projectId,
+    modelName,
+    commitId,
+  ] as const,
+}
+
+export const modelRevisionKeys = {
+  all: ['modelRevisions'] as const,
+  detail: (projectId: string, modelName: string) => [...modelRevisionKeys.all, projectId, modelName] as const,
+}
+
+export const modelTreeKeys = {
+  all: ['modelTree'] as const,
+  detail: (
+    projectId: string,
+    modelName: string,
+    params?: Pick<GetModelTreeRequest, 'revision' | 'path'>,
+  ) => [...modelTreeKeys.all, projectId, modelName, params] as const,
 }
 
 // -- Query options factory --
@@ -123,11 +152,99 @@ export function modelProjectsQueryOptions() {
   })
 }
 
+export function modelQueryOptions(projectId: string, modelName: string) {
+  return queryOptions({
+    queryKey: modelKeys.detail(projectId, modelName),
+    queryFn: () => Models.GetModel({
+      project: projectId,
+      name: modelName,
+    }),
+  })
+}
+
+export function modelRevisionsQueryOptions(projectId: string, modelName: string) {
+  return queryOptions({
+    queryKey: modelRevisionKeys.detail(projectId, modelName),
+    queryFn: () => Models.ListModelRevisions({
+      project: projectId,
+      name: modelName,
+    }),
+  })
+}
+
+export function modelTreeQueryOptions(
+  projectId: string,
+  modelName: string,
+  params?: Pick<GetModelTreeRequest, 'revision' | 'path'>,
+) {
+  return queryOptions({
+    queryKey: modelTreeKeys.detail(projectId, modelName, params),
+    queryFn: () => Models.GetModelTree({
+      project: projectId,
+      name: modelName,
+      ...params,
+    }),
+  })
+}
+
+export function modelCommitsQueryOptions(
+  projectId: string,
+  modelName: string,
+  params: Pick<ListModelCommitsRequest, 'revision' | 'page'>,
+) {
+  return queryOptions({
+    queryKey: modelKeys.commitsList(projectId, modelName, params),
+    queryFn: () => Models.ListModelCommits({
+      project: projectId,
+      name: modelName,
+      revision: params.revision,
+      page: params.page,
+      pageSize: MODEL_COMMITS_PAGE_SIZE,
+    }),
+  })
+}
+
+export function modelCommitQueryOptions(
+  projectId: string,
+  modelName: string,
+  commitId: string,
+) {
+  return queryOptions({
+    queryKey: modelKeys.commitDetail(projectId, modelName, commitId),
+    queryFn: () => Models.GetModelCommit({
+      project: projectId,
+      name: modelName,
+      id: commitId,
+    }),
+  })
+}
+
 // -- Custom hook --
 
 export function useModels(projectId: string, search: ModelsSearch) {
   return useQuery({
     ...projectModelsQueryOptions(projectId, search),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useModelTree(
+  projectId: string,
+  modelName: string,
+  params?: Pick<GetModelTreeRequest, 'revision' | 'path'>,
+) {
+  return useQuery({
+    ...modelTreeQueryOptions(projectId, modelName, params),
+  })
+}
+
+export function useModelCommits(
+  projectId: string,
+  modelName: string,
+  params: Pick<ListModelCommitsRequest, 'revision' | 'page'>,
+) {
+  return useQuery({
+    ...modelCommitsQueryOptions(projectId, modelName, params),
     placeholderData: keepPreviousData,
   })
 }

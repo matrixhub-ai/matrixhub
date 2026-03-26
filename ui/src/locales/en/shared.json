@@ -5,5 +5,17 @@
   "batchDelete": "Batch Delete",
   "total": "Total {{count}}",
   "sortOrderAsc": "Asc",
-  "sortOrderDesc": "Desc"
+  "sortOrderDesc": "Desc",
+  "copyValueButton": {
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "commitsTable": {
+    "columns": {
+      "message": "Commit Message"
+    },
+    "actions": {
+      "detail": "Detail"
+    }
+  }
 }

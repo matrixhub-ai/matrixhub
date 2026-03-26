@@ -1,16 +1,23 @@
 import { Box } from '@mantine/core'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import Markdown from 'react-markdown'
 
-const modelDetailRouteApi = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId')
+import { modelQueryOptions } from '@/features/models/models.query.ts'
+
+const { useParams } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId')
 
 export function ModelReadmePage() {
-  const model = modelDetailRouteApi.useLoaderData()
+  const {
+    projectId, modelId,
+  } = useParams()
+
+  const { data: model } = useSuspenseQuery(modelQueryOptions(projectId, modelId))
 
   return (
     <Box pt={20}>
       <Markdown>
-        { model?.model.readmeContent }
+        { model?.readmeContent }
       </Markdown>
     </Box>
   )

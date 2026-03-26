@@ -26,8 +26,7 @@ import {
   useMatchRoute,
   CatchBoundary,
   ErrorComponent,
-  redirect,
-  useRouterState,
+  useRouterState, redirect,
 } from '@tanstack/react-router'
 import { use } from 'react'
 import { useTranslation } from 'react-i18next'

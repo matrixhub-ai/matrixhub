@@ -1,31 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { modelCommitQueryOptions } from '@/features/models/models.query'
+import { ModelCommitDetailPage } from '@/features/models/pages/ModelCommitDetailPage'
+
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId/commit/$commitId/',
 )({
-  component: RouteComponent,
+  loader: async ({
+    context,
+    params,
+  }) => {
+    await context.queryClient.ensureQueryData(
+      modelCommitQueryOptions(params.projectId, params.modelId, params.commitId),
+    )
+  },
+  component: ModelCommitDetailPage,
 })
-
-function RouteComponent() {
-  const {
-    projectId, modelId, commitId,
-  } = Route.useParams()
-
-  return (
-    <div>
-      Model Commit Details
-      <br />
-      Project ID:
-      {' '}
-      {projectId}
-      <br />
-      Model ID:
-      {' '}
-      {modelId}
-      <br />
-      Commit ID:
-      {' '}
-      {commitId}
-    </div>
-  )
-}

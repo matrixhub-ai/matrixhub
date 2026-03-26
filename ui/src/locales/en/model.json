@@ -13,10 +13,23 @@
   "recommend": "Recommended Models",
   "allModels": "All Models",
   "viewMore": "View More",
+  "revisionPathHeader": {
+    "group": {
+      "branch": "Branch",
+      "tag": "Tag"
+    }
+  },
   "detail": {
     "desc": "Model Introduction",
     "tree": "Model Files",
-    "setting": "Settings"
+    "setting": "Settings",
+    "history": "Commit History"
+  },
+  "commits": {
+    "loadFailed": "Failed to load commit history. Please try again later."
+  },
+  "commitDetail": {
+    "title": "Commit Detail"
   },
   "settings": {
     "delete": {
