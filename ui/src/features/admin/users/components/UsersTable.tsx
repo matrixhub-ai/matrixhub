@@ -50,14 +50,6 @@ function UserSourceCell({ row }: UserCellProps) {
   return <Text size="sm">-</Text>
 }
 
-function UserNameCell({ row }: UserCellProps) {
-  return (
-    <Text fw={500}>
-      {row.original.username ?? '-'}
-    </Text>
-  )
-}
-
 function UserActionsCell({
   row,
 }: UserRowActionsProps) {
@@ -92,7 +84,7 @@ export function UsersTable({
       accessorKey: 'username',
       header: t('routes.admin.users.table.username'),
       size: 180,
-      Cell: UserNameCell,
+      accessorFn: row => row.username ?? '-',
     },
     {
       id: 'isAdmin',
