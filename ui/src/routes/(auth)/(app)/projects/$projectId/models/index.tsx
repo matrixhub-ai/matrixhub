@@ -7,10 +7,10 @@ import { ProjectModelsPage } from '@/features/projects/pages/ProjectModelsPage'
 // -- URL search schema (route concern) --
 
 const modelsSearchSchema = z.object({
-  q: z.string().transform(v => v.trim()).catch(''),
-  sort: z.literal('updatedAt').catch('updatedAt'),
-  order: z.enum(['asc', 'desc']).catch('desc'),
-  page: z.coerce.number().int().positive().catch(1),
+  q: z.string().optional().transform(v => v?.trim() ?? '').catch(''),
+  sort: z.literal('updatedAt').optional().transform(v => v ?? 'updatedAt').catch('updatedAt'),
+  order: z.enum(['asc', 'desc']).optional().transform(v => v ?? 'desc').catch('desc'),
+  page: z.coerce.number().int().positive().optional().transform(v => v ?? 1).catch(1),
 })
 
 // -- Route definition --

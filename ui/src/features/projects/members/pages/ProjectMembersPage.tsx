@@ -23,7 +23,7 @@ export function ProjectMembersPage() {
   const search = membersRouteApi.useSearch()
 
   const {
-    data, isLoading, refetch,
+    data, isLoading, isFetching, refetch,
   } = useMembers(projectId, {
     q: search.q,
     page: search.page,
@@ -125,6 +125,7 @@ export function ProjectMembersPage() {
         pagination={pagination}
         page={search.page}
         loading={isLoading}
+        fetching={isFetching}
         searchValue={search.q}
         onSearchChange={handleSearchChange}
         onRefresh={handleRefresh}

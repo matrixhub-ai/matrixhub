@@ -80,8 +80,8 @@ export function ProjectsPage() {
   return (
     <Stack gap="lg" pt="lg">
       <Group gap="sm">
-        <ProjectIcon size={24} />
-        <Title order={2}>{t('projects.title')}</Title>
+        <ProjectIcon size={32} />
+        <Title order={4}>{t('projects.title')}</Title>
       </Group>
 
       <Paper>

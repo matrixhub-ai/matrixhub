@@ -29,6 +29,7 @@ import { Route as authappProfileAccessTokenRouteImport } from './routes/(auth)/(
 import { Route as authappModelsNewRouteImport } from './routes/(auth)/(app)/models/new'
 import { Route as authappDatasetsNewRouteImport } from './routes/(auth)/(app)/datasets/new'
 import { Route as authappProjectsProjectIdRouteRouteImport } from './routes/(auth)/(app)/projects/$projectId/route'
+import { Route as authappProjectsProjectIdIndexRouteImport } from './routes/(auth)/(app)/projects/$projectId/index'
 import { Route as authAdminReplicationsReplicationIdExecutionsRouteImport } from './routes/(auth)/admin/replications_.$replicationId.executions'
 import { Route as authappProjectsProjectIdSettingsIndexRouteImport } from './routes/(auth)/(app)/projects/$projectId/settings/index'
 import { Route as authappProjectsProjectIdModelsIndexRouteImport } from './routes/(auth)/(app)/projects/$projectId/models/index'
@@ -147,6 +148,12 @@ const authappProjectsProjectIdRouteRoute =
     id: '/projects/$projectId',
     path: '/projects/$projectId',
     getParentRoute: () => authappRouteRoute,
+  } as any)
+const authappProjectsProjectIdIndexRoute =
+  authappProjectsProjectIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => authappProjectsProjectIdRouteRoute,
   } as any)
 const authAdminReplicationsReplicationIdExecutionsRoute =
   authAdminReplicationsReplicationIdExecutionsRouteImport.update({
@@ -279,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof authappProfileIndexRoute
   '/projects/': typeof authappProjectsIndexRoute
   '/admin/replications/$replicationId/executions': typeof authAdminReplicationsReplicationIdExecutionsRoute
+  '/projects/$projectId/': typeof authappProjectsProjectIdIndexRoute
   '/projects/$projectId/datasets/$datasetId': typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren
   '/projects/$projectId/models/$modelId': typeof authappProjectsProjectIdModelsModelIdRouteRouteWithChildren
   '/projects/$projectId/datasets/': typeof authappProjectsProjectIdDatasetsIndexRoute
@@ -305,7 +313,6 @@ export interface FileRoutesByTo {
   '/admin/replications': typeof authAdminReplicationsRoute
   '/admin/users': typeof authAdminUsersRoute
   '/admin': typeof authAdminIndexRoute
-  '/projects/$projectId': typeof authappProjectsProjectIdRouteRouteWithChildren
   '/datasets/new': typeof authappDatasetsNewRoute
   '/models/new': typeof authappModelsNewRoute
   '/profile/access-token': typeof authappProfileAccessTokenRoute
@@ -315,6 +322,7 @@ export interface FileRoutesByTo {
   '/profile': typeof authappProfileIndexRoute
   '/projects': typeof authappProjectsIndexRoute
   '/admin/replications/$replicationId/executions': typeof authAdminReplicationsReplicationIdExecutionsRoute
+  '/projects/$projectId': typeof authappProjectsProjectIdIndexRoute
   '/projects/$projectId/datasets/$datasetId': typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren
   '/projects/$projectId/datasets': typeof authappProjectsProjectIdDatasetsIndexRoute
   '/projects/$projectId/members': typeof authappProjectsProjectIdMembersIndexRoute
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/(auth)/(app)/profile/': typeof authappProfileIndexRoute
   '/(auth)/(app)/projects/': typeof authappProjectsIndexRoute
   '/(auth)/admin/replications_/$replicationId/executions': typeof authAdminReplicationsReplicationIdExecutionsRoute
+  '/(auth)/(app)/projects/$projectId/': typeof authappProjectsProjectIdIndexRoute
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId': typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren
   '/(auth)/(app)/projects_/$projectId/models/$modelId': typeof authappProjectsProjectIdModelsModelIdRouteRouteWithChildren
   '/(auth)/(app)/projects/$projectId/datasets/': typeof authappProjectsProjectIdDatasetsIndexRoute
@@ -395,6 +404,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/projects/'
     | '/admin/replications/$replicationId/executions'
+    | '/projects/$projectId/'
     | '/projects/$projectId/datasets/$datasetId'
     | '/projects/$projectId/models/$modelId'
     | '/projects/$projectId/datasets/'
@@ -421,7 +431,6 @@ export interface FileRouteTypes {
     | '/admin/replications'
     | '/admin/users'
     | '/admin'
-    | '/projects/$projectId'
     | '/datasets/new'
     | '/models/new'
     | '/profile/access-token'
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/projects'
     | '/admin/replications/$replicationId/executions'
+    | '/projects/$projectId'
     | '/projects/$projectId/datasets/$datasetId'
     | '/projects/$projectId/datasets'
     | '/projects/$projectId/members'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/(auth)/(app)/profile/'
     | '/(auth)/(app)/projects/'
     | '/(auth)/admin/replications_/$replicationId/executions'
+    | '/(auth)/(app)/projects/$projectId/'
     | '/(auth)/(app)/projects_/$projectId/datasets/$datasetId'
     | '/(auth)/(app)/projects_/$projectId/models/$modelId'
     | '/(auth)/(app)/projects/$projectId/datasets/'
@@ -638,6 +649,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authappProjectsProjectIdRouteRouteImport
       parentRoute: typeof authappRouteRoute
     }
+    '/(auth)/(app)/projects/$projectId/': {
+      id: '/(auth)/(app)/projects/$projectId/'
+      path: '/'
+      fullPath: '/projects/$projectId/'
+      preLoaderRoute: typeof authappProjectsProjectIdIndexRouteImport
+      parentRoute: typeof authappProjectsProjectIdRouteRoute
+    }
     '/(auth)/admin/replications_/$replicationId/executions': {
       id: '/(auth)/admin/replications_/$replicationId/executions'
       path: '/replications/$replicationId/executions'
@@ -783,6 +801,7 @@ const authappProfileRouteRouteWithChildren =
   authappProfileRouteRoute._addFileChildren(authappProfileRouteRouteChildren)
 
 interface authappProjectsProjectIdRouteRouteChildren {
+  authappProjectsProjectIdIndexRoute: typeof authappProjectsProjectIdIndexRoute
   authappProjectsProjectIdDatasetsIndexRoute: typeof authappProjectsProjectIdDatasetsIndexRoute
   authappProjectsProjectIdMembersIndexRoute: typeof authappProjectsProjectIdMembersIndexRoute
   authappProjectsProjectIdModelsIndexRoute: typeof authappProjectsProjectIdModelsIndexRoute
@@ -791,6 +810,7 @@ interface authappProjectsProjectIdRouteRouteChildren {
 
 const authappProjectsProjectIdRouteRouteChildren: authappProjectsProjectIdRouteRouteChildren =
   {
+    authappProjectsProjectIdIndexRoute: authappProjectsProjectIdIndexRoute,
     authappProjectsProjectIdDatasetsIndexRoute:
       authappProjectsProjectIdDatasetsIndexRoute,
     authappProjectsProjectIdMembersIndexRoute:

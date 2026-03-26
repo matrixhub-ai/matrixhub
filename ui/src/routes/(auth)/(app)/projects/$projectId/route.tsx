@@ -72,15 +72,19 @@ function RouteComponent() {
   return (
     <Box>
       <Space h="lg" />
-      <Group gap={4} wrap="nowrap">
-        <ProjectIcon size={20} style={{ color: 'var(--mantine-gray-7)' }} />
-        <Text size="md" c="gray.8">
-          {projectId}
-          {' '}
-          /
-          {' '}
-          {activeTabLabel}
-        </Text>
+      <Group gap={8} wrap="nowrap" align="center">
+        <ProjectIcon size={32} style={{ color: 'var(--mantine-color-gray-9)' }} />
+        <Group gap={4} wrap="nowrap" align="center">
+          <Text size="lg" lh="28px" c="gray.9">
+            {projectId}
+          </Text>
+          <Text size="lg" lh="24px" w="24" c="gray.6" ta="center">
+            /
+          </Text>
+          <Text size="lg" lh="24px" c="gray.9">
+            {activeTabLabel}
+          </Text>
+        </Group>
       </Group>
 
       <Tabs
