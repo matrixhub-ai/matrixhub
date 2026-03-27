@@ -86,7 +86,7 @@ function CommitMessageSection({ message }: CommitMessageSectionProps) {
   return (
     <Stack p="sm" gap="xs">
       <Text fw={600} size="lg" lh={rem(20)}>{parsedMessage?.header || '-'}</Text>
-      {parsedMessage.body ? <Text size="sm" lh={rem(20)}>{parsedMessage.body}</Text> : null}
+      {parsedMessage.body ? <Text size="sm" lh={rem(20)} style={{ whiteSpace: 'pre-wrap' }}>{parsedMessage.body}</Text> : null}
       {parsedMessage.footer ? <Text size="sm" lh={rem(20)}>{parsedMessage.footer}</Text> : null}
     </Stack>
   )
