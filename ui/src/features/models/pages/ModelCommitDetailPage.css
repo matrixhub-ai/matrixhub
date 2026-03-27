@@ -28,7 +28,7 @@
 }
 
 .d2h-code-side-emptyplaceholder, .d2h-emptyplaceholder {
-  background: #F8F9FA;
+  background: var(--mantine-color-gray-0);
 }
 
 .d2h-file-stats {

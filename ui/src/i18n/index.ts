@@ -2,7 +2,7 @@ import i18n from 'i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
-import { setDayjsLocal } from '@/i18n/dayjs.ts'
+import { setDayjsLocale } from '@/i18n/dayjs.ts'
 
 import { loadLocale } from './loadLocale'
 
@@ -47,12 +47,12 @@ i18n
 
 const initialLanguage = normalizeLanguage(i18n.language) ?? DEFAULT_LANGUAGE
 
-setDayjsLocal(initialLanguage)
+setDayjsLocale(initialLanguage)
 
 i18n.on('languageChanged', (lng) => {
   const normalized = normalizeLanguage(lng) ?? DEFAULT_LANGUAGE
 
-  setDayjsLocal(normalized)
+  setDayjsLocale(normalized)
   const bundles = loadLocale(normalized)
 
   let resourceBundle: Record<string, unknown> = {}

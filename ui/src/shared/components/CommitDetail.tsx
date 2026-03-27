@@ -112,7 +112,7 @@ export function CommitDetail({
 
   return (
     <Stack gap="sm">
-      <Paper withBorder radius="md" bg="#F8F9FA">
+      <Paper withBorder radius="md" bg="gray.0">
         <Stack gap="0">
           <Group
             justify="space-between"

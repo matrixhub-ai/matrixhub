@@ -7,12 +7,13 @@ import type { SupportedLanguage } from '@/i18n/index.ts'
 
 dayjs.extend(relativeTime)
 
-export function toDayjsLocale(language: SupportedLanguage) {
-  return language === 'zh' ? 'zh-cn' : 'en'
+const dayjsLocaleMap: Record<SupportedLanguage, string> = {
+  en: 'en',
+  zh: 'zh-cn',
 }
 
-export function setDayjsLocal(lang: SupportedLanguage) {
-  dayjs.locale(toDayjsLocale(lang))
+export function setDayjsLocale(lang: SupportedLanguage) {
+  dayjs.locale(dayjsLocaleMap[lang])
 
   return lang
 }
