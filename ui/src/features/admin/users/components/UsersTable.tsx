@@ -81,27 +81,23 @@ export function UsersTable({
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(() => [
     {
-      accessorKey: 'username',
+      id: 'username',
       header: t('routes.admin.users.table.username'),
-      size: 180,
       accessorFn: row => row.username ?? '-',
     },
     {
       id: 'isAdmin',
       header: t('routes.admin.users.table.admin'),
-      size: 180,
       Cell: UserAdminCell,
     },
     {
       id: 'source',
       header: t('routes.admin.users.table.source'),
-      size: 180,
       Cell: UserSourceCell,
     },
     {
       id: 'createdAt',
       header: t('routes.admin.users.table.createdAt'),
-      size: 180,
       accessorFn: row => formatDateTime(row.createdAt),
     },
 

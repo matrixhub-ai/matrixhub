@@ -147,7 +147,7 @@ export function ReplicationsTable({
 
   const columns = useMemo<MRT_ColumnDef<SyncPolicyItem>[]>(() => [
     {
-      accessorKey: 'name',
+      id: 'name',
       header: t('routes.admin.replications.table.name'),
       Cell: ReplicationNameCell,
     },

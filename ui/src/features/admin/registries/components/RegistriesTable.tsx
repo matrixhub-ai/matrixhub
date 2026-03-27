@@ -141,7 +141,7 @@ export function RegistriesTable({
 
   const columns = useMemo<MRT_ColumnDef<Registry>[]>(() => [
     {
-      accessorKey: 'name',
+      id: 'name',
       header: t('routes.admin.registries.table.name'),
       accessorFn: row => row.name ?? '-',
     },
