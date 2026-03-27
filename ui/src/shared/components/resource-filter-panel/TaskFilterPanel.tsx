@@ -36,7 +36,7 @@ export function TaskFilterPanel({
         }
 
         return (
-          <Group>
+          <Group gap={8}>
             {
               filteredOptions.map(option => (
                 <UnstyledButton

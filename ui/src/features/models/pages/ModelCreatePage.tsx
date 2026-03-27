@@ -12,15 +12,13 @@ import {
 } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useForm } from '@tanstack/react-form'
-import {
-  useMutation,
-  useQuery,
-} from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { createModelMutationOptions } from '@/features/models/models.mutation'
-import { modelProjectsQueryOptions } from '@/features/models/models.query.ts'
+import { useModelProjects } from '@/features/models/models.query.ts'
 import { createModelSchema } from '@/features/models/models.schema'
 import { ProjectTypeBadge } from '@/shared/components/badges/ProjectTypeBadge'
 
@@ -36,7 +34,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
   const navigate = routeApi.useNavigate()
 
   const createMutation = useMutation(createModelMutationOptions())
-  const { data: projects = [] } = useQuery(modelProjectsQueryOptions())
+  const { data: projects = [] } = useModelProjects()
 
   const projectCombobox = useCombobox()
   const modelCreateSchema = createModelSchema(t)
@@ -57,11 +55,13 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
     },
   })
 
-  if (projects.length
-    && form.state.values.projectId
-    && !projects?.find(option => option.name === form.state.values.projectId)) {
-    form.setFieldValue('projectId', projects[0]?.name ?? '')
-  }
+  useEffect(() => {
+    const projectId = form.state.values.projectId
+
+    if (projects.length && projectId && !projects?.find(option => option.name === projectId)) {
+      form.setFieldValue('projectId', projects[0]?.name ?? '')
+    }
+  }, [projects, form])
 
   return (
     <Stack

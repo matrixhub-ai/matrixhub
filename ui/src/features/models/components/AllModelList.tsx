@@ -1,20 +1,17 @@
 import {
   Box,
-  Center,
   Group,
   Space,
   Stack,
   Text,
 } from '@mantine/core'
 import { IconClock } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { startTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
-  modelsCatalogQueryOptions,
-  PAGE_SIZE,
+  splitFilterCsv, toSortParam, useModels,
 } from '@/features/models/models.query'
 import { Pagination } from '@/shared/components/Pagination'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
@@ -24,29 +21,38 @@ import {
   SortDropdown,
   type SortDropdownOption,
 } from '@/shared/components/SortDropdown'
+import { DEFAULT_PAGE_SIZE } from '@/utils/constants.ts'
 
-const modelsRouteApi = getRouteApi('/(auth)/(app)/models/')
+const {
+  useNavigate, useSearch,
+} = getRouteApi('/(auth)/(app)/models/')
 
 export function AllModelList() {
   const { t } = useTranslation()
-  const navigate = modelsRouteApi.useNavigate()
-  const search = modelsRouteApi.useSearch()
-  const { data } = useSuspenseQuery(modelsCatalogQueryOptions(search))
-  const {
-    q: query = '', sort: sortField = 'updatedAt', order: sortOrder = 'desc', page = 1,
-  } = search
-  const {
-    items = [],
-    pagination,
-  } = data
+  const navigate = useNavigate()
+  const search = useSearch()
 
-  const total = pagination?.total ?? 0
-  const totalPages = pagination?.pages
-    ?? (
-      pagination?.total && pagination?.pageSize
-        ? Math.ceil(pagination.total / pagination.pageSize)
-        : 0
-    )
+  const query = {
+    q: search.q ?? '',
+    sort: search.sort ?? 'updatedAt',
+    order: search.order ?? 'desc',
+    page: search.page ?? 1,
+  }
+
+  const {
+    data: {
+      items = [],
+      pagination,
+    } = {},
+    isLoading,
+    isPending,
+  } = useModels({
+    search: query.q,
+    sort: toSortParam(query.sort, query.order),
+    project: search.project,
+    labels: splitFilterCsv(search.task ?? search.library),
+    page: query.page,
+  })
 
   const sortFieldOptions: SortDropdownOption[] = [
     {
@@ -67,14 +73,14 @@ export function AllModelList() {
     <Box>
       <Group>
         <Text fz="md" fw={600} lh="20px" mb="sm">
-          {t('model.allModels') }
+          {t('model.list.allModels') }
         </Text>
       </Group>
 
       <Stack gap={0}>
         <SearchToolbar
-          searchPlaceholder={t('projects.detail.modelsPage.searchPlaceholder')}
-          searchValue={query}
+          searchPlaceholder={t('model.list.placeholder.modelName')}
+          searchValue={query.q}
           onSearchChange={(nextQuery) => {
             void navigate({
               replace: true,
@@ -88,8 +94,8 @@ export function AllModelList() {
         >
           <SortDropdown
             fieldOptions={sortFieldOptions}
-            fieldValue={sortField}
-            order={sortOrder}
+            fieldValue={query.sort}
+            order={query.order}
             onFieldChange={(nextField) => {
               if (sortFieldOptions.find(o => o.value === nextField)?.disabled) {
                 return
@@ -101,7 +107,7 @@ export function AllModelList() {
                   search: prev => ({
                     ...prev,
                     sort: nextField === 'updatedAt' ? nextField : prev.sort,
-                    order: sortOrder,
+                    order: query.order,
                     page: 1,
                   }),
                 })
@@ -113,7 +119,7 @@ export function AllModelList() {
                   replace: true,
                   search: prev => ({
                     ...prev,
-                    order: sortOrder === 'desc' ? 'asc' : 'desc',
+                    order: query.order === 'desc' ? 'asc' : 'desc',
                     page: 1,
                   }),
                 })
@@ -126,28 +132,16 @@ export function AllModelList() {
 
         <Box miw={780} maw={1380}>
           <ResourceCardGrid
-            loading={false}
-            skeletonCount={PAGE_SIZE}
+            loading={isLoading || isPending}
+            skeletonCount={DEFAULT_PAGE_SIZE}
           >
             {cardElements}
           </ResourceCardGrid>
 
-          {items.length === 0 && (
-            <Center py="xl">
-              <Stack align="center" gap="xs">
-                <Text fw={500}>{t('projects.detail.modelsPage.emptyTitle')}</Text>
-                <Text size="sm" c="dimmed">
-                  {t('projects.detail.modelsPage.emptyDescription')}
-                </Text>
-              </Stack>
-            </Center>
-          )}
-
           <Pagination
-            total={total}
-            totalPages={totalPages}
-            page={page}
-            paginationProps={{ withControls: false }}
+            total={pagination?.total ?? 0}
+            totalPages={pagination?.pages ?? 0}
+            page={query.page}
             onPageChange={(nextPage) => {
               void navigate({
                 search: prev => ({

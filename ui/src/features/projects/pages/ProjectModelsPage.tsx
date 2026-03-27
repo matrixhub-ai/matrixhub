@@ -1,10 +1,8 @@
 import {
   Box,
   Button,
-  Center,
   Space,
   Stack,
-  Text,
 } from '@mantine/core'
 import {
   IconClock,
@@ -14,15 +12,13 @@ import { getRouteApi, Link } from '@tanstack/react-router'
 import { startTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  PAGE_SIZE,
-  useModels,
-} from '@/features/models/models.query'
+import { useProjectModels } from '@/features/models/models.query'
 import { Pagination } from '@/shared/components/Pagination'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
 import { SearchToolbar } from '@/shared/components/SearchToolbar'
 import { SortDropdown } from '@/shared/components/SortDropdown'
+import { DEFAULT_PAGE_SIZE } from '@/utils/constants.ts'
 
 import type { SortDropdownOption } from '@/shared/components/SortDropdown'
 
@@ -41,10 +37,9 @@ export function ProjectModelsPage() {
 
   const {
     data,
-    isError,
     isFetching,
     isPending,
-  } = useModels(projectId, {
+  } = useProjectModels(projectId, {
     q: query,
     sort: sortField,
     order: sortOrder,
@@ -61,9 +56,7 @@ export function ProjectModelsPage() {
         : 0
     )
   const showSkeletons = isPending && !data
-  const showErrorState = isError && !data
   const isRefreshing = isFetching && !showSkeletons
-  const isEmpty = !showSkeletons && !showErrorState && models.length === 0
 
   const sortFieldOptions: SortDropdownOption[] = [
     {
@@ -154,21 +147,10 @@ export function ProjectModelsPage() {
 
         <ResourceCardGrid
           loading={showSkeletons}
-          skeletonCount={PAGE_SIZE}
+          skeletonCount={DEFAULT_PAGE_SIZE}
         >
           {cardElements}
         </ResourceCardGrid>
-
-        {isEmpty && (
-          <Center py="xl">
-            <Stack align="center" gap="xs">
-              <Text fw={500}>{t('projects.detail.modelsPage.emptyTitle')}</Text>
-              <Text size="sm" c="dimmed">
-                {t('projects.detail.modelsPage.emptyDescription')}
-              </Text>
-            </Stack>
-          </Center>
-        )}
 
         <Pagination
           total={total}

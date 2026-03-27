@@ -1,16 +1,12 @@
 import {
-  type GetModelTreeRequest, type ListModelCommitsRequest, Models,
+  type GetModelTreeRequest, type ListModelCommitsRequest, type ListModelsRequest, Models,
 } from '@matrixhub/api-ts/v1alpha1/model.pb'
 import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import {
   keepPreviousData, queryOptions, useQuery,
 } from '@tanstack/react-query'
 
-import { MODEL_COMMITS_PAGE_SIZE } from '@/utils/constants.ts'
-
-import type { ModelsCatalogSearch } from '@/routes/(auth)/(app)/models'
-
-export const PAGE_SIZE = 6
+import { DEFAULT_PAGE_SIZE } from '@/utils/constants.ts'
 
 export type ModelsSortField = 'updatedAt'
 
@@ -27,19 +23,13 @@ interface ModelListQueryKeyParams {
   page: number
 }
 
-interface ModelCatalogListQueryKeyParams extends ModelListQueryKeyParams {
-  task: string | undefined
-  library: string | undefined
-  project: string | undefined
-}
-
 // -- Query key factory --
 
 export const modelKeys = {
   all: ['models'] as const,
   lists: () => [...modelKeys.all, 'list'] as const,
   list: (projectId: string, params: ModelListQueryKeyParams) => [...modelKeys.lists(), projectId, params] as const,
-  catalogList: (params: ModelCatalogListQueryKeyParams) => [...modelKeys.lists(), params] as const,
+  catalogList: (params: ListModelsRequest) => [...modelKeys.lists(), params] as const,
   taskLabels: () => [...modelKeys.all, 'task-labels'] as const,
   libraryLabels: () => [...modelKeys.all, 'library-labels'] as const,
   projects: () => [...modelKeys.all, 'projects'] as const,
@@ -88,68 +78,8 @@ export function projectModelsQueryOptions(projectId: string, search: ModelsSearc
       search: search.q || undefined,
       sort: sortParam,
       page: search.page,
-      pageSize: PAGE_SIZE,
+      pageSize: DEFAULT_PAGE_SIZE,
     }),
-  })
-}
-
-export function modelsCatalogQueryOptions(search: ModelsCatalogSearch) {
-  const sortParam = toSortParam(search.sort, search.order)
-  const page = search.page ?? 1
-
-  return queryOptions({
-    queryKey: modelKeys.catalogList({
-      q: search.q || '',
-      sort: sortParam,
-      page,
-      task: search.task,
-      library: search.library,
-      project: search.project,
-    }),
-    queryFn: () => Models.ListModels({
-      labels: splitFilterCsv(search.task ?? search.library),
-      project: search.project,
-      search: search.q || undefined,
-      sort: sortParam,
-      page,
-      pageSize: PAGE_SIZE,
-    }),
-  })
-}
-
-export function modelTaskLabelsQueryOptions() {
-  return queryOptions({
-    queryKey: modelKeys.taskLabels(),
-    queryFn: async () => {
-      const response = await Models.ListModelTaskLabels({})
-
-      return response.items ?? []
-    },
-  })
-}
-
-export function modelLibraryLabelsQueryOptions() {
-  return queryOptions({
-    queryKey: modelKeys.libraryLabels(),
-    queryFn: async () => {
-      const response = await Models.ListModelFrameLabels({})
-
-      return response.items ?? []
-    },
-  })
-}
-
-export function modelProjectsQueryOptions() {
-  return queryOptions({
-    queryKey: modelKeys.projects(),
-    queryFn: async () => {
-      const response = await Projects.ListProjects({
-        page: 1,
-        pageSize: -1,
-      })
-
-      return response.projects ?? []
-    },
   })
 }
 
@@ -200,7 +130,7 @@ export function modelCommitsQueryOptions(
       name: modelName,
       revision: params.revision,
       page: params.page,
-      pageSize: MODEL_COMMITS_PAGE_SIZE,
+      pageSize: DEFAULT_PAGE_SIZE,
     }),
   })
 }
@@ -222,7 +152,18 @@ export function modelCommitQueryOptions(
 
 // -- Custom hook --
 
-export function useModels(projectId: string, search: ModelsSearch) {
+export function useModels(params: ListModelsRequest) {
+  return useQuery({
+    queryKey: modelKeys.catalogList(params),
+    queryFn: () => Models.ListModels({
+      pageSize: DEFAULT_PAGE_SIZE,
+      ...params,
+    }),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useProjectModels(projectId: string, search: ModelsSearch) {
   return useQuery({
     ...projectModelsQueryOptions(projectId, search),
     placeholderData: keepPreviousData,
@@ -260,15 +201,51 @@ export function useModelCommit(
   })
 }
 
+export function useModelTaskLabels() {
+  return useQuery({
+    queryKey: modelKeys.taskLabels(),
+    queryFn: async () => {
+      const response = await Models.ListModelTaskLabels({})
+
+      return response.items ?? []
+    },
+  })
+}
+
+export function useModelLibraryLabels() {
+  return useQuery({
+    queryKey: modelKeys.libraryLabels(),
+    queryFn: async () => {
+      const response = await Models.ListModelFrameLabels({})
+
+      return response.items ?? []
+    },
+  })
+}
+
+export function useModelProjects() {
+  return useQuery({
+    queryKey: modelKeys.projects(),
+    queryFn: async () => {
+      const response = await Projects.ListProjects({
+        page: 1,
+        pageSize: -1,
+      })
+
+      return response.projects ?? []
+    },
+  })
+}
+
 // -- Internal helpers --
 
-function toSortParam(field?: ModelsSearch['sort'], order?: ModelsSearch['order']) {
+export function toSortParam(field?: ModelsSearch['sort'], order?: ModelsSearch['order']) {
   return field === 'updatedAt' && order === 'asc'
     ? 'updated_at_asc'
     : 'updated_at_desc'
 }
 
-function splitFilterCsv(value: string | undefined) {
+export function splitFilterCsv(value: string | undefined) {
   if (!value) {
     return undefined
   }

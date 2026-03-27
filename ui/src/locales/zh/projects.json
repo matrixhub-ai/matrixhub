@@ -11,8 +11,6 @@
       "sortFieldUpdatedAt": "更新时间",
       "sortFieldDownloads": "下载量",
       "create": "创建模型",
-      "emptyTitle": "暂无模型",
-      "emptyDescription": "当前项目下还没有模型仓库。",
       "loadFailed": "模型列表加载失败，请稍后重试。"
     },
     "settingsPage": {

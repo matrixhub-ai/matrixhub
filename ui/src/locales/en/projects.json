@@ -11,8 +11,6 @@
       "sortFieldUpdatedAt": "Updated Time",
       "sortFieldDownloads": "Downloads",
       "create": "Create Model",
-      "emptyTitle": "No models yet",
-      "emptyDescription": "This project does not contain any models.",
       "loadFailed": "Failed to load models. Please try again later."
     },
     "settingsPage": {

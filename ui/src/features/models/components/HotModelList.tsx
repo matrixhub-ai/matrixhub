@@ -2,25 +2,48 @@ import {
   Box, Collapse, Group, Text, UnstyledButton,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { IconChevronDown } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { modelsCatalogQueryOptions } from '@/features/models/models.query'
+import {
+  splitFilterCsv, toSortParam, useModels,
+} from '@/features/models/models.query.ts'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
 
-const modelsRouteApi = getRouteApi('/(auth)/(app)/models/')
+const { useSearch } = getRouteApi('/(auth)/(app)/models/')
 
 export function HotModelList() {
   const { t } = useTranslation()
-  const [opened, { toggle }] = useDisclosure(false)
-  const search = modelsRouteApi.useSearch()
-  const { data } = useSuspenseQuery(modelsCatalogQueryOptions(search))
-  const { items = [] } = data
-  const hotModels = items.slice(0, 6)
+  const search = useSearch()
 
-  const cardElements = hotModels.map((model) => {
+  const [opened, { toggle }] = useDisclosure(false)
+
+  const query = {
+    q: search.q ?? '',
+    sort: search.sort ?? 'updatedAt',
+    order: search.order ?? 'desc',
+    page: search.page ?? 1,
+  }
+
+  const {
+    data: {
+      items = [],
+    } = {},
+    isLoading,
+    isPending,
+  } = useModels({
+    search: query.q,
+    sort: toSortParam(query.sort, query.order),
+    project: search.project,
+    labels: splitFilterCsv(search.task ?? search.library),
+    page: 1,
+    pageSize: -1,
+    popular: true,
+  })
+
+  const cardElements = items.map((model) => {
     const projectId = model.project?.trim() ?? '-'
     const modelName = model.name?.trim() ?? '-'
 
@@ -31,16 +54,28 @@ export function HotModelList() {
     <Box>
       <Group justify="space-between">
         <Text fz="md" fw={600} lh="20px" mb="sm">
-          {t('model.recommend') }
+          {t('model.list.recommend') }
         </Text>
-        {hotModels.length > 4 && (
-          <UnstyledButton onClick={toggle} fz="sm">
-            {t('model.viewMore')}
+        {cardElements.length > 4 && (
+          <UnstyledButton onClick={toggle}>
+            <Group gap={8}>
+              <Text fz="sm" c="gray.5">
+                {opened ? t('model.list.collapse') : t('model.list.viewMore')}
+              </Text>
+              <IconChevronDown
+                size={16}
+                color="var(--mantine-color-gray-5)"
+                style={{
+                  transform: opened ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            </Group>
           </UnstyledButton>
         )}
       </Group>
+
       <Box miw={780} maw={1380}>
-        <ResourceCardGrid>
+        <ResourceCardGrid loading={isLoading || isPending}>
           {cardElements.slice(0, 4)}
         </ResourceCardGrid>
         <Collapse in={opened}>

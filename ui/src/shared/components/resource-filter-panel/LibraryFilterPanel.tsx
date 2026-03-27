@@ -36,7 +36,7 @@ export function LibraryFilterPanel({
         }
 
         return (
-          <Group>
+          <Group gap={8}>
             {
               filteredOptions.map(option => (
                 <UnstyledButton

@@ -1,12 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
-  modelLibraryLabelsQueryOptions,
-  modelProjectsQueryOptions,
-  modelTaskLabelsQueryOptions,
+  useModelLibraryLabels,
+  useModelProjects,
+  useModelTaskLabels,
 } from '@/features/models/models.query'
 import { LibraryFilterPanel } from '@/shared/components/resource-filter-panel/LibraryFilterPanel'
 import { ProjectFilterPanel } from '@/shared/components/resource-filter-panel/ProjectFilterPanel'
@@ -49,17 +48,17 @@ export function ModelsFilterPanel() {
   const {
     data: taskLabels = [],
     isLoading: taskLabelsLoading,
-  } = useQuery(modelTaskLabelsQueryOptions())
+  } = useModelTaskLabels()
 
   const {
     data: libraryLabels = [],
     isLoading: libraryLabelsLoading,
-  } = useQuery(modelLibraryLabelsQueryOptions())
+  } = useModelLibraryLabels()
 
   const {
     data: projects = [],
     isLoading: projectsLoading,
-  } = useQuery(modelProjectsQueryOptions())
+  } = useModelProjects()
 
   const search = modelsRouteApi.useSearch()
   const {
@@ -118,39 +117,39 @@ export function ModelsFilterPanel() {
 
   const tabs: FilterTabDefinition[] = [
     {
-      label: t('model.task'),
+      label: t('model.list.task'),
       value: 'task',
       panel: (
         <TaskFilterPanel
           options={taskLabels}
           loading={taskLabelsLoading}
-          searchPlaceholder={t('model.placeholder.task')}
+          searchPlaceholder={t('model.list.placeholder.task')}
           selectedNames={getSelectedNamesForTab('task')}
           onSelect={handleSelectLabels}
         />
       ),
     },
     {
-      label: t('model.library'),
+      label: t('model.list.library'),
       value: 'library',
       panel: (
         <LibraryFilterPanel
           options={libraryLabels}
           loading={libraryLabelsLoading}
-          searchPlaceholder={t('model.placeholder.library')}
+          searchPlaceholder={t('model.list.placeholder.library')}
           selectedNames={getSelectedNamesForTab('library')}
           onSelect={handleSelectLabels}
         />
       ),
     },
     {
-      label: t('model.project'),
+      label: t('model.list.project'),
       value: 'project',
       panel: (
         <ProjectFilterPanel
           options={projects}
           loading={projectsLoading}
-          searchPlaceholder={t('model.placeholder.project')}
+          searchPlaceholder={t('model.list.placeholder.project')}
           selectedNames={getSelectedNamesForTab('project')}
           onSelect={handleSelectProject}
         />

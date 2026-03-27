@@ -1,8 +1,20 @@
 {
+  "list": {
+    "project": "项目",
+    "library": "框架",
+    "task": "任务",
+    "placeholder": {
+      "modelName": "模型名称",
+      "task": "输入任务名称搜索",
+      "library": "输入框架名称搜索",
+      "project": "输入项目名称搜索"
+    },
+    "recommend": "推荐模型",
+    "allModels": "全部模型",
+    "viewMore": "查看更多",
+    "collapse": "收起"
+  },
   "new": "创建模型",
-  "project": "项目",
-  "library": "框架",
-  "task": "任务",
   "detail": {
     "desc": "模型介绍",
     "tree": "模型文件",
@@ -14,14 +26,6 @@
   },
   "upload": "上传模型文件",
   "download": "下载模型文件",
-  "placeholder": {
-    "task": "输入任务名称搜索",
-    "library": "输入框架名称搜索",
-    "project": "输入项目名称搜索"
-  },
-  "recommend": "推荐模型",
-  "allModels": "全部模型",
-  "viewMore": "查看更多",
   "revisionPathHeader": {
     "group": {
       "branch": "分支",
