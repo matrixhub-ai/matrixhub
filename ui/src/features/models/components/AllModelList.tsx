@@ -142,6 +142,7 @@ export function AllModelList() {
             total={pagination?.total ?? 0}
             totalPages={pagination?.pages ?? 0}
             page={query.page}
+            paginationProps={{ withControls: false }}
             onPageChange={(nextPage) => {
               void navigate({
                 search: prev => ({

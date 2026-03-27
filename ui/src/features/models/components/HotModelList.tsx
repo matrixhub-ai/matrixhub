@@ -6,9 +6,7 @@ import { IconChevronDown } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import {
-  splitFilterCsv, toSortParam, useModels,
-} from '@/features/models/models.query.ts'
+import { splitFilterCsv, useModels } from '@/features/models/models.query.ts'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
 
@@ -20,13 +18,6 @@ export function HotModelList() {
 
   const [opened, { toggle }] = useDisclosure(false)
 
-  const query = {
-    q: search.q ?? '',
-    sort: search.sort ?? 'updatedAt',
-    order: search.order ?? 'desc',
-    page: search.page ?? 1,
-  }
-
   const {
     data: {
       items = [],
@@ -34,8 +25,6 @@ export function HotModelList() {
     isLoading,
     isPending,
   } = useModels({
-    search: query.q,
-    sort: toSortParam(query.sort, query.order),
     project: search.project,
     labels: splitFilterCsv(search.task ?? search.library),
     page: 1,
