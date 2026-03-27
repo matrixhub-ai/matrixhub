@@ -1,7 +1,8 @@
 import { Button } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconPlus } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
+
+import { Icon } from '@/routes/(auth)/admin/replications'
 
 import { ReplicationFormModal } from './ReplicationFormModal'
 
@@ -15,7 +16,7 @@ export function CreateReplicationAction() {
     <>
       <Button
         onClick={open}
-        leftSection={<IconPlus size={16} />}
+        leftSection={<Icon size={16} />}
       >
         {t('routes.admin.replications.toolbar.create')}
       </Button>
