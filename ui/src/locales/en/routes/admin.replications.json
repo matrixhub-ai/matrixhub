@@ -32,5 +32,60 @@
     "enable": "Enable",
     "disable": "Disable",
     "delete": "Delete"
+  },
+  "createModal": {
+    "title": "Create Sync Rule"
+  },
+  "editModal": {
+    "title": "Edit Sync Rule"
+  },
+  "deleteModal": {
+    "title": "Delete Sync Rule",
+    "description": "Are you sure you want to delete sync rule \"{{name}}\"? This action cannot be undone."
+  },
+  "form": {
+    "name": "Name",
+    "namePlaceholder": "e.g., my-sync-rule",
+    "description": "Description",
+    "syncRule": "Sync Rule",
+    "pull": "Pull",
+    "push": "Push",
+    "sourceRegistry": "Source Registry",
+    "resourceFilter": "Resource Filter",
+    "resourceName": "Resource Name",
+    "resourceNamePlaceholder": "e.g., model-name or * for all",
+    "resourceTypes": {
+      "label": "Resource Types",
+      "model": "Model",
+      "dataset": "Dataset",
+      "all": "All"
+    },
+    "targetRegistry": "Target Registry",
+    "target": "Target",
+    "targetProjectName": "Target Project Name",
+    "targetProjectNamePlaceholder": "e.g., my-project",
+    "triggerType": "Trigger Mode",
+    "bandwidth": "Bandwidth Limit",
+    "isOverwrite": "Overwrite existing resources"
+  },
+  "validation": {
+    "nameStartChar": "Name must start with a letter or digit",
+    "nameInvalidChars": "Name can only contain lowercase letters, digits, dots, underscores, and hyphens",
+    "resourceTypesRequired": "At least one resource type is required",
+    "sourceRegistryRequired": "Source registry is required",
+    "targetRegistryRequired": "Target registry is required"
+  },
+  "notifications": {
+    "createSuccess": "Sync rule created successfully",
+    "createError": "Failed to create sync rule",
+    "updateSuccess": "Sync rule updated successfully",
+    "updateError": "Failed to update sync rule",
+    "deleteSuccess": "Sync rule deleted successfully",
+    "deleteError": "Failed to delete sync rule",
+    "syncSuccess": "Sync task started successfully",
+    "syncError": "Failed to start sync task"
+  },
+  "errors": {
+    "missingSyncPolicyId": "Sync policy ID is required"
   }
 }

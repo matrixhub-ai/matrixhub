@@ -32,5 +32,60 @@
     "enable": "启用",
     "disable": "禁用",
     "delete": "删除"
+  },
+  "createModal": {
+    "title": "创建同步规则"
+  },
+  "editModal": {
+    "title": "编辑同步规则"
+  },
+  "deleteModal": {
+    "title": "删除同步规则",
+    "description": "确定要删除同步规则「{{name}}」吗？此操作无法撤销。"
+  },
+  "form": {
+    "name": "名称",
+    "namePlaceholder": "例如：my-sync-rule",
+    "description": "描述",
+    "syncRule": "同步规则",
+    "pull": "Pull",
+    "push": "Push",
+    "sourceRegistry": "源仓库",
+    "resourceFilter": "资源过滤器",
+    "resourceName": "资源名称",
+    "resourceNamePlaceholder": "例如：model-name 或 * 表示全部",
+    "resourceTypes": {
+      "label": "资源类型",
+      "model": "模型",
+      "dataset": "数据集",
+      "all": "全部"
+    },
+    "targetRegistry": "目标仓库",
+    "target": "目标",
+    "targetProjectName": "目标项目名称",
+    "targetProjectNamePlaceholder": "例如：my-project",
+    "triggerType": "触发模式",
+    "bandwidth": "带宽限制",
+    "isOverwrite": "覆盖已有资源"
+  },
+  "validation": {
+    "nameStartChar": "必须以字母或数字开头",
+    "nameInvalidChars": "只能包含小写字母、数字、点、下划线和连字符",
+    "resourceTypesRequired": "至少需要选择一个资源类型",
+    "sourceRegistryRequired": "请选择源仓库",
+    "targetRegistryRequired": "请选择目标仓库"
+  },
+  "notifications": {
+    "createSuccess": "同步规则创建成功",
+    "createError": "同步规则创建失败",
+    "updateSuccess": "同步规则更新成功",
+    "updateError": "同步规则更新失败",
+    "deleteSuccess": "同步规则删除成功",
+    "deleteError": "同步规则删除失败",
+    "syncSuccess": "同步任务已启动",
+    "syncError": "同步任务启动失败"
+  },
+  "errors": {
+    "missingSyncPolicyId": "同步策略ID不能为空"
   }
 }
