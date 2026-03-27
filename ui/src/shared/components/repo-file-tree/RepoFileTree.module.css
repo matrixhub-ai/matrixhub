@@ -1,0 +1,97 @@
+.wrapper {
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
+}
+
+/* ── Commit caption row above table ── */
+.caption {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background-color: var(--mantine-color-gray-0);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 20px;
+  min-height: 36px;
+  border-top-left-radius: var(--mantine-radius-md);
+  border-top-right-radius: var(--mantine-radius-md);
+}
+
+.captionLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  color: var(--mantine-color-dimmed);
+}
+
+.captionAuthor {
+  font-weight: 600;
+  color: var(--mantine-color-gray-9);
+  flex-shrink: 0;
+}
+
+.captionMessage {
+  color: var(--mantine-color-dimmed);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.captionHash {
+  color: var(--mantine-color-dimmed);
+  flex-shrink: 0;
+}
+
+.captionTime {
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 16px;
+  text-align: right;
+}
+
+/* ── File name cell: icon + link aligned ── */
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nameIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.fileLink {
+  color: var(--mantine-color-gray-9);
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileLink:hover {
+  text-decoration: underline;
+  color: var(--mantine-color-blue-6);
+}
+
+/* ── Download link ── */
+.downloadLink {
+  color: var(--mantine-color-blue-6);
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  cursor: pointer;
+}
+
+.downloadLink:hover {
+  text-decoration: underline;
+}

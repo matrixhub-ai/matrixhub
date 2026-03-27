@@ -37,7 +37,7 @@ export const modelKeys = {
   commitDetails: () => [...modelKeys.all, 'commit-detail'] as const,
   details: () => [...modelKeys.all, 'detail'] as const,
   detail: (projectId: string, modelName: string) => [...modelKeys.details(), projectId, modelName] as const,
-  commitsList: (projectId: string, modelName: string, params: Pick<ListModelCommitsRequest, 'revision' | 'page'>) => [
+  commitsList: (projectId: string, modelName: string, params: Pick<ListModelCommitsRequest, 'revision' | 'page' | 'pageSize'>) => [
     ...modelKeys.commits(), projectId, modelName, params,
   ] as const,
   commitDetail: (projectId: string, modelName: string, commitId: string) => [
@@ -121,7 +121,7 @@ export function modelTreeQueryOptions(
 export function modelCommitsQueryOptions(
   projectId: string,
   modelName: string,
-  params: Pick<ListModelCommitsRequest, 'revision' | 'page'>,
+  params: Pick<ListModelCommitsRequest, 'revision' | 'page' | 'pageSize'>,
 ) {
   return queryOptions({
     queryKey: modelKeys.commitsList(projectId, modelName, params),
@@ -130,7 +130,7 @@ export function modelCommitsQueryOptions(
       name: modelName,
       revision: params.revision,
       page: params.page,
-      pageSize: DEFAULT_PAGE_SIZE,
+      pageSize: params.pageSize ?? DEFAULT_PAGE_SIZE,
     }),
   })
 }
@@ -183,7 +183,7 @@ export function useModelTree(
 export function useModelCommits(
   projectId: string,
   modelName: string,
-  params: Pick<ListModelCommitsRequest, 'revision' | 'page'>,
+  params: Pick<ListModelCommitsRequest, 'revision' | 'page' | 'pageSize'>,
 ) {
   return useQuery({
     ...modelCommitsQueryOptions(projectId, modelName, params),

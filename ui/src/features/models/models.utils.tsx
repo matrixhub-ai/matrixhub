@@ -4,7 +4,6 @@ import {
 import {
   IconClock, IconCube, IconApiApp,
 } from '@tabler/icons-react'
-import { filesize } from 'filesize'
 import humanFormat from 'human-format'
 
 import i18n from '@/i18n'
@@ -12,6 +11,7 @@ import { LibraryBadge } from '@/shared/components/badges/LibraryBadge'
 import { ParameterCountBadge } from '@/shared/components/badges/ParameterCountBadge'
 import { TaskBadge } from '@/shared/components/badges/TaskBadge'
 import { formatDateTime } from '@/shared/utils/date'
+import { formatStorageSize } from '@/shared/utils/format'
 
 import type { ResourceBadge, ResourceMetaItem } from '@/shared/components/resource-card/BaseCard'
 
@@ -122,19 +122,4 @@ export function formatParameterCount(value: string | undefined) {
   })
 }
 
-export function formatStorageSize(value: string | undefined) {
-  if (!value) {
-    return '-'
-  }
-
-  const numericValue = Number(value)
-
-  if (!Number.isFinite(numericValue)) {
-    return value
-  }
-
-  return filesize(numericValue, {
-    standard: 'jedec',
-    round: 1,
-  }) as string
-}
+export { formatStorageSize } from '@/shared/utils/format'

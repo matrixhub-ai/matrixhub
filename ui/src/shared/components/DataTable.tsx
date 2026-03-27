@@ -102,6 +102,10 @@ export interface DataTableProps<TData extends MRT_RowData> extends DataTableTool
   // --- Empty rows fallback ---
   renderEmptyRowsFallback?: MRT_TableOptions<TData>['renderEmptyRowsFallback']
 
+  // --- Header ---
+  /** Hide the table header row. Defaults to false. */
+  enableTableHead?: boolean
+
   // --- Display column overrides ---
   displayColumnDefOptions?: MRT_TableOptions<TData>['displayColumnDefOptions']
 
@@ -187,6 +191,8 @@ export function DataTable<TData extends MRT_RowData>({
   loading = false,
   fetching = false,
   renderEmptyRowsFallback = emptyRowsFallback,
+  // Header
+  enableTableHead = true,
   // Display column overrides
   displayColumnDefOptions,
   // Escape hatch
@@ -303,6 +309,7 @@ export function DataTable<TData extends MRT_RowData>({
         enablePagination={false}
         enableColumnFilters={false}
         enableSorting={false}
+        enableTableHead={enableTableHead}
         // Selection
         enableRowSelection={enableRowSelection}
         enableSelectAll={enableSelectAll}

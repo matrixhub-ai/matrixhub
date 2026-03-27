@@ -87,8 +87,8 @@ function DatasetLayout() {
       params: {
         projectId,
         datasetId,
-        ref: 'testDsd',
-        _splat: 'test/data',
+        ref: 'main',
+        _splat: '',
       },
     },
     ...(hasProjectRole

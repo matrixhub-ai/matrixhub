@@ -1,36 +1,21 @@
+import { Text } from '@mantine/core'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId/blob/$ref/$',
 )({
-  component: RouteComponent,
+  component: ModelBlobPage,
 })
 
-function RouteComponent() {
+function ModelBlobPage() {
   const {
-    projectId, modelId, ref,
+    modelId, ref,
   } = Route.useParams()
-  const filePath = Route.useParams({ select: s => s['_splat'] })
+  const filePath = Route.useParams({ select: s => s['_splat'] }) ?? ''
 
   return (
-    <div>
-      Model Blob Page
-      <br />
-      Project ID:
-      {' '}
-      {projectId}
-      <br />
-      Model ID:
-      {' '}
-      {modelId}
-      <br />
-      Ref:
-      {' '}
-      {ref}
-      <br />
-      File Path:
-      {' '}
-      {filePath}
-    </div>
+    <Text size="sm" c="dimmed">
+      {`${modelId} / ${ref} / ${filePath}`}
+    </Text>
   )
 }
