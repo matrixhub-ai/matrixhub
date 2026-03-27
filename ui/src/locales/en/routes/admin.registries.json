@@ -4,6 +4,22 @@
   "toolbar": {
     "create": "Create Registry"
   },
+  "provider": {
+    "huggingFace": "Hugging Face"
+  },
+  "form": {
+    "provider": "Provider",
+    "name": "Registry Name",
+    "description": "Description",
+    "url": "Target URL",
+    "urlPlaceholder": "http://docker.m.daocloud.io",
+    "username": "Username",
+    "usernameHint": "Enter the upstream registry username and password when pulling private models.",
+    "password": "Password",
+    "verifyRemoteCert": "Verify Remote Cert",
+    "verifyRemoteCertHint": "Choose whether to verify the remote MatrixHub instance certificate during sync. Leave this unchecked when the remote instance uses a self-signed or otherwise untrusted certificate.",
+    "testConnection": "Test Connection"
+  },
   "table": {
     "name": "Registry",
     "status": "Status",
@@ -29,5 +45,33 @@
   "actions": {
     "edit": "Edit",
     "delete": "Delete"
+  },
+  "createModal": {
+    "title": "Create Registry"
+  },
+  "editModal": {
+    "title": "Edit Registry"
+  },
+  "deleteModal": {
+    "title": "Delete Registry",
+    "description": "Are you sure you want to delete registry {{name}}?"
+  },
+  "validation": {
+    "nameLength": "Registry name must be {{min}}-{{max}} characters",
+    "urlRequired": "Target URL is required",
+    "urlInvalid": "Please enter a valid URL"
+  },
+  "notifications": {
+    "createSuccess": "Registry created",
+    "createError": "Failed to create registry",
+    "updateSuccess": "Registry updated",
+    "updateError": "Failed to update registry",
+    "deleteSuccess": "Registry deleted",
+    "deleteError": "Failed to delete registry",
+    "pingSuccess": "Connection test succeeded",
+    "pingError": "Connection test failed"
+  },
+  "errors": {
+    "missingRegistryId": "Registry ID is missing"
   }
 }
