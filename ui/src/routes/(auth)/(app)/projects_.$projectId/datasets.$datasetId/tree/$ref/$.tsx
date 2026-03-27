@@ -1,21 +1,36 @@
-import { Text } from '@mantine/core'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/tree/$ref/$',
 )({
-  component: DatasetTreePage,
+  component: RouteComponent,
 })
 
-function DatasetTreePage() {
+function RouteComponent() {
   const {
-    datasetId, ref,
+    projectId, datasetId, ref,
   } = Route.useParams()
-  const treePath = Route.useParams({ select: s => s['_splat'] }) ?? ''
+  const treePath = Route.useParams({ select: s => s['_splat'] })
 
   return (
-    <Text size="sm" c="dimmed">
-      {`${datasetId} / ${ref} / ${treePath}`}
-    </Text>
+    <div>
+      Dataset Tree Page
+      <br />
+      Project ID:
+      {' '}
+      {projectId}
+      <br />
+      Dataset ID:
+      {' '}
+      {datasetId}
+      <br />
+      Ref:
+      {' '}
+      {ref}
+      <br />
+      Path:
+      {' '}
+      {treePath}
+    </div>
   )
 }
