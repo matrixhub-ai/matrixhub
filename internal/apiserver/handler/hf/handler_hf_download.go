@@ -238,24 +238,14 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 
 				if h.mirror != nil && !h.lfsStorage.Exists(ptr.OID()) {
 					// Try tee cache fetch if configured
-					if h.mirror != nil {
-						started, err := h.mirror.StartLFSFetch(r.Context(), ri.RepoName, []lfs.LFSObject{
-							{Oid: ptr.OID(), Size: ptr.Size()},
-						})
-						if err != nil {
-							responseJSON(w, fmt.Errorf("failed to fetch LFS object %q: %v", ptr.OID(), err), http.StatusInternalServerError)
-							return
-						}
-
-						if started {
-							pf := h.mirror.Get(ptr.OID())
-							rs := pf.NewReadSeeker()
-							defer func() {
-								_ = rs.Close()
-							}()
-							http.ServeContent(w, r, ptr.OID(), pf.ModTime(), rs)
-							return
-						}
+					pf := h.mirror.Get(ptr.OID())
+					if pf != nil {
+						rs := pf.NewReadSeeker()
+						defer func() {
+							_ = rs.Close()
+						}()
+						http.ServeContent(w, r, ptr.OID(), pf.ModTime(), rs)
+						return
 					}
 					responseJSON(w, fmt.Errorf("LFS object %q not found for file %q in repository %q at revision %q", ptr.OID(), path, ri.RepoName, rev), http.StatusNotFound)
 					return
