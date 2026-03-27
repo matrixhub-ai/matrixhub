@@ -121,5 +121,3 @@ export function formatParameterCount(value: string | undefined) {
     decimals: 1,
   })
 }
-
-export { formatStorageSize } from '@/shared/utils/format'
