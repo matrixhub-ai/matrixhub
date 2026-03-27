@@ -10,6 +10,10 @@
     "copy": "Copy",
     "copied": "Copied"
   },
+  "commitDetail": {
+    "committedOn": "commited on ",
+    "emptyDiff": "No diff content"
+  },
   "commitsTable": {
     "columns": {
       "message": "Commit Message"

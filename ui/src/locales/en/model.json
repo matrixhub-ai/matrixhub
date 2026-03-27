@@ -28,9 +28,6 @@
   "commits": {
     "loadFailed": "Failed to load commit history. Please try again later."
   },
-  "commitDetail": {
-    "title": "Commit Detail"
-  },
   "settings": {
     "delete": {
       "title": "Delete Model",

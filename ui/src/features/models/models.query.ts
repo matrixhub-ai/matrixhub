@@ -144,6 +144,7 @@ export function modelProjectsQueryOptions() {
     queryKey: modelKeys.projects(),
     queryFn: async () => {
       const response = await Projects.ListProjects({
+        page: 1,
         pageSize: -1,
       })
 
@@ -246,6 +247,16 @@ export function useModelCommits(
   return useQuery({
     ...modelCommitsQueryOptions(projectId, modelName, params),
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useModelCommit(
+  projectId: string,
+  modelName: string,
+  commitId: string,
+) {
+  return useQuery({
+    ...modelCommitQueryOptions(projectId, modelName, commitId),
   })
 }
 

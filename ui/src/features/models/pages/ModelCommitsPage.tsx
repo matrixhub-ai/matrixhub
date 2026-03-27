@@ -80,6 +80,9 @@ export function ModelCommitsPage() {
             modelId,
             commitId: commit.id as string,
           },
+          search: {
+            branch: ref,
+          },
         })}
       />
     </Stack>

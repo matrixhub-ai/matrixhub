@@ -1,0 +1,37 @@
+.d2h-file-list-wrapper {
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: var(--mantine-radius-md);
+  margin-bottom: 12px;
+}
+
+.d2h-file-wrapper {
+  border-color: var(--mantine-color-gray-3);
+  border-radius: var(--mantine-radius-md);
+  margin-bottom: 12px;
+}
+
+.d2h-file-list-wrapper a, .d2h-file-list-wrapper a:visited {
+  color: var(--mantine-color-cyan-text);
+}
+
+.d2h-file-list {
+  margin-bottom: -5px;
+}
+
+.d2h-file-header {
+  border-radius: var(--mantine-radius-md)  var(--mantine-radius-md) 0 0;
+}
+.d2h-files-diff {
+  border-radius: 0 0 var(--mantine-radius-md) var(--mantine-radius-md);
+  overflow: hidden;
+}
+
+.d2h-code-side-emptyplaceholder, .d2h-emptyplaceholder {
+  background: #F8F9FA;
+}
+
+.d2h-file-stats {
+  line-height: 1;
+  gap: 2px;
+}
