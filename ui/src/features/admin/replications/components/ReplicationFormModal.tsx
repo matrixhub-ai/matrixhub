@@ -266,6 +266,7 @@ export function ReplicationFormModal({
       label: value === TriggerType.TRIGGER_TYPE_SCHEDULED
         ? t('routes.admin.replications.trigger.scheduled')
         : t('routes.admin.replications.trigger.manual'),
+      disabled: value === TriggerType.TRIGGER_TYPE_SCHEDULED,
     }),
   ), [t])
 
