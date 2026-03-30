@@ -233,7 +233,7 @@ func (h *Handler) openRepo(ctx context.Context, ri repoInformation, repoPath, se
 	if h.mirror == nil || service != repository.GitUploadPack {
 		return repository.Open(repoPath)
 	}
-	if err := h.modelService.SyncFromRemote(ctx, ri.Namespace, ri.Name); err != nil {
+	if err := h.modelService.CheckOrSyncFromRemote(ctx, ri.Namespace, ri.Name); err != nil {
 		log.Errorf("failed to sync from remote for %s/%s: %v", ri.Namespace, ri.Name, err)
 		return nil, err
 	}

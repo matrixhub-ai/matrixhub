@@ -52,7 +52,7 @@ type IModelService interface {
 	// Metadata sync
 	SyncMetadata(ctx context.Context, project, name string) error
 
-	SyncFromRemote(ctx context.Context, project, name string) error
+	CheckOrSyncFromRemote(ctx context.Context, project, name string) error
 }
 
 // ModelService implements the model service operations.
@@ -229,19 +229,27 @@ func (s *ModelService) GetModelCommit(ctx context.Context, project, name, commit
 	return s.gitRepo.GetCommit(ctx, "models", project, name, commitID)
 }
 
-// CreateModel creates a new model in the system.
+// CreateModelCommit creates a new model commit.
 func (s *ModelService) CreateModelCommit(ctx context.Context, project, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error) {
-	if project == "" {
-		return "", errors.New("invalid project")
+	prj, err := s.projectRepo.GetProjectByName(ctx, project)
+	if err != nil {
+		return "", err
 	}
-	if name == "" {
-		return "", errors.New("invalid name")
+	if prj.HasProxy() {
+		return "", fmt.Errorf("it is not allowed to upload file to model %s/%s for proxy project  ", project, name)
 	}
 
-	// Check if model exists
-	_, err := s.modelRepo.GetByProjectAndName(ctx, project, name)
-	if err != nil {
-		return "", errors.New("model not exists")
+	// create model if not exist
+	mod, _ := s.modelRepo.GetByProjectAndName(ctx, project, name)
+	if mod == nil {
+		mod = &Model{
+			Name:        name,
+			ProjectID:   prj.ID,
+			ProjectName: project,
+		}
+		if _, err = s.modelRepo.Create(ctx, mod); err != nil {
+			return "", err
+		}
 	}
 
 	commitHash, err := s.gitRepo.CreateCommit(ctx, "models", project, name, revision, commit, ops)
@@ -354,42 +362,50 @@ func (s *ModelService) updateModelLabels(ctx context.Context, modelID int64, tag
 	return s.labelRepo.UpdateModelLabels(ctx, modelID, labelIDs)
 }
 
-func (s *ModelService) SyncFromRemote(ctx context.Context, project, name string) error {
+func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name string) error {
 	prj, err := s.projectRepo.GetProjectByName(ctx, project)
-	if err == nil {
-		if prj.HasProxy() {
-			reg, err := s.registryRepo.GetRegistry(ctx, *prj.RegistryID)
-			if err != nil {
-				return fmt.Errorf("get registry(id=%d): %w", prj.RegistryID, err)
-			}
-			gr := &git.GitRepository{
-				RemoteRegistryURL:  reg.URL,
-				RemoteProjectName:  prj.Organization,
-				RemoteResourceName: name,
-				ProjectName:        project,
-				ResourceName:       name,
-				ResourceType:       "model",
-			}
-			mod, _ := s.modelRepo.GetByProjectAndName(ctx, project, name)
-			if mod == nil {
-				mod = &Model{
-					Name:        name,
-					ProjectID:   prj.ID,
-					ProjectName: project,
-				}
-				if _, err = s.modelRepo.Create(ctx, mod); err != nil {
-					return err
-				}
-			} else if !mod.ShouldSync() {
-				return nil
-			}
-			if err = s.gitRepo.PullFromRemote(ctx, gr); err != nil {
-				return err
-			}
-			if err = s.SyncMetadata(ctx, mod.ProjectName, mod.Name); err != nil {
-				return err
-			}
+	if err != nil {
+		return err
+	}
+	if !prj.HasProxy() {
+		_, err := s.modelRepo.GetByProjectAndName(ctx, project, name)
+		if err != nil {
+			return err
+		} else {
+			return nil
 		}
+	}
+
+	reg, err := s.registryRepo.GetRegistry(ctx, *prj.RegistryID)
+	if err != nil {
+		return fmt.Errorf("get registry(id=%d): %w", prj.RegistryID, err)
+	}
+	gr := &git.GitRepository{
+		RemoteRegistryURL:  reg.URL,
+		RemoteProjectName:  prj.Organization,
+		RemoteResourceName: name,
+		ProjectName:        project,
+		ResourceName:       name,
+		ResourceType:       "model",
+	}
+	mod, _ := s.modelRepo.GetByProjectAndName(ctx, project, name)
+	if mod == nil {
+		mod = &Model{
+			Name:        name,
+			ProjectID:   prj.ID,
+			ProjectName: project,
+		}
+		if _, err = s.modelRepo.Create(ctx, mod); err != nil {
+			return err
+		}
+	} else if !mod.ShouldSync() {
+		return nil
+	}
+	if err = s.gitRepo.PullFromRemote(ctx, gr); err != nil {
+		return err
+	}
+	if err = s.SyncMetadata(ctx, mod.ProjectName, mod.Name); err != nil {
+		return err
 	}
 
 	return nil
