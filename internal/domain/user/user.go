@@ -40,7 +40,7 @@ func (User) TableName() string {
 }
 
 type IUserRepo interface {
-	CreateUser(ctx context.Context, user User) error
+	CreateUser(ctx context.Context, user *User) error
 	GetUser(ctx context.Context, id int) (*User, error)
 	GetUserByName(ctx context.Context, username string) (*User, error)
 	ListUsers(ctx context.Context, page, pageSize int, search string) ([]*User, int64, error)
@@ -52,6 +52,8 @@ type IUserRepo interface {
 
 	// IsUserSysAdmin checks if user is system admin
 	IsUserSysAdmin(ctx context.Context, userID int) (bool, error)
+
+	IsUsersSysAdmin(ctx context.Context, users []int) (map[int]bool, error)
 
 	// GetUserAllProjectRoles gets user's roles in all projects
 	GetUserAllProjectRoles(ctx context.Context, userID int) (map[string]int, error)

@@ -43,10 +43,14 @@ func (cu *CurrentUserHandler) GetCurrentUser(ctx context.Context, request *v1alp
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "user not found")
 	}
+	isAdmin, err := cu.userRepo.IsUserSysAdmin(ctx, user.ID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "cannot check user admin")
+	}
 	return &v1alpha1.GetCurrentUserResponse{
 		Id:       uint32(user.ID),
 		Username: user.Username,
-		IsAdmin:  false,
+		IsAdmin:  isAdmin,
 	}, nil
 }
 

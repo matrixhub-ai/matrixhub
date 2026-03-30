@@ -67,11 +67,17 @@ func (u *UserHandler) CreateUser(ctx context.Context, request *userv1alpha1.Crea
 	if _, err := u.userRepo.GetUserByName(ctx, request.Username); err == nil {
 		return nil, status.Error(codes.InvalidArgument, "user already exists")
 	}
-	if err := u.userRepo.CreateUser(ctx, user.User{
+	user := &user.User{
 		Username: request.Username,
 		Password: request.Password,
-	}); err != nil {
+	}
+	if err := u.userRepo.CreateUser(ctx, user); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	if request.IsAdmin {
+		if err := u.userRepo.SetUserSysAdmin(ctx, user.ID, true); err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 
 	return &userv1alpha1.CreateUserResponse{}, nil
@@ -111,13 +117,20 @@ func (u *UserHandler) ListUsers(ctx context.Context, request *userv1alpha1.ListU
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	userIds := lo.Map(users, func(item *user.User, index int) int {
+		return item.ID
+	})
+	adminUsers, err := u.userRepo.IsUsersSysAdmin(ctx, userIds)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	result := lo.Map(users, func(item *user.User, index int) *userv1alpha1.User {
 		return &userv1alpha1.User{
 			Id:        uint32(item.ID),
 			Username:  item.Username,
-			IsAdmin:   item.IsAdmin,
 			CreatedAt: timestamppb.New(item.CreatedAt),
+			IsAdmin:   adminUsers[item.ID],
 		}
 	})
 

@@ -30,7 +30,7 @@ type UserRepo struct {
 	db *gorm.DB
 }
 
-func (u *UserRepo) CreateUser(ctx context.Context, user user.User) error {
+func (u *UserRepo) CreateUser(ctx context.Context, user *user.User) error {
 	password, err := crypto.HashPassword(user.Password)
 	if err != nil {
 		return err
@@ -151,6 +151,21 @@ func (u *UserRepo) GetUserAllProjectRoles(ctx context.Context, userID int) (map[
 	}
 
 	return roles, nil
+}
+
+func (u *UserRepo) IsUsersSysAdmin(ctx context.Context, users []int) (map[int]bool, error) {
+	var pms []*project.ProjectMember
+	err := u.db.WithContext(ctx).
+		Where("member_id in (?) AND member_type = ? AND project_id IS NULL AND role_id = ?", users, project.MemberTypeUser, role.PlatformRoleAdmin).
+		Find(&pms).Error
+	if err != nil {
+		return nil, err
+	}
+	results := make(map[int]bool)
+	for _, pm := range pms {
+		results[pm.MemberID] = true
+	}
+	return results, nil
 }
 
 func NewUserRepo(db *gorm.DB) user.IUserRepo {
