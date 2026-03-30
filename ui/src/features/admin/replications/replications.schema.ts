@@ -10,6 +10,7 @@ import { withNameStartCharRule, withNameValidCharsRule } from '@/shared/validati
 
 export const DEFAULT_REPLICATIONS_PAGE = 1
 export const DEFAULT_REPLICATIONS_PAGE_SIZE = 10
+export const DESCRIPTION_MAX_LENGTH = 50
 
 export const replicationResourceTypeValues = [
   ResourceType.RESOURCE_TYPE_MODEL,
@@ -42,7 +43,7 @@ function replicationFormBaseSchema() {
       .string()
       .trim()
       .min(2))),
-    description: z.string().trim().max(50),
+    description: z.string().trim().max(DESCRIPTION_MAX_LENGTH),
     policyType: z.union([
       z.literal(SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE),
       z.literal(SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE),

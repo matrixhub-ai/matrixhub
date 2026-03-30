@@ -38,6 +38,7 @@ import {
   type ReplicationFormValues,
   replicationResourceTypeValues,
   replicationTriggerTypeValues,
+  DESCRIPTION_MAX_LENGTH,
 } from '../replications.schema'
 import {
   convertBandwidthToApiValue,
@@ -53,7 +54,6 @@ import type {
 
 const BANDWIDTH_MIN = -1
 const BANDWIDTH_MAX = 1048576
-const DESCRIPTION_MAX_LENGTH = 50
 const INLINE_FIELD_LABEL_WIDTH = 80
 
 const inlineTextInputStyles = {
