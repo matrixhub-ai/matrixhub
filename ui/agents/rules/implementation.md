@@ -76,7 +76,9 @@ Baseline rules — see `tanstack-form.md` for full conventions and Mantine bindi
 - Pass Zod schemas directly to field-level `validators` (e.g. `validators: { onSubmit: schema }`) — TanStack Form v1 supports Standard Schema natively, so Zod schemas work without an adapter; do not write manual `safeParse` calls
 - Use `fieldError(field)` from `@/shared/utils/form` to extract the first error message for Mantine `error` props — Standard Schema errors are complex objects, not strings
 - Use Mantine's own `label` and `withAsterisk` props on form field components for labelling — do not render separate `<Text>` elements as field labels
+- When a field label needs inline help text, prefer `@/shared/components/FieldHintLabel` and let it inherit the host component's native label styling instead of hand-building page-local tooltip labels
 - Keep Mantine as the field UI layer; bind TanStack Form state to Mantine component props such as `value`, `checked`, `onChange`, and `error`
+- When reading TanStack Form state outside a `form.Field`, prefer `form.Subscribe` for render-only UI subscriptions; use `useStore(form.store, selector)` only when a hook or non-Field branch needs reactive access, and keep the selector as narrow as practical
 - Connect form `onSubmit` to TanStack Query mutations — see `tanstack-integration.md` for the full pattern
 
 ## Error Notifications

@@ -4,6 +4,22 @@
   "toolbar": {
     "create": "创建目标仓库"
   },
+  "provider": {
+    "huggingFace": "Hugging Face"
+  },
+  "form": {
+    "provider": "提供者",
+    "name": "仓库名称",
+    "description": "描述",
+    "url": "目标 URL",
+    "urlPlaceholder": "http://docker.m.daocloud.io",
+    "username": "用户名",
+    "usernameHint": "若拉取目标仓库中的私密模型，请输入目标仓库的用户名和密码。",
+    "password": "密码",
+    "verifyRemoteCert": "验证远程证书",
+    "verifyRemoteCertHint": "确定远程同步是否要验证远程 MatrixHub 实例的证书。如果远程实例使用的是自签或者非信任证书，不要勾选此项。",
+    "testConnection": "测试连接"
+  },
   "table": {
     "name": "目标仓库",
     "status": "状态",
@@ -29,5 +45,33 @@
   "actions": {
     "edit": "编辑",
     "delete": "删除"
+  },
+  "createModal": {
+    "title": "创建目标仓库"
+  },
+  "editModal": {
+    "title": "编辑目标仓库"
+  },
+  "deleteModal": {
+    "title": "删除目标仓库",
+    "description": "确定要删除目标仓库 {{name}} 吗？"
+  },
+  "validation": {
+    "nameLength": "名称长度需在{{min}}-{{max}}字符之间",
+    "urlRequired": "请输入目标 URL",
+    "urlInvalid": "请输入有效的 URL"
+  },
+  "notifications": {
+    "createSuccess": "目标仓库创建成功",
+    "createError": "创建目标仓库失败",
+    "updateSuccess": "目标仓库更新成功",
+    "updateError": "更新目标仓库失败",
+    "deleteSuccess": "目标仓库删除成功",
+    "deleteError": "删除目标仓库失败",
+    "pingSuccess": "测试连接成功",
+    "pingError": "测试连接失败"
+  },
+  "errors": {
+    "missingRegistryId": "目标仓库 ID 缺失"
   }
 }

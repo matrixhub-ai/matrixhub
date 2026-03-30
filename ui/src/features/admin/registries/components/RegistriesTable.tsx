@@ -1,7 +1,6 @@
 import {
   Anchor,
   Badge,
-  Button,
   Group,
   Text,
 } from '@mantine/core'
@@ -15,6 +14,8 @@ import { useTranslation } from 'react-i18next'
 import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
 import { formatDateTime } from '@/shared/utils/date'
 
+import { DeleteRegistryAction } from './DeleteRegistryAction'
+import { EditRegistryAction } from './EditRegistryAction'
 import { getRegistryRowId } from '../registries.utils'
 
 import type { Registry } from '@matrixhub/api-ts/v1alpha1/registry.pb'
@@ -24,15 +25,16 @@ type RegistryCellProps = Parameters<NonNullable<MRT_ColumnDef<Registry>['Cell']>
 
 type RegistryActionCellProps = Parameters<NonNullable<DataTableProps<Registry>['renderRowActions']>>[0]
 
-type RegistriesTableProps = Omit<DataTableProps<Registry>, 'columns' | 'onDelete'>
+type RegistriesTableProps = Omit<DataTableProps<Registry>, 'columns'>
 
 function RegistryTypeCell({ row }: RegistryCellProps) {
+  const { t } = useTranslation()
   const type = row.original.type
 
   let label = '-'
 
   if (type === RegistryType.REGISTRY_TYPE_HUGGINGFACE) {
-    label = 'Hugging Face'
+    label = t('routes.admin.registries.provider.huggingFace')
   }
 
   return <Text size="sm">{label}</Text>
@@ -107,36 +109,17 @@ function RegistryCredentialCell({ row }: RegistryCellProps) {
 function RegistryActionsCell({
   row,
 }: RegistryActionCellProps) {
-  const { t } = useTranslation()
-
   const isDisabled = row.original.id == null
 
   return (
     <Group gap={4} wrap="nowrap">
-      <Button
-        variant="transparent"
-        size="compact-sm"
-        color="blue"
-        disabled={isDisabled}
-      >
-        {t('routes.admin.registries.actions.edit')}
-      </Button>
-      <Button
-        variant="transparent"
-        size="compact-sm"
-        color="blue"
-        disabled={isDisabled}
-      >
-        {t('routes.admin.registries.actions.delete')}
-      </Button>
+      <EditRegistryAction registry={row.original} disabled={isDisabled} />
+      <DeleteRegistryAction registry={row.original} disabled={isDisabled} />
     </Group>
   )
 }
 
-export function RegistriesTable({
-  tableOptions,
-  ...props
-}: RegistriesTableProps) {
+export function RegistriesTable(props: RegistriesTableProps) {
   const { t } = useTranslation()
 
   const columns = useMemo<MRT_ColumnDef<Registry>[]>(() => [
@@ -184,15 +167,9 @@ export function RegistriesTable({
       emptyTitle={t('routes.admin.registries.table.empty')}
       searchPlaceholder={t('routes.admin.registries.searchPlaceholder')}
       getRowId={getRegistryRowId}
-      enableRowSelection
       enableRowActions
       renderRowActions={RegistryActionsCell}
       positionActionsColumn="last"
-      tableOptions={{
-        ...tableOptions,
-        enableBatchRowSelection: true,
-        enableMultiRowSelection: true,
-      }}
     />
   )
 }
