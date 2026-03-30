@@ -27,6 +27,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
@@ -297,7 +298,7 @@ func (mh *ModelHandler) GetModel(ctx context.Context, request *modelv1alpha1.Get
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelGet); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -320,7 +321,7 @@ func (mh *ModelHandler) CreateModel(ctx context.Context, request *modelv1alpha1.
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelPush); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelPush); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -346,7 +347,7 @@ func (mh *ModelHandler) DeleteModel(ctx context.Context, request *modelv1alpha1.
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelDelete); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelDelete); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -369,7 +370,7 @@ func (mh *ModelHandler) ListModelRevisions(ctx context.Context, request *modelv1
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelGet); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -395,7 +396,7 @@ func (mh *ModelHandler) ListModelCommits(ctx context.Context, request *modelv1al
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelGet); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -432,7 +433,7 @@ func (mh *ModelHandler) GetModelCommit(ctx context.Context, request *modelv1alph
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelGet); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -455,7 +456,7 @@ func (mh *ModelHandler) GetModelTree(ctx context.Context, request *modelv1alpha1
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelGet); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -486,7 +487,7 @@ func (mh *ModelHandler) UpdateModelSetting(ctx context.Context, request *modelv1
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelSetting); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelSetting); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -513,7 +514,7 @@ func (mh *ModelHandler) GetModelBlob(ctx context.Context, request *modelv1alpha1
 	}
 
 	// Verify permission
-	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelGet); err != nil || !allowed {
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 

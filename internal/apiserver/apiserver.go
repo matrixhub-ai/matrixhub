@@ -276,7 +276,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 	)
 
 	// init permission service
-	authzService := authz.NewAuthzService(repos.Authz)
+	authzService := authz.NewAuthzService(repos.Authz, repos.Project)
 
 	// init domain services, add if needed
 	modelService := model.NewModelService(

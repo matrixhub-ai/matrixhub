@@ -35,14 +35,14 @@ type Project struct {
 	Type         ProjectType `gorm:"column:type"`
 	RegistryID   *int        `gorm:"column:registry_id"`
 	Organization string      `gorm:"column:organization"`
-	RegistryURL  string      `gorm:"-"`
-	ModelCount   int         `gorm:"-"`
-	DatasetCount int         `gorm:"-"`
+	RegistryURL  string      `gorm:"column:registry_url;<-:false"`
+	ModelCount   int         `gorm:"column:model_count;<-:false"`
+	DatasetCount int         `gorm:"column:dataset_count;<-:false"`
 	CreatedAt    time.Time   `gorm:"column:created_at"`
 	UpdatedAt    time.Time   `gorm:"column:updated_at"`
 }
 
-func (Project) TableName() string {
+func (*Project) TableName() string {
 	return "projects"
 }
 
@@ -84,6 +84,7 @@ type Member struct {
 // IProjectRepo defines the project repository interface
 type IProjectRepo interface {
 	CreateProject(ctx context.Context, project *Project) (*Project, error)
+	GetProjectByID(ctx context.Context, id int) (*Project, error)
 	GetProjectByName(ctx context.Context, name string) (*Project, error)
 	GetProjectIDByName(ctx context.Context, name string) (int, error)
 	ListProjects(ctx context.Context, name string, projectType ProjectType, managedOnly bool, page, pageSize int) ([]*Project, int64, error)

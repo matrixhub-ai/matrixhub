@@ -17,55 +17,50 @@ package authz
 import (
 	"context"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
 // IAuthzService permission verification service interface
 type IAuthzService interface {
 	// GetUserPermissions gets user's permission list in a project
-	GetUserPermissions(ctx context.Context, userID int, projectID int) ([]Permission, error)
+	GetUserPermissions(ctx context.Context, userID int, projectID int) ([]role.Permission, error)
 
 	// VerifyPlatformPermission verifies platform-level permission (gets user info from ctx)
-	VerifyPlatformPermission(ctx context.Context, perm Permission) (bool, error)
+	VerifyPlatformPermission(ctx context.Context, perm role.Permission) (bool, error)
 
-	// VerifyProjectPermission verifies project-level permission
-	VerifyProjectPermission(ctx context.Context, projectID int, perm Permission) (bool, error)
+	VerifyProjectPermission(ctx context.Context, projectID int, perm role.Permission) (bool, error)
 
 	// VerifyProjectPermissionByName resolves project name to ID, then verifies permission
-	VerifyProjectPermissionByName(ctx context.Context, projectName string, perm Permission) (bool, error)
+	VerifyProjectPermissionByName(ctx context.Context, projectName string, perm role.Permission) (bool, error)
 
 	// GetUserAccessibleProjectIDs gets all project IDs accessible to a user
 	GetUserAccessibleProjectIDs(ctx context.Context, userID int) ([]int, error)
 }
 
-// IAuthzProjectRepo project repository interface required for permission verification
-type IAuthzProjectRepo interface {
-	GetUserProjectPermissions(ctx context.Context, userID int, projectID int) ([]Permission, error)
-	GetUserPlatformPermissions(ctx context.Context, userID int) ([]Permission, error)
-	GetProjectIDByName(ctx context.Context, name string) (int, error)
-	GetUserAccessibleProjectIDs(ctx context.Context, userID int) ([]int, error)
-}
-
 // AuthzService permission verification service
 type AuthzService struct {
-	projectRepo IAuthzProjectRepo
+	authzRepo   IAuthzProjectRepo
+	projectRepo project.IProjectRepo
 }
 
 // NewAuthzService creates permission verification service
-func NewAuthzService(projectRepo IAuthzProjectRepo) IAuthzService {
+func NewAuthzService(authzRepo IAuthzProjectRepo, projectRepo project.IProjectRepo) IAuthzService {
 	return &AuthzService{
+		authzRepo:   authzRepo,
 		projectRepo: projectRepo,
 	}
 }
 
 // GetUserPermissions gets user's permission list in a project
-func (s *AuthzService) GetUserPermissions(ctx context.Context, userID int, projectID int) ([]Permission, error) {
-	platformPerms, err := s.projectRepo.GetUserPlatformPermissions(ctx, userID)
+func (s *AuthzService) GetUserPermissions(ctx context.Context, userID int, projectID int) ([]role.Permission, error) {
+	platformPerms, err := s.authzRepo.GetUserPlatformPermissions(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	projectPerms, err := s.projectRepo.GetUserProjectPermissions(ctx, userID, projectID)
+	projectPerms, err := s.authzRepo.GetUserProjectPermissions(ctx, userID, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,48 +78,60 @@ func (s *AuthzService) getUserIDFromCtx(ctx context.Context) (int, bool) {
 }
 
 // VerifyPlatformPermission verifies platform-level permission (gets user info from ctx)
-func (s *AuthzService) VerifyPlatformPermission(ctx context.Context, perm Permission) (bool, error) {
+func (s *AuthzService) VerifyPlatformPermission(ctx context.Context, perm role.Permission) (bool, error) {
 	userID, ok := s.getUserIDFromCtx(ctx)
 	if !ok {
 		return false, nil
 	}
 
 	// Get user's platform-level permissions
-	permissions, err := s.projectRepo.GetUserPlatformPermissions(ctx, userID)
+	permissions, err := s.authzRepo.GetUserPlatformPermissions(ctx, userID)
 	if err != nil {
 		return false, err
 	}
 
-	return MatchPermissions(permissions, perm), nil
+	return role.MatchPermissions(permissions, perm), nil
+}
+
+// VerifyProjectPermissionByName resolves project name to ID, then verifies permission
+func (s *AuthzService) VerifyProjectPermissionByName(ctx context.Context, projectName string, perm role.Permission) (bool, error) {
+	project, err := s.projectRepo.GetProjectByName(ctx, projectName)
+	if err != nil {
+		return false, err
+	}
+	return s.verifyProjectPermission(ctx, project, perm)
 }
 
 // VerifyProjectPermission verifies project-level permission
-func (s *AuthzService) VerifyProjectPermission(ctx context.Context, projectID int, perm Permission) (bool, error) {
+func (s *AuthzService) VerifyProjectPermission(ctx context.Context, projectID int, perm role.Permission) (bool, error) {
+	project, err := s.projectRepo.GetProjectByID(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+	return s.verifyProjectPermission(ctx, project, perm)
+}
+
+func (s *AuthzService) verifyProjectPermission(ctx context.Context, project *project.Project, perm role.Permission) (bool, error) {
+	if project.IsPublic() && (perm == role.ProjectGet || perm == role.ModelGet || perm == role.ModelPull || perm == role.DatasetGet || perm == role.DatasetPull) {
+		return true, nil
+	}
+
 	userID, ok := s.getUserIDFromCtx(ctx)
 	if !ok {
 		return false, nil
 	}
 
 	// Get user's permission list
-	permissions, err := s.GetUserPermissions(ctx, userID, projectID)
+	permissions, err := s.GetUserPermissions(ctx, userID, project.ID)
 	if err != nil {
 		return false, err
 	}
 
 	// Check if there's matching permission using regex
-	return MatchPermissions(permissions, perm), nil
-}
-
-// VerifyProjectPermissionByName resolves project name to ID, then verifies permission
-func (s *AuthzService) VerifyProjectPermissionByName(ctx context.Context, projectName string, perm Permission) (bool, error) {
-	projectID, err := s.projectRepo.GetProjectIDByName(ctx, projectName)
-	if err != nil {
-		return false, err
-	}
-	return s.VerifyProjectPermission(ctx, projectID, perm)
+	return role.MatchPermissions(permissions, perm), nil
 }
 
 // GetUserAccessibleProjectIDs gets all project IDs where the user has membership
 func (s *AuthzService) GetUserAccessibleProjectIDs(ctx context.Context, userID int) ([]int, error) {
-	return s.projectRepo.GetUserAccessibleProjectIDs(ctx, userID)
+	return s.authzRepo.GetUserAccessibleProjectIDs(ctx, userID)
 }

@@ -24,6 +24,7 @@ import (
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
@@ -44,14 +45,14 @@ var (
 	}
 	readMethods = []string{http.MethodGet, http.MethodHead, http.MethodOptions}
 
-	resourcePermissions = map[string]map[action]authz.Permission{
+	resourcePermissions = map[string]map[action]role.Permission{
 		resourceDataset: {
-			actionRead:  authz.DatasetPull,
-			actionWrite: authz.DatasetPush,
+			actionRead:  role.DatasetPull,
+			actionWrite: role.DatasetPush,
 		},
 		resourceModel: {
-			actionRead:  authz.ModelPull,
-			actionWrite: authz.ModelPush,
+			actionRead:  role.ModelPull,
+			actionWrite: role.ModelPush,
 		},
 	}
 )
@@ -94,9 +95,9 @@ func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r
 	if prj.IsPublic() && act == actionRead {
 		return true
 	}
-	var permission authz.Permission
+	var permission role.Permission
 	if resource == "" {
-		permission = authz.ModelPull
+		permission = role.ModelPull
 	} else {
 		permission = resourcePermissions[resource][act]
 	}

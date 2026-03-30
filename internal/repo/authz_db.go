@@ -23,6 +23,7 @@ import (
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
 
 type AuthzDBRepo struct {
@@ -39,12 +40,12 @@ func NewAuthzDBRepo(db *gorm.DB) authz.IAuthzProjectRepo {
 	return &AuthzDBRepo{db: db}
 }
 
-func parsePermissions(raw string) ([]authz.Permission, error) {
+func parsePermissions(raw string) ([]role.Permission, error) {
 	if raw == "" {
 		return nil, nil
 	}
 
-	var permissions []authz.Permission
+	var permissions []role.Permission
 	if err := json.Unmarshal([]byte(raw), &permissions); err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func parsePermissions(raw string) ([]authz.Permission, error) {
 }
 
 // GetUserProjectPermissions gets user's permissions in a project
-func (r *AuthzDBRepo) GetUserProjectPermissions(ctx context.Context, userID int, projectID int) ([]authz.Permission, error) {
+func (r *AuthzDBRepo) GetUserProjectPermissions(ctx context.Context, userID int, projectID int) ([]role.Permission, error) {
 	var row permissionRow
 	err := r.db.WithContext(ctx).
 		Table("roles").
@@ -71,7 +72,7 @@ func (r *AuthzDBRepo) GetUserProjectPermissions(ctx context.Context, userID int,
 }
 
 // GetUserPlatformPermissions gets user's platform-level permissions
-func (r *AuthzDBRepo) GetUserPlatformPermissions(ctx context.Context, userID int) ([]authz.Permission, error) {
+func (r *AuthzDBRepo) GetUserPlatformPermissions(ctx context.Context, userID int) ([]role.Permission, error) {
 	var row permissionRow
 	err := r.db.WithContext(ctx).
 		Table("roles").
@@ -87,19 +88,6 @@ func (r *AuthzDBRepo) GetUserPlatformPermissions(ctx context.Context, userID int
 	}
 
 	return parsePermissions(row.Permissions)
-}
-
-// GetProjectIDByName gets project ID by name
-func (r *AuthzDBRepo) GetProjectIDByName(ctx context.Context, name string) (int, error) {
-	var p project.Project
-	err := r.db.WithContext(ctx).
-		Select("id").
-		Where("name = ?", name).
-		First(&p).Error
-	if err != nil {
-		return 0, err
-	}
-	return p.ID, nil
 }
 
 // GetUserAccessibleProjectIDs gets all project IDs where the user has membership

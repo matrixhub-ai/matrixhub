@@ -88,7 +88,7 @@ func (h *ProjectHandler) GetProject(ctx context.Context, req *projectv1alpha1.Ge
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	if allowed, err := h.authzService.VerifyProjectPermission(ctx, p.ID, authz.ProjectGet); err != nil || !allowed {
+	if allowed, err := h.authzService.VerifyProjectPermission(ctx, p.ID, role.ProjectGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -110,13 +110,15 @@ func (h *ProjectHandler) ListProjects(ctx context.Context, req *projectv1alpha1.
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	page := utils.NewPage(req.Page, req.PageSize)
+
 	projects, total, err := h.projectRepo.ListProjects(
 		ctx,
 		req.GetName(),
 		convertProtoTypeToDomain(req.GetType()),
 		req.GetManagedOnly(),
-		int(req.GetPage()),
-		int(req.GetPageSize()),
+		int(page.Page),
+		int(page.PageSize),
 	)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -152,7 +154,7 @@ func (h *ProjectHandler) UpdateProject(ctx context.Context, req *projectv1alpha1
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	if allowed, err := h.authzService.VerifyProjectPermission(ctx, p.ID, authz.ProjectUpdate); err != nil || !allowed {
+	if allowed, err := h.authzService.VerifyProjectPermission(ctx, p.ID, role.ProjectUpdate); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -175,7 +177,7 @@ func (h *ProjectHandler) DeleteProject(ctx context.Context, req *projectv1alpha1
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, authz.ProjectDelete); err != nil || !allowed {
+	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, role.ProjectDelete); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -191,12 +193,14 @@ func (h *ProjectHandler) ListProjectMembers(ctx context.Context, req *projectv1a
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	page := utils.NewPage(req.Page, req.PageSize)
+
 	projectID, err := h.projectRepo.GetProjectIDByName(ctx, req.GetName())
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, authz.MemberGet); err != nil || !allowed {
+	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, role.MemberGet); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -204,8 +208,8 @@ func (h *ProjectHandler) ListProjectMembers(ctx context.Context, req *projectv1a
 		ctx,
 		projectID,
 		req.GetMemberName(),
-		int(req.GetPage()),
-		int(req.GetPageSize()),
+		int(page.Page),
+		int(page.PageSize),
 	)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -239,7 +243,7 @@ func (h *ProjectHandler) AddProjectMemberWithRole(ctx context.Context, req *proj
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, authz.MemberAdd); err != nil || !allowed {
+	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, role.MemberAdd); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -274,7 +278,7 @@ func (h *ProjectHandler) RemoveProjectMembers(ctx context.Context, req *projectv
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, authz.MemberRemove); err != nil || !allowed {
+	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, role.MemberRemove); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -302,7 +306,7 @@ func (h *ProjectHandler) UpdateProjectMemberRole(ctx context.Context, req *proje
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, authz.MemberRoleUpdate); err != nil || !allowed {
+	if allowed, err := h.authzService.VerifyProjectPermission(ctx, projectID, role.MemberRoleUpdate); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 

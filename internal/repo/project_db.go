@@ -20,7 +20,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
@@ -66,13 +65,31 @@ func (r *ProjectDBRepo) CreateProject(ctx context.Context, param *project.Projec
 	return param, nil
 }
 
+func (r *ProjectDBRepo) GetProjectByID(ctx context.Context, id int) (*project.Project, error) {
+	var p project.Project
+	err := r.db.WithContext(ctx).
+		Select(`projects.*,
+			(SELECT COUNT(*) FROM models WHERE models.project_id = projects.id) as model_count,
+			(SELECT COUNT(*) FROM datasets WHERE datasets.project_id = projects.id) as dataset_count,
+			registries.url as registry_url`).
+		Joins("LEFT JOIN registries ON registries.id = projects.registry_id").
+		Where("projects.id = ?", id).
+		First(&p).Error
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
 func (r *ProjectDBRepo) GetProjectByName(ctx context.Context, name string) (*project.Project, error) {
 	var p project.Project
 	err := r.db.WithContext(ctx).
 		Select(`projects.*,
 			(SELECT COUNT(*) FROM models WHERE models.project_id = projects.id) as model_count,
-			(SELECT COUNT(*) FROM datasets WHERE datasets.project_id = projects.id) as dataset_count`).
-		Where("name = ?", name).
+			(SELECT COUNT(*) FROM datasets WHERE datasets.project_id = projects.id) as dataset_count,
+			registries.url as registry_url`).
+		Joins("LEFT JOIN registries ON registries.id = projects.registry_id").
+		Where("projects.name = ?", name).
 		First(&p).Error
 	if err != nil {
 		return nil, err
@@ -220,7 +237,7 @@ func (r *ProjectDBRepo) UpdateProjectMemberRole(ctx context.Context, projectID i
 	return nil
 }
 
-func (r *ProjectDBRepo) GetUserProjectPermissions(ctx context.Context, userID int, projectID int) ([]authz.Permission, error) {
+func (r *ProjectDBRepo) GetUserProjectPermissions(ctx context.Context, userID int, projectID int) ([]role.Permission, error) {
 	var ro role.Role
 	err := r.db.WithContext(ctx).
 		Table("roles").
@@ -253,7 +270,7 @@ func (r *ProjectDBRepo) GetUserProjectRole(ctx context.Context, userID int, proj
 	return int(member.RoleID), nil
 }
 
-func (r *ProjectDBRepo) GetUserPlatformPermissions(ctx context.Context, userID int) ([]authz.Permission, error) {
+func (r *ProjectDBRepo) GetUserPlatformPermissions(ctx context.Context, userID int) ([]role.Permission, error) {
 	var ro role.Role
 	err := r.db.WithContext(ctx).
 		Table("roles").
