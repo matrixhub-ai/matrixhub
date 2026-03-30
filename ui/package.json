@@ -16,6 +16,7 @@
     "@mantine/dates": "8.3.13",
     "@mantine/hooks": "^8.3.13",
     "@mantine/notifications": "^8.3.13",
+    "@monaco-editor/react": "^4.7.0",
     "@tabler/icons-react": "^3.40.0",
     "@tanstack/react-devtools": "^0.10.0",
     "@tanstack/react-form": "^1.28.5",

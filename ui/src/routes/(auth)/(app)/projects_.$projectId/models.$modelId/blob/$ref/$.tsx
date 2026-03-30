@@ -1,36 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { ModelBlobPage } from '@/features/models/pages/ModelBlobPage.tsx'
+
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId/blob/$ref/$',
 )({
-  component: RouteComponent,
+  component: ModelBlobPage,
 })
-
-function RouteComponent() {
-  const {
-    projectId, modelId, ref,
-  } = Route.useParams()
-  const filePath = Route.useParams({ select: s => s['_splat'] })
-
-  return (
-    <div>
-      Model Blob Page
-      <br />
-      Project ID:
-      {' '}
-      {projectId}
-      <br />
-      Model ID:
-      {' '}
-      {modelId}
-      <br />
-      Ref:
-      {' '}
-      {ref}
-      <br />
-      File Path:
-      {' '}
-      {filePath}
-    </div>
-  )
-}

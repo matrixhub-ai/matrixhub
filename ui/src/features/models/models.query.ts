@@ -1,5 +1,9 @@
 import {
-  type GetModelTreeRequest, type ListModelCommitsRequest, type ListModelsRequest, Models,
+  type GetModelBlobRequest,
+  type GetModelTreeRequest,
+  type ListModelCommitsRequest,
+  type ListModelsRequest,
+  Models,
 } from '@matrixhub/api-ts/v1alpha1/model.pb'
 import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import {
@@ -62,6 +66,15 @@ export const modelTreeKeys = {
   ) => [...modelTreeKeys.all, projectId, modelName, params] as const,
 }
 
+export const modelBlobKeys = {
+  all: ['modelBlob'] as const,
+  detail: (
+    projectId: string,
+    modelName: string,
+    params?: Pick<GetModelBlobRequest, 'revision' | 'path'>,
+  ) => [...modelBlobKeys.all, projectId, modelName, params] as const,
+}
+
 // -- Query options factory --
 
 export function projectModelsQueryOptions(projectId: string, search: ModelsSearch) {
@@ -111,6 +124,21 @@ export function modelTreeQueryOptions(
   return queryOptions({
     queryKey: modelTreeKeys.detail(projectId, modelName, params),
     queryFn: () => Models.GetModelTree({
+      project: projectId,
+      name: modelName,
+      ...params,
+    }),
+  })
+}
+
+export function modelBlobQueryOptions(
+  projectId: string,
+  modelName: string,
+  params?: Pick<GetModelBlobRequest, 'revision' | 'path'>,
+) {
+  return queryOptions({
+    queryKey: modelBlobKeys.detail(projectId, modelName, params),
+    queryFn: () => Models.GetModelBlob({
       project: projectId,
       name: modelName,
       ...params,
@@ -182,6 +210,16 @@ export function useModelTree(
 ) {
   return useQuery({
     ...modelTreeQueryOptions(projectId, modelName, params),
+  })
+}
+
+export function useModelBlob(
+  projectId: string,
+  modelName: string,
+  params?: Pick<GetModelBlobRequest, 'revision' | 'path'>,
+) {
+  return useQuery({
+    ...modelBlobQueryOptions(projectId, modelName, params),
   })
 }
 
