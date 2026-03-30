@@ -22,14 +22,12 @@ export const Route = createFileRoute(
 )({
   validateSearch: modelsSearchSchema,
   loaderDeps: ({ search }) => search,
-  loader: async ({
+  loader({
     context,
     params,
     deps,
-  }) => {
-    await context.queryClient.fetchQuery(
-      projectModelsQueryOptions(params.projectId, deps),
-    )
+  }) {
+    context.queryClient.fetchQuery(projectModelsQueryOptions(params.projectId, deps))
   },
   component: RouteComponent,
 })

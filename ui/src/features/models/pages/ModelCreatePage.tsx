@@ -9,7 +9,7 @@ import {
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -26,6 +26,7 @@ interface ModelCreatePageProps {
 export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const router = useRouter()
 
   const mutation = useMutation(createModelMutationOptions())
   const modelCreateSchema = createModelSchema(t)
@@ -33,7 +34,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
     name: nameValidator, projectId: projectIdValidator,
   } = modelCreateSchema.shape
 
-  const handleCancel = () => {
+  const handleNavigateBack = () => {
     if (initialProjectId) {
       return navigate({
         to: '/projects/$projectId/models',
@@ -43,8 +44,8 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
       })
     }
 
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      return window.history.back()
+    if (router.history.length > 1) {
+      return router.history.back()
     }
 
     return navigate({ to: '/models' })
@@ -61,7 +62,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
         project: value.projectId,
       })
 
-      handleCancel()
+      handleNavigateBack()
     },
   })
 
@@ -153,7 +154,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
                   color="default"
                   variant="subtle"
                   fw={400}
-                  onClick={handleCancel}
+                  onClick={handleNavigateBack}
                 >
                   {t('common.cancel')}
                 </Button>
