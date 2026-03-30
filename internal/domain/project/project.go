@@ -50,6 +50,10 @@ func (p *Project) HasProxy() bool {
 	return p.RegistryID != nil
 }
 
+func (p *Project) IsPublic() bool {
+	return p.Type == ProjectTypePublic
+}
+
 type MemberType string
 
 const (

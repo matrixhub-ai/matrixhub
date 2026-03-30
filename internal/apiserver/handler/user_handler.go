@@ -116,6 +116,7 @@ func (u *UserHandler) ListUsers(ctx context.Context, request *userv1alpha1.ListU
 		return &userv1alpha1.User{
 			Id:        uint32(item.ID),
 			Username:  item.Username,
+			IsAdmin:   item.IsAdmin,
 			CreatedAt: timestamppb.New(item.CreatedAt),
 		}
 	})

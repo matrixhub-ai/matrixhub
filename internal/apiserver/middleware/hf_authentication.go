@@ -15,6 +15,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -43,6 +44,7 @@ func HFAuthenticationMiddleware(akRepo user.IAccessTokenRepo) func(http.Handler)
 				r = r.WithContext(authenticate.WithContext(r.Context(), authenticate.UserInfo{
 					User: strconv.Itoa(ak.UserId),
 				}))
+				r = r.WithContext(context.WithValue(r.Context(), user.UserIdCtxKey, ak.UserId))
 			}
 
 			next.ServeHTTP(w, r)

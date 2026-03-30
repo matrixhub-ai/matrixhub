@@ -232,7 +232,10 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhf.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendhf.WithPostReceiveHookFunc(postReceiveHookFunc),
 		backendhf.WithLFSStorage(lfsStorage),
-		backendhf.WithMiddlewares(middleware.HFAuthenticationMiddleware(server.repos.AccessToken)),
+		backendhf.WithMiddlewares(
+			middleware.HFAuthenticationMiddleware(server.repos.AccessToken),
+			middleware.HFAuthzMiddleware(server.repos.Project, server.services.Authz),
+		),
 		backendhf.WithServices(server.services.Model, server.repos.Git),
 	)
 
