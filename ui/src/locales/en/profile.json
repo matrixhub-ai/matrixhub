@@ -32,5 +32,7 @@
   "expireCustom": "Custom",
   "expireTime": "Expiration Date",
   "expireTimeError": "Expiration date must be later than now",
-  "passwordComplexity": "Password must contain at least one uppercase letter, one lowercase letter, and one number."
+  "passwordComplexity": "Password must contain at least one uppercase letter, one lowercase letter, and one number.",
+  "copyTitle": "Access Token Created",
+  "copyDescription": "The access token is active immediately and shown only once. If you lose it, please create a new one."
 }

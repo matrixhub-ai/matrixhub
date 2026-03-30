@@ -32,5 +32,7 @@
   "expireCustom": "自定义",
   "expireTime": "过期时间",
   "expireTimeError": "过期时间必须晚于当前时间",
-  "passwordComplexity": "密码必须包含至少一个大写字母、一个小写字母和一个数字。"
+  "passwordComplexity": "密码必须包含至少一个大写字母、一个小写字母和一个数字。",
+  "copyTitle": "访问密钥已创建",
+  "copyDescription": "访问密钥创建后立即生效且仅在创建时显示一次。若忘记密钥信息，请重新创建。"
 }
