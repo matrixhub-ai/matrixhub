@@ -74,7 +74,7 @@ message CreateUserRequest {
 message CreateUserResponse {}
 
 message ListUsersRequest {
-  int32 page = 1 [(validate.rules).int32.gt = 0];
+  int32 page = 1;
   int32 page_size = 2;
   string search = 3;
 }

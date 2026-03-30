@@ -764,9 +764,9 @@ const file_v1alpha1_user_proto_rawDesc = "" +
 	"\busername\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\busername\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\bpassword\x12\x19\n" +
 	"\bis_admin\x18\x03 \x01(\bR\aisAdmin\"\x14\n" +
-	"\x12CreateUserResponse\"d\n" +
-	"\x10ListUsersRequest\x12\x1b\n" +
-	"\x04page\x18\x01 \x01(\x05B\a\xfaB\x04\x1a\x02 \x00R\x04page\x12\x1b\n" +
+	"\x12CreateUserResponse\"[\n" +
+	"\x10ListUsersRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
 	"\x06search\x18\x03 \x01(\tR\x06search\"\x83\x01\n" +
 	"\x11ListUsersResponse\x12.\n" +
