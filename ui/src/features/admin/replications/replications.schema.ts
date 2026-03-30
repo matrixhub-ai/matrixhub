@@ -27,7 +27,7 @@ export const replicationBandwidthUnitValues = ['Kbps', 'Mbps'] as const
 export type ReplicationBandwidthUnit = typeof replicationBandwidthUnitValues[number]
 
 export const replicationsSearchSchema = z.object({
-  page: z.coerce.number().int().positive().optional().catch(DEFAULT_REPLICATIONS_PAGE),
+  page: z.coerce.number().int().positive().default(DEFAULT_REPLICATIONS_PAGE),
   query: z.string().trim().optional().catch(undefined),
 })
 

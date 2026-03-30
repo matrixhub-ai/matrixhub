@@ -11,7 +11,7 @@ export function t(key: string) {
 }
 
 export const usersSearchSchema = z.object({
-  page: z.coerce.number().int().positive().optional().catch(DEFAULT_USERS_PAGE),
+  page: z.coerce.number().int().positive().default(DEFAULT_USERS_PAGE),
   query: z.string().trim().optional().catch(undefined),
 })
 
