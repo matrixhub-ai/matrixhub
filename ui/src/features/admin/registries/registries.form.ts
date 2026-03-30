@@ -118,7 +118,7 @@ export function getRegistryFormValues(registry?: Registry | null): RegistryFormV
     description: registry?.description ?? '',
     url: registry?.url ?? '',
     username: registry?.basic?.username ?? '',
-    password: '',
+    password: registry?.basic?.password ?? '',
     verifyRemoteCert: !registry?.insecure,
   }
 }
