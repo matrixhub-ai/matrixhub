@@ -28,6 +28,9 @@ export function CodeViewer({
         )}
         options={{
           readOnly: true,
+          scrollbar: {
+            alwaysConsumeMouseWheel: false,
+          },
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
           lineNumbers: 'on',

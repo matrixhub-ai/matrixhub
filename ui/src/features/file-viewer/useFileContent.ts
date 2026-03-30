@@ -41,13 +41,16 @@ export function useFileContent(file: File | undefined): FileContentState {
 
     if (!isAbsoluteUrl) {
       if (import.meta.env.DEV) {
-        // 走 Vite 本地配置的专门的转发代理
+        // Use Vite local proxy for development
         const path = url.startsWith('/') ? url.slice(1) : url
 
         targetUrl = `/_assets_proxy_/${path}`
       } else {
-        // 生产环境同域直接用绝对路径即可
-        targetUrl = url.startsWith('/') ? url : `/${url}`
+        // In production, use a relative path based on the base path
+        const path = url.startsWith('/') ? url.slice(1) : url
+        const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`
+
+        targetUrl = `${baseUrl}${path}`
       }
     }
 

@@ -15,8 +15,6 @@ import { ModelRevisionSelect } from '@/features/models/components/ModelRevisionS
 import { useModelBlob } from '@/features/models/models.query.ts'
 import { PathBreadcrumbs } from '@/shared/components/PathBreadcrumbs.tsx'
 
-import { ModelBlobDemo } from './ModelBlobDemo'
-
 const { useParams } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId/blob/$ref/$')
 
 export function ModelBlobPage() {
@@ -38,13 +36,11 @@ export function ModelBlobPage() {
   let body: React.ReactNode
 
   if (fileError) {
-    // If backend API is not ready, we fall back to the demo component
     body = (
       <Stack gap="md">
-        <Alert variant="light" color="blue" title="API Not Ready" icon={<IconInfoCircle />}>
-          The ModelBlob query failed (likely because the backend API is not ready). Showing Demo data instead.
+        <Alert variant="light" color="red" title="Error" icon={<IconInfoCircle />}>
+          {fileError instanceof Error || 'message' in fileError ? fileError.message : String(fileError)}
         </Alert>
-        <ModelBlobDemo />
       </Stack>
     )
   } else if (isFileLoading) {
