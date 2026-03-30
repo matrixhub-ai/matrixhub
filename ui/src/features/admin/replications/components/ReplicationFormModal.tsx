@@ -218,6 +218,7 @@ export function ReplicationFormModal({
 
       await updateMutation.mutateAsync({
         syncPolicyId: syncPolicy.id,
+        name: syncPolicy.name,
         ...buildPolicyPayload(value),
       } satisfies UpdateSyncPolicyRequest)
       onClose()
