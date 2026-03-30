@@ -113,10 +113,11 @@ const (
 	ProjectDelete Permission = "project.delete" // Delete project
 
 	// Model permissions
-	ModelGet    Permission = "model.get"    // View model list
-	ModelPull   Permission = "model.pull"   // Pull model
-	ModelPush   Permission = "model.push"   // Push model
-	ModelDelete Permission = "model.delete" // Delete model
+	ModelGet     Permission = "model.get"     // View model list
+	ModelPull    Permission = "model.pull"    // Pull model
+	ModelPush    Permission = "model.push"    // Push model
+	ModelDelete  Permission = "model.delete"  // Delete model
+	ModelSetting Permission = "model.setting" // Update model settings
 
 	// Dataset permissions
 	DatasetGet    Permission = "dataset.get"    // View dataset list

@@ -421,6 +421,50 @@
         ]
       }
     },
+    "/api/v1alpha1/models/{project}/{name}/setting": {
+      "put": {
+        "operationId": "Models_UpdateModelSetting",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateModelSettingResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ModelsUpdateModelSettingBody"
+            }
+          }
+        ],
+        "tags": [
+          "Models"
+        ]
+      }
+    },
     "/api/v1alpha1/models/{project}/{name}/tree": {
       "get": {
         "operationId": "Models_GetModelTree",
@@ -471,6 +515,14 @@
     }
   },
   "definitions": {
+    "ModelsUpdateModelSettingBody": {
+      "type": "object",
+      "properties": {
+        "popular": {
+          "type": "boolean"
+        }
+      }
+    },
     "matrixhubV1alpha1Label": {
       "type": "object",
       "properties": {
@@ -750,6 +802,9 @@
         },
         "parameterCount": {
           "type": "string"
+        },
+        "popular": {
+          "type": "boolean"
         }
       }
     },
@@ -805,6 +860,9 @@
           }
         }
       }
+    },
+    "v1alpha1UpdateModelSettingResponse": {
+      "type": "object"
     }
   }
 }

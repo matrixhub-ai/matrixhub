@@ -101,6 +101,7 @@ func modelToProto(m *model.Model) *modelv1alpha1.Model {
 		ReadmeContent:  m.ReadmeContent,
 		Size:           formatSize(m.Size),
 		ParameterCount: formatParameterCount(m.ParameterCount),
+		Popular:        m.IsPopular,
 	}
 }
 
@@ -242,14 +243,16 @@ func (mh *ModelHandler) ListModels(ctx context.Context, request *modelv1alpha1.L
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	page := utils.NewPage(request.Page, request.PageSize)
+
 	// Build filter
 	filter := &model.Filter{
 		Label:    request.Labels,
 		Search:   request.Search,
 		Sort:     request.Sort,
 		Project:  request.Project,
-		Page:     request.Page,
-		PageSize: request.PageSize,
+		Page:     page.Page,
+		PageSize: page.PageSize,
 		Popular:  &request.Popular,
 	}
 
@@ -262,7 +265,7 @@ func (mh *ModelHandler) ListModels(ctx context.Context, request *modelv1alpha1.L
 		if len(projectIDs) == 0 {
 			return &modelv1alpha1.ListModelsResponse{
 				Items:      []*modelv1alpha1.Model{},
-				Pagination: &modelv1alpha1.Pagination{Total: 0, Page: request.Page, PageSize: request.PageSize},
+				Pagination: utils.SetPageTotal(page, 0),
 			}, nil
 		}
 		filter.ProjectIDs = projectIDs
@@ -282,13 +285,8 @@ func (mh *ModelHandler) ListModels(ctx context.Context, request *modelv1alpha1.L
 
 	// Build response
 	return &modelv1alpha1.ListModelsResponse{
-		Items: items,
-		Pagination: &modelv1alpha1.Pagination{
-			Total:    int32(total),
-			Page:     request.Page,
-			PageSize: request.PageSize,
-			Pages:    utils.CalculatePages(total, request.PageSize),
-		},
+		Items:      items,
+		Pagination: utils.SetPageTotal(page, int32(total)),
 	}, nil
 }
 
@@ -479,6 +477,34 @@ func (mh *ModelHandler) GetModelTree(ctx context.Context, request *modelv1alpha1
 	return &modelv1alpha1.GetModelTreeResponse{
 		Items: items,
 	}, nil
+}
+
+func (mh *ModelHandler) UpdateModelSetting(ctx context.Context, request *modelv1alpha1.UpdateModelSettingRequest) (*modelv1alpha1.UpdateModelSettingResponse, error) {
+	// Validate request
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	// Verify permission
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, authz.ModelSetting); err != nil || !allowed {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
+	update := &model.SettingUpdate{}
+	if request.Popular != nil {
+		v := request.Popular.GetValue()
+		update.IsPopular = &v
+	}
+
+	err := mh.ms.UpdateModelSetting(ctx, request.Project, request.Name, update)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &modelv1alpha1.UpdateModelSettingResponse{}, nil
 }
 
 func (mh *ModelHandler) GetModelBlob(ctx context.Context, request *modelv1alpha1.GetModelBlobRequest) (*modelv1alpha1.File, error) {

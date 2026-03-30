@@ -26,6 +26,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func boolPtr(b bool) *bool { return &b }
+
 var _ = Describe("Model", Label("model"), func() {
 	var (
 		ctx         context.Context
@@ -1000,6 +1002,131 @@ var _ = Describe("Model", Label("model"), func() {
 				}
 				Expect(found).To(BeFalse(), "Non-member should not see private project models")
 			})
+		})
+	})
+
+	// ═══════════════════════════════════════════════════════════
+	// 8. UpdateModelSetting API
+	// ═══════════════════════════════════════════════════════════
+	Context("UpdateModelSetting API", func() {
+		var projectName string
+
+		BeforeEach(func() {
+			projectName = tools.GenerateTestProjectName("model-setting")
+			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
+				Name: projectName,
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
+		})
+
+		It("should set model as popular", Label("M00053"), func() {
+			modelName := tools.GenerateTestModelName("setting")
+			_, _, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    modelName,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Set popular = true
+			_, _, err = modelsApi.ModelsUpdateModelSetting(ctx, projectName, modelName, v1alpha1model.ModelsUpdateModelSettingBody{
+				Popular: boolPtr(true),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Verify via GetModel
+			getResp, _, err := modelsApi.ModelsGetModel(ctx, projectName, modelName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.Popular).To(BeTrue())
+
+			GinkgoWriter.Printf("UpdateModelSetting: model=%v, popular=%v\n", getResp.Name, getResp.Popular)
+		})
+
+		It("should unset model as popular", Label("M00054"), func() {
+			modelName := tools.GenerateTestModelName("setting")
+			_, _, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    modelName,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Set popular = true first
+			_, _, err = modelsApi.ModelsUpdateModelSetting(ctx, projectName, modelName, v1alpha1model.ModelsUpdateModelSettingBody{
+				Popular: boolPtr(true),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Set popular = false
+			_, _, err = modelsApi.ModelsUpdateModelSetting(ctx, projectName, modelName, v1alpha1model.ModelsUpdateModelSettingBody{
+				Popular: boolPtr(false),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Verify via GetModel
+			getResp, _, err := modelsApi.ModelsGetModel(ctx, projectName, modelName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.Popular).To(BeFalse())
+		})
+
+		It("should filter popular models in list", Label("M00055"), func() {
+			modelA := tools.GenerateTestModelName("popular")
+			modelB := tools.GenerateTestModelName("normal")
+
+			_, _, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    modelA,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			_, _, err = modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    modelB,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Set modelA as popular
+			_, _, err = modelsApi.ModelsUpdateModelSetting(ctx, projectName, modelA, v1alpha1model.ModelsUpdateModelSettingBody{
+				Popular: boolPtr(true),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// List with popular filter
+			listResp, _, err := modelsApi.ModelsListModels(ctx, &v1alpha1model.ModelsApiModelsListModelsOpts{
+				Project:  optional.NewString(projectName),
+				Popular:  optional.NewBool(true),
+				Page:     optional.NewInt32(1),
+				PageSize: optional.NewInt32(50),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			var foundA, foundB bool
+			for _, m := range listResp.Items {
+				if m.Name == modelA {
+					foundA = true
+				}
+				if m.Name == modelB {
+					foundB = true
+				}
+			}
+			Expect(foundA).To(BeTrue(), "Popular model should appear in popular list")
+			Expect(foundB).To(BeFalse(), "Non-popular model should not appear in popular list")
+		})
+
+		It("should fail to update setting for non-existent model", Label("M00056"), func() {
+			_, _, err := modelsApi.ModelsUpdateModelSetting(ctx, projectName, "nonexistent-model", v1alpha1model.ModelsUpdateModelSettingBody{
+				Popular: boolPtr(true),
+			})
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should fail to update setting for non-existent project", Label("M00057"), func() {
+			_, _, err := modelsApi.ModelsUpdateModelSetting(ctx, "nonexistent-project", "nonexistent-model", v1alpha1model.ModelsUpdateModelSettingBody{
+				Popular: boolPtr(true),
+			})
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })

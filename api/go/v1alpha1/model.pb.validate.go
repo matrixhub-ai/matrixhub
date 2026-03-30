@@ -2984,6 +2984,8 @@ func (m *Model) validate(all bool) error {
 
 	// no validation rules for ParameterCount
 
+	// no validation rules for Popular
+
 	if len(errors) > 0 {
 		return ModelMultiError(errors)
 	}
@@ -3490,3 +3492,276 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = LabelValidationError{}
+
+// Validate checks the field values on UpdateModelSettingRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateModelSettingRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateModelSettingRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateModelSettingRequestMultiError, or nil if none found.
+func (m *UpdateModelSettingRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateModelSettingRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetProject()) < 1 {
+		err := UpdateModelSettingRequestValidationError{
+			field:  "Project",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _UpdateModelSettingRequest_Name_NotInLookup[m.GetName()]; ok {
+		err := UpdateModelSettingRequestValidationError{
+			field:  "Name",
+			reason: "value must not be in list [models datasets spaces resolve]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		err := UpdateModelSettingRequestValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPopular()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateModelSettingRequestValidationError{
+					field:  "Popular",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateModelSettingRequestValidationError{
+					field:  "Popular",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPopular()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateModelSettingRequestValidationError{
+				field:  "Popular",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateModelSettingRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateModelSettingRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateModelSettingRequest.ValidateAll() if the
+// designated constraints aren't met.
+type UpdateModelSettingRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateModelSettingRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateModelSettingRequestMultiError) AllErrors() []error { return m }
+
+// UpdateModelSettingRequestValidationError is the validation error returned by
+// UpdateModelSettingRequest.Validate if the designated constraints aren't met.
+type UpdateModelSettingRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateModelSettingRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateModelSettingRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateModelSettingRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateModelSettingRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateModelSettingRequestValidationError) ErrorName() string {
+	return "UpdateModelSettingRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateModelSettingRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateModelSettingRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateModelSettingRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateModelSettingRequestValidationError{}
+
+var _UpdateModelSettingRequest_Name_NotInLookup = map[string]struct{}{
+	"models":   {},
+	"datasets": {},
+	"spaces":   {},
+	"resolve":  {},
+}
+
+// Validate checks the field values on UpdateModelSettingResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateModelSettingResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateModelSettingResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateModelSettingResponseMultiError, or nil if none found.
+func (m *UpdateModelSettingResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateModelSettingResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return UpdateModelSettingResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateModelSettingResponseMultiError is an error wrapping multiple
+// validation errors returned by UpdateModelSettingResponse.ValidateAll() if
+// the designated constraints aren't met.
+type UpdateModelSettingResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateModelSettingResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateModelSettingResponseMultiError) AllErrors() []error { return m }
+
+// UpdateModelSettingResponseValidationError is the validation error returned
+// by UpdateModelSettingResponse.Validate if the designated constraints aren't met.
+type UpdateModelSettingResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateModelSettingResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateModelSettingResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateModelSettingResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateModelSettingResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateModelSettingResponseValidationError) ErrorName() string {
+	return "UpdateModelSettingResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateModelSettingResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateModelSettingResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateModelSettingResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateModelSettingResponseValidationError{}

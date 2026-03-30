@@ -46,6 +46,9 @@ type IModelService interface {
 	GetModelTree(ctx context.Context, project, name, revision, path string) ([]*git.TreeEntry, error)
 	GetModelBlob(ctx context.Context, project, name, revision, path string) (*git.TreeEntry, error)
 
+	// Settings
+	UpdateModelSetting(ctx context.Context, project, name string, update *SettingUpdate) error
+
 	// Metadata sync
 	SyncMetadata(ctx context.Context, project, name string) error
 
@@ -286,6 +289,23 @@ func (s *ModelService) GetModelBlob(ctx context.Context, project, name, revision
 	}
 
 	return s.gitRepo.GetBlob(ctx, "models", project, name, revision, path)
+}
+
+// UpdateModelSetting updates model settings such as the popular flag.
+func (s *ModelService) UpdateModelSetting(ctx context.Context, project, name string, update *SettingUpdate) error {
+	if project == "" {
+		return errors.New("invalid project")
+	}
+	if name == "" {
+		return errors.New("invalid name")
+	}
+
+	m, err := s.modelRepo.GetByProjectAndName(ctx, project, name)
+	if err != nil {
+		return err
+	}
+
+	return s.modelRepo.UpdateSetting(ctx, m.ID, update)
 }
 
 // SyncMetadata synchronizes Git repository metadata to the database.

@@ -30,6 +30,7 @@ const (
 	Models_GetModelCommit_FullMethodName       = "/matrixhub.v1alpha1.Models/GetModelCommit"
 	Models_GetModelTree_FullMethodName         = "/matrixhub.v1alpha1.Models/GetModelTree"
 	Models_GetModelBlob_FullMethodName         = "/matrixhub.v1alpha1.Models/GetModelBlob"
+	Models_UpdateModelSetting_FullMethodName   = "/matrixhub.v1alpha1.Models/UpdateModelSetting"
 )
 
 // ModelsClient is the client API for Models service.
@@ -47,6 +48,7 @@ type ModelsClient interface {
 	GetModelCommit(ctx context.Context, in *GetModelCommitRequest, opts ...grpc.CallOption) (*Commit, error)
 	GetModelTree(ctx context.Context, in *GetModelTreeRequest, opts ...grpc.CallOption) (*GetModelTreeResponse, error)
 	GetModelBlob(ctx context.Context, in *GetModelBlobRequest, opts ...grpc.CallOption) (*File, error)
+	UpdateModelSetting(ctx context.Context, in *UpdateModelSettingRequest, opts ...grpc.CallOption) (*UpdateModelSettingResponse, error)
 }
 
 type modelsClient struct {
@@ -167,6 +169,16 @@ func (c *modelsClient) GetModelBlob(ctx context.Context, in *GetModelBlobRequest
 	return out, nil
 }
 
+func (c *modelsClient) UpdateModelSetting(ctx context.Context, in *UpdateModelSettingRequest, opts ...grpc.CallOption) (*UpdateModelSettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateModelSettingResponse)
+	err := c.cc.Invoke(ctx, Models_UpdateModelSetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ModelsServer is the server API for Models service.
 // All implementations should embed UnimplementedModelsServer
 // for forward compatibility.
@@ -182,6 +194,7 @@ type ModelsServer interface {
 	GetModelCommit(context.Context, *GetModelCommitRequest) (*Commit, error)
 	GetModelTree(context.Context, *GetModelTreeRequest) (*GetModelTreeResponse, error)
 	GetModelBlob(context.Context, *GetModelBlobRequest) (*File, error)
+	UpdateModelSetting(context.Context, *UpdateModelSettingRequest) (*UpdateModelSettingResponse, error)
 }
 
 // UnimplementedModelsServer should be embedded to have
@@ -223,6 +236,9 @@ func (UnimplementedModelsServer) GetModelTree(context.Context, *GetModelTreeRequ
 }
 func (UnimplementedModelsServer) GetModelBlob(context.Context, *GetModelBlobRequest) (*File, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetModelBlob not implemented")
+}
+func (UnimplementedModelsServer) UpdateModelSetting(context.Context, *UpdateModelSettingRequest) (*UpdateModelSettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateModelSetting not implemented")
 }
 func (UnimplementedModelsServer) testEmbeddedByValue() {}
 
@@ -442,6 +458,24 @@ func _Models_GetModelBlob_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Models_UpdateModelSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateModelSettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ModelsServer).UpdateModelSetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Models_UpdateModelSetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ModelsServer).UpdateModelSetting(ctx, req.(*UpdateModelSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Models_ServiceDesc is the grpc.ServiceDesc for Models service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -492,6 +526,10 @@ var Models_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetModelBlob",
 			Handler:    _Models_GetModelBlob_Handler,
+		},
+		{
+			MethodName: "UpdateModelSetting",
+			Handler:    _Models_UpdateModelSetting_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

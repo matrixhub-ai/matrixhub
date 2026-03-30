@@ -5,6 +5,7 @@ package matrixhub.v1alpha1;
 option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 import "google/api/annotations.proto";
+import "google/protobuf/wrappers.proto";
 import "validate/validate.proto";
 import "v1alpha1/utils.proto";
 
@@ -63,6 +64,12 @@ service Models {
   rpc GetModelBlob(GetModelBlobRequest) returns (File) {
     option (google.api.http) = {
       get: "/api/v1alpha1/models/{project}/{name}/blob"
+    };
+  }
+  rpc UpdateModelSetting(UpdateModelSettingRequest) returns (UpdateModelSettingResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/models/{project}/{name}/setting"
+      body: "*"
     };
   }
 }
@@ -197,6 +204,7 @@ message Model {
   string readme_content = 10;
   string size = 11;
   string parameter_count = 12;
+  bool   popular = 13;
 }
 
 message CloneUrls {
@@ -240,4 +248,13 @@ message Label {
   Category category = 3;
   string created_at = 4;
   string updated_at = 5;
+}
+
+message UpdateModelSettingRequest {
+  string project = 1 [(validate.rules).string.min_len = 1];
+  string name = 2 [(validate.rules).string = {min_len: 1, not_in: ["models", "datasets", "spaces", "resolve"]}];
+  google.protobuf.BoolValue popular = 3;
+}
+
+message UpdateModelSettingResponse {
 }

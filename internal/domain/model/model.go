@@ -68,6 +68,11 @@ func (m *Model) ShouldSync() bool {
 	return time.Since(m.UpdatedAt) >= time.Minute
 }
 
+// SettingUpdate contains optional fields for updating model settings.
+type SettingUpdate struct {
+	IsPopular *bool
+}
+
 // IModelRepo defines the repository interface for model operations.
 type IModelRepo interface {
 	// Create creates a new model in the database.
@@ -84,6 +89,9 @@ type IModelRepo interface {
 
 	// UpdateMetadata updates selected metadata fields for a model.
 	UpdateMetadata(ctx context.Context, modelID int64, update *MetadataUpdate) error
+
+	// UpdateSetting updates model settings (e.g., popular flag).
+	UpdateSetting(ctx context.Context, modelID int64, update *SettingUpdate) error
 }
 
 // ILabelRepo defines the repository interface for label operations.

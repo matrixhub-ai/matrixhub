@@ -5,6 +5,7 @@
 */
 
 import * as fm from "../fetch.pb"
+import * as GoogleProtobufWrappers from "../google/protobuf/wrappers.pb"
 import * as MatrixhubV1alpha1Utils from "./utils.pb"
 
 export enum FileType {
@@ -146,6 +147,7 @@ export type Model = {
   readmeContent?: string
   size?: string
   parameterCount?: string
+  popular?: boolean
 }
 
 export type CloneUrls = {
@@ -176,6 +178,15 @@ export type Label = {
   category?: Category
   createdAt?: string
   updatedAt?: string
+}
+
+export type UpdateModelSettingRequest = {
+  project?: string
+  name?: string
+  popular?: GoogleProtobufWrappers.BoolValue
+}
+
+export type UpdateModelSettingResponse = {
 }
 
 export class Models {
@@ -211,5 +222,8 @@ export class Models {
   }
   static GetModelBlob(req: GetModelBlobRequest, initReq?: fm.InitReq): Promise<File> {
     return fm.fetchReq<GetModelBlobRequest, File>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/blob?${fm.renderURLSearchParams(req, ["project", "name"])}`, {...initReq, method: "GET"})
+  }
+  static UpdateModelSetting(req: UpdateModelSettingRequest, initReq?: fm.InitReq): Promise<UpdateModelSettingResponse> {
+    return fm.fetchReq<UpdateModelSettingRequest, UpdateModelSettingResponse>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/setting`, {...initReq, method: "PUT", body: JSON.stringify(req, fm.replacer)})
   }
 }

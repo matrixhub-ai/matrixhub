@@ -62,6 +62,7 @@ var publicAuthzMethods = map[string]bool{
 	"/matrixhub.v1alpha1.Models/GetModelCommitByHash": true,
 	"/matrixhub.v1alpha1.Models/ListModelFrameLabels": true,
 	"/matrixhub.v1alpha1.Models/ListModelTaskLabels":  true,
+	"/matrixhub.v1alpha1.Models/UpdateModelSetting":   true,
 
 	// Datasets
 	"/matrixhub.v1alpha1.Datasets/ListDatasets":          true,

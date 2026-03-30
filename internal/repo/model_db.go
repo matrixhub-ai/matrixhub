@@ -35,14 +35,6 @@ func NewModelDB(db *gorm.DB) model.IModelRepo {
 
 // List retrieves models with filtering and pagination
 func (m *modelDB) List(ctx context.Context, filter *model.Filter) ([]*model.Model, int64, error) {
-	// Set defaults
-	if filter.Page <= 0 {
-		filter.Page = 1
-	}
-	if filter.PageSize <= 0 {
-		filter.PageSize = 20
-	}
-
 	// Build base query with JOIN to projects
 	query := m.db.WithContext(ctx).
 		Table("models m").
@@ -239,6 +231,26 @@ func (m *modelDB) UpdateMetadata(ctx context.Context, modelID int64, update *mod
 	}
 	if update.ParameterCount != nil {
 		updates["parameter_count"] = *update.ParameterCount
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+
+	result := m.db.WithContext(ctx).
+		Table("models").
+		Where("id = ?", modelID).
+		Updates(updates)
+
+	return result.Error
+}
+
+// UpdateSetting updates model settings (e.g., popular flag).
+func (m *modelDB) UpdateSetting(ctx context.Context, modelID int64, update *model.SettingUpdate) error {
+	updates := make(map[string]interface{})
+
+	if update.IsPopular != nil {
+		updates["is_popular"] = *update.IsPopular
 	}
 
 	if len(updates) == 0 {
