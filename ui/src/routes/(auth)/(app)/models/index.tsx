@@ -32,7 +32,7 @@ export const Route = createFileRoute('/(auth)/(app)/models/')({
   loader({
     context, deps,
   }) {
-    context.queryClient.fetchQuery(catalogModelsQueryOptions(deps))
+    context.queryClient.prefetchQuery(catalogModelsQueryOptions(deps))
   },
   component: ModelsPage,
 })

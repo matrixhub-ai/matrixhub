@@ -27,7 +27,7 @@ export const Route = createFileRoute(
     params,
     deps,
   }) {
-    context.queryClient.fetchQuery(projectModelsQueryOptions(params.projectId, deps))
+    context.queryClient.prefetchQuery(projectModelsQueryOptions(params.projectId, deps))
   },
   component: RouteComponent,
 })
