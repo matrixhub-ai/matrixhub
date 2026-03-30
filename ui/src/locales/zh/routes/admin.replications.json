@@ -68,8 +68,6 @@
     "isOverwrite": "覆盖已有资源"
   },
   "validation": {
-    "nameStartChar": "必须以字母或数字开头",
-    "nameInvalidChars": "只能包含小写字母、数字、点、下划线和连字符",
     "resourceTypesRequired": "至少需要选择一个资源类型",
     "sourceRegistryRequired": "请选择源仓库",
     "targetRegistryRequired": "请选择目标仓库"

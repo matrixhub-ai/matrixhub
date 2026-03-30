@@ -40,6 +40,8 @@
     "required": "Required",
     "fieldRequired": "{{field}} is required",
     "minLength": "{{field}} must be at least {{min}} characters",
-    "maxLength": "{{field}} must be at most {{max}} characters"
+    "maxLength": "{{field}} must be at most {{max}} characters",
+    "nameStartChar": "Must start with a letter or digit",
+    "nameInvalidChars": "Can only contain lowercase letters, digits, dots, underscores, and hyphens"
   }
 }

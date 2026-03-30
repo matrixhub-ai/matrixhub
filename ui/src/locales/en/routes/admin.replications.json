@@ -69,8 +69,6 @@
     "isOverwrite": "Overwrite existing resources"
   },
   "validation": {
-    "nameStartChar": "Name must start with a letter or digit",
-    "nameInvalidChars": "Name can only contain lowercase letters, digits, dots, underscores, and hyphens",
     "resourceTypesRequired": "At least one resource type is required",
     "sourceRegistryRequired": "Source registry is required",
     "targetRegistryRequired": "Target registry is required"

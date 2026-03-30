@@ -6,6 +6,7 @@ import {
 import { z } from 'zod'
 
 import i18n from '@/i18n'
+import { withNameStartCharRule, withNameValidCharsRule } from '@/shared/validation'
 
 export const DEFAULT_REPLICATIONS_PAGE = 1
 export const DEFAULT_REPLICATIONS_PAGE_SIZE = 10
@@ -37,12 +38,10 @@ function t(key: string) {
 
 function replicationFormBaseSchema() {
   return z.object({
-    name: z
+    name: withNameValidCharsRule(withNameStartCharRule(z
       .string()
       .trim()
-      .min(2)
-      .regex(/^[a-z0-9]/u, t('routes.admin.replications.validation.nameStartChar'))
-      .regex(/^[a-z0-9._-]+$/u, t('routes.admin.replications.validation.nameInvalidChars')),
+      .min(2))),
     description: z.string().trim().max(50),
     policyType: z.union([
       z.literal(SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE),
