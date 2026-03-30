@@ -6,13 +6,12 @@ import {
   Text,
 } from '@mantine/core'
 import { IconClock } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { startTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  splitFilterCsv, toSortParam, useModels,
-} from '@/features/models/models.query'
+import { catalogModelsQueryOptions } from '@/features/models/models.query'
 import { Pagination } from '@/shared/components/Pagination'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
@@ -32,13 +31,6 @@ export function AllModelList() {
   const navigate = useNavigate()
   const search = useSearch()
 
-  const query = {
-    q: search.q ?? '',
-    sort: search.sort ?? 'updatedAt',
-    order: search.order ?? 'desc',
-    page: search.page ?? 1,
-  }
-
   const {
     data: {
       items = [],
@@ -46,13 +38,7 @@ export function AllModelList() {
     } = {},
     isLoading,
     isPending,
-  } = useModels({
-    search: query.q,
-    sort: toSortParam(query.sort, query.order),
-    project: search.project,
-    labels: splitFilterCsv(search.task ?? search.library),
-    page: query.page,
-  })
+  } = useQuery(catalogModelsQueryOptions(search))
 
   const sortFieldOptions: SortDropdownOption[] = [
     {
@@ -80,7 +66,7 @@ export function AllModelList() {
       <Stack gap={0}>
         <SearchToolbar
           searchPlaceholder={t('model.list.placeholder.modelName')}
-          searchValue={query.q}
+          searchValue={search.q}
           onSearchChange={(nextQuery) => {
             void navigate({
               replace: true,
@@ -94,8 +80,8 @@ export function AllModelList() {
         >
           <SortDropdown
             fieldOptions={sortFieldOptions}
-            fieldValue={query.sort}
-            order={query.order}
+            fieldValue={search.sort}
+            order={search.order}
             onFieldChange={(nextField) => {
               if (sortFieldOptions.find(o => o.value === nextField)?.disabled) {
                 return
@@ -107,7 +93,7 @@ export function AllModelList() {
                   search: prev => ({
                     ...prev,
                     sort: nextField === 'updatedAt' ? nextField : prev.sort,
-                    order: query.order,
+                    order: search.order,
                     page: 1,
                   }),
                 })
@@ -119,7 +105,7 @@ export function AllModelList() {
                   replace: true,
                   search: prev => ({
                     ...prev,
-                    order: query.order === 'desc' ? 'asc' : 'desc',
+                    order: search.order === 'desc' ? 'asc' : 'desc',
                     page: 1,
                   }),
                 })
@@ -141,7 +127,7 @@ export function AllModelList() {
           <Pagination
             total={pagination?.total ?? 0}
             totalPages={pagination?.pages ?? 0}
-            page={query.page}
+            page={search.page}
             paginationProps={{ withControls: false }}
             onPageChange={(nextPage) => {
               void navigate({

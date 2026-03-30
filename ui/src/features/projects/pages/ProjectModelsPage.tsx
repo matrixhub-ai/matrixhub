@@ -8,11 +8,12 @@ import {
   IconClock,
   IconCube,
 } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { startTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useProjectModels } from '@/features/models/models.query'
+import { projectModelsQueryOptions } from '@/features/models/models.query.ts'
 import { Pagination } from '@/shared/components/Pagination'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
@@ -39,12 +40,7 @@ export function ProjectModelsPage() {
     data,
     isFetching,
     isPending,
-  } = useProjectModels(projectId, {
-    q: query,
-    sort: sortField,
-    order: sortOrder,
-    page,
-  })
+  } = useQuery(projectModelsQueryOptions(projectId, projectModelsRouteApi.useSearch()))
 
   const models = data?.items ?? []
   const pagination = data?.pagination

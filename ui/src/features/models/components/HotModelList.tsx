@@ -3,10 +3,11 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconChevronDown } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { splitFilterCsv, useModels } from '@/features/models/models.query.ts'
+import { catalogModelsQueryOptions } from '@/features/models/models.query.ts'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
 
@@ -24,13 +25,12 @@ export function HotModelList() {
     } = {},
     isLoading,
     isPending,
-  } = useModels({
-    project: search.project,
-    labels: splitFilterCsv(search.task ?? search.library),
+  } = useQuery(catalogModelsQueryOptions({
+    ...search,
     page: 1,
     pageSize: -1,
     popular: true,
-  })
+  }))
 
   const cardElements = items.map((model) => {
     const projectId = model.project?.trim() ?? '-'
@@ -64,7 +64,10 @@ export function HotModelList() {
       </Group>
 
       <Box miw={780} maw={1380}>
-        <ResourceCardGrid loading={isLoading || isPending}>
+        <ResourceCardGrid
+          loading={isLoading || isPending}
+          skeletonCount={4}
+        >
           {cardElements.slice(0, 4)}
         </ResourceCardGrid>
         <Collapse in={opened}>

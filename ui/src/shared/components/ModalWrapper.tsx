@@ -46,11 +46,13 @@ export function ModalWrapper({
       <Button
         color="default"
         variant="subtle"
+        fw={400}
         onClick={rest.onClose}
       >
         {t('common.cancel')}
       </Button>
       <Button
+        fw={400}
         loading={confirmLoading}
         onClick={onConfirm}
       >

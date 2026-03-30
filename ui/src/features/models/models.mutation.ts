@@ -14,7 +14,7 @@ export function deleteModelMutationOptions() {
     meta: {
       successMessage: i18n.t('model.settings.delete.success'),
       errorMessage: i18n.t('model.settings.delete.error'),
-      invalidates: [modelKeys.all],
+      invalidates: [modelKeys.lists()],
     } satisfies NotificationMeta,
   })
 }
@@ -25,7 +25,7 @@ export function createModelMutationOptions() {
     meta: {
       successMessage: i18n.t('model.create.success'),
       errorMessage: i18n.t('model.create.error'),
-      invalidates: [modelKeys.all],
+      invalidates: [modelKeys.lists()],
     } satisfies NotificationMeta,
   })
 }

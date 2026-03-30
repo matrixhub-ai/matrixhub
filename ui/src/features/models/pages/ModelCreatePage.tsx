@@ -1,43 +1,54 @@
 import {
-  Button,
-  Combobox,
-  Group,
-  InputBase,
+  Alert,
+  Button, Group,
+  rem,
   Stack,
   Text,
   TextInput,
-  Title,
-  Tooltip,
-  useCombobox,
 } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { createModelMutationOptions } from '@/features/models/models.mutation'
 import { useModelProjects } from '@/features/models/models.query.ts'
 import { createModelSchema } from '@/features/models/models.schema'
-import { ProjectTypeBadge } from '@/shared/components/badges/ProjectTypeBadge'
+import { ProjectSelect } from '@/shared/components/ProjectSelect'
+import { fieldError } from '@/shared/utils/form.ts'
 
-// TODO: if initialProjectId provided, whether project selection should be disabled or not, confirm with PM
 interface ModelCreatePageProps {
   initialProjectId?: string
 }
 
-const routeApi = getRouteApi('/(auth)/(app)/models/')
-
 export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps) {
   const { t } = useTranslation()
-  const navigate = routeApi.useNavigate()
+  const navigate = useNavigate()
 
-  const createMutation = useMutation(createModelMutationOptions())
-  const { data: projects = [] } = useModelProjects()
-
-  const projectCombobox = useCombobox()
+  const mutation = useMutation(createModelMutationOptions())
   const modelCreateSchema = createModelSchema(t)
+  const {
+    name: nameValidator, projectId: projectIdValidator,
+  } = modelCreateSchema.shape
+
+  const handleCancel = () => {
+    if (initialProjectId) {
+      return navigate({
+        to: '/projects/$projectId/models',
+        params: {
+          projectId: initialProjectId,
+        },
+      })
+    }
+
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      return window.history.back()
+    }
+
+    return navigate({ to: '/models' })
+  }
 
   const form = useForm({
     defaultValues: {
@@ -45,32 +56,35 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
       projectId: initialProjectId?.trim(),
     },
     onSubmit: async ({ value }) => {
-      await createMutation.mutateAsync({
+      await mutation.mutateAsync({
         name: value.name,
         project: value.projectId,
       })
 
-      // FIXME: confirm which page to navigate after creation
-      void navigate({})
+      handleCancel()
     },
   })
+
+  const { data: projects = [] } = useModelProjects()
 
   useEffect(() => {
     const projectId = form.state.values.projectId
 
-    if (projects.length && projectId && !projects?.find(option => option.name === projectId)) {
+    if (projects.length && (!projectId || !projects?.find(option => option.name === projectId))) {
       form.setFieldValue('projectId', projects[0]?.name ?? '')
     }
   }, [projects, form])
 
   return (
     <Stack
-      w="100%"
-      maw={640}
-      pt={20}
+      w={350}
+      mx="auto"
+      py="lg"
       gap="lg"
     >
-      <Title order={3}>{t('model.new')}</Title>
+      <Text fw={600} lh={rem(24)} size="md">
+        {t('model.new')}
+      </Text>
 
       <form
         onSubmit={(event) => {
@@ -81,7 +95,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
         <Stack gap="md">
           <form.Field
             name="name"
-            validators={{ onChange: modelCreateSchema.shape.name }}
+            validators={{ onChange: nameValidator }}
           >
             {field => (
               <TextInput
@@ -90,94 +104,62 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
                 placeholder={t('model.create.modelNamePlaceholder')}
                 description={t('model.create.modelNameHelper')}
                 value={field.state.value}
-                error={field.state.meta.errors[0]?.message?.toString()}
                 onBlur={field.handleBlur}
                 onChange={e => field.handleChange(e.currentTarget.value)}
+                error={fieldError(field)}
               />
             )}
           </form.Field>
 
           <form.Field
             name="projectId"
-            validators={{ onChange: modelCreateSchema.shape.projectId }}
+            validators={{ onChange: projectIdValidator }}
           >
-            {(field) => {
-              const selectedProjectOption = projects.find(option => option.name === field.state.value)
-
-              return (
-                <Combobox
-                  store={projectCombobox}
-                  onOptionSubmit={(value) => {
-                    field.handleChange(value)
-                    projectCombobox.closeDropdown()
-                  }}
-                >
-                  <Combobox.Target>
-                    <InputBase
-                      component="button"
-                      type="button"
-                      label={(
-                        <Group
-                          component="span"
-                          gap={6}
-                          align="center"
-                          wrap="nowrap"
-                          style={{ display: 'inline-flex' }}
-                        >
-                          <span>{t('model.create.project')}</span>
-                          <Tooltip label={t('model.create.projectTooltip')}>
-                            <IconInfoCircle size={16} />
-                          </Tooltip>
-                        </Group>
-                      )}
-                      withAsterisk
-                      error={field.state.meta.errors[0]?.message?.toString()}
-                      rightSection={<Combobox.Chevron />}
-                      rightSectionPointerEvents="none"
-                      onBlur={field.handleBlur}
-                      onClick={() => projectCombobox.toggleDropdown()}
-                    >
-                      {selectedProjectOption
-                        ? (
-                            <Group gap={8} wrap="nowrap">
-                              <Text size="sm">{selectedProjectOption.name}</Text>
-                              <ProjectTypeBadge type={selectedProjectOption.type} />
-                            </Group>
-                          )
-                        : <Text c="dimmed" size="sm">{t('model.create.projectPlaceholder')}</Text>}
-                    </InputBase>
-                  </Combobox.Target>
-
-                  <Combobox.Dropdown>
-                    <Combobox.Options>
-                      {projects.map(option => (
-                        <Combobox.Option value={option.name as string} key={option.name}>
-                          <Group gap={8} wrap="nowrap">
-                            <Text size="sm">{option.name}</Text>
-                            <ProjectTypeBadge type={option.type} />
-                          </Group>
-                        </Combobox.Option>
-                      ))}
-                    </Combobox.Options>
-                  </Combobox.Dropdown>
-                </Combobox>
-              )
-            }}
+            {field => (
+              <ProjectSelect
+                data={projects}
+                value={field.state.value}
+                onChange={field.handleChange}
+                inputProps={{
+                  disabled: !!initialProjectId,
+                  onBlur: field.handleBlur,
+                  error: fieldError(field),
+                }}
+              />
+            )}
           </form.Field>
 
-          <form.Subscribe selector={s => [s.canSubmit, s.isSubmitting, s.isPristine]}>
-            {([canSubmit, isSubmitting, isPristine]) => (
-              <Button
-                type="submit"
-                disabled={!canSubmit || isPristine}
-                loading={isSubmitting}
-              >
-                {t('model.create.submit')}
-              </Button>
+          <Alert
+            icon={<IconInfoCircle size={20} />}
+            variant="light"
+            c="cyan.6"
+          >
+            <Text size="sm" lh={rem(20)} c="gray.9">
+              {t('model.create.uploadTip')}
+            </Text>
+          </Alert>
+
+          <form.Subscribe selector={s => [s.canSubmit, s.isSubmitting]}>
+            {([canSubmit, isSubmitting]) => (
+              <Group justify="flex-start" gap="md">
+                <Button
+                  type="submit"
+                  disabled={!canSubmit}
+                  loading={isSubmitting}
+                >
+                  {t('common.confirm')}
+                </Button>
+                <Button
+                  color="default"
+                  variant="subtle"
+                  fw={400}
+                  onClick={handleCancel}
+                >
+                  {t('common.cancel')}
+                </Button>
+              </Group>
             )}
           </form.Subscribe>
-
-          <Text size="sm" c="dimmed">{t('model.create.uploadTip')}</Text>
         </Stack>
       </form>
     </Stack>

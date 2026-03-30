@@ -52,14 +52,9 @@
     "modelName": "Model Name",
     "modelNamePlaceholder": "Enter model name",
     "modelNameHelper": "Supports letters, numbers, underscore, hyphen, and dot. Must start with a letter or number.",
-    "project": "Project",
-    "projectPlaceholder": "Select a project",
-    "projectTooltip": "All models/datasets in a private project are private, and all models/datasets in a public project are public.",
     "submit": "Create Model",
     "uploadTip": "After creating the model, you can upload files using the command line.",
-    "modelNameRequired": "Please enter a model name",
     "modelNameInvalid": "Invalid model name format",
-    "projectRequired": "Please select a project",
     "success": "Model created successfully",
     "error": "Failed to create model"
   }

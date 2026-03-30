@@ -8,38 +8,31 @@ import {
 
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants.ts'
 
-export type ModelsSortField = 'updatedAt'
-
-export interface ModelsSearch {
-  q: string
-  sort: ModelsSortField
-  order: 'asc' | 'desc'
-  page: number
-}
-
-interface ModelListQueryKeyParams {
-  q: string
-  sort: string | undefined
-  page: number
-}
+import type { ModelsCatalogSearch } from '@/routes/(auth)/(app)/models'
+import type { ProjectModelsSearch } from '@/routes/(auth)/(app)/projects/$projectId/models'
 
 // -- Query key factory --
 
 export const modelKeys = {
   all: ['models'] as const,
+
   lists: () => [...modelKeys.all, 'list'] as const,
-  list: (projectId: string, params: ModelListQueryKeyParams) => [...modelKeys.lists(), projectId, params] as const,
-  catalogList: (params: ListModelsRequest) => [...modelKeys.lists(), params] as const,
+  listByProject: (projectId: string, params: ListModelsRequest) => [...modelKeys.lists(), projectId, params] as const,
+  listByCategory: (params: ListModelsRequest) => [...modelKeys.lists(), params] as const,
+
+  details: () => [...modelKeys.all, 'detail'] as const,
+  detail: (projectId: string, modelName: string) => [...modelKeys.details(), projectId, modelName] as const,
+
   taskLabels: () => [...modelKeys.all, 'task-labels'] as const,
   libraryLabels: () => [...modelKeys.all, 'library-labels'] as const,
   projects: () => [...modelKeys.all, 'projects'] as const,
+
   commits: () => [...modelKeys.all, 'commit-list'] as const,
-  commitDetails: () => [...modelKeys.all, 'commit-detail'] as const,
-  details: () => [...modelKeys.all, 'detail'] as const,
-  detail: (projectId: string, modelName: string) => [...modelKeys.details(), projectId, modelName] as const,
   commitsList: (projectId: string, modelName: string, params: Pick<ListModelCommitsRequest, 'revision' | 'page' | 'pageSize'>) => [
     ...modelKeys.commits(), projectId, modelName, params,
   ] as const,
+
+  commitDetails: () => [...modelKeys.all, 'commit-detail'] as const,
   commitDetail: (projectId: string, modelName: string, commitId: string) => [
     ...modelKeys.commitDetails(),
     projectId,
@@ -64,12 +57,12 @@ export const modelTreeKeys = {
 
 // -- Query options factory --
 
-export function projectModelsQueryOptions(projectId: string, search: ModelsSearch) {
+export function projectModelsQueryOptions(projectId: string, search: ProjectModelsSearch) {
   const sortParam = toSortParam(search.sort, search.order)
 
   return queryOptions({
-    queryKey: modelKeys.list(projectId, {
-      q: search.q,
+    queryKey: modelKeys.listByProject(projectId, {
+      search: search.q,
       sort: sortParam,
       page: search.page,
     }),
@@ -79,6 +72,34 @@ export function projectModelsQueryOptions(projectId: string, search: ModelsSearc
       sort: sortParam,
       page: search.page,
       pageSize: DEFAULT_PAGE_SIZE,
+    }),
+  })
+}
+
+export function catalogModelsQueryOptions(
+  search: ModelsCatalogSearch & {
+    popular?: boolean
+    pageSize?: number
+  }) {
+  const sortParam = toSortParam(search.sort, search.order)
+
+  return queryOptions({
+    queryKey: modelKeys.listByCategory({
+      search: search.q,
+      sort: search.popular ? undefined : sortParam,
+      page: search.page,
+      project: search.project,
+      labels: splitFilterCsv(search.task ?? search.library),
+      popular: search?.popular,
+    }),
+    queryFn: () => Models.ListModels({
+      search: search.popular ? undefined : search.q,
+      sort: search.popular ? undefined : sortParam,
+      project: search.project,
+      labels: splitFilterCsv(search.task ?? search.library),
+      page: search.page,
+      pageSize: search?.pageSize ?? DEFAULT_PAGE_SIZE,
+      popular: search?.popular,
     }),
   })
 }
@@ -157,24 +178,6 @@ export function modelCommitQueryOptions(
 
 // -- Custom hook --
 
-export function useModels(params: ListModelsRequest) {
-  return useQuery({
-    queryKey: modelKeys.catalogList(params),
-    queryFn: () => Models.ListModels({
-      pageSize: DEFAULT_PAGE_SIZE,
-      ...params,
-    }),
-    placeholderData: keepPreviousData,
-  })
-}
-
-export function useProjectModels(projectId: string, search: ModelsSearch) {
-  return useQuery({
-    ...projectModelsQueryOptions(projectId, search),
-    placeholderData: keepPreviousData,
-  })
-}
-
 export function useModelTree(
   projectId: string,
   modelName: string,
@@ -244,7 +247,11 @@ export function useModelProjects() {
 
 // -- Internal helpers --
 
-export function toSortParam(field?: ModelsSearch['sort'], order?: ModelsSearch['order']) {
+export function toSortParam(field?: ModelsCatalogSearch['sort'], order?: ModelsCatalogSearch['order']) {
+  if (!field || !order) {
+    return undefined
+  }
+
   return field === 'updatedAt' && order === 'asc'
     ? 'updated_at_asc'
     : 'updated_at_desc'

@@ -6,6 +6,11 @@
   "total": "Total {{count}}",
   "sortOrderAsc": "Asc",
   "sortOrderDesc": "Desc",
+  "projectSelect": {
+    "project": "Project",
+    "projectPlaceholder": "Select a project",
+    "projectTooltip": "All models/datasets in a private project are private, and all models/datasets in a public project are public."
+  },
   "copyValueButton": {
     "copy": "Copy",
     "copied": "Copied"

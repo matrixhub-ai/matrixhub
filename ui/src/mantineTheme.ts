@@ -64,9 +64,14 @@ export const mantineTheme = createTheme({
     }),
     Alert: Alert.extend({
       defaultProps: {
-        px: 'md',
+        px: 'sm',
         py: 'sm',
         bd: 'none',
+      },
+      styles: {
+        icon: {
+          marginInlineEnd: rem(8),
+        },
       },
     }),
     InputWrapper: Input.Wrapper.extend({

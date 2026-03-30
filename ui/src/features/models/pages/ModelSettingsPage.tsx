@@ -4,6 +4,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -19,17 +20,20 @@ export function ModelSettingsPage({
   projectId, modelId,
 }: ModelSettingsPageProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+
   const [opened, {
     open, close,
   }] = useDisclosure(false)
-  const [inputValue, setInputValue] = useState('')
-  const deleteMutation = useMutation(deleteModelMutationOptions())
-
-  const fullName = `${projectId}/${modelId}`
 
   const handleSetRecommended = async () => {
     // TODO: set recommended api
   }
+
+  const [inputValue, setInputValue] = useState('')
+  const deleteMutation = useMutation(deleteModelMutationOptions())
+
+  const fullName = `${projectId}/${modelId}`
 
   const handleDelete = async () => {
     await deleteMutation.mutateAsync({
@@ -38,6 +42,12 @@ export function ModelSettingsPage({
     })
 
     // Fixme: confirm navigation to which page
+    void navigate({
+      to: '/projects/$projectId/models',
+      params: {
+        projectId,
+      },
+    })
   }
 
   return (

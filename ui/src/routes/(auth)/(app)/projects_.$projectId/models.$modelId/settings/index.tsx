@@ -1,3 +1,4 @@
+import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb.ts'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { ModelSettingsPage } from '@/features/models/pages/ModelSettingsPage'
@@ -9,7 +10,9 @@ export const Route = createFileRoute(
   beforeLoad: async ({ params }) => {
     // only public project and user has no role for the this project,
     // will return 403
-    await ensureProjectAccess(params.projectId)
+    await ensureProjectAccess(
+      params.projectId,
+      { allowedRoles: [ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN] })
   },
   component: ModelSettings,
 })

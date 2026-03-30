@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { modelQueryOptions, modelRevisionsQueryOptions } from '@/features/models/models.query'
+import { modelQueryOptions } from '@/features/models/models.query'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
 
@@ -29,10 +29,7 @@ export const Route = createFileRoute(
   loader: async ({
     context, params,
   }) => {
-    return await Promise.allSettled([
-      context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId)),
-      context.queryClient.ensureQueryData(modelRevisionsQueryOptions(params.projectId, params.modelId)),
-    ])
+    return context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId))
   },
 })
 

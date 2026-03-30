@@ -13,6 +13,8 @@ const modelsSearchSchema = z.object({
   page: z.coerce.number().int().positive().optional().transform(v => v ?? 1).catch(1),
 })
 
+export type ProjectModelsSearch = z.infer<typeof modelsSearchSchema>
+
 // -- Route definition --
 
 export const Route = createFileRoute(
@@ -25,7 +27,7 @@ export const Route = createFileRoute(
     params,
     deps,
   }) => {
-    await context.queryClient.ensureQueryData(
+    await context.queryClient.fetchQuery(
       projectModelsQueryOptions(params.projectId, deps),
     )
   },
