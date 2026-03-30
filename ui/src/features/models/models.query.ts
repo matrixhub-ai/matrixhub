@@ -123,14 +123,19 @@ export function modelCommitsQueryOptions(
   modelName: string,
   params: Pick<ListModelCommitsRequest, 'revision' | 'page' | 'pageSize'>,
 ) {
+  const normalizedParams = {
+    ...params,
+    pageSize: params.pageSize ?? DEFAULT_PAGE_SIZE,
+  }
+
   return queryOptions({
-    queryKey: modelKeys.commitsList(projectId, modelName, params),
+    queryKey: modelKeys.commitsList(projectId, modelName, normalizedParams),
     queryFn: () => Models.ListModelCommits({
       project: projectId,
       name: modelName,
-      revision: params.revision,
-      page: params.page,
-      pageSize: params.pageSize ?? DEFAULT_PAGE_SIZE,
+      revision: normalizedParams.revision,
+      page: normalizedParams.page,
+      pageSize: normalizedParams.pageSize,
     }),
   })
 }

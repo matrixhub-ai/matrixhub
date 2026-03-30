@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { ModelRevisionSelect } from '@/features/models/components/ModelRevisionSelect.tsx'
 import { useModelCommits, useModelTree } from '@/features/models/models.query.ts'
 import { PathBreadcrumbs } from '@/shared/components/PathBreadcrumbs.tsx'
+import { PathNotFound } from '@/shared/components/PathNotFound'
 import { RepoFileTree } from '@/shared/components/repo-file-tree'
 
 import type { File as RepoFile } from '@matrixhub/api-ts/v1alpha1/model.pb'
@@ -25,7 +26,7 @@ export function ModelTreePage() {
   } = useParams()
 
   const {
-    data: { items } = {}, isLoading,
+    data: { items } = {}, isLoading, isError,
   } = useModelTree(projectId, modelId, {
     revision: ref,
     path: treePath,
@@ -44,12 +45,14 @@ export function ModelTreePage() {
     if (!searchValue.trim()) {
       return files
     }
-    const q = searchValue.toLowerCase()
+    const q = searchValue.toLocaleLowerCase()
 
-    return files.filter(f => f.name?.toLowerCase().includes(q))
+    return files.filter(f => f.name?.toLocaleLowerCase().includes(q))
   }, [files, searchValue])
 
   const latestCommit = files.length > 0 ? findLatestCommit(files) : undefined
+
+  const pathNotFound = !isLoading && (isError || (treePath && files.length === 0))
 
   return (
     <Box pt="sm" pb="xl">
@@ -112,37 +115,56 @@ export function ModelTreePage() {
         </Group>
       </Flex>
 
-      <RepoFileTree
-        files={filteredFiles}
-        latestCommit={latestCommit}
-        buildTreeLink={path => linkOptions({
-          to: '/projects/$projectId/models/$modelId/tree/$ref/$',
-          params: {
-            projectId,
-            modelId,
-            ref,
-            _splat: path,
-          },
-        })}
-        buildBlobLink={path => linkOptions({
-          to: '/projects/$projectId/models/$modelId/blob/$ref/$',
-          params: {
-            projectId,
-            modelId,
-            ref,
-            _splat: path,
-          },
-        })}
-        buildCommitLink={commitId => linkOptions({
-          to: '/projects/$projectId/models/$modelId/commit/$commitId',
-          params: {
-            projectId,
-            modelId,
-            commitId,
-          },
-        })}
-        isLoading={isLoading}
-      />
+      {pathNotFound
+        ? (
+            <PathNotFound
+              path={treePath ?? ''}
+              branch={ref}
+              rootLinkProps={linkOptions({
+                to: '/projects/$projectId/models/$modelId/tree/$ref/$',
+                params: {
+                  projectId,
+                  modelId,
+                  ref,
+                  _splat: '',
+                },
+              })}
+            />
+          )
+        : (
+            <RepoFileTree
+              files={filteredFiles}
+              latestCommit={latestCommit}
+              buildTreeLink={path => linkOptions({
+                to: '/projects/$projectId/models/$modelId/tree/$ref/$',
+                params: {
+                  projectId,
+                  modelId,
+                  ref,
+                  _splat: path,
+                },
+              })}
+              buildBlobLink={path => linkOptions({
+                to: '/projects/$projectId/models/$modelId/blob/$ref/$',
+                params: {
+                  projectId,
+                  modelId,
+                  ref,
+                  _splat: path,
+                },
+              })}
+              buildCommitLink={commitId => ({
+                to: '/projects/$projectId/models/$modelId/commit/$commitId',
+                params: {
+                  projectId,
+                  modelId,
+                  commitId,
+                },
+                search: { branch: ref },
+              })}
+              isLoading={isLoading}
+            />
+          )}
     </Box>
   )
 }
@@ -154,7 +176,7 @@ function findLatestCommit(files: RepoFile[]): RepoFile['commit'] | undefined {
     if (!file.commit?.createdAt) {
       continue
     }
-    if (!latest?.createdAt || Number(file.commit.createdAt) > Number(latest.createdAt)) {
+    if (!latest?.createdAt || new Date(file.commit.createdAt).getTime() > new Date(latest.createdAt).getTime()) {
       latest = file.commit
     }
   }

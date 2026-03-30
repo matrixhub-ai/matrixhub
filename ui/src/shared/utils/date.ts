@@ -1,9 +1,6 @@
 import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
 
-import 'dayjs/locale/zh'
-
-dayjs.extend(relativeTime)
+import '@/i18n/dayjs'
 
 type TimestampValue = number | string
 
@@ -103,7 +100,7 @@ export function formatDateTime(
   return formattedValue.format(format)
 }
 
-export function formatRelativeTime(value: DateValue, locale?: string) {
+export function formatRelativeTime(value: DateValue) {
   if (isNil(value) || value === '') {
     return '-'
   }
@@ -124,5 +121,5 @@ export function formatRelativeTime(value: DateValue, locale?: string) {
     return '-'
   }
 
-  return locale ? d.locale(locale).fromNow() : d.fromNow()
+  return d.fromNow()
 }

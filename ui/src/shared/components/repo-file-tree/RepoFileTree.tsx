@@ -25,7 +25,6 @@ type LinkPropsBuilder<T> = (value: T) => LinkComponentProps
 interface RepoFileTreeMeta {
   buildTreeLink: LinkPropsBuilder<string>
   buildBlobLink: LinkPropsBuilder<string>
-  locale: string
 }
 
 interface RepoFileTreeProps {
@@ -83,14 +82,10 @@ function FileCommitCell({ row }: FileCellProps) {
   )
 }
 
-function FileDateCell({
-  row, table,
-}: FileCellProps) {
-  const { locale } = table.options.meta as RepoFileTreeMeta
-
+function FileDateCell({ row }: FileCellProps) {
   return (
     <Text size="sm" c="gray.7">
-      {formatRelativeTime(row.original.commit?.createdAt, locale)}
+      {formatRelativeTime(row.original.commit?.createdAt)}
     </Text>
   )
 }
@@ -155,49 +150,46 @@ export function RepoFileTree({
   buildCommitLink,
   isLoading,
 }: RepoFileTreeProps) {
-  const {
-    t, i18n,
-  } = useTranslation()
-  const locale = i18n.language
+  const { t } = useTranslation()
 
   const sortedFiles = useMemo(() => sortFiles(files), [files])
 
-  const columns: MRT_ColumnDef<RepoFile>[] = useMemo(() => [
+  const columns: MRT_ColumnDef<RepoFile>[] = [
     {
       id: 'name',
-      header: t('common.fileTree.name'),
       Cell: FileNameCell,
+      header: '',
       size: 185,
       grow: false,
     },
     {
       id: 'size',
-      header: t('common.fileTree.size'),
+      header: '',
       Cell: FileSizeCell,
       size: 185,
       grow: false,
     },
     {
       id: 'commit',
-      header: t('common.fileTree.lastCommit'),
+      header: '',
       Cell: FileCommitCell,
       size: 360,
     },
     {
       id: 'date',
-      header: t('common.fileTree.lastUpdate'),
+      header: '',
       Cell: FileDateCell,
       size: 185,
       grow: false,
     },
     {
       id: 'action',
-      header: t('common.fileTree.download'),
+      header: '',
       Cell: FileActionCell,
       size: 185,
       grow: false,
     },
-  ], [t])
+  ]
 
   return (
     <div className={classes.wrapper}>
@@ -222,7 +214,7 @@ export function RepoFileTree({
             )}
           </div>
           <span className={classes.captionTime}>
-            {formatRelativeTime(latestCommit.createdAt, locale)}
+            {formatRelativeTime(latestCommit.createdAt)}
           </span>
         </div>
       )}
@@ -232,22 +224,15 @@ export function RepoFileTree({
         columns={columns}
         loading={isLoading}
         emptyTitle={t('common.noResults')}
-        enableTableHead={false}
+        hideTableHead
         tableOptions={{
           meta: {
             buildTreeLink,
             buildBlobLink,
-            locale,
           },
           mantineTableBodyCellProps: {
             style: {
               height: 44,
-              padding: '0 12px',
-            },
-          },
-          mantineTableHeadCellProps: {
-            style: {
-              height: 36,
               padding: '0 12px',
             },
           },

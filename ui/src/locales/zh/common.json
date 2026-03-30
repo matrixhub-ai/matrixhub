@@ -21,7 +21,9 @@
     "download": "下载",
     "updatedTime": "更新时间：{{time}}",
     "preview": "预览",
-    "code": "代码"
+    "code": "代码",
+    "pathNotFound": "\"{{path}}\" 在分支 \"{{branch}}\" 上不存在",
+    "backToRoot": "返回根目录"
   },
   "errorPage": {
     "backToHome": "返回首页",

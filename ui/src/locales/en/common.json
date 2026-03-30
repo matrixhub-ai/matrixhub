@@ -21,7 +21,9 @@
     "download": "Download",
     "updatedTime": "Updated: {{time}}",
     "preview": "Preview",
-    "code": "Code"
+    "code": "Code",
+    "pathNotFound": "\"{{path}}\" does not exist on branch \"{{branch}}\"",
+    "backToRoot": "Go to root directory"
   },
   "errorPage": {
     "backToHome": "Take me back to home page",
