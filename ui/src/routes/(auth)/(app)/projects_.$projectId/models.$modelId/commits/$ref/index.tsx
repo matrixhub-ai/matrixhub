@@ -15,12 +15,12 @@ export const Route = createFileRoute(
   loaderDeps: ({ search }) => ({
     page: search.page,
   }),
-  loader: async ({
+  loader({
     context,
     params,
     deps,
-  }) => {
-    await context.queryClient.ensureQueryData(modelCommitsQueryOptions(params.projectId, params.modelId, {
+  }) {
+    context.queryClient.prefetchQuery(modelCommitsQueryOptions(params.projectId, params.modelId, {
       revision: params.ref,
       page: deps.page,
     }))

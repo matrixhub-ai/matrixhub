@@ -12,13 +12,11 @@ export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId/commit/$commitId/',
 )({
   validateSearch: commitDetailSearchSchema,
-  loader: async ({
+  async loader({
     context,
     params,
-  }) => {
-    await context.queryClient.ensureQueryData(
-      modelCommitQueryOptions(params.projectId, params.modelId, params.commitId),
-    )
+  }) {
+    await context.queryClient.ensureQueryData(modelCommitQueryOptions(params.projectId, params.modelId, params.commitId))
   },
   component: ModelCommitDetailPage,
 })

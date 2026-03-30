@@ -8,11 +8,11 @@ import { IconArrowBackUp } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 
-import { modelQueryOptions, useModelCommit } from '@/features/models/models.query'
-import { CommitDetail } from '@/shared/components/CommitDetail.tsx'
+import { modelCommitQueryOptions } from '@/features/models/models.query'
+import { CommitDetail } from '@/shared/components/commit-detail/CommitDetail.tsx'
 import { PathBreadcrumbs } from '@/shared/components/PathBreadcrumbs.tsx'
 
-import './ModelCommitDetailPage.css'
+const { useLoaderData } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId')
 
 const {
   useParams,
@@ -28,11 +28,8 @@ export function ModelCommitDetailPage() {
   } = useParams()
   const { branch } = useSearch()
 
-  const {
-    data: commit,
-  } = useModelCommit(projectId, modelId, commitId)
-
-  const { data: model } = useSuspenseQuery(modelQueryOptions(projectId, modelId))
+  const { model } = useLoaderData()
+  const { data: commit } = useSuspenseQuery(modelCommitQueryOptions(projectId, modelId, commitId))
 
   const fallbackRef = branch ?? model.defaultBranch ?? ''
 
@@ -50,7 +47,7 @@ export function ModelCommitDetailPage() {
   return (
     <Stack pt="sm" gap="sm">
       <Flex justify="space-between" align="center" wrap="nowrap">
-        <Group gap="sm" wrap="nowrap">
+        <Group gap="md" wrap="nowrap">
           <ActionIcon
             variant="filled"
             onClick={smartBack}

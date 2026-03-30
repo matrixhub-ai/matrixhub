@@ -17,7 +17,9 @@
   },
   "commitDetail": {
     "committedOn": "提交于 ",
-    "emptyDiff": "暂无变更内容"
+    "emptyDiff": "暂无变更内容",
+    "loadingDiff": "正在渲染 diff...",
+    "diffLimitNoticeWithLink": "由于变更过多，此视图仅显示前 {{count}} 个文件。<0>查看原始 diff</0>"
   },
   "commitsTable": {
     "columns": {

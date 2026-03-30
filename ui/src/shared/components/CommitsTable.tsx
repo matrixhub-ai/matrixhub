@@ -1,4 +1,5 @@
 import {
+  Box,
   Group,
   Text,
 } from '@mantine/core'
@@ -131,19 +132,21 @@ export function CommitsTable({
   ]
 
   return (
-    <DataTable
-      data={commits}
-      columns={columns}
-      pagination={pagination}
-      page={page}
-      loading={loading}
-      emptyTitle={t('common.noResults')}
-      onPageChange={onPageChange}
-      tableOptions={{
-        meta: {
-          getDetailLinkProps,
-        },
-      }}
-    />
+    <Box bdrs="md" style={{ overflow: 'hidden' }}>
+      <DataTable
+        data={commits}
+        columns={columns}
+        pagination={pagination}
+        page={page}
+        loading={loading}
+        emptyTitle={t('common.noResults')}
+        onPageChange={onPageChange}
+        tableOptions={{
+          meta: {
+            getDetailLinkProps,
+          },
+        }}
+      />
+    </Box>
   )
 }

@@ -4,12 +4,12 @@ import {
   Tabs,
 } from '@mantine/core'
 import { IconDownload, IconCloudUpload } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
 import {
-  Outlet, useMatchRoute, createFileRoute, linkOptions, Link,
+  Outlet, useMatchRoute, createFileRoute, linkOptions, Link, getRouteApi,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
+import { projectRolesQueryOptions } from '@/features/auth/auth.query.ts'
 import { modelQueryOptions } from '@/features/models/models.query'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
@@ -22,6 +22,9 @@ import { Route as ModelTreeRoute } from './tree/$ref/$'
 
 import { Route as ModelIndexRoute } from './index'
 
+const { useLoaderData: useUserData } = getRouteApi('/(auth)')
+const { useLoaderData } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId')
+
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId',
 )({
@@ -29,7 +32,15 @@ export const Route = createFileRoute(
   loader: async ({
     context, params,
   }) => {
-    return context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId))
+    const [model, projectRoles] = await Promise.all([
+      context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId)),
+      context.queryClient.ensureQueryData(projectRolesQueryOptions()),
+    ])
+
+    return {
+      model,
+      projectRoles,
+    }
   },
 })
 
@@ -39,10 +50,12 @@ function ModelDetailLayout() {
     projectId, modelId,
   } = Route.useParams()
 
-  const { data: model } = useSuspenseQuery(modelQueryOptions(projectId, modelId))
+  const userData = useUserData()
+  const {
+    model, projectRoles,
+  } = useLoaderData()
 
-  // FIXME: project roles should get from context
-  const hasProjectRole = true
+  const hasSettingsRight = userData.isAdmin || projectRoles.projectRoles?.[projectId] === 'ROLE_TYPE_PROJECT_ADMIN'
 
   const tabRoutes = linkOptions([
     {
@@ -65,7 +78,7 @@ function ModelDetailLayout() {
         _splat: '',
       },
     },
-    ...(hasProjectRole
+    ...(hasSettingsRight
       ? [{
           id: 'settings',
           label: t('model.detail.setting'),

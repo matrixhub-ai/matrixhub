@@ -29,6 +29,7 @@ export function PathBreadcrumbs({
       <AnchorLink
         c="gray.9"
         underline="hover"
+        fz="sm"
         {...rootLinkProps}
       >
         {name}
@@ -43,7 +44,7 @@ export function PathBreadcrumbs({
         if (!pathLinkProps || isLastSegment) {
           return (
             <Group key={pathToSegment} gap={4} wrap="nowrap">
-              <Text c="gray.9">
+              <Text c="gray.9" size="sm">
                 {segment}
               </Text>
               {isLastSegment && copiedValue && (
@@ -58,6 +59,7 @@ export function PathBreadcrumbs({
             c="gray.9"
             underline="hover"
             key={pathToSegment}
+            fz="sm"
             {...pathLinkProps}
           >
             {segment}
