@@ -115,7 +115,9 @@ func (u *UserHandler) ListUsers(ctx context.Context, request *userv1alpha1.ListU
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	users, total, err := u.userRepo.ListUsers(ctx, int(request.Page), int(request.PageSize), request.Search)
+	page := utils.NewPage(request.Page, request.PageSize)
+
+	users, total, err := u.userRepo.ListUsers(ctx, int(page.Page), int(page.PageSize), request.Search)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
