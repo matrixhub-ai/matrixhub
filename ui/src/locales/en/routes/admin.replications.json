@@ -58,8 +58,7 @@
     "resourceTypes": {
       "label": "Resource Types",
       "model": "Model",
-      "dataset": "Dataset",
-      "all": "All"
+      "dataset": "Dataset"
     },
     "targetRegistry": "Target Registry",
     "target": "Target",

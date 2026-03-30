@@ -11,7 +11,6 @@ export const DEFAULT_REPLICATIONS_PAGE = 1
 export const DEFAULT_REPLICATIONS_PAGE_SIZE = 10
 
 export const replicationResourceTypeValues = [
-  ResourceType.RESOURCE_TYPE_ALL,
   ResourceType.RESOURCE_TYPE_MODEL,
   ResourceType.RESOURCE_TYPE_DATASET,
 ] as const
@@ -54,7 +53,7 @@ function replicationFormBaseSchema() {
     bandwidthUnit: z.enum(replicationBandwidthUnitValues),
     isOverwrite: z.boolean(),
     resourceName: z.string().trim().optional(),
-    resourceType: z.enum(replicationResourceTypeValues),
+    resourceTypes: z.array(z.enum(replicationResourceTypeValues)),
     sourceRegistryId: z.number(),
     targetProjectName: z.string().trim().optional(),
     targetRegistryId: z.number(),
@@ -63,6 +62,14 @@ function replicationFormBaseSchema() {
 
 export function createReplicationFormSchema() {
   return replicationFormBaseSchema().superRefine((data, ctx) => {
+    if (data.resourceTypes.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: t('routes.admin.replications.validation.resourceTypesRequired'),
+        path: ['resourceTypes'],
+      })
+    }
+
     if (!data.sourceRegistryId || data.sourceRegistryId < 1) {
       ctx.addIssue({
         code: 'custom',

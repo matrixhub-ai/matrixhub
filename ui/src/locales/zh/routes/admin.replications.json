@@ -57,8 +57,7 @@
     "resourceTypes": {
       "label": "资源类型",
       "model": "模型",
-      "dataset": "数据集",
-      "all": "全部"
+      "dataset": "数据集"
     },
     "targetRegistry": "目标仓库",
     "target": "目标",
