@@ -3,10 +3,7 @@ import {
 } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
 
-import { CurrentUserContext } from '@/context/current-user-context.tsx'
-import { currentUserQueryOptions } from '@/features/auth/auth.query'
 import i18n from '@/i18n'
-import { queryClient } from '@/queryClient'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -40,13 +37,6 @@ const TanStackDevtools = import.meta.env.DEV
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
 }>()({
-  loader: async () => {
-    try {
-      return await queryClient.ensureQueryData(currentUserQueryOptions())
-    } catch {
-      return undefined
-    }
-  },
   component: RootComponent,
   head: () => ({
     meta: [{
@@ -62,14 +52,10 @@ export const Route = createRootRouteWithContext<{
 })
 
 function RootComponent() {
-  const user = Route.useLoaderData()
-
   return (
     <>
       <HeadContent />
-      <CurrentUserContext value={user}>
-        <Outlet />
-      </CurrentUserContext>
+      <Outlet />
       <Suspense fallback={null}>
         <TanStackDevtools />
       </Suspense>

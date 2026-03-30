@@ -52,9 +52,9 @@ import { isForbiddenRouteError, isNotFoundRouteError } from '@/utils/routerAcces
 
 export const Route = createFileRoute('/(auth)')({
   component: AuthLayout,
-  beforeLoad: async () => {
+  loader: async () => {
     try {
-      await queryClient.ensureQueryData(currentUserQueryOptions())
+      return await queryClient.ensureQueryData(currentUserQueryOptions())
     } catch {
       throw redirect({ to: '/login' })
     }
@@ -282,52 +282,56 @@ function AuthLayout() {
     select: s => s.resolvedLocation?.href ?? s.location.href,
   })
 
+  const user = Route.useLoaderData()
+
   return (
-    <AppShell
-      mode="static"
-      header={{ height: 60 }}
-    >
-      <AppShell.Header
-        withBorder={false}
-        style={{ background: '#F8F9FA' }}
+    <CurrentUserContext value={user}>
+      <AppShell
+        mode="static"
+        header={{ height: 60 }}
       >
-        <Flex
-          h="100%"
-          align="center"
-          justify="space-between"
-          px={24}
+        <AppShell.Header
+          withBorder={false}
+          style={{ background: '#F8F9FA' }}
         >
-          <Group
-            gap={135}
-            wrap="nowrap"
+          <Flex
+            h="100%"
+            align="center"
+            justify="space-between"
+            px={24}
           >
-            <AppLogo />
+            <Group
+              gap={135}
+              wrap="nowrap"
+            >
+              <AppLogo />
 
-            <AppNavbar />
-          </Group>
+              <AppNavbar />
+            </Group>
 
-          <Group gap="md" wrap="nowrap">
-            <LanguageSwitcher />
+            <Group gap="md" wrap="nowrap">
+              <LanguageSwitcher />
 
-            <AccountMenu />
-          </Group>
-        </Flex>
-      </AppShell.Header>
+              <AccountMenu />
+            </Group>
+          </Flex>
+        </AppShell.Header>
 
-      <AppShell.Main
-        styles={{
-          main: {
-            height: 'calc(100vh - var(--app-shell-header-height))',
-          },
-        }}
-      >
-        <CatchBoundary
-          getResetKey={() => resetKey}
-          errorComponent={AuthErrorComponent}
+        <AppShell.Main
+          styles={{
+            main: {
+              height: 'calc(100vh - var(--app-shell-header-height))',
+            },
+          }}
         >
-          <Outlet />
-        </CatchBoundary>
-      </AppShell.Main>
-    </AppShell>
+          <CatchBoundary
+            getResetKey={() => resetKey}
+            errorComponent={AuthErrorComponent}
+          >
+            <Outlet />
+          </CatchBoundary>
+        </AppShell.Main>
+      </AppShell>
+    </CurrentUserContext>
   )
 }
