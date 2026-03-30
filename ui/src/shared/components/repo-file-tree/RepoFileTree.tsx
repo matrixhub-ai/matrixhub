@@ -120,7 +120,7 @@ function FileActionCell({ row }: FileCellProps) {
 
 function FileIcon({ file }: { file: RepoFile }) {
   const isDir = file.type === FileType.DIR
-  const name = file.name?.toLowerCase() ?? ''
+  const name = file.name?.toLocaleLowerCase() ?? ''
 
   if (isDir) {
     return <IconFolder size={20} color="var(--mantine-color-cyan-6)" />
