@@ -25,6 +25,7 @@ interface EditRoleModalProps {
   onClose: () => void
   projectId: string
   member: ProjectMember | null
+  currentRole?: ProjectRoleType
 }
 
 export function EditRoleModal({
@@ -32,6 +33,7 @@ export function EditRoleModal({
   onClose,
   projectId,
   member,
+  currentRole,
 }: EditRoleModalProps) {
   const { t } = useTranslation()
   const mutation = useMutation(updateMemberRoleMutationOptions())
@@ -55,7 +57,7 @@ export function EditRoleModal({
     },
   })
 
-  const roleOptions = useProjectRoleOptions()
+  const roleOptions = useProjectRoleOptions(currentRole)
 
   const handleClose = () => {
     form.reset()

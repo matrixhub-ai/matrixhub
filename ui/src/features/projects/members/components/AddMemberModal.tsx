@@ -22,6 +22,7 @@ interface AddMemberModalProps {
   opened: boolean
   onClose: () => void
   projectId: string
+  currentRole?: ProjectRoleType
 }
 
 const requiredString = z.string().min(1, i18n.t('common.validation.required'))
@@ -36,6 +37,7 @@ export function AddMemberModal({
   opened,
   onClose,
   projectId,
+  currentRole,
 }: AddMemberModalProps) {
   const { t } = useTranslation()
   const mutation = useMutation(addMemberMutationOptions())
@@ -65,7 +67,7 @@ export function AddMemberModal({
     },
   ]
 
-  const roleOptions = useProjectRoleOptions()
+  const roleOptions = useProjectRoleOptions(currentRole)
 
   const memberType = useStore(form.store, s => s.values.memberType)
 

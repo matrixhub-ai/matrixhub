@@ -9,8 +9,8 @@ import { z } from 'zod'
 export const MEMBERS_PAGE_SIZE = 10
 
 export const membersSearchSchema = z.object({
-  q: z.string().transform(v => v.trim()).catch(''),
-  page: z.coerce.number().int().positive().catch(1),
+  q: z.string().transform(v => v.trim()).optional().catch(''),
+  page: z.coerce.number().int().positive().optional().catch(1),
 })
 
 export type MembersSearch = z.infer<typeof membersSearchSchema>
@@ -31,8 +31,8 @@ export const memberKeys = {
 export function membersQueryOptions(projectId: string, search: MembersSearch) {
   return queryOptions({
     queryKey: memberKeys.list(projectId, {
-      q: search.q,
-      page: search.page,
+      q: search.q ?? '',
+      page: search.page ?? 1,
     }),
     queryFn: () => Projects.ListProjectMembers({
       name: projectId,

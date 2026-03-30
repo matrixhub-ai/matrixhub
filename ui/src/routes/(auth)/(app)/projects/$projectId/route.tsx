@@ -4,16 +4,22 @@ import {
 import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import { IconApiApp as ProjectIcon } from '@tabler/icons-react'
 import {
+  Link,
   createFileRoute,
+  linkOptions,
   Outlet,
-  useLocation,
   useMatchRoute,
-  useNavigate,
+  useLocation,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/auth.query'
 import { projectDetailQueryOptions } from '@/features/projects/projects.query'
+
+import { Route as ProjectDatasetsRoute } from './datasets'
+import { Route as ProjectMembersRoute } from './members'
+import { Route as ProjectModelsRoute } from './models'
+import { Route as ProjectSettingsRoute } from './settings'
 
 export const Route = createFileRoute('/(auth)/(app)/projects/$projectId')({
   loader: async ({
@@ -24,50 +30,49 @@ export const Route = createFileRoute('/(auth)/(app)/projects/$projectId')({
   component: RouteComponent,
 })
 
-const tabRoutes = [
-  {
-    value: 'models',
-    to: '/projects/$projectId/models',
-  },
-  {
-    value: 'datasets',
-    to: '/projects/$projectId/datasets',
-  },
-  {
-    value: 'members',
-    to: '/projects/$projectId/members',
-  },
-  {
-    value: 'settings',
-    to: '/projects/$projectId/settings',
-  },
-] as const
-
 function RouteComponent() {
   const { projectId } = Route.useParams()
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const matchRoute = useMatchRoute()
-  const pathname = useLocation({ select: s => s.pathname })
   const currentRole = useProjectRole(projectId)
+  const pathname = useLocation({ select: s => s.pathname })
 
   const isAllowEdit = currentRole && [ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN].includes(currentRole)
 
-  const filteredTabRoutes = isAllowEdit
-    ? tabRoutes
-    : tabRoutes.filter(tab => tab.value !== 'settings')
+  const tabRoutes = linkOptions([
+    {
+      id: 'models',
+      label: t('projects.detail.tabs.models'),
+      to: ProjectModelsRoute.to,
+      params: { projectId },
+    },
+    {
+      id: 'datasets',
+      label: t('projects.detail.tabs.datasets'),
+      to: ProjectDatasetsRoute.to,
+      params: { projectId },
+    },
+    {
+      id: 'members',
+      label: t('projects.detail.tabs.members'),
+      to: ProjectMembersRoute.to,
+      params: { projectId },
+    },
+    ...(isAllowEdit
+      ? [{
+          id: 'settings',
+          label: t('projects.detail.tabs.settings'),
+          to: ProjectSettingsRoute.to,
+          params: { projectId },
+        }]
+      : []),
+  ])
 
-  const activeTabRoute
-    = filteredTabRoutes.find((tab) => {
-      return pathname && !!matchRoute({
-        to: tab.to,
-        params: { projectId },
-        fuzzy: true,
-        pending: true,
-      })
-    })
-    ?? filteredTabRoutes[0]
-  const activeTabLabel = t(`projects.detail.tabs.${activeTabRoute.value}`)
+  const activeTab = tabRoutes.find(tab => pathname && matchRoute({
+    to: tab.to,
+    pending: true,
+  }))?.id || tabRoutes[0].id
+  const activeTabLabel = tabRoutes.find(tab => tab.id === activeTab)?.label || tabRoutes[0].label
 
   return (
     <Box>
@@ -91,33 +96,20 @@ function RouteComponent() {
         mt={24}
         variant="default"
         color="cyan.6"
-        value={activeTabRoute.value}
-        onChange={(value) => {
-          const tab = tabRoutes.find(r => r.value === value)
-
-          if (tab) {
-            navigate({
-              to: tab.to,
-              params: { projectId },
-            })
-          }
-        }}
+        value={activeTab}
       >
-        <Tabs.List style={{ gap: 'var(--mantine-spacing-md)' }}>
-          {filteredTabRoutes.map((tab) => {
-            const isActive = tab.value === activeTabRoute.value
-
+        <Tabs.List>
+          {tabRoutes.map(({
+            id, label, ...linkProps
+          }) => {
             return (
               <Tabs.Tab
-                key={tab.value}
-                value={tab.value}
-                c={isActive ? 'gray.7' : 'gray.6'}
-                p="8px var(--mantine-spacing-md)"
-                fw="600"
-                fz="var(--mantine-font-size-sm)"
-                lh="sm"
+                key={id}
+                value={id}
+                component={Link}
+                {...linkProps}
               >
-                {t(`projects.detail.tabs.${tab.value}`)}
+                {label}
               </Tabs.Tab>
             )
           })}
