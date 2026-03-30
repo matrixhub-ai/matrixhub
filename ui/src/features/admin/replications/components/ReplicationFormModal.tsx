@@ -1,7 +1,6 @@
 import {
   Checkbox,
   Group,
-  MultiSelect,
   NumberInput,
   Radio,
   RadioGroup,
@@ -58,39 +57,39 @@ export interface ReplicationFormModalProps {
   onClose: () => void
 }
 
+// The backend accepts `resourceTypes: ResourceType[]`, but the current UI
+// intentionally supports only a single selection: All, Model, or Dataset.
 function normalizeResourceTypesForForm(
   resourceTypes?: readonly ResourceType[],
-): ReplicationResourceTypeValue[] {
-  const selected = (resourceTypes ?? []).filter(
-    (resourceType): resourceType is ReplicationResourceTypeValue =>
-      (replicationResourceTypeValues as readonly ResourceType[]).includes(resourceType),
+): ReplicationResourceTypeValue {
+  const selected = (resourceTypes ?? []).filter(resourceType =>
+    resourceType === ResourceType.RESOURCE_TYPE_MODEL
+    || resourceType === ResourceType.RESOURCE_TYPE_DATASET,
   )
 
   if (
-    selected.length === 0
+    selected.length !== 1
     || (resourceTypes ?? []).includes(ResourceType.RESOURCE_TYPE_ALL)
   ) {
-    return [...replicationResourceTypeValues]
+    return ResourceType.RESOURCE_TYPE_ALL
   }
 
-  return selected
+  return selected[0]
 }
 
 function buildResourceTypesForApi(
-  resourceTypes: readonly ReplicationResourceTypeValue[],
+  resourceType: ReplicationResourceTypeValue,
 ): ResourceType[] {
-  const normalized = Array.from(new Set(resourceTypes))
-
-  if (normalized.length === replicationResourceTypeValues.length) {
+  if (resourceType === ResourceType.RESOURCE_TYPE_ALL) {
     return []
   }
 
-  return normalized
+  return [resourceType]
 }
 
 function buildPolicyPayload(values: ReplicationFormValues) {
   const bandwidth = convertBandwidthToApiValue(values.bandwidth ?? '', values.bandwidthUnit)
-  const resourceTypes = buildResourceTypesForApi(values.resourceTypes)
+  const resourceTypes = buildResourceTypesForApi(values.resourceType)
   const base = {
     description: values.description,
     triggerType: values.triggerType,
@@ -142,7 +141,7 @@ function getFormDefaults(syncPolicy?: SyncPolicyItem): ReplicationFormValues {
     resourceName: isPush
       ? (syncPolicy?.pushBasePolicy?.resourceName ?? '')
       : (syncPolicy?.pullBasePolicy?.resourceName ?? ''),
-    resourceTypes: normalizeResourceTypesForForm(rawResourceTypes),
+    resourceType: normalizeResourceTypesForForm(rawResourceTypes),
     sourceRegistryId: syncPolicy?.pullBasePolicy?.sourceRegistryId ?? 0,
     targetProjectName: isPush
       ? (syncPolicy?.pushBasePolicy?.targetProjectName ?? '')
@@ -179,11 +178,11 @@ export function ReplicationFormModal({
   const resourceTypeOptions = useMemo(() => replicationResourceTypeValues.map(
     value => ({
       value,
-      label: value === ResourceType.RESOURCE_TYPE_MODEL
-        ? t('routes.admin.replications.form.resourceTypes.model')
-        : value === ResourceType.RESOURCE_TYPE_DATASET
-          ? t('routes.admin.replications.form.resourceTypes.dataset')
-          : t('routes.admin.replications.form.resourceTypes.all'),
+      label: value === ResourceType.RESOURCE_TYPE_ALL
+        ? t('routes.admin.replications.form.resourceTypes.all')
+        : value === ResourceType.RESOURCE_TYPE_MODEL
+          ? t('routes.admin.replications.form.resourceTypes.model')
+          : t('routes.admin.replications.form.resourceTypes.dataset'),
     }),
   ), [t])
 
@@ -342,15 +341,17 @@ export function ReplicationFormModal({
           )}
         </form.Field>
 
-        <form.Field name="resourceTypes">
+        <form.Field name="resourceType">
           {field => (
-            <MultiSelect
+            <Select
+              label={t('routes.admin.replications.form.resourceTypes.label')}
               placeholder={t('routes.admin.replications.form.resourceTypes.label')}
               data={resourceTypeOptions}
               value={field.state.value}
-              onChange={value => field.handleChange(value as ReplicationFormValues['resourceTypes'])}
+              onChange={value => field.handleChange(value as ReplicationFormValues['resourceType'])}
               onBlur={field.handleBlur}
               error={fieldError(field)}
+              allowDeselect={false}
             />
           )}
         </form.Field>
