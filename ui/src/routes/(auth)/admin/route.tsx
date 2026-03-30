@@ -119,6 +119,11 @@ function AdminLayout() {
         my="lg"
         px="md"
         h="calc(100% - var(--mantine-spacing-lg) * 2)"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+        }}
       >
         {/* FIXME: color: Gray80 */}
         <Group
@@ -149,8 +154,23 @@ function AdminLayout() {
       <AppShell.Main
         component="div"
         miw={0}
+        h="100%"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+        }}
       >
-        <Outlet />
+        <ScrollArea
+          type="auto"
+          offsetScrollbars="y"
+          style={{
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          <Outlet />
+        </ScrollArea>
       </AppShell.Main>
     </AppShell>
   )
