@@ -7,12 +7,12 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 
+import { usePayloadModal } from '@/shared/hooks/usePayloadModal'
 import { useRouteListState } from '@/shared/hooks/useRouteListState'
 
 import { BatchDeleteUsersModal } from '../components/BatchDeleteUsersModal'
 import { CreateUserAction } from '../components/CreateUserAction'
 import { UsersTable } from '../components/UsersTable'
-import { usePayloadModal } from '../hooks/usePayloadModal'
 import {
   adminUserKeys,
   usersQueryOptions,

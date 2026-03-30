@@ -1,5 +1,3 @@
-import { Button } from '@mantine/core'
-import { IconPlus } from '@tabler/icons-react'
 import {
   useQueryClient,
   useSuspenseQuery,
@@ -8,10 +6,10 @@ import {
   getRouteApi,
   useRouterState,
 } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
 
 import { useRouteListState } from '@/shared/hooks/useRouteListState'
 
+import { CreateReplicationAction } from '../components/CreateReplicationAction'
 import { ReplicationsTable } from '../components/ReplicationsTable'
 import {
   adminReplicationKeys,
@@ -23,7 +21,6 @@ import { getReplicationRowId } from '../replications.utils'
 const replicationsRouteApi = getRouteApi('/(auth)/admin/replications')
 
 export function ReplicationsPage() {
-  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = replicationsRouteApi.useNavigate()
   const search = replicationsRouteApi.useSearch()
@@ -38,16 +35,12 @@ export function ReplicationsPage() {
   const routeLoading = useRouterState({
     select: state => state.isLoading,
   })
-  const loading = routeLoading || isFetching
 
   const refreshReplications = () => queryClient.invalidateQueries({
     queryKey: adminReplicationKeys.lists(),
   })
 
   const {
-    rowSelection,
-    setRowSelection,
-    selectedCount,
     onSearchChange,
     onRefresh,
     onPageChange,
@@ -59,41 +52,18 @@ export function ReplicationsPage() {
     refresh: refreshReplications,
   })
 
-  const handleCreate = () => {
-    // TODO: open create replication modal
-  }
-
-  const handleBatchDelete = () => {
-    if (selectedCount === 0) {
-      return
-    }
-
-    // TODO: open batch delete replication modal
-  }
-
   return (
     <ReplicationsTable
       data={replications}
       pagination={pagination}
-      loading={loading}
+      loading={routeLoading}
+      fetching={isFetching}
       page={search.page ?? DEFAULT_REPLICATIONS_PAGE}
       searchValue={search.query ?? ''}
       onSearchChange={onSearchChange}
       onRefresh={onRefresh}
-      onBatchDelete={handleBatchDelete}
-      rowSelection={rowSelection}
-      onRowSelectionChange={setRowSelection}
       onPageChange={onPageChange}
-      selectedCount={selectedCount}
-      toolbarExtra={(
-        <Button
-          disabled
-          onClick={handleCreate}
-          leftSection={<IconPlus size={16} />}
-        >
-          {t('routes.admin.replications.toolbar.create')}
-        </Button>
-      )}
+      toolbarExtra={<CreateReplicationAction />}
     />
   )
 }

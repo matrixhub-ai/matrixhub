@@ -1,6 +1,5 @@
 import {
   Badge,
-  Button,
   Group,
   Text,
 } from '@mantine/core'
@@ -10,6 +9,9 @@ import { useTranslation } from 'react-i18next'
 
 import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
 
+import { DeleteReplicationAction } from './DeleteReplicationAction'
+import { EditReplicationAction } from './EditReplicationAction'
+import { SyncReplicationAction } from './SyncReplicationAction'
 import {
   formatReplicationBandwidth,
   getReplicationRowId,
@@ -40,7 +42,7 @@ function ReplicationStatusCell({ row }: ReplicationCellProps) {
   const isDisabled = row.original.isDisabled
 
   return (
-    <Badge color={isDisabled ? 'gray' : 'green'} variant="light">
+    <Badge color={isDisabled ? 'red' : 'green'} variant="light">
       {isDisabled
         ? t('routes.admin.replications.status.disabled')
         : t('routes.admin.replications.status.enabled')}
@@ -51,46 +53,25 @@ function ReplicationStatusCell({ row }: ReplicationCellProps) {
 function ReplicationActionsCell({
   row,
 }: ReplicationActionCellProps) {
-  const { t } = useTranslation()
-  const toggleLabel = row.original.isDisabled
-    ? t('routes.admin.replications.actions.enable')
-    : t('routes.admin.replications.actions.disable')
   const isDisabled = row.original.id == null
+  // const isDisabledToggle = row.original.isDisabled
+  // const toggleLabel = isDisabledToggle
+  //   ? t('routes.admin.replications.actions.enable')
+  //   : t('routes.admin.replications.actions.disable')
 
   return (
     <Group gap={4} wrap="nowrap">
-      <Button
-        variant="transparent"
-        size="compact-sm"
-        color="blue"
-        disabled={isDisabled}
-      >
-        {t('routes.admin.replications.actions.edit')}
-      </Button>
-      <Button
-        variant="transparent"
-        size="compact-sm"
-        color="blue"
-        disabled={isDisabled}
-      >
-        {t('routes.admin.replications.actions.sync')}
-      </Button>
-      <Button
+      <EditReplicationAction syncPolicy={row.original} disabled={isDisabled} />
+      <SyncReplicationAction syncPolicy={row.original} disabled={isDisabled} />
+      {/* <Button
         variant="transparent"
         size="compact-sm"
         color="blue"
         disabled={isDisabled}
       >
         {toggleLabel}
-      </Button>
-      <Button
-        variant="transparent"
-        size="compact-sm"
-        color="blue"
-        disabled={isDisabled}
-      >
-        {t('routes.admin.replications.actions.delete')}
-      </Button>
+      </Button> */}
+      <DeleteReplicationAction syncPolicy={row.original} disabled={isDisabled} />
     </Group>
   )
 }
@@ -138,10 +119,7 @@ function getReplicationTarget(item: SyncPolicyItem, localLabel: string) {
   return EMPTY_VALUE
 }
 
-export function ReplicationsTable({
-  tableOptions,
-  ...props
-}: ReplicationsTableProps) {
+export function ReplicationsTable(props: ReplicationsTableProps) {
   const { t } = useTranslation()
   const localLabel = 'Local'
 
@@ -214,15 +192,9 @@ export function ReplicationsTable({
       emptyTitle={t('routes.admin.replications.table.empty')}
       searchPlaceholder={t('routes.admin.replications.searchPlaceholder')}
       getRowId={getReplicationRowId}
-      enableRowSelection
       enableRowActions
       renderRowActions={ReplicationActionsCell}
       positionActionsColumn="last"
-      tableOptions={{
-        ...tableOptions,
-        enableBatchRowSelection: true,
-        enableMultiRowSelection: true,
-      }}
     />
   )
 }

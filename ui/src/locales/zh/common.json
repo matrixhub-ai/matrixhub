@@ -40,6 +40,8 @@
     "required": "必填",
     "fieldRequired": "{{field}}不能为空",
     "minLength": "{{field}}长度不能少于{{min}}",
-    "maxLength": "{{field}}长度不能超过{{max}}"
+    "maxLength": "{{field}}长度不能超过{{max}}",
+    "nameStartChar": "必须以字母或数字开头",
+    "nameInvalidChars": "只能包含小写字母、数字、点、下划线和连字符"
   }
 }
