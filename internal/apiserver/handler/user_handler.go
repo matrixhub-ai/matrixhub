@@ -26,6 +26,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
 type UserHandler struct {
@@ -140,6 +141,7 @@ func (u *UserHandler) ListUsers(ctx context.Context, request *userv1alpha1.ListU
 			Total:    int32(total),
 			Page:     request.Page,
 			PageSize: request.PageSize,
+			Pages:    utils.CalculatePages(total, request.PageSize),
 		},
 	}, nil
 }
