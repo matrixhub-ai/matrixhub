@@ -71,7 +71,7 @@ export function CreateProjectModal({
 
   const registryOptions = (registriesQuery.data?.registries ?? []).map(r => ({
     value: String(r.id),
-    label: r.url ?? r.name ?? '',
+    label: r.name ?? r.url ?? '',
   }))
 
   const handleSubmit = () => {
