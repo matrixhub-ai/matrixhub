@@ -15,12 +15,15 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"slices"
 
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
@@ -54,14 +57,14 @@ var (
 	}
 )
 
-func HFAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
+func HFAuthzMiddleware(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if hfPublicMethods[r.URL.Path] {
 				next.ServeHTTP(w, r)
 				return
 			}
-			if !checkPerm(authzSvc, r) {
+			if !checkPerm(projectRepo, authzSvc, r) {
 				http.Error(w, "permission denied", http.StatusForbidden)
 				return
 			}
@@ -71,7 +74,7 @@ func HFAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Han
 	}
 }
 
-func checkPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
+func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r *http.Request) bool {
 	vars := mux.Vars(r)
 	projectName, resource := vars["namespace"], vars["repoType"]
 	method := r.Method
@@ -79,17 +82,29 @@ func checkPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
 	if !slices.Contains(readMethods, method) {
 		act = actionWrite
 	}
+
+	prj, err := projectRepo.GetProjectByName(r.Context(), projectName)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return true
+		}
+		log.Errorf("Failed to get project by name: %s", err)
+		return false
+	}
+
+	if prj.IsPublic() && act == actionRead {
+		return true
+	}
 	var permission role.Permission
 	if resource == "" {
 		permission = role.ModelPull
 	} else {
 		permission = resourcePermissions[resource][act]
 	}
-	// todo check no resource permission
 	if permission == "" {
-		return true
+		return false
 	}
-	passed, err := authzSvc.VerifyProjectPermissionByName(r.Context(), projectName, permission)
+	passed, err := authzSvc.VerifyProjectPermission(r.Context(), prj.ID, permission)
 	if err != nil {
 		log.Errorf("Failed to verify project permission: %s", err)
 		return false
