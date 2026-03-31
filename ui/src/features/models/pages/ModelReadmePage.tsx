@@ -1,7 +1,7 @@
 import { Box } from '@mantine/core'
 import { getRouteApi } from '@tanstack/react-router'
-import Markdown from 'react-markdown'
 
+import { MarkdownViewer } from '@/features/file-viewer/components/MarkdownViewer.tsx'
 import { EmptyStatePrompt } from '@/shared/components/EmptyStatePrompt.tsx'
 
 const { useLoaderData } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId')
@@ -13,11 +13,7 @@ export function ModelReadmePage() {
     <Box pt={20}>
       {
         model.readmeContent
-          ? (
-              <Markdown>
-                { model?.readmeContent }
-              </Markdown>
-            )
+          ? <MarkdownViewer content={model.readmeContent} />
           : <EmptyStatePrompt />
       }
     </Box>
