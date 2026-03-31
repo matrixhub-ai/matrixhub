@@ -15,12 +15,10 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 	"slices"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
@@ -82,19 +80,6 @@ func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r
 	if !slices.Contains(readMethods, method) {
 		act = actionWrite
 	}
-
-	prj, err := projectRepo.GetProjectByName(r.Context(), projectName)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return true
-		}
-		log.Errorf("Failed to get project by name: %s", err)
-		return false
-	}
-
-	if prj.IsPublic() && act == actionRead {
-		return true
-	}
 	var permission role.Permission
 	if resource == "" {
 		permission = role.ModelPull
@@ -104,7 +89,7 @@ func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r
 	if permission == "" {
 		return false
 	}
-	passed, err := authzSvc.VerifyProjectPermission(r.Context(), prj.ID, permission)
+	passed, err := authzSvc.VerifyProjectPermissionByName(r.Context(), projectName, permission)
 	if err != nil {
 		log.Errorf("Failed to verify project permission: %s", err)
 		return false
