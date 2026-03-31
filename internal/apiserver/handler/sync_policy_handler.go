@@ -397,8 +397,6 @@ func resourceTypesToString(types []v1alpha1.ResourceType) string {
 			result = append(result, "model")
 		case v1alpha1.ResourceType_RESOURCE_TYPE_DATASET:
 			result = append(result, "dataset")
-		case v1alpha1.ResourceType_RESOURCE_TYPE_ALL:
-			return "all"
 		}
 	}
 	if len(result) == 0 {

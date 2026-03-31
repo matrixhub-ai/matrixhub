@@ -77,7 +77,6 @@ const (
 	ResourceType_RESOURCE_TYPE_UNSPECIFIED ResourceType = 0
 	ResourceType_RESOURCE_TYPE_MODEL       ResourceType = 1
 	ResourceType_RESOURCE_TYPE_DATASET     ResourceType = 2
-	ResourceType_RESOURCE_TYPE_ALL         ResourceType = 3
 )
 
 // Enum value maps for ResourceType.
@@ -86,13 +85,11 @@ var (
 		0: "RESOURCE_TYPE_UNSPECIFIED",
 		1: "RESOURCE_TYPE_MODEL",
 		2: "RESOURCE_TYPE_DATASET",
-		3: "RESOURCE_TYPE_ALL",
 	}
 	ResourceType_value = map[string]int32{
 		"RESOURCE_TYPE_UNSPECIFIED": 0,
 		"RESOURCE_TYPE_MODEL":       1,
 		"RESOURCE_TYPE_DATASET":     2,
-		"RESOURCE_TYPE_ALL":         3,
 	}
 )
 
@@ -1716,12 +1713,11 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x0eSyncPolicyType\x12 \n" +
 	"\x1cSYNC_POLICY_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSYNC_POLICY_TYPE_PULL_BASE\x10\x01\x12\x1e\n" +
-	"\x1aSYNC_POLICY_TYPE_PUSH_BASE\x10\x02*x\n" +
+	"\x1aSYNC_POLICY_TYPE_PUSH_BASE\x10\x02*a\n" +
 	"\fResourceType\x12\x1d\n" +
 	"\x19RESOURCE_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13RESOURCE_TYPE_MODEL\x10\x01\x12\x19\n" +
-	"\x15RESOURCE_TYPE_DATASET\x10\x02\x12\x15\n" +
-	"\x11RESOURCE_TYPE_ALL\x10\x03*`\n" +
+	"\x15RESOURCE_TYPE_DATASET\x10\x02*`\n" +
 	"\vTriggerType\x12\x1c\n" +
 	"\x18TRIGGER_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13TRIGGER_TYPE_MANUAL\x10\x01\x12\x1a\n" +

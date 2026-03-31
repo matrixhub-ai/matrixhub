@@ -71,7 +71,6 @@ enum ResourceType {
     RESOURCE_TYPE_UNSPECIFIED = 0;
     RESOURCE_TYPE_MODEL = 1;
     RESOURCE_TYPE_DATASET = 2;
-    RESOURCE_TYPE_ALL = 3;
 }
 
 message PullBasePolicy {

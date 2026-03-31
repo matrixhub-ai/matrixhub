@@ -631,8 +631,7 @@
       "enum": [
         "RESOURCE_TYPE_UNSPECIFIED",
         "RESOURCE_TYPE_MODEL",
-        "RESOURCE_TYPE_DATASET",
-        "RESOURCE_TYPE_ALL"
+        "RESOURCE_TYPE_DATASET"
       ],
       "default": "RESOURCE_TYPE_UNSPECIFIED"
     },

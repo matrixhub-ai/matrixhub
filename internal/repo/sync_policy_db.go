@@ -103,13 +103,17 @@ func (r *syncPolicyDB) GenerateSyncTaskAndSyncJobs(ctx context.Context, policy *
 	// Create sync jobs based on resource types
 	var jobs []*syncjob.SyncJob
 
+	// Parse remote project and resource name from policy.ResourceName
+	// e.g., "HuggingFaceTB/test/SmolLM2-135M-Instruct" -> project="HuggingFaceTB", resource="test/SmolLM2-135M-Instruct"
+	remoteProjectName, remoteResourceName := parseRemoteResourceName(policy.TargetResourceName)
+
 	for _, resourceType := range resourceTypes {
 		job := &syncjob.SyncJob{
 			RemoteRegistryID:   policy.SourceRegistryID,
-			RemoteProjectName:  policy.ResourceName,
-			RemoteResourceName: policy.ResourceName,
+			RemoteProjectName:  remoteProjectName,
+			RemoteResourceName: remoteResourceName,
 			ProjectName:        policy.TargetProjectName,
-			ResourceName:       extractModelName(getTargetResourceName(policy.ResourceName, policy.TargetResourceName)),
+			ResourceName:       policy.ResourceName,
 			ResourceType:       resourceType,
 			SyncType:           "pull",
 			CompletePercents:   0,
@@ -145,20 +149,14 @@ func parseResourceTypes(resourceTypes string) []string {
 	return result
 }
 
-// getTargetResourceName returns the target resource name, defaulting to source name if not specified
-func getTargetResourceName(sourceName, targetName string) string {
-	if targetName != "" {
-		return targetName
+// parseRemoteResourceName parses a full resource path into project and resource names
+// e.g., "HuggingFaceTB/test/SmolLM2-135M-Instruct" -> project="HuggingFaceTB", resource="test/SmolLM2-135M-Instruct"
+func parseRemoteResourceName(fullPath string) (string, string) {
+	parts := strings.SplitN(fullPath, "/", 2)
+	if len(parts) >= 2 {
+		return parts[0], parts[1]
 	}
-	return sourceName
-}
-
-// extractModelName extracts the model name from a full path like "org/model", returning just "model"
-func extractModelName(fullName string) string {
-	if idx := strings.LastIndex(fullName, "/"); idx >= 0 {
-		return fullName[idx+1:]
-	}
-	return fullName
+	return fullPath, ""
 }
 
 // Ensure syncPolicyDB implements ISyncPolicyRepo

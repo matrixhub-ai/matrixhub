@@ -85,7 +85,7 @@ func (sjs *SyncJobService) ExecuteSyncJob(ctx context.Context, syncJob *SyncJob)
 	}
 	gr := &git.GitRepository{
 		RemoteRegistryURL:  reg.URL,
-		RemoteProjectName:  syncJob.ProjectName,
+		RemoteProjectName:  syncJob.RemoteProjectName,
 		RemoteResourceName: syncJob.RemoteResourceName,
 		ProjectName:        syncJob.ProjectName,
 		ResourceName:       syncJob.ResourceName,
