@@ -2,8 +2,10 @@ import {
   ActionIcon,
   Alert,
   Button,
+  Flex,
   Group,
   Radio,
+  rem,
   Stack,
   Text,
   TextInput,
@@ -25,6 +27,7 @@ import z from 'zod'
 
 import { AccessTokenTable } from '@/features/profile/components/AccessTokenTable'
 import { profileKeys, useAccessTokens } from '@/features/profile/profile.query'
+import { CopyValueButton } from '@/shared/components/CopyValueButton'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 
 const validityRadios = [
@@ -51,6 +54,11 @@ export function AccessTokenPage() {
   const [createOpened, {
     open: openCreate, close: closeCreate,
   }] = useDisclosure(false)
+
+  const [copyOpened, {
+    open: openCopy, close: closeCopy,
+  }] = useDisclosure(false)
+
   const [validityValue, setValidityValue] = useState<'never' | 'custom'>('never')
 
   const handleRefresh = () => {
@@ -62,6 +70,8 @@ export function AccessTokenPage() {
   const expireAtSchema = z.string().min(1, { error: t('common.validation.fieldRequired', { field: t('profile.expireTime') }) })
     .refine(value => dayjs(value).startOf('day').isAfter(dayjs().startOf('day')), { error: t('profile.expireTimeError') })
 
+  const [newToken, setNewToken] = useState<string>('')
+
   const {
     mutate: createToken, isPending: isCreating,
   } = useMutation({
@@ -70,8 +80,13 @@ export function AccessTokenPage() {
       successMessage: t('profile.tokenCreated'),
       invalidates: [profileKeys.accessTokens],
     },
-    onSuccess: () => {
-      closeCreate()
+    onSuccess: (res) => {
+      setNewToken(res.token ?? '')
+      handleCreateClose()
+
+      if (res.token) {
+        openCopy()
+      }
     },
   })
 
@@ -100,6 +115,11 @@ export function AccessTokenPage() {
     closeCreate()
     form.reset()
     setValidityValue('never')
+  }
+
+  const handleCopyClose = () => {
+    closeCopy()
+    setNewToken('')
   }
 
   return (
@@ -199,6 +219,40 @@ export function AccessTokenPage() {
             )}
           </form.Field>
         )}
+      </ModalWrapper>
+
+      <ModalWrapper
+        title={t('profile.copyTitle')}
+        opened={copyOpened}
+        onClose={handleCopyClose}
+        onConfirm={handleCopyClose}
+        footer={(
+          <Group justify="flex-end">
+            <Button onClick={handleCopyClose}>
+              {t('common.confirm')}
+            </Button>
+          </Group>
+        )}
+        size="md"
+      >
+        <Stack gap="md">
+          <Alert
+            variant="light"
+            color="cyan"
+            bdrs="sm"
+            p={12}
+            lh={rem(20)}
+            styles={{ icon: { marginRight: 8 } }}
+            icon={<IconInfoCircle size={20} />}
+          >
+            {t('profile.copyDescription')}
+          </Alert>
+
+          <Flex bg="gray.0" c="gray.9" justify="space-between" px={11} py={8} bdrs="md" lh={rem(20)}>
+            <Text size="sm">{newToken}</Text>
+            <CopyValueButton color="dark" iconSize={14} value={newToken} />
+          </Flex>
+        </Stack>
       </ModalWrapper>
     </Stack>
   )
