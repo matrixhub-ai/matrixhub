@@ -58,6 +58,7 @@ function ResetUserPasswordModal({
       title={t('routes.admin.users.resetPasswordModal.title')}
       confirmLoading={form.state.isSubmitting}
       onConfirm={form.handleSubmit}
+      size="xs"
     >
 
       <Stack gap="lg">

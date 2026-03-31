@@ -39,6 +39,7 @@ function DeleteUserModal({
 
   return (
     <ModalWrapper
+      size="sm"
       opened={opened}
       onClose={onClose}
       type="danger"

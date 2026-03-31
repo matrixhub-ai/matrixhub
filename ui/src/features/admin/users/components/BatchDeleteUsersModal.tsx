@@ -55,6 +55,7 @@ export function BatchDeleteUsersModal({
 
   return (
     <ModalWrapper
+      size="sm"
       opened={opened}
       onClose={onClose}
       type="danger"
