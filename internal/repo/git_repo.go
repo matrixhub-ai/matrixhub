@@ -458,7 +458,7 @@ func (g *gitRepo) CloneFromRemote(ctx context.Context, gitRepository *git.GitRep
 		return fmt.Errorf("repository already exists")
 	}
 
-	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.ProjectName + "/" + gitRepository.ResourceName
+	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
 	sourceURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
 	_, err := repository.InitMirror(ctx, gitPath, sourceURL)
 	if err != nil {
@@ -469,7 +469,7 @@ func (g *gitRepo) CloneFromRemote(ctx context.Context, gitRepository *git.GitRep
 
 func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepository) error {
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
-	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.ProjectName + "/" + gitRepository.ResourceName
+	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
 	sourceURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
 	if !repository.IsRepository(gitPath) {
 		_, err := repository.InitMirror(ctx, gitPath, sourceURL)
