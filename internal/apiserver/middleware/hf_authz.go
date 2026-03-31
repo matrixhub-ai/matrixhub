@@ -21,7 +21,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
@@ -55,14 +54,14 @@ var (
 	}
 )
 
-func HFAuthzMiddleware(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
+func HFAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if hfPublicMethods[r.URL.Path] {
 				next.ServeHTTP(w, r)
 				return
 			}
-			if !checkPerm(projectRepo, authzSvc, r) {
+			if !checkPerm(authzSvc, r) {
 				http.Error(w, "permission denied", http.StatusForbidden)
 				return
 			}
@@ -72,7 +71,7 @@ func HFAuthzMiddleware(projectRepo project.IProjectRepo, authzSvc authz.IAuthzSe
 	}
 }
 
-func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r *http.Request) bool {
+func checkPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
 	vars := mux.Vars(r)
 	projectName, resource := vars["namespace"], vars["repoType"]
 	method := r.Method
@@ -86,8 +85,9 @@ func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r
 	} else {
 		permission = resourcePermissions[resource][act]
 	}
+	// todo check no resource permission
 	if permission == "" {
-		return false
+		return true
 	}
 	passed, err := authzSvc.VerifyProjectPermissionByName(r.Context(), projectName, permission)
 	if err != nil {
