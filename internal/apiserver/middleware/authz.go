@@ -28,7 +28,6 @@ import (
 // methodPermissions maps GRPC methods to required permissions
 var methodPermissions = map[string]role.Permission{
 	// User management
-	"/matrixhub.v1alpha1.Users/ListUsers":         role.UserGet,
 	"/matrixhub.v1alpha1.Users/GetUser":           role.UserGet,
 	"/matrixhub.v1alpha1.Users/CreateUser":        role.UserCreate,
 	"/matrixhub.v1alpha1.Users/SetUserSysAdmin":   role.UserAuthorize,

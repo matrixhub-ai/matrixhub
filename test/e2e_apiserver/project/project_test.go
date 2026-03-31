@@ -709,13 +709,6 @@ var _ = Describe("Project", Label("project"), func() {
 		})
 
 		Context("Platform-level permission", func() {
-			It("should deny normal user from listing users", Label("L00034"), func() {
-				viewerUserApi := tools.CreateUserClientWithCookie(viewerCookie)
-				_, _, err := viewerUserApi.UsersListUsers(ctx, nil)
-				Expect(err).To(HaveOccurred(), "Normal user should not be able to list users")
-				GinkgoWriter.Printf("Normal user correctly denied listing users: %v\n", err)
-			})
-
 			It("should deny normal user from creating users", Label("L00035"), func() {
 				viewerUserApi := tools.CreateUserClientWithCookie(viewerCookie)
 				_, _, err := viewerUserApi.UsersCreateUser(ctx, v1alpha1user.V1alpha1CreateUserRequest{
