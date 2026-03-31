@@ -10,6 +10,7 @@ data:
     debug: {{ .Values.apiserver.debug }}
     log:
       level: {{ .Values.apiserver.logLevel }}
+    dataDir: /data/matrixhub
     database:
       driver: {{ .Values.apiserver.database.driver }}
       accessType: {{ .Values.apiserver.database.accessType }}

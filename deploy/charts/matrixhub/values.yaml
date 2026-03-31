@@ -73,6 +73,17 @@ apiserver:
   # -- api server port
   port: 9527
 
+  # -- persistence configuration for git storage (models, datasets, lfs)
+  persistence:
+    # -- enable persistence
+    enabled: true
+    # -- storage class name
+    storageClass: ""
+    # -- persistence size
+    size: 50Gi
+    # -- existing claim name (if set, no new PVC will be created)
+    existingClaim: ""
+
 # -- mysql configuration (only when global.storage.apiserver.builtIn is true)
 mysql:
   # -- mysql image registry

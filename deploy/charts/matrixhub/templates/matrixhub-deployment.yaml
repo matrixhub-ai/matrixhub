@@ -46,6 +46,10 @@ spec:
             - mountPath: /etc/matrixhub/config.yaml
               name: {{ include "matrixhub.fullname" . }}-config
               subPath: config.yaml
+            {{- if .Values.apiserver.persistence.enabled }}
+            - mountPath: /data/matrixhub
+              name: {{ include "matrixhub.fullname" . }}-apiserver-data
+            {{- end }}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           ports:
@@ -75,6 +79,11 @@ spec:
         - name: {{ include "matrixhub.fullname" . }}-config
           configMap:
             name: {{ include "matrixhub.fullname" . }}-config
+        {{- if .Values.apiserver.persistence.enabled }}
+        - name: {{ include "matrixhub.fullname" . }}-apiserver-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.apiserver.persistence.existingClaim | default (printf "%s-apiserver-data" (include "matrixhub.fullname" .)) }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

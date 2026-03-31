@@ -1,0 +1,18 @@
+{{- if and .Values.apiserver.persistence.enabled (not .Values.apiserver.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "matrixhub.fullname" . }}-apiserver-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "matrixhub.apiserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.apiserver.persistence.size }}
+  {{- if .Values.apiserver.persistence.storageClass }}
+  storageClassName: {{ .Values.apiserver.persistence.storageClass }}
+  {{- end }}
+{{- end }}
