@@ -79,6 +79,17 @@ func (m *CreateProjectRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := _CreateProjectRequest_Type_NotInLookup[m.GetType()]; ok {
+		err := CreateProjectRequestValidationError{
+			field:  "Type",
+			reason: "value must not be in list [PROJECT_TYPE_UNSPECIFIED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if _, ok := ProjectType_name[int32(m.GetType())]; !ok {
 		err := CreateProjectRequestValidationError{
 			field:  "Type",
@@ -202,6 +213,10 @@ var _ interface {
 } = CreateProjectRequestValidationError{}
 
 var _CreateProjectRequest_Name_Pattern = regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$")
+
+var _CreateProjectRequest_Type_NotInLookup = map[ProjectType]struct{}{
+	0: {},
+}
 
 // Validate checks the field values on CreateProjectResponse with the rules
 // defined in the proto definition for this message. If any rules are

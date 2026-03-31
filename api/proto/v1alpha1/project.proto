@@ -69,7 +69,10 @@ message CreateProjectRequest {
     min_len: 2,
     pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$"
   }];
-  ProjectType type = 2 [(validate.rules).enum.defined_only = true];
+  ProjectType type = 2 [(validate.rules).enum = {
+    defined_only: true,
+    not_in: [0]
+  }];
   google.protobuf.Int32Value registry_id = 3;
   string organization = 4;
 }

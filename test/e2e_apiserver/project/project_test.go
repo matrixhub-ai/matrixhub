@@ -41,10 +41,12 @@ var _ = Describe("Project", Label("project"), func() {
 	Context("CreateProject API", func() {
 		It("should create a project successfully", Label("L00001"), func() {
 			projectName := tools.GenerateTestProjectName("project")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("Creating project: %v\n", projectName)
 
 			resp, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -70,10 +72,12 @@ var _ = Describe("Project", Label("project"), func() {
 				tools.GenerateTestProjectName("test"),
 				tools.GenerateTestProjectName("12"),
 			}
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
 			for _, name := range validNames {
 				_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-					Name: name,
+					Name:  name,
+					Type_: &projectType,
 				})
 				Expect(err).NotTo(HaveOccurred(), "project %s should be created successfully", name)
 				_, _, _ = projectsApi.ProjectsDeleteProject(ctx, name)
@@ -139,10 +143,12 @@ var _ = Describe("Project", Label("project"), func() {
 
 		It("should fail to create duplicate project name", Label("L00022"), func() {
 			projectName := tools.GenerateTestProjectName("duplicate-test")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
 			// Create first project
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			defer func() {
@@ -151,21 +157,37 @@ var _ = Describe("Project", Label("project"), func() {
 
 			// Try to create duplicate
 			_, _, err = projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).To(HaveOccurred(), "duplicate project should fail")
 
 			GinkgoWriter.Printf("Duplicate project error: %v\n", err)
+		})
+
+		It("should fail to create project with unspecified type", Label("L00045"), func() {
+			projectName := tools.GenerateTestProjectName("unspecified-type")
+			unspecifiedType := v1alpha1project.UNSPECIFIED_V1alpha1ProjectType
+
+			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
+				Name:  projectName,
+				Type_: &unspecifiedType,
+			})
+			Expect(err).To(HaveOccurred(), "project with unspecified type should fail")
+
+			GinkgoWriter.Printf("Unspecified type error: %v\n", err)
 		})
 	})
 
 	Context("GetProject API", func() {
 		It("should get an existing project", Label("L00003"), func() {
 			projectName := tools.GenerateTestProjectName("project")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("Get project test: %v\n", projectName)
 
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			defer func() {
@@ -191,11 +213,13 @@ var _ = Describe("Project", Label("project"), func() {
 	Context("ListProjects API", func() {
 		It("should list projects successfully", Label("L00005"), func() {
 			projectName := tools.GenerateTestProjectName("project")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("List projects test: %v\n", projectName)
 
 			// Create a project first
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			defer func() {
@@ -225,10 +249,12 @@ var _ = Describe("Project", Label("project"), func() {
 
 		It("should filter projects by name", Label("L00006"), func() {
 			projectName := tools.GenerateTestProjectName("filter-test")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
 			// Create a project
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			defer func() {
@@ -251,11 +277,13 @@ var _ = Describe("Project", Label("project"), func() {
 	Context("DeleteProject API", func() {
 		It("should delete an existing project", Label("L00007"), func() {
 			projectName := tools.GenerateTestProjectName("delete-test")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("Delete project test: %v\n", projectName)
 
 			// Create project
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -343,8 +371,10 @@ var _ = Describe("Project", Label("project"), func() {
 
 		BeforeEach(func() {
 			projectName = tools.GenerateTestProjectName("member-test")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -483,6 +513,38 @@ var _ = Describe("Project", Label("project"), func() {
 			_, _, _ = projectsApi.ProjectsRemoveProjectMembers(ctx, projectName, v1alpha1project.ProjectsRemoveProjectMembersBody{
 				Members: []v1alpha1project.V1alpha1MemberToRemove{
 					{MemberId: memberID, MemberType: &memberToRemove},
+				},
+			})
+		})
+
+		It("should fail to add duplicate member to project", Label("L00027"), func() {
+			memberID, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("duplicate"), "Test@123456", false)
+			Expect(err).NotTo(HaveOccurred())
+			memberType := v1alpha1project.USER_V1alpha1MemberType
+			role := v1alpha1project.VIEWER_V1alpha1ProjectRoleType
+
+			// Add member first time
+			_, _, err = projectsApi.ProjectsAddProjectMemberWithRole(ctx, projectName, v1alpha1project.ProjectsAddProjectMemberWithRoleBody{
+				MemberId:   memberID,
+				MemberType: &memberType,
+				Role:       &role,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Try to add same member again
+			_, _, err = projectsApi.ProjectsAddProjectMemberWithRole(ctx, projectName, v1alpha1project.ProjectsAddProjectMemberWithRoleBody{
+				MemberId:   memberID,
+				MemberType: &memberType,
+				Role:       &role,
+			})
+			Expect(err).To(HaveOccurred(), "adding duplicate member should fail")
+
+			GinkgoWriter.Printf("Duplicate member error: %v\n", err)
+
+			// Cleanup
+			_, _, _ = projectsApi.ProjectsRemoveProjectMembers(ctx, projectName, v1alpha1project.ProjectsRemoveProjectMembersBody{
+				Members: []v1alpha1project.V1alpha1MemberToRemove{
+					{MemberId: memberID, MemberType: &memberType},
 				},
 			})
 		})
@@ -725,8 +787,10 @@ var _ = Describe("Project", Label("project"), func() {
 
 			BeforeEach(func() {
 				projectName = tools.GenerateTestProjectName("viewer-perm")
+				projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-					Name: projectName,
+					Name:  projectName,
+					Type_: &projectType,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -788,8 +852,10 @@ var _ = Describe("Project", Label("project"), func() {
 
 			BeforeEach(func() {
 				projectName = tools.GenerateTestProjectName("editor-perm")
+				projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-					Name: projectName,
+					Name:  projectName,
+					Type_: &projectType,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -834,8 +900,10 @@ var _ = Describe("Project", Label("project"), func() {
 
 			BeforeEach(func() {
 				projectName = tools.GenerateTestProjectName("padmin-perm")
+				projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-					Name: projectName,
+					Name:  projectName,
+					Type_: &projectType,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -908,8 +976,10 @@ var _ = Describe("Project", Label("project"), func() {
 
 			// Any logged-in user should be able to create projects (project.create in all roles)
 			projectName := tools.GenerateTestProjectName("viewer-project")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			_, _, err = viewerProjectApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred(), "Logged-in user should be able to create project")
 			defer func() {
@@ -921,10 +991,12 @@ var _ = Describe("Project", Label("project"), func() {
 
 		It("should allow project admin to add members", Label("L00032"), func() {
 			projectName := tools.GenerateTestProjectName("perm-test")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
 			// Create project as admin
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			defer func() {

@@ -70,8 +70,10 @@ var _ = Describe("Model", Label("model"), func() {
 
 		BeforeEach(func() {
 			projectName = tools.GenerateTestProjectName("model-crud")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -685,8 +687,10 @@ var _ = Describe("Model", Label("model"), func() {
 
 			BeforeEach(func() {
 				projectName = tools.GenerateTestProjectName("m-viewer-perm")
+				projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-					Name: projectName,
+					Name:  projectName,
+					Type_: &projectType,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -740,8 +744,10 @@ var _ = Describe("Model", Label("model"), func() {
 
 			BeforeEach(func() {
 				projectName = tools.GenerateTestProjectName("m-editor-perm")
+				projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-					Name: projectName,
+					Name:  projectName,
+					Type_: &projectType,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -795,8 +801,10 @@ var _ = Describe("Model", Label("model"), func() {
 
 			BeforeEach(func() {
 				projectName = tools.GenerateTestProjectName("m-padmin-perm")
+				projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-					Name: projectName,
+					Name:  projectName,
+					Type_: &projectType,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -846,8 +854,10 @@ var _ = Describe("Model", Label("model"), func() {
 
 		It("should deny non-member from accessing model in project", Label("M00048"), func() {
 			projectName := tools.GenerateTestProjectName("m-nonmember")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			defer func() {
@@ -1013,8 +1023,10 @@ var _ = Describe("Model", Label("model"), func() {
 
 		BeforeEach(func() {
 			projectName = tools.GenerateTestProjectName("model-setting")
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
-				Name: projectName,
+				Name:  projectName,
+				Type_: &projectType,
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})

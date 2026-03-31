@@ -16,11 +16,13 @@ package handler
 
 import (
 	"context"
+	"errors"
 
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"gorm.io/gorm"
 
 	projectv1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
@@ -255,6 +257,9 @@ func (h *ProjectHandler) AddProjectMemberWithRole(ctx context.Context, req *proj
 	}
 
 	if err := h.projectRepo.AddProjectMemberWithRole(ctx, pm); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, status.Error(codes.AlreadyExists, "member already exists in this project")
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 

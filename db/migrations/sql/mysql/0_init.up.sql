@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `members_roles_projects`
     PRIMARY KEY (`id`),
     INDEX `project_id_index` (`project_id`),
     INDEX `member_id_index` (`member_id`),
-    UNIQUE KEY `composite_index` (`member_id`, `member_type`, `role_id`, `project_id`),
+    UNIQUE KEY `uniq_project_member` (`project_id`, `member_id`, `member_type`),
     CONSTRAINT `fk_members_roles_projects_project_id` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_members_roles_projects_role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
