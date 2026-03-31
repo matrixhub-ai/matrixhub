@@ -9,6 +9,8 @@ import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { getErrorMessage } from '@/queryClient'
+
 interface RouterErrorComponentProps {
   error: unknown
 }
@@ -45,7 +47,7 @@ export function RouterErrorComponent({ error }: RouterErrorComponentProps) {
           w="100%"
         >
           <Text size="sm" style={{ wordBreak: 'break-word' }}>
-            {error instanceof Error ? error.message : String(error)}
+            {getErrorMessage(error)}
           </Text>
         </Alert>
         <Group>
