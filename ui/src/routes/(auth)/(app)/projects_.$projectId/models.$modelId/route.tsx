@@ -3,6 +3,7 @@ import {
   Button,
   Tabs,
 } from '@mantine/core'
+import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb.ts'
 import { IconDownload, IconCloudUpload } from '@tabler/icons-react'
 import {
   Outlet, useMatchRoute, createFileRoute, linkOptions, Link, getRouteApi,
@@ -55,7 +56,7 @@ function ModelDetailLayout() {
     model, projectRoles,
   } = useLoaderData()
 
-  const hasSettingsRight = userData.isAdmin || projectRoles.projectRoles?.[projectId] === 'ROLE_TYPE_PROJECT_ADMIN'
+  const hasSettingsRight = userData.isAdmin || projectRoles.projectRoles?.[projectId] === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
 
   const tabRoutes = linkOptions([
     {

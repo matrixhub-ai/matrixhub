@@ -35,6 +35,7 @@ export function ModelTreePage() {
   const { data } = useQuery(modelCommitsQueryOptions(projectId, modelId, {
     revision: ref,
     page: 1,
+    pageSize: 1,
   }))
 
   const files = useMemo(() => items ?? [], [items])

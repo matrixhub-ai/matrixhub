@@ -16,7 +16,7 @@
     "copied": "Copied"
   },
   "commitDetail": {
-    "committedOn": "commited on ",
+    "committedOn": "committed on ",
     "emptyDiff": "No diff content",
     "loadingDiff": "Rendering diff...",
     "diffLimitNoticeWithLink": "This view is limited to {{count}} files because it contains too many changes. <0>See raw diff</0>"

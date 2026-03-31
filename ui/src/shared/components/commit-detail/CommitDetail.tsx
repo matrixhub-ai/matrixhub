@@ -46,6 +46,16 @@ const EMPTY_DIFF_RENDER_STATE: DiffRenderState = {
   loading: false,
 }
 
+function EmptyDiffPrompt() {
+  const { t } = useTranslation()
+
+  return (
+    <Text size="sm" c="dimmed">
+      {t('shared.commitDetail.emptyDiff')}
+    </Text>
+  )
+}
+
 export function CommitDetail({ commit }: CommitDetailProps) {
   const { t } = useTranslation()
   const hasRawDiff = Boolean(commit?.diff)
@@ -178,18 +188,20 @@ export function CommitDetail({ commit }: CommitDetailProps) {
                       )
                     : null}
 
-                  <Box
-                  // diff2html returns escaped markup intended for direct rendering.
-                  // eslint-disable-next-line @eslint-react/dom/no-dangerously-set-innerhtml
-                    dangerouslySetInnerHTML={{ __html: diffRender.html }}
-                  />
+                  {
+                    diffRender.html
+                      ? (
+                          <Box
+                          // diff2html returns escaped markup intended for direct rendering.
+                          // eslint-disable-next-line @eslint-react/dom/no-dangerously-set-innerhtml
+                            dangerouslySetInnerHTML={{ __html: diffRender.html }}
+                          />
+                        )
+                      : <EmptyDiffPrompt />
+                  }
                 </>
               )
-          : (
-              <Text size="sm" c="dimmed">
-                {t('shared.commitDetail.emptyDiff')}
-              </Text>
-            )
+          : <EmptyDiffPrompt />
       }
     </Stack>
   )
