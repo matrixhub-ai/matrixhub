@@ -43,7 +43,7 @@ func NewRegistryHandler(repo registry.IRegistryRepo) IHandler {
 func (rh *RegistryHandler) RegisterToServer(options *ServerOptions) {
 	// Register GRPC Handler
 	registryv1alpha1.RegisterRegistriesServer(options.GRPCServer, rh)
-	if err := registryv1alpha1.RegisterRegistriesHandlerServer(context.Background(), options.GatewayMux, rh); err != nil {
+	if err := registryv1alpha1.RegisterRegistriesHandlerFromEndpoint(context.Background(), options.GatewayMux, options.GRPCAddr, options.GRPCDialOpt); err != nil {
 		log.Errorf("register handler error: %s", err.Error())
 	}
 }

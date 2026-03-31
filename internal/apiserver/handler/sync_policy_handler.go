@@ -43,7 +43,7 @@ func NewSyncPolicyHandler(syncPolicyService syncpolicy.ISyncPolicyService, regis
 func (h *SyncPolicyHandler) RegisterToServer(options *ServerOptions) {
 	// Register GRPC Handler
 	v1alpha1.RegisterSyncPolicyServer(options.GRPCServer, h)
-	if err := v1alpha1.RegisterSyncPolicyHandlerServer(context.Background(), options.GatewayMux, h); err != nil {
+	if err := v1alpha1.RegisterSyncPolicyHandlerFromEndpoint(context.Background(), options.GatewayMux, options.GRPCAddr, options.GRPCDialOpt); err != nil {
 		log.Errorf("register sync policy handler error: %s", err.Error())
 	}
 }

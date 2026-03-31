@@ -138,7 +138,7 @@ func datasetTreeEntryToProtoFile(entry *git.TreeEntry) *datasetv1alpha1.File {
 
 func (h *DatasetHandler) RegisterToServer(options *ServerOptions) {
 	datasetv1alpha1.RegisterDatasetsServer(options.GRPCServer, h)
-	if err := datasetv1alpha1.RegisterDatasetsHandlerServer(context.Background(), options.GatewayMux, h); err != nil {
+	if err := datasetv1alpha1.RegisterDatasetsHandlerFromEndpoint(context.Background(), options.GatewayMux, options.GRPCAddr, options.GRPCDialOpt); err != nil {
 		log.Errorf("dataset handler error: %s", err.Error())
 	}
 }
