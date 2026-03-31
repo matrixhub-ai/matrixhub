@@ -1,4 +1,5 @@
 import {
+  Anchor,
   Avatar,
   Group,
   Text,
@@ -14,6 +15,8 @@ import type { MRT_ColumnDef } from 'mantine-react-table'
 import type { ReactNode } from 'react'
 
 export interface MembersTableProps extends Omit<DataTableProps<ProjectMember>, 'columns'> {
+  currentRole?: ProjectRoleType
+  currentUsername?: string
   onEditRole: (member: ProjectMember) => void
   onRemove: (member: ProjectMember) => void
   toolbarExtra?: ReactNode
@@ -86,28 +89,35 @@ function ActionsCell({
 }: MemberCellProps) {
   const { t } = useTranslation()
   const meta = table.options.meta as {
+    currentUsername?: string
     onEditRole?: (member: ProjectMember) => void
     onRemove?: (member: ProjectMember) => void
   } | undefined
 
+  const isSelf = meta?.currentUsername === row.original.memberName
+
   return (
     <Group gap="md">
-      <Text
+      <Anchor
+        component="button"
+        type="button"
         size="sm"
-        c="blue"
-        style={{ cursor: 'pointer' }}
-        onClick={() => meta?.onEditRole?.(row.original)}
+        c={isSelf ? 'dimmed' : undefined}
+        style={isSelf ? { cursor: 'not-allowed' } : undefined}
+        onClick={isSelf ? undefined : () => meta?.onEditRole?.(row.original)}
       >
         {t('projects.detail.membersPage.actions.editRole')}
-      </Text>
-      <Text
+      </Anchor>
+      <Anchor
+        component="button"
+        type="button"
         size="sm"
-        c="blue"
-        style={{ cursor: 'pointer' }}
-        onClick={() => meta?.onRemove?.(row.original)}
+        c={isSelf ? 'dimmed' : undefined}
+        style={isSelf ? { cursor: 'not-allowed' } : undefined}
+        onClick={isSelf ? undefined : () => meta?.onRemove?.(row.original)}
       >
         {t('projects.detail.membersPage.actions.remove')}
-      </Text>
+      </Anchor>
     </Group>
   )
 }
@@ -120,6 +130,8 @@ export function MembersTable({
   searchValue,
   onSearchChange,
   onRefresh,
+  currentRole,
+  currentUsername,
   onEditRole,
   onRemove,
   onBatchDelete,
@@ -133,6 +145,8 @@ export function MembersTable({
   const {
     t,
   } = useTranslation()
+
+  const isAdmin = currentRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
 
   const columns: MRT_ColumnDef<ProjectMember>[] = [
     {
@@ -150,11 +164,13 @@ export function MembersTable({
       header: t('projects.detail.membersPage.table.roleType'),
       Cell: RoleTypeCell,
     },
-    {
-      id: 'actions',
-      header: t('projects.detail.membersPage.table.actions'),
-      Cell: ActionsCell,
-    },
+    ...isAdmin
+      ? [{
+          id: 'actions',
+          header: t('projects.detail.membersPage.table.actions'),
+          Cell: ActionsCell,
+        }]
+      : [],
   ]
 
   return (
@@ -174,7 +190,6 @@ export function MembersTable({
       selectedCount={selectedCount}
       toolbarExtra={toolbarExtra}
       onPageChange={onPageChange}
-      enableRowSelection
       rowSelection={rowSelection}
       onRowSelectionChange={onRowSelectionChange}
       getRowId={row => `${row.memberType}:${row.memberId}`}
@@ -182,6 +197,8 @@ export function MembersTable({
         enableBatchRowSelection: true,
         enableMultiRowSelection: true,
         meta: {
+          currentRole,
+          currentUsername,
           onEditRole,
           onRemove,
         },

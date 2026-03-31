@@ -1,9 +1,13 @@
 import { Box, Button } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import { IconPlus } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { useProjectRole } from '@/context/project-role-context'
+import { useCurrentUser } from '@/features/auth/auth.query'
 
 import { AddMemberModal } from '../components/AddMemberModal'
 import { EditRoleModal } from '../components/EditRoleModal'
@@ -21,6 +25,10 @@ export function ProjectMembersPage() {
   const { projectId } = membersRouteApi.useParams()
   const navigate = membersRouteApi.useNavigate()
   const search = membersRouteApi.useSearch()
+  const currentRole = useProjectRole(projectId)
+  const { data: currentUser } = useCurrentUser()
+
+  const isAdmin = currentRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
 
   const {
     data, isLoading, isFetching, refetch,
@@ -129,21 +137,26 @@ export function ProjectMembersPage() {
         searchValue={search.q}
         onSearchChange={handleSearchChange}
         onRefresh={handleRefresh}
+        currentRole={currentRole}
+        currentUsername={currentUser?.username}
         onEditRole={handleEditMember}
         onRemove={handleRemoveMember}
-        onBatchDelete={handleBatchRemove}
+        onBatchDelete={isAdmin ? handleBatchRemove : undefined}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         onPageChange={handlePageChange}
         selectedCount={selectedMembers.length}
-        toolbarExtra={(
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={addHandlers.open}
-          >
-            {t('projects.detail.membersPage.addMember')}
-          </Button>
-        )}
+        enableRowSelection={isAdmin}
+        toolbarExtra={isAdmin
+          ? (
+              <Button
+                leftSection={<IconPlus size={16} />}
+                onClick={addHandlers.open}
+              >
+                {t('projects.detail.membersPage.addMember')}
+              </Button>
+            )
+          : undefined}
       />
 
       <AddMemberModal
