@@ -1,7 +1,7 @@
 import { Box } from '@mantine/core'
 import Markdown from 'react-markdown'
 
-import classes from './FileViewer.module.css'
+import 'github-markdown-css/github-markdown.css'
 
 interface MarkdownViewerProps {
   content: string
@@ -9,7 +9,7 @@ interface MarkdownViewerProps {
 
 export function MarkdownViewer({ content }: MarkdownViewerProps) {
   return (
-    <Box className={classes.markdownRoot} p="md" bg="var(--mantine-color-default-hover)">
+    <Box className="markdown-body" p="md" bg="var(--mantine-color-default-hover)" bdrs="md">
       <Markdown>{content}</Markdown>
     </Box>
   )

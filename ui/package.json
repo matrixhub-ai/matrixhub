@@ -28,6 +28,7 @@
     "dayjs": "^1.11.20",
     "diff2html": "^3.4.56",
     "filesize": "^11.0.13",
+    "github-markdown-css": "^5.9.0",
     "human-format": "^1.2.1",
     "i18next": "^25.8.0",
     "i18next-browser-languagedetector": "^8.2.0",
