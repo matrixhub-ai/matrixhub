@@ -1,11 +1,14 @@
 import { type GetProjectRolesResponse } from '@matrixhub/api-ts/v1alpha1/current_user.pb'
 import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
-import { createContext, use } from 'react'
+import { use } from 'react'
+
+import { createNamedContext } from '@/utils/createNamedContext'
 
 import { CurrentUserContext } from './current-user-context'
 
-export const ProjectRolesContext = createContext<GetProjectRolesResponse | undefined>(undefined)
+export const ProjectRolesContext = createNamedContext<GetProjectRolesResponse | undefined>('ProjectRolesContext')
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useProjectRole(projectId: string) {
   const user = use(CurrentUserContext)
   const projectRoles = use(ProjectRolesContext)
