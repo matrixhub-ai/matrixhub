@@ -6,7 +6,8 @@ import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useCurrentUser, useProjectRole } from '@/features/auth/auth.query'
+import { useProjectRole } from '@/context/project-role-context'
+import { useCurrentUser } from '@/features/auth/auth.query'
 
 import { AddMemberModal } from '../components/AddMemberModal'
 import { EditRoleModal } from '../components/EditRoleModal'
@@ -162,7 +163,6 @@ export function ProjectMembersPage() {
         opened={addOpened}
         onClose={handleAddClose}
         projectId={projectId}
-        currentRole={currentRole}
       />
 
       <EditRoleModal
@@ -170,7 +170,6 @@ export function ProjectMembersPage() {
         onClose={handleEditClose}
         projectId={projectId}
         member={processMember}
-        currentRole={currentRole}
       />
 
       <RemoveMemberModal

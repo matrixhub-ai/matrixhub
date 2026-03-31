@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { useProjectRole } from '@/features/auth/auth.query'
+import { useProjectRole } from '@/context/project-role-context'
 import { projectDetailQueryOptions } from '@/features/projects/projects.query'
 
 import { Route as ProjectDatasetsRoute } from './datasets'
