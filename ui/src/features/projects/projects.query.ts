@@ -24,6 +24,7 @@ export const projectKeys = {
 
 // -- Query options factory --
 
+// list owned projects, support pagination and name filter
 export function projectsQueryOptions(search: ProjectsSearch) {
   return queryOptions({
     queryKey: projectKeys.list({
@@ -34,6 +35,7 @@ export function projectsQueryOptions(search: ProjectsSearch) {
       name: search.query || undefined,
       page: search.page,
       pageSize: DEFAULT_PROJECTS_PAGE_SIZE,
+      managedOnly: true,
     }),
   })
 }
