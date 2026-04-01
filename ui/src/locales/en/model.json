@@ -43,9 +43,18 @@
     },
     "recommended": {
       "title": "Featured Model",
-      "label": "Mark as featured model",
-      "confirmation": "Are you sure you want to mark model {{name}} as a featured model?",
-      "unsetConfirmation": "Are you sure you want to remove {{name}} from featured models?"
+      "set": {
+        "label": "Mark as featured model",
+        "confirmation": "Are you sure you want to mark model {{name}} as a featured model?",
+        "success": "Model marked as featured successfully",
+        "error": "Failed to mark model as featured"
+      },
+      "unset": {
+        "label": "Remove from featured models",
+        "confirmation": "Are you sure you want to remove {{name}} from featured models?",
+        "success": "Model removed from featured models successfully",
+        "error": "Failed to remove model from featured models"
+      }
     }
   },
   "create": {

@@ -43,9 +43,18 @@
     },
     "recommended": {
       "title": "热门模型",
-      "label": "设为热门模型",
-      "confirmation": "确定要设置模型 {{name}} 为热门模型吗？",
-      "unsetConfirmation": "确定要取消 {{name}} 的热门模型状态吗？"
+      "set": {
+        "label": "设为热门模型",
+        "confirmation": "确定要设置模型 {{name}} 为热门模型吗？",
+        "success": "设为热门模型成功",
+        "error": "设为热门模型失败"
+      },
+      "unset": {
+        "label": "取消热门模型",
+        "confirmation": "确定要取消 {{name}} 的热门模型状态吗？",
+        "success": "取消热门模型成功",
+        "error": "取消热门模型失败"
+      }
     }
   },
   "create": {

@@ -3,13 +3,14 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { SetPopularModelModal } from '@/features/models/components/SetPopularModelModal.tsx'
 import { deleteModelMutationOptions } from '@/features/models/models.mutation'
-import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { modelQueryOptions } from '@/features/models/models.query.ts'
 
 interface ModelSettingsPageProps {
   projectId: string
@@ -22,18 +23,14 @@ export function ModelSettingsPage({
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const [opened, {
-    open, close,
-  }] = useDisclosure(false)
-
-  const handleSetRecommended = async () => {
-    // TODO: backend not implemented yet
-  }
-
   const [inputValue, setInputValue] = useState('')
+  const { data: model } = useSuspenseQuery(modelQueryOptions(projectId, modelId))
+
+  const [popularModalOpened, popularModalHandlers] = useDisclosure(false)
   const deleteMutation = useMutation(deleteModelMutationOptions())
 
   const fullName = `${projectId}/${modelId}`
+  const isPopular = Boolean(model.popular)
 
   const handleDelete = async () => {
     await deleteMutation.mutateAsync({
@@ -65,23 +62,18 @@ export function ModelSettingsPage({
         </Text>
 
         <Checkbox
-          checked={false}
-          label={t('model.settings.recommended.label')}
-          onClick={open}
+          checked={model.popular}
+          label={t('model.settings.recommended.set.label')}
+          onClick={popularModalHandlers.open}
         />
 
-        <ModalWrapper
-          type="info"
-          size="sm"
-          title={t('model.settings.recommended.label')}
-          opened={opened}
-          onClose={close}
-          onConfirm={handleSetRecommended}
-        >
-          <Text fz="sm" lh={rem(20)}>
-            {t('model.settings.recommended.confirmation', { name: fullName })}
-          </Text>
-        </ModalWrapper>
+        <SetPopularModelModal
+          opened={popularModalOpened}
+          projectId={projectId}
+          modelId={modelId}
+          isPopular={isPopular}
+          onClose={popularModalHandlers.close}
+        />
       </Stack>
 
       <Stack
