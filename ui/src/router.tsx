@@ -4,6 +4,7 @@ import { queryClient } from './queryClient'
 import { routeTree } from './routeTree.gen.ts'
 import { RouterErrorComponent } from './shared/components/RouterErrorComponent'
 import { RouterPendingComponent } from './shared/components/RouterPendingComponent'
+import { adminContentViewportSelector, contentViewportSelector } from './utils/setContentViewport'
 
 const rawBasePath = import.meta.env.VITE_UI_BASE_PATH ?? '/'
 
@@ -11,7 +12,8 @@ export const router = createRouter({
   routeTree,
   scrollRestoration: true,
   scrollToTopSelectors: [
-    '[data-scroll-restoration-id="admin-content-scroll"]',
+    contentViewportSelector,
+    adminContentViewportSelector,
   ],
   basepath: rawBasePath,
   context: {
