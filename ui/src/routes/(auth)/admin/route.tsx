@@ -163,7 +163,6 @@ function AdminLayout() {
       >
         <ScrollArea
           type="auto"
-          offsetScrollbars="y"
           mih={0}
           flex={1}
           viewportRef={setAdminContentViewport}

@@ -14,18 +14,18 @@ function AppLayout() {
     <ScrollArea
       h="100%"
       type="auto"
-      offsetScrollbars="y"
-      scrollbars="y"
       viewportRef={setContentViewport}
     >
       <Box
+        w="86vw"
+        h="100%"
+        maw="1760px"
+        px="32px"
+        py="0"
+        my="0"
+        mx="auto"
+        miw="1100px"
         style={{
-          width: '86vw',
-          height: '100%',
-          maxWidth: '1760px',
-          minWidth: '1100px',
-          margin: '0 auto',
-          padding: '0 32px',
           boxSizing: 'content-box',
         }}
       >
