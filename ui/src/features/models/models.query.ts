@@ -6,9 +6,7 @@ import {
   Models,
 } from '@matrixhub/api-ts/v1alpha1/model.pb'
 import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
-import {
-  keepPreviousData, queryOptions, useQuery,
-} from '@tanstack/react-query'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants.ts'
 
@@ -223,27 +221,6 @@ export function useModelBlob(
 ) {
   return useQuery({
     ...modelBlobQueryOptions(projectId, modelName, params),
-  })
-}
-
-export function useModelCommits(
-  projectId: string,
-  modelName: string,
-  params: Pick<ListModelCommitsRequest, 'revision' | 'page' | 'pageSize'>,
-) {
-  return useQuery({
-    ...modelCommitsQueryOptions(projectId, modelName, params),
-    placeholderData: keepPreviousData,
-  })
-}
-
-export function useModelCommit(
-  projectId: string,
-  modelName: string,
-  commitId: string,
-) {
-  return useQuery({
-    ...modelCommitQueryOptions(projectId, modelName, commitId),
   })
 }
 

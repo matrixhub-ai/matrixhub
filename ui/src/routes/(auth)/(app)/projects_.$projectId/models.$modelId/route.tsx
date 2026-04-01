@@ -3,13 +3,14 @@ import {
   Button,
   Tabs,
 } from '@mantine/core'
+import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb.ts'
 import { IconDownload, IconCloudUpload } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
 import {
-  Outlet, useMatchRoute, createFileRoute, linkOptions, Link,
+  Outlet, useMatchRoute, createFileRoute, linkOptions, Link, getRouteApi,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
+import { useProjectRole } from '@/context/project-role-context.tsx'
 import { modelQueryOptions } from '@/features/models/models.query'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
@@ -22,6 +23,8 @@ import { Route as ModelTreeRoute } from './tree/$ref/$'
 
 import { Route as ModelIndexRoute } from './index'
 
+const { useLoaderData } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId')
+
 export const Route = createFileRoute(
   '/(auth)/(app)/projects_/$projectId/models/$modelId',
 )({
@@ -29,7 +32,9 @@ export const Route = createFileRoute(
   loader: async ({
     context, params,
   }) => {
-    return context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId))
+    const model = await context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId))
+
+    return { model }
   },
 })
 
@@ -39,10 +44,10 @@ function ModelDetailLayout() {
     projectId, modelId,
   } = Route.useParams()
 
-  const { data: model } = useSuspenseQuery(modelQueryOptions(projectId, modelId))
+  const { model } = useLoaderData()
 
-  // FIXME: project roles should get from context
-  const hasProjectRole = true
+  const projectRole = useProjectRole(projectId)
+  const hasSettingsRight = projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
 
   const tabRoutes = linkOptions([
     {
@@ -65,7 +70,7 @@ function ModelDetailLayout() {
         _splat: '',
       },
     },
-    ...(hasProjectRole
+    ...(hasSettingsRight
       ? [{
           id: 'settings',
           label: t('model.detail.setting'),

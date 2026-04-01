@@ -70,6 +70,14 @@ export function RevisionSelect({
       value={selectedRevisionValue}
       data={revisionOptions}
       disabled={revisionOptions.length === 0}
+      styles={{
+        input: {
+          fontSize: 'var(--mantine-font-size-sm)',
+        },
+        option: {
+          fontSize: 'var(--mantine-font-size-sm)',
+        },
+      }}
       searchable
       onChange={(value, option) => {
         if (!value || !onRevisionChange) {

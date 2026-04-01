@@ -2,10 +2,11 @@ import {
   Flex, Group,
   Stack,
 } from '@mantine/core'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { getRouteApi, linkOptions } from '@tanstack/react-router'
 
 import { ModelRevisionSelect } from '@/features/models/components/ModelRevisionSelect.tsx'
-import { useModelCommits } from '@/features/models/models.query'
+import { modelCommitsQueryOptions } from '@/features/models/models.query'
 import { CommitsTable } from '@/shared/components/CommitsTable'
 import { PathBreadcrumbs } from '@/shared/components/PathBreadcrumbs.tsx'
 
@@ -22,9 +23,12 @@ export function ModelCommitsPage() {
 
   const {
     data, isPending,
-  } = useModelCommits(projectId, modelId, {
-    revision: ref,
-    page,
+  } = useQuery({
+    ...modelCommitsQueryOptions(projectId, modelId, {
+      revision: ref,
+      page,
+    }),
+    placeholderData: keepPreviousData,
   })
 
   const onPageChange = (page: number) => {
@@ -37,7 +41,7 @@ export function ModelCommitsPage() {
   }
 
   return (
-    <Stack pt="sm" pb="lg">
+    <Stack pt="sm" gap="sm">
       <Flex justify="space-between" align="center" wrap="nowrap">
         <Group gap="md" wrap="nowrap">
           <ModelRevisionSelect

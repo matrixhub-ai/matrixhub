@@ -27,7 +27,7 @@ export function ModelSettingsPage({
   }] = useDisclosure(false)
 
   const handleSetRecommended = async () => {
-    // TODO: set recommended api
+    // TODO: backend not implemented yet
   }
 
   const [inputValue, setInputValue] = useState('')
