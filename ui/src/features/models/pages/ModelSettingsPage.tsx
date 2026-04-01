@@ -4,7 +4,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -12,16 +12,14 @@ import { SetPopularModelModal } from '@/features/models/components/SetPopularMod
 import { deleteModelMutationOptions } from '@/features/models/models.mutation'
 import { modelQueryOptions } from '@/features/models/models.query.ts'
 
-interface ModelSettingsPageProps {
-  projectId: string
-  modelId: string
-}
+const { useParams } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId/settings/')
 
-export function ModelSettingsPage({
-  projectId, modelId,
-}: ModelSettingsPageProps) {
+export function ModelSettingsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const {
+    projectId, modelId,
+  } = useParams()
 
   const [inputValue, setInputValue] = useState('')
   const { data: model } = useSuspenseQuery(modelQueryOptions(projectId, modelId))

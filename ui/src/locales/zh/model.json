@@ -1,4 +1,5 @@
 {
+  "new": "创建模型",
   "list": {
     "project": "项目",
     "library": "框架",
@@ -14,23 +15,13 @@
     "viewMore": "查看更多",
     "collapse": "收起"
   },
-  "new": "创建模型",
   "detail": {
+    "upload": "上传模型文件",
+    "download": "下载模型文件",
     "desc": "模型介绍",
     "tree": "模型文件",
     "setting": "模型设置",
     "history": "{{count}} 条提交"
-  },
-  "commits": {
-    "loadFailed": "提交记录加载失败，请稍后重试。"
-  },
-  "upload": "上传模型文件",
-  "download": "下载模型文件",
-  "revisionPathHeader": {
-    "group": {
-      "branch": "分支",
-      "tag": "标签"
-    }
   },
   "settings": {
     "delete": {

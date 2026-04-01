@@ -65,7 +65,7 @@ export function ModelBlobPage() {
   }
 
   return (
-    <Box pt="sm" pb="xl">
+    <Box pt="sm">
       <Flex
         justify="space-between"
         align="center"

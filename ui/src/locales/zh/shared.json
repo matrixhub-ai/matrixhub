@@ -11,6 +11,12 @@
     "projectPlaceholder": "请选择项目",
     "projectTooltip": "私有项目中的所有模型/数据集均为私有，公开项目中的所有模型/数据集均为公开。"
   },
+  "revisionSelect": {
+    "group": {
+      "branch": "分支",
+      "tag": "标签"
+    }
+  },
   "copyValueButton": {
     "copy": "复制",
     "copied": "已复制"
