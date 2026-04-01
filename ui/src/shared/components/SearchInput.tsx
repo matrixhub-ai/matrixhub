@@ -66,7 +66,7 @@ export function SearchInput({
       leftSection={(
         <IconSearch
           size={16}
-          style={{ color: 'var(--mantine-color-gray-5)' }}
+          color="var(--mantine-color-gray-5)"
         />
       )}
       onChange={(event) => {

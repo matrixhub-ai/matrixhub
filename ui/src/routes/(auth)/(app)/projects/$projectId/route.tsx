@@ -78,7 +78,7 @@ function RouteComponent() {
     <Box>
       <Space h="lg" />
       <Group gap={8} wrap="nowrap" align="center">
-        <ProjectIcon size={32} style={{ color: 'var(--mantine-color-gray-9)' }} />
+        <ProjectIcon size={32} color="var(--mantine-color-gray-9)" />
         <Group gap={4} wrap="nowrap" align="center">
           <Text size="lg" lh="28px" c="gray.9">
             {projectId}
