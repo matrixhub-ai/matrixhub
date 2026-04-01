@@ -8,8 +8,8 @@ import type { ModalProps } from '@mantine/core'
 import type { ReactNode } from 'react'
 
 const modalTypeIcons = {
-  info: <IconInfoCircle size={20} style={{ color: 'var(--mantine-color-cyan-6)' }} />,
-  danger: <IconAlertCircle size={20} style={{ color: 'var(--mantine-color-red-6)' }} />,
+  info: <IconInfoCircle size={20} color="var(--mantine-color-cyan-6)" />,
+  danger: <IconAlertCircle size={20} color="var(--mantine-color-red-6)" />,
 }
 
 export type ModalWrapperProps = Omit<ModalProps, 'title'> & {

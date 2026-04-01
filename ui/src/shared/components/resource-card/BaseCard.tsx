@@ -102,7 +102,7 @@ export function BaseCard({
               >
                 <IconDots
                   size={12}
-                  style={{ color: 'var(--mantine-color-gray-6)' }}
+                  color="var(--mantine-color-gray-6)"
                 />
               </BaseBadge>
             )}

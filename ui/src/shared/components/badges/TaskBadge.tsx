@@ -13,7 +13,7 @@ interface TaskBadgeProps extends Omit<BaseBadgeProps, 'icon' | 'label'> {
 const TASK_ICON_ENTRIES = [
   {
     matcher: /(image|vision|photo)/i,
-    icon: <IconPhotoUp size={16} style={{ color: 'var(--mantine-color-blue-4)' }} />,
+    icon: <IconPhotoUp size={16} color="var(--mantine-color-blue-4)" />,
   },
 ] as const
 

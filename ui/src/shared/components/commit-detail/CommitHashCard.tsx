@@ -52,7 +52,7 @@ export function CommitHashCard({ commitId }: CommitHashCardProps) {
             {({ copy }) => {
               return (
                 <Box onClick={copy} px={8} style={{ cursor: 'pointer' }} lh={1}>
-                  <IconCopy size={12} style={{ color: 'var(--mantine-color-gray-6)' }} />
+                  <IconCopy size={12} color="var(--mantine-color-gray-6)" />
                 </Box>
               )
             }}

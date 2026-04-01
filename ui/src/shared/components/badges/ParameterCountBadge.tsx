@@ -19,7 +19,7 @@ export function ParameterCountBadge({
       icon={(
         <IconBinaryTree
           size={16}
-          style={{ color: 'var(--mantine-color-violet-4)' }}
+          color="var(--mantine-color-violet-4)"
         />
       )}
       label={parameterCount}
