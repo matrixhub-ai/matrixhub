@@ -14,18 +14,5 @@ export const Route = createFileRoute(
       params.projectId,
       { allowedRoles: [ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN] })
   },
-  component: ModelSettings,
+  component: ModelSettingsPage,
 })
-
-function ModelSettings() {
-  const {
-    projectId, modelId,
-  } = Route.useParams()
-
-  return (
-    <ModelSettingsPage
-      projectId={projectId}
-      modelId={modelId}
-    />
-  )
-}

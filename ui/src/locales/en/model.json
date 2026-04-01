@@ -1,4 +1,5 @@
 {
+  "new": "Create New Model",
   "list": {
     "project": "Project",
     "library": "Library",
@@ -14,23 +15,13 @@
     "viewMore": "View More",
     "collapse": "Collapse"
   },
-  "upload": "Upload Model Files",
-  "download": "Download Model",
-  "new": "Create New Model",
-  "revisionPathHeader": {
-    "group": {
-      "branch": "Branch",
-      "tag": "Tag"
-    }
-  },
   "detail": {
+    "upload": "Upload Model Files",
+    "download": "Download Model",
     "desc": "Model Introduction",
     "tree": "Model Files",
     "setting": "Settings",
     "history": "Commit History"
-  },
-  "commits": {
-    "loadFailed": "Failed to load commit history. Please try again later."
   },
   "settings": {
     "delete": {

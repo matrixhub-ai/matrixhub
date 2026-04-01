@@ -28,7 +28,7 @@ export function RevisionSelect({
 
   if (branches.length > 0) {
     revisionOptions.push({
-      group: t('model.revisionPathHeader.group.branch'),
+      group: t('shared.revisionSelect.group.branch'),
       items: branches?.filter(Boolean)?.map(item => ({
         label: item.name as string,
         value: `branch:${item.name}`,
@@ -38,7 +38,7 @@ export function RevisionSelect({
 
   if (tags.length > 0) {
     revisionOptions.push({
-      group: t('model.revisionPathHeader.group.tag'),
+      group: t('shared.revisionSelect.group.tag'),
       items: tags?.filter(Boolean)?.map(item => ({
         label: item.name as string,
         value: `tag:${item.name}`,
