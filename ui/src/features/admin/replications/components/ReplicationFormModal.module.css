@@ -1,0 +1,26 @@
+.inlineFieldWrapper {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--app-size-radius-mmd);
+  overflow: hidden;
+}
+
+.inlineFieldInput {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  padding-inline-start: calc(var(--input-padding-inline-start) + var(--mantine-spacing-md));
+  padding-inline-end: var(--mantine-spacing-md);
+}
+
+.inlineFieldSection {
+  padding-inline: var(--mantine-spacing-md);
+  border-inline-end: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-gray-light);
+  font-size: var(--mantine-font-size-sm);
+  text-align: center;
+}
+
+.inlineFieldSectionLabel {
+  min-width: 80px;
+  width: auto;
+}
