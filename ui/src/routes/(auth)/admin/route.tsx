@@ -23,6 +23,7 @@ import { Route as AdminRegistriesRoute, Icon as AdminRegistriesIcon } from '@/ro
 import { Route as AdminReplicationsRoute, Icon as AdminReplicationsIcon } from '@/routes/(auth)/admin/replications'
 import { Route as AdminUsersRoute, Icon as AdminUsersIcon } from '@/routes/(auth)/admin/users'
 import { forbiddenError } from '@/utils/routerAccess'
+import { setAdminContentViewport } from '@/utils/setContentViewport'
 
 export const Route = createFileRoute('/(auth)/admin')({
   beforeLoad: async () => {
@@ -102,10 +103,6 @@ function AdminNavbar() {
   )
 }
 
-function setAdminContentViewport(viewport: HTMLDivElement | null) {
-  viewport?.setAttribute('data-scroll-restoration-id', 'admin-content-scroll')
-}
-
 function AdminLayout() {
   const { t } = useTranslation()
 
@@ -167,10 +164,8 @@ function AdminLayout() {
         <ScrollArea
           type="auto"
           offsetScrollbars="y"
-          style={{
-            flex: 1,
-            minHeight: 0,
-          }}
+          mih={0}
+          flex={1}
           viewportRef={setAdminContentViewport}
         >
           <Outlet />
