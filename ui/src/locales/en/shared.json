@@ -16,6 +16,7 @@
     "copied": "Copied"
   },
   "commitDetail": {
+    "commit": "Commit",
     "committedOn": "committed on ",
     "emptyDiff": "No diff content",
     "loadingDiff": "Rendering diff...",

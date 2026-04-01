@@ -16,6 +16,7 @@
     "copied": "已复制"
   },
   "commitDetail": {
+    "commit": "Commit",
     "committedOn": "提交于 ",
     "emptyDiff": "暂无变更内容",
     "loadingDiff": "正在渲染 diff...",

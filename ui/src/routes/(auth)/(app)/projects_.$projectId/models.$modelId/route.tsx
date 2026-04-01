@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { projectRolesQueryOptions } from '@/features/auth/auth.query.ts'
+import { useProjectRole } from '@/context/project-role-context.tsx'
 import { modelQueryOptions } from '@/features/models/models.query'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
@@ -23,7 +23,6 @@ import { Route as ModelTreeRoute } from './tree/$ref/$'
 
 import { Route as ModelIndexRoute } from './index'
 
-const { useLoaderData: useUserData } = getRouteApi('/(auth)')
 const { useLoaderData } = getRouteApi('/(auth)/(app)/projects_/$projectId/models/$modelId')
 
 export const Route = createFileRoute(
@@ -33,15 +32,9 @@ export const Route = createFileRoute(
   loader: async ({
     context, params,
   }) => {
-    const [model, projectRoles] = await Promise.all([
-      context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId)),
-      context.queryClient.ensureQueryData(projectRolesQueryOptions()),
-    ])
+    const model = await context.queryClient.ensureQueryData(modelQueryOptions(params.projectId, params.modelId))
 
-    return {
-      model,
-      projectRoles,
-    }
+    return { model }
   },
 })
 
@@ -51,12 +44,10 @@ function ModelDetailLayout() {
     projectId, modelId,
   } = Route.useParams()
 
-  const userData = useUserData()
-  const {
-    model, projectRoles,
-  } = useLoaderData()
+  const { model } = useLoaderData()
 
-  const hasSettingsRight = userData.isAdmin || projectRoles.projectRoles?.[projectId] === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
+  const projectRole = useProjectRole(projectId)
+  const hasSettingsRight = projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
 
   const tabRoutes = linkOptions([
     {
