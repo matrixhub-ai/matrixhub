@@ -354,6 +354,8 @@ func (g *gitRepo) GetTree(ctx context.Context, repoType, project, name, revision
 					AuthorDate:     lastCommit.Author().When(),
 					CommitterName:  lastCommit.Committer().Name(),
 					CommitterEmail: lastCommit.Committer().Email(),
+					CommitterDate:  lastCommit.Committer().When(),
+					CreatedAt:      lastCommit.Committer().When(),
 				},
 			})
 		} else {
@@ -370,6 +372,8 @@ func (g *gitRepo) GetTree(ctx context.Context, repoType, project, name, revision
 					AuthorDate:     lastCommit.Author().When(),
 					CommitterName:  lastCommit.Committer().Name(),
 					CommitterEmail: lastCommit.Committer().Email(),
+					CommitterDate:  lastCommit.Committer().When(),
+					CreatedAt:      lastCommit.Committer().When(),
 				},
 			})
 		}
@@ -415,6 +419,8 @@ func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision
 				AuthorDate:     lastCommit.Author().When(),
 				CommitterName:  lastCommit.Committer().Name(),
 				CommitterEmail: lastCommit.Committer().Email(),
+				CommitterDate:  lastCommit.Committer().When(),
+				CreatedAt:      lastCommit.Committer().When(),
 			},
 		}, nil
 	}
@@ -448,6 +454,8 @@ func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision
 			AuthorDate:     commit.Author().When(),
 			CommitterName:  commit.Committer().Name(),
 			CommitterEmail: commit.Committer().Email(),
+			CommitterDate:  commit.Committer().When(),
+			CreatedAt:      commit.Committer().When(),
 		},
 	}, nil
 }
