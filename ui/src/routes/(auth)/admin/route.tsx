@@ -102,6 +102,10 @@ function AdminNavbar() {
   )
 }
 
+function setAdminContentViewport(viewport: HTMLDivElement | null) {
+  viewport?.setAttribute('data-scroll-restoration-id', 'admin-content-scroll')
+}
+
 function AdminLayout() {
   const { t } = useTranslation()
 
@@ -119,6 +123,10 @@ function AdminLayout() {
         my="lg"
         px="md"
         h="calc(100% - var(--mantine-spacing-lg) * 2)"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         {/* FIXME: color: Gray80 */}
         <Group
@@ -149,8 +157,24 @@ function AdminLayout() {
       <AppShell.Main
         component="div"
         miw={0}
+        mih={0}
+        h="100%"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
-        <Outlet />
+        <ScrollArea
+          type="auto"
+          offsetScrollbars="y"
+          style={{
+            flex: 1,
+            minHeight: 0,
+          }}
+          viewportRef={setAdminContentViewport}
+        >
+          <Outlet />
+        </ScrollArea>
       </AppShell.Main>
     </AppShell>
   )
