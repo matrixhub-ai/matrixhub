@@ -152,7 +152,6 @@ export function ProjectModelsPage() {
           total={total}
           totalPages={totalPages}
           page={page}
-          paginationProps={{ withControls: false }}
           onPageChange={(nextPage) => {
             void navigate({
               search: prev => ({

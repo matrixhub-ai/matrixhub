@@ -7,6 +7,7 @@ import {
   PasswordInput,
   rem,
   Tabs,
+  Pagination,
 } from '@mantine/core'
 import { type CSSVariablesResolver } from '@mantine/core'
 
@@ -100,6 +101,36 @@ export const mantineTheme = createTheme({
         c: 'blue.6',
       },
     }),
+    Pagination: Pagination.extend({
+      defaultProps: {
+        boundaries: 1,
+        siblings: 2,
+        color: 'cyan',
+        size: 20,
+        radius: 4,
+        gap: 8,
+        withControls: false,
+        withEdges: false,
+      },
+      styles: {
+        control: {
+          minWidth: 20,
+          height: 20,
+          fontSize: '12px',
+          fontWeight: 400,
+          lineHeight: '16px',
+          borderColor: 'var(--mantine-color-gray-3)',
+        },
+        dots: {
+          minWidth: 20,
+          height: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--mantine-color-gray-8)',
+        },
+      },
+    }),
   },
 })
 
@@ -155,36 +186,5 @@ export const cssVariablesResolver: CSSVariablesResolver = () => ({
     '--app-color-gray-80': 'var(--mantine-color-gray-2)',
     '--app-color-gray-90': 'var(--mantine-color-gray-1)',
     '--app-color-gray-100': 'var(--mantine-color-gray-0)',
-  },
-  components: {
-    Pagination: {
-      defaultProps: {
-        boundaries: 1,
-        siblings: 2,
-        color: 'cyan',
-        size: 20,
-        radius: 4,
-        gap: 8,
-      },
-      styles: {
-        control: {
-          minWidth: 20,
-          height: 20,
-          fontSize: '12px',
-          fontWeight: 400,
-          lineHeight: '16px',
-          borderColor: 'var(--mantine-color-gray-3)',
-          color: 'var(--mantine-color-gray-8)',
-        },
-        dots: {
-          minWidth: 20,
-          height: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--mantine-color-gray-8)',
-        },
-      },
-    },
   },
 })
