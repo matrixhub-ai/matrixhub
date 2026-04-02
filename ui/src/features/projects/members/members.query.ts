@@ -8,9 +8,14 @@ import { z } from 'zod'
 
 export const MEMBERS_PAGE_SIZE = 10
 
+export const membersSearchDefaults = {
+  q: undefined as string | undefined,
+  page: 1,
+}
+
 export const membersSearchSchema = z.object({
-  q: z.string().transform(v => v.trim()).optional().catch(''),
-  page: z.coerce.number().int().positive().optional().catch(1),
+  q: z.string().trim().optional().catch(undefined),
+  page: z.coerce.number().int().positive().optional().default(membersSearchDefaults.page).catch(membersSearchDefaults.page),
 })
 
 export type MembersSearch = z.infer<typeof membersSearchSchema>

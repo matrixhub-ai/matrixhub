@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage'
@@ -6,14 +6,22 @@ import { projectsQueryOptions } from '@/features/projects/projects.query'
 
 const DEFAULT_PROJECTS_PAGE = 1
 
+const defaults = {
+  page: DEFAULT_PROJECTS_PAGE,
+  query: undefined as string | undefined,
+}
+
 const pSearchParamSchema = z.object({
-  page: z.coerce.number().int().nonnegative().optional().catch(DEFAULT_PROJECTS_PAGE),
+  page: z.coerce.number().int().nonnegative().optional().default(defaults.page).catch(defaults.page),
   query: z.string().trim().optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/(auth)/(app)/projects/')({
   component: RouteComponent,
   validateSearch: pSearchParamSchema,
+  search: {
+    middlewares: [stripSearchParams(defaults)],
+  },
   loaderDeps: ({ search }) => ({
     page: search.page,
     query: search.query,

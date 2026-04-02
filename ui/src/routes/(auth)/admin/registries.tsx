@@ -1,14 +1,17 @@
 import { IconBuildingWarehouse as AdminRegistriesIcon } from '@tabler/icons-react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { AdminPageLayout } from '@/features/admin/components/admin-page-layout'
 import { RegistriesPage } from '@/features/admin/registries/pages/RegistriesPage'
 import { registriesQueryOptions } from '@/features/admin/registries/registries.query'
-import { registriesSearchSchema } from '@/features/admin/registries/registries.schema'
+import { registriesSearchDefaults, registriesSearchSchema } from '@/features/admin/registries/registries.schema'
 
 export const Route = createFileRoute('/(auth)/admin/registries')({
   validateSearch: registriesSearchSchema,
+  search: {
+    middlewares: [stripSearchParams(registriesSearchDefaults)],
+  },
   loaderDeps: ({ search }) => ({ search }),
   loader: async ({
     context: { queryClient },

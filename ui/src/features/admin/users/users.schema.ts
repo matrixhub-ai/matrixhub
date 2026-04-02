@@ -10,6 +10,11 @@ export function t(key: string) {
   return i18n.getFixedT(i18n.resolvedLanguage ?? i18n.language)(key)
 }
 
+export const usersSearchDefaults = {
+  page: DEFAULT_USERS_PAGE,
+  query: undefined as string | undefined,
+}
+
 export const usersSearchSchema = z.object({
   page: z.coerce.number().int().positive().catch(DEFAULT_USERS_PAGE).default(DEFAULT_USERS_PAGE),
   query: z.string().trim().optional().catch(undefined),
