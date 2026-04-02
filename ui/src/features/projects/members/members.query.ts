@@ -14,7 +14,7 @@ export const membersSearchDefaults = {
 }
 
 export const membersSearchSchema = z.object({
-  q: z.string().trim().optional().catch(undefined),
+  q: z.string().trim().optional().catch(membersSearchDefaults.q),
   page: z.coerce.number().int().positive().optional().default(membersSearchDefaults.page).catch(membersSearchDefaults.page),
 })
 

@@ -10,8 +10,7 @@ export const registriesSearchDefaults = {
 
 export const registriesSearchSchema = z.object({
   page: z.coerce.number().int().positive().default(registriesSearchDefaults.page).catch(registriesSearchDefaults.page),
-
-  query: z.string().trim().optional().catch(undefined),
+  query: z.string().trim().optional().catch(registriesSearchDefaults.query),
 })
 
 export type RegistriesSearch = z.infer<typeof registriesSearchSchema>

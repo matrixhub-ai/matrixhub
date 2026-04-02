@@ -32,8 +32,8 @@ export const replicationsSearchDefaults = {
 }
 
 export const replicationsSearchSchema = z.object({
-  page: z.coerce.number().int().positive().default(DEFAULT_REPLICATIONS_PAGE).catch(DEFAULT_REPLICATIONS_PAGE),
-  query: z.string().trim().optional().catch(undefined),
+  page: z.coerce.number().int().positive().default(replicationsSearchDefaults.page).catch(replicationsSearchDefaults.page),
+  query: z.string().trim().optional().catch(replicationsSearchDefaults.query),
 })
 
 export type ReplicationsSearch = z.infer<typeof replicationsSearchSchema>

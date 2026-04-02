@@ -13,7 +13,7 @@ const defaults = {
 
 const pSearchParamSchema = z.object({
   page: z.coerce.number().int().nonnegative().optional().default(defaults.page).catch(defaults.page),
-  query: z.string().trim().optional().catch(undefined),
+  query: z.string().trim().optional().catch(defaults.query),
 })
 
 export const Route = createFileRoute('/(auth)/(app)/projects/')({

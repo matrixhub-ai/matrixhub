@@ -16,8 +16,8 @@ export const usersSearchDefaults = {
 }
 
 export const usersSearchSchema = z.object({
-  page: z.coerce.number().int().positive().catch(DEFAULT_USERS_PAGE).default(DEFAULT_USERS_PAGE),
-  query: z.string().trim().optional().catch(undefined),
+  page: z.coerce.number().int().positive().default(usersSearchDefaults.page).catch(usersSearchDefaults.page),
+  query: z.string().trim().optional().catch(usersSearchDefaults.query),
 })
 
 export type UsersSearch = z.infer<typeof usersSearchSchema>
