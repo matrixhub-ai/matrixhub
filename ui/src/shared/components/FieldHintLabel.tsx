@@ -29,7 +29,7 @@ export function FieldHintLabel({
       wrap="nowrap"
       style={{
         display: 'inline-flex',
-        verticalAlign: 'middle',
+        alignItems: 'center',
       }}
     >
       <Text component="span" inherit>
@@ -43,7 +43,7 @@ export function FieldHintLabel({
         {...tooltipProps}
       >
         <IconInfoCircle
-          size={16}
+          size={18}
           color="var(--mantine-color-dimmed)"
           style={{
             cursor: 'help',

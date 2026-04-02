@@ -49,8 +49,11 @@
     "description": "Description",
     "syncRule": "Sync Rule",
     "pull": "Pull",
+    "pullHint": "Pull resources from the remote registry into the local MatrixHub.",
     "push": "Push",
+    "pushHint": "Push resources from the local MatrixHub to the remote registry.",
     "sourceRegistry": "Source Registry",
+    "sourceRegistryHint": "Create a registry first in Registry Management before selecting it here.",
     "resourceFilter": "Resource Filter",
     "resourceName": "Resource Name",
     "resourceNamePlaceholder": "e.g., model-name or * for all",
@@ -62,11 +65,14 @@
     },
     "targetRegistry": "Target Registry",
     "target": "Target",
+    "targetHint": "Specify the target project. If left empty, resources are placed into a project with the same name as in the source registry.",
     "targetProjectName": "Target Project",
     "targetProjectNamePlaceholder": "e.g., my-project",
     "triggerType": "Trigger Mode",
     "bandwidth": "Bandwidth Limit",
-    "isOverwrite": "Overwrite existing resources"
+    "bandwidthHint": "Sets the maximum network bandwidth for this sync rule. The actual total bandwidth depends on concurrent runs. Enter -1 for unlimited bandwidth.",
+    "isOverwrite": "Overwrite existing resources",
+    "isOverwriteHint": "If a resource with the same name already exists, controls whether the target resource should be overwritten."
   },
   "validation": {
     "resourceTypesRequired": "At least one resource type is required",

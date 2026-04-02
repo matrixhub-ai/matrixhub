@@ -1,7 +1,5 @@
 import {
-  Box,
   Checkbox,
-  Flex,
   Group,
   Input,
   MultiSelect,
@@ -12,6 +10,7 @@ import {
   Stack,
   Text,
   TextInput,
+  Tooltip,
   Textarea,
 } from '@mantine/core'
 import {
@@ -21,10 +20,11 @@ import {
 } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { registriesQueryOptions } from '@/features/admin/registries/registries.query'
+import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { fieldError } from '@/shared/utils/form'
 
@@ -45,6 +45,7 @@ import {
   getDefaultBandwidthUnit,
   getDefaultBandwidthValue,
 } from '../replications.utils'
+import classes from './ReplicationFormModal.module.css'
 
 import type {
   CreateSyncPolicyRequest,
@@ -56,90 +57,41 @@ const BANDWIDTH_MIN = -1
 const BANDWIDTH_MAX = 1048576
 const INLINE_FIELD_LABEL_WIDTH = 80
 
-const inlineTextInputStyles = {
-  input: {
-    border: 0,
-    borderRadius: 0,
-    paddingInline: 'var(--mantine-spacing-md)',
-    backgroundColor: 'transparent',
+const inlineFieldProps = {
+  variant: 'unstyled' as const,
+  leftSectionWidth: INLINE_FIELD_LABEL_WIDTH,
+  leftSectionProps: {
+    className: classes.inlineFieldSection,
+  },
+  classNames: {
+    wrapper: classes.inlineFieldWrapper,
+    input: classes.inlineFieldInput,
   },
 } as const
 
-const inlineMultiSelectStyles = {
-  input: {
-    border: 0,
-    borderRadius: 0,
-    paddingInline: 'var(--mantine-spacing-md)',
-    backgroundColor: 'transparent',
-  },
-  section: {
-    color: 'var(--mantine-color-dimmed)',
-  },
-} as const
+function renderInlineFieldSection(label: string) {
+  return (
+    <Tooltip
+      label={label}
+      openDelay={200}
+    >
+      <Text
+        span
+        inherit
+        truncate="end"
+        className={classes.inlineFieldSectionLabel}
+      >
+        {label}
+      </Text>
+    </Tooltip>
+  )
+}
 
 export interface ReplicationFormModalProps {
   mode: 'create' | 'edit'
   opened: boolean
   syncPolicy?: SyncPolicyItem
   onClose: () => void
-}
-
-interface InlineFieldShellProps {
-  label: string
-  error?: ReactNode
-  children: ReactNode
-}
-
-function InlineFieldShell({
-  label,
-  error,
-  children,
-}: InlineFieldShellProps) {
-  return (
-    <Box>
-      <Flex
-        style={{
-          border: '1px solid var(--mantine-color-default-border)',
-          borderRadius: 'var(--mantine-radius-sm)',
-          overflow: 'hidden',
-        }}
-      >
-        <Flex
-          align="center"
-          gap={6}
-          px="md"
-          bg="var(--mantine-color-gray-light)"
-          fs="xs"
-          p="0"
-          style={{
-            textAlign: 'center',
-            minWidth: INLINE_FIELD_LABEL_WIDTH,
-            flexShrink: 0,
-            borderRight: '1px solid var(--mantine-color-default-border)',
-          }}
-        >
-          <Text size="sm" c="dimmed">
-            {label}
-          </Text>
-        </Flex>
-
-        <Box
-          style={{
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          {children}
-        </Box>
-      </Flex>
-
-      {error && (
-        <Input.Error mt={4}>
-          {error}
-        </Input.Error>
-      )}
-    </Box>
-  )
 }
 
 // The backend accepts multiple resource types. Legacy ALL/empty values are
@@ -375,12 +327,24 @@ export function ReplicationFormModal({
               <Group mt="xs">
                 <Radio
                   value={String(SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE)}
-                  label={t('routes.admin.replications.form.pull')}
+                  label={(
+                    <FieldHintLabel
+                      label={t('routes.admin.replications.form.pull')}
+                      hint={t('routes.admin.replications.form.pullHint')}
+                      tooltipProps={{ w: 280 }}
+                    />
+                  )}
                   disabled={mode === 'edit'}
                 />
                 <Radio
                   value={String(SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE)}
-                  label={t('routes.admin.replications.form.push')}
+                  label={(
+                    <FieldHintLabel
+                      label={t('routes.admin.replications.form.push')}
+                      hint={t('routes.admin.replications.form.pushHint')}
+                      tooltipProps={{ w: 280 }}
+                    />
+                  )}
                   disabled
                 />
               </Group>
@@ -392,7 +356,12 @@ export function ReplicationFormModal({
           <form.Field name="sourceRegistryId">
             {field => (
               <Select
-                label={t('routes.admin.replications.form.sourceRegistry')}
+                label={(
+                  <FieldHintLabel
+                    label={t('routes.admin.replications.form.sourceRegistry')}
+                    hint={t('routes.admin.replications.form.sourceRegistryHint')}
+                  />
+                )}
                 withAsterisk
                 data={registryOptions}
                 value={field.state.value ? String(field.state.value) : null}
@@ -408,42 +377,46 @@ export function ReplicationFormModal({
         )}
 
         <Input.Wrapper
-          label={t('routes.admin.replications.form.resourceFilter')}
+          label={(
+            <FieldHintLabel
+              label={t('routes.admin.replications.form.resourceFilter')}
+              hint={t('routes.admin.replications.form.resourceFilterHint')}
+              tooltipProps={{ w: 320 }}
+            />
+          )}
           labelElement="div"
         >
           <Stack gap="xs">
-            <InlineFieldShell label={t('routes.admin.replications.form.resourceName')}>
-              <form.Field name="resourceName">
-                {field => (
-                  <TextInput
-                    aria-label={t('routes.admin.replications.form.resourceName')}
-                    variant="unstyled"
-                    placeholder={t('routes.admin.replications.form.resourceNamePlaceholder')}
-                    value={field.state.value}
-                    onChange={event => field.handleChange(event.currentTarget.value)}
-                    onBlur={field.handleBlur}
-                    styles={inlineTextInputStyles}
-                  />
-                )}
-              </form.Field>
-            </InlineFieldShell>
+            <form.Field name="resourceName">
+              {field => (
+                <TextInput
+                  {...inlineFieldProps}
+                  aria-label={t('routes.admin.replications.form.resourceName')}
+                  leftSection={renderInlineFieldSection(
+                    t('routes.admin.replications.form.resourceName'),
+                  )}
+                  placeholder={t('routes.admin.replications.form.resourceNamePlaceholder')}
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.currentTarget.value)}
+                  onBlur={field.handleBlur}
+                />
+              )}
+            </form.Field>
 
             <form.Field name="resourceTypes">
               {field => (
-                <InlineFieldShell
-                  label={t('routes.admin.replications.form.resourceTypes.label')}
+                <MultiSelect
+                  {...inlineFieldProps}
+                  aria-label={t('routes.admin.replications.form.resourceTypes.label')}
+                  leftSection={renderInlineFieldSection(
+                    t('routes.admin.replications.form.resourceTypes.label'),
+                  )}
+                  data={resourceTypeOptions}
+                  value={field.state.value}
+                  onChange={value => field.handleChange(value as ReplicationFormValues['resourceTypes'])}
+                  onBlur={field.handleBlur}
                   error={fieldError(field)}
-                >
-                  <MultiSelect
-                    aria-label={t('routes.admin.replications.form.resourceTypes.label')}
-                    variant="unstyled"
-                    data={resourceTypeOptions}
-                    value={field.state.value}
-                    onChange={value => field.handleChange(value as ReplicationFormValues['resourceTypes'])}
-                    onBlur={field.handleBlur}
-                    styles={inlineMultiSelectStyles}
-                  />
-                </InlineFieldShell>
+                />
               )}
             </form.Field>
           </Stack>
@@ -468,25 +441,29 @@ export function ReplicationFormModal({
         )}
 
         <Input.Wrapper
-          label={t('routes.admin.replications.form.target')}
+          label={(
+            <FieldHintLabel
+              label={t('routes.admin.replications.form.target')}
+              hint={t('routes.admin.replications.form.targetHint')}
+              tooltipProps={{ w: 280 }}
+            />
+          )}
           labelElement="div"
         >
           <form.Field name="targetProjectName">
             {field => (
-              <InlineFieldShell
-                label={t('routes.admin.replications.form.targetProjectName')}
+              <TextInput
+                {...inlineFieldProps}
+                aria-label={t('routes.admin.replications.form.targetProjectName')}
+                leftSection={renderInlineFieldSection(
+                  t('routes.admin.replications.form.targetProjectName'),
+                )}
+                placeholder={t('routes.admin.replications.form.targetProjectNamePlaceholder')}
+                value={field.state.value}
+                onChange={event => field.handleChange(event.currentTarget.value)}
+                onBlur={field.handleBlur}
                 error={fieldError(field)}
-              >
-                <TextInput
-                  aria-label={t('routes.admin.replications.form.targetProjectName')}
-                  variant="unstyled"
-                  placeholder={t('routes.admin.replications.form.targetProjectNamePlaceholder')}
-                  value={field.state.value}
-                  onChange={event => field.handleChange(event.currentTarget.value)}
-                  onBlur={field.handleBlur}
-                  styles={inlineTextInputStyles}
-                />
-              </InlineFieldShell>
+              />
             )}
           </form.Field>
         </Input.Wrapper>
@@ -511,7 +488,13 @@ export function ReplicationFormModal({
             {field => (
               <NumberInput
                 style={{ flex: 1 }}
-                label={t('routes.admin.replications.form.bandwidth')}
+                label={(
+                  <FieldHintLabel
+                    label={t('routes.admin.replications.form.bandwidth')}
+                    hint={t('routes.admin.replications.form.bandwidthHint')}
+                    tooltipProps={{ w: 320 }}
+                  />
+                )}
                 min={BANDWIDTH_MIN}
                 max={BANDWIDTH_MAX}
                 value={field.state.value ? Number(field.state.value) : BANDWIDTH_MIN}
@@ -544,7 +527,22 @@ export function ReplicationFormModal({
         <form.Field name="isOverwrite">
           {field => (
             <Checkbox
-              label={t('routes.admin.replications.form.isOverwrite')}
+              label={(
+                <FieldHintLabel
+                  label={t('routes.admin.replications.form.isOverwrite')}
+                  hint={t('routes.admin.replications.form.isOverwriteHint')}
+                  tooltipProps={{ w: 280 }}
+                />
+              )}
+              styles={{
+                body: {
+                  alignItems: 'center',
+                },
+                labelWrapper: {
+                  display: 'flex',
+                  alignItems: 'center',
+                },
+              }}
               checked={field.state.value}
               onChange={event => field.handleChange(event.currentTarget.checked)}
               onBlur={field.handleBlur}

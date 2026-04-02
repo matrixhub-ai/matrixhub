@@ -1,5 +1,6 @@
 import {
   Button, Group, Modal, Stack, Text,
+  ScrollArea,
 } from '@mantine/core'
 import { IconAlertCircle, IconInfoCircle } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
@@ -65,6 +66,7 @@ export function ModalWrapper({
     <Modal
       title={header}
       centered
+      scrollAreaComponent={ScrollArea.Autosize}
       {...rest}
     >
       <Stack gap="lg">

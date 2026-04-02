@@ -49,11 +49,15 @@
     "description": "描述",
     "syncRule": "同步规则",
     "pull": "Pull",
+    "pullHint": "把资源由远端仓库拉到本地 MatrixHub。",
     "push": "Push",
+    "pushHint": "把资源由本地 MatrixHub 推送到远端仓库。",
     "sourceRegistry": "源仓库",
+    "sourceRegistryHint": "需先在“仓库管理”中创建仓库。",
     "resourceFilter": "资源过滤器",
     "resourceName": "资源名称",
     "resourceNamePlaceholder": "例如：model-name 或 * 表示全部",
+    "resourceFilterHint": "过滤资源的名字。不填或者填写“*”匹配所有资源；“qwen/**”匹配“qwen”下的资源。更多的匹配模式请参考用户手册。",
     "resourceTypes": {
       "label": "资源类型",
       "model": "模型",
@@ -61,11 +65,14 @@
     },
     "targetRegistry": "目标仓库",
     "target": "目标",
+    "targetHint": "指定目标项目。如果不填，资源会被放到和源仓库中名称相同的项目下。",
     "targetProjectName": "目标项目",
     "targetProjectNamePlaceholder": "例如：my-project",
     "triggerType": "触发模式",
     "bandwidth": "带宽限制",
-    "isOverwrite": "覆盖已有资源"
+    "bandwidthHint": "设置执行该条同步规则时的最大网络带宽。实际总带宽需要考虑并发执行的情况。如无需限制，请输入 -1。",
+    "isOverwrite": "覆盖已有资源",
+    "isOverwriteHint": "如果存在相同名称的资源，指定是否覆盖目标上的资源。"
   },
   "validation": {
     "resourceTypesRequired": "至少需要选择一个资源类型",

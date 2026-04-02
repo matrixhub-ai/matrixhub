@@ -50,6 +50,7 @@ function CreateUserModal({
 
   return (
     <ModalWrapper
+      size="xs"
       opened={opened}
       onClose={onClose}
       title={t('routes.admin.users.createModal.title')}
