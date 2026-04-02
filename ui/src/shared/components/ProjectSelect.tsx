@@ -4,14 +4,13 @@ import {
   InputBase,
   type InputBaseProps,
   Text,
-  Tooltip,
   useCombobox,
 } from '@mantine/core'
 import { type ComponentProps } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import IconQuestion from '@/assets/svgs/question.svg?react'
 import { ProjectTypeBadge } from '@/shared/components/badges/ProjectTypeBadge'
+import { FieldHintLabel } from '@/shared/components/FieldHintLabel.tsx'
 
 export interface ProjectSelectOption {
   name?: string
@@ -92,18 +91,10 @@ export function ProjectSelect({
           component="button"
           type="button"
           label={label ?? (
-            <Group
-              component="span"
-              gap={4}
-              align="center"
-              wrap="nowrap"
-              style={{ display: 'inline-flex' }}
-            >
-              <span>{t('shared.projectSelect.project')}</span>
-              <Tooltip label={t('shared.projectSelect.projectTooltip')}>
-                <IconQuestion width={18} height={18} />
-              </Tooltip>
-            </Group>
+            <FieldHintLabel
+              label={t('shared.projectSelect.project')}
+              hint={t('shared.projectSelect.projectTooltip')}
+            />
           )}
           withAsterisk={withAsterisk}
           {...restInputProps}
