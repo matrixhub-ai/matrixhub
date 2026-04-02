@@ -5,16 +5,15 @@ import {
   Select,
   Switch,
   TextInput,
-  Tooltip,
 } from '@mantine/core'
 import { Registries } from '@matrixhub/api-ts/v1alpha1/registry.pb'
-import { IconInfoCircle } from '@tabler/icons-react'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useEffectEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useCurrentUser } from '@/features/auth/auth.query'
+import { FieldHintLabel } from '@/shared/components/FieldHintLabel.tsx'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { fieldError } from '@/shared/utils/form'
 
@@ -122,21 +121,10 @@ export function CreateProjectModal({
         currentUser?.isAdmin && (
           <Input.Wrapper
             label={(
-              <Group gap={4}>
-                {t('projects.createModal.proxyLabel')}
-                <Tooltip
-                  label={t('projects.createModal.proxyHint')}
-                  multiline
-                  w={320}
-                  withArrow
-                >
-                  <IconInfoCircle
-                    size={16}
-                    color="var(--mantine-color-dimmed)"
-                    style={{ cursor: 'help' }}
-                  />
-                </Tooltip>
-              </Group>
+              <FieldHintLabel
+                label={t('projects.createModal.proxyLabel')}
+                hint={t('projects.createModal.proxyHint')}
+              />
             )}
           >
             <form.Field name="enabledProxy">
