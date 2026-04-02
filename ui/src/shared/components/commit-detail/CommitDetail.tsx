@@ -192,8 +192,9 @@ export function CommitDetail({ commit }: CommitDetailProps) {
                     diffRender.html
                       ? (
                           <Box
-                          // diff2html returns escaped markup intended for direct rendering.
-                          // eslint-disable-next-line @eslint-react/dom/no-dangerously-set-innerhtml
+                            pos="relative"
+                            // diff2html returns escaped markup intended for direct rendering.
+                            // eslint-disable-next-line @eslint-react/dom/no-dangerously-set-innerhtml
                             dangerouslySetInnerHTML={{ __html: diffRender.html }}
                           />
                         )
