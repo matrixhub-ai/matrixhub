@@ -9,12 +9,12 @@ import { z } from 'zod'
 export const MEMBERS_PAGE_SIZE = 10
 
 export const membersSearchDefaults = {
-  q: undefined as string | undefined,
+  q: '',
   page: 1,
 }
 
 export const membersSearchSchema = z.object({
-  q: z.string().trim().optional().catch(membersSearchDefaults.q),
+  q: z.string().trim().optional().default(membersSearchDefaults.q).catch(membersSearchDefaults.q),
   page: z.coerce.number().int().positive().optional().default(membersSearchDefaults.page).catch(membersSearchDefaults.page),
 })
 

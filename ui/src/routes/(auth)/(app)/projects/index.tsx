@@ -8,12 +8,12 @@ const DEFAULT_PROJECTS_PAGE = 1
 
 const defaults = {
   page: DEFAULT_PROJECTS_PAGE,
-  query: undefined as string | undefined,
+  query: '',
 }
 
 const pSearchParamSchema = z.object({
   page: z.coerce.number().int().nonnegative().optional().default(defaults.page).catch(defaults.page),
-  query: z.string().trim().optional().catch(defaults.query),
+  query: z.string().trim().optional().default(defaults.query).catch(defaults.query),
 })
 
 export const Route = createFileRoute('/(auth)/(app)/projects/')({
