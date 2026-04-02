@@ -2,13 +2,13 @@ import {
   Button, Checkbox, Flex, Group, PasswordInput, ScrollArea, Stack, Text, TextInput, rem,
 } from '@mantine/core'
 import { Login, type LoginRequest } from '@matrixhub/api-ts/v1alpha1/login.pb'
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import LogoIcon from '@/assets/svgs/logo.svg?react'
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
+import { useForm } from '@/shared/hooks/useForm'
 
 export function LoginPage() {
   const { t } = useTranslation()

@@ -64,11 +64,16 @@ export const registryNameSchema = z
 export const registryDescriptionSchema = z
   .string()
   .trim()
-  .max(REGISTRY_DESCRIPTION_MAX_LENGTH, {
-    error: i18n.t('common.validation.maxLength', {
-      field: i18n.t('routes.admin.registries.form.description'),
-      max: REGISTRY_DESCRIPTION_MAX_LENGTH,
-    }),
+  .superRefine((val, ctx) => {
+    if (val.length > REGISTRY_DESCRIPTION_MAX_LENGTH) {
+      ctx.addIssue({
+        code: 'custom',
+        message: i18n.t('common.validation.maxLength', {
+          field: i18n.t('routes.admin.registries.form.description'),
+          max: REGISTRY_DESCRIPTION_MAX_LENGTH,
+        }),
+      })
+    }
   })
 
 export const registryUrlSchema = z

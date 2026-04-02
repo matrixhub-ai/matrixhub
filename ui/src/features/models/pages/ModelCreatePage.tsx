@@ -7,7 +7,6 @@ import {
   TextInput,
 } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
@@ -17,6 +16,7 @@ import { createModelMutationOptions } from '@/features/models/models.mutation'
 import { useModelProjects } from '@/features/models/models.query.ts'
 import { createModelSchema } from '@/features/models/models.schema'
 import { ProjectSelect } from '@/shared/components/ProjectSelect'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form.ts'
 
 interface ModelCreatePageProps {

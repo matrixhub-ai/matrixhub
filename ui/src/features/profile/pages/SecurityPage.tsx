@@ -5,12 +5,12 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { CurrentUser } from '@matrixhub/api-ts/v1alpha1/current_user.pb'
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 
 interface FormValues {
   oldPassword: string

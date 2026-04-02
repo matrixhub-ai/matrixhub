@@ -7,7 +7,6 @@ import {
   TextInput,
 } from '@mantine/core'
 import { Registries } from '@matrixhub/api-ts/v1alpha1/registry.pb'
-import { useForm } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useEffectEvent } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/features/auth/auth.query'
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel.tsx'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
 import { createProjectMutationOptions } from '../projects.mutation'

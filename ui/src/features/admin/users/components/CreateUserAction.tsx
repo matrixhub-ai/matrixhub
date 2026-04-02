@@ -7,11 +7,11 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconUserPlus } from '@tabler/icons-react'
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
 import { createUserMutationOptions } from '../users.mutation'

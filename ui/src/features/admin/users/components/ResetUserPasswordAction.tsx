@@ -4,11 +4,11 @@ import {
   Stack,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
 import { resetUserPasswordMutationOptions } from '../users.mutation'

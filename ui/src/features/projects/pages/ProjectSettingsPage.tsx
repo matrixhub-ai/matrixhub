@@ -2,10 +2,11 @@ import {
   Button, Checkbox, Group, InputWrapper, rem, Stack, TextInput,
 } from '@mantine/core'
 import { ProjectType } from '@matrixhub/api-ts/v1alpha1/project.pb'
-import { useForm } from '@tanstack/react-form'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+
+import { useForm } from '@/shared/hooks/useForm'
 
 import { updateProjectMutationOptions } from '../projects.mutation'
 import { projectDetailQueryOptions } from '../projects.query'

@@ -3,13 +3,13 @@ import {
   Stack,
   TextInput,
 } from '@mantine/core'
-import { useForm, useStore } from '@tanstack/react-form'
+import { useStore } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
-import i18n from '@/i18n'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
 import { useProjectRoleOptions } from '../member.utils'
@@ -17,8 +17,6 @@ import { updateMemberRoleMutationOptions } from '../members.mutation'
 
 import type { ProjectMember } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import type { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
-
-const requiredString = z.string().min(1, i18n.t('common.validation.required'))
 
 interface EditRoleModalProps {
   opened: boolean
@@ -35,6 +33,8 @@ export function EditRoleModal({
 }: EditRoleModalProps) {
   const { t } = useTranslation()
   const mutation = useMutation(updateMemberRoleMutationOptions())
+
+  const requiredString = z.string().min(1, t('common.validation.required'))
 
   const form = useForm({
     defaultValues: {
