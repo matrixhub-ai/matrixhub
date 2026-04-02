@@ -10,11 +10,11 @@ import { replicationsSearchSchema } from '@/features/admin/replications/replicat
 export const Route = createFileRoute('/(auth)/admin/replications')({
   validateSearch: replicationsSearchSchema,
   loaderDeps: ({ search }) => ({ search }),
-  loader: async ({
+  loader: ({
     context: { queryClient },
     deps: { search },
   }) => {
-    await queryClient.ensureQueryData(replicationsQueryOptions(search))
+    queryClient.prefetchQuery(replicationsQueryOptions(search))
   },
   component: RouteComponent,
 })

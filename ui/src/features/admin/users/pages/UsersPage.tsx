@@ -1,11 +1,5 @@
-import {
-  useQueryClient,
-  useSuspenseQuery,
-} from '@tanstack/react-query'
-import {
-  getRouteApi,
-  useRouterState,
-} from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import { getRouteApi } from '@tanstack/react-router'
 
 import { usePayloadModal } from '@/shared/hooks/usePayloadModal'
 import { useRouteListState } from '@/shared/hooks/useRouteListState'
@@ -15,7 +9,7 @@ import { CreateUserAction } from '../components/CreateUserAction'
 import { UsersTable } from '../components/UsersTable'
 import {
   adminUserKeys,
-  usersQueryOptions,
+  useUsers,
 } from '../users.query'
 import { DEFAULT_USERS_PAGE } from '../users.schema'
 import { getUserRowId } from '../users.utils'
@@ -30,16 +24,12 @@ export function UsersPage() {
   const search = usersRouteApi.useSearch()
   const {
     data,
+    isLoading,
     isFetching,
-  } = useSuspenseQuery(usersQueryOptions(search))
-  const {
-    users,
-    pagination,
-  } = data
+  } = useUsers(search)
+  const users = data?.users ?? []
+  const pagination = data?.pagination
   const batchDeleteModal = usePayloadModal<User[]>()
-  const routeLoading = useRouterState({
-    select: state => state.isLoading,
-  })
 
   const refreshUsers = () => queryClient.invalidateQueries({
     queryKey: adminUserKeys.lists(),
@@ -75,7 +65,7 @@ export function UsersPage() {
       <UsersTable
         data={users}
         pagination={pagination}
-        loading={routeLoading}
+        loading={isLoading}
         fetching={isFetching}
         page={search.page ?? DEFAULT_USERS_PAGE}
         searchValue={search.query ?? ''}

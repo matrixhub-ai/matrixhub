@@ -13,12 +13,12 @@ export const Route = createFileRoute(
 )({
   validateSearch: membersSearchSchema,
   loaderDeps: ({ search }) => search,
-  loader: async ({
+  loader: ({
     context,
     params,
     deps,
   }) => {
-    await context.queryClient.ensureQueryData(
+    context.queryClient.prefetchQuery(
       membersQueryOptions(params.projectId, deps),
     )
   },

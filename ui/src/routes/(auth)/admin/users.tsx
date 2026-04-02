@@ -10,11 +10,11 @@ import { usersSearchSchema } from '@/features/admin/users/users.schema'
 export const Route = createFileRoute('/(auth)/admin/users')({
   validateSearch: usersSearchSchema,
   loaderDeps: ({ search }) => ({ search }),
-  loader: async ({
+  loader: ({
     context: { queryClient },
     deps: { search },
   }) => {
-    await queryClient.ensureQueryData(usersQueryOptions(search))
+    queryClient.prefetchQuery(usersQueryOptions(search))
   },
   component: RouteComponent,
 })

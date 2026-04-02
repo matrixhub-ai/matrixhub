@@ -1,5 +1,9 @@
 import { Users } from '@matrixhub/api-ts/v1alpha1/user.pb'
-import { queryOptions } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  queryOptions,
+  useQuery,
+} from '@tanstack/react-query'
 
 import {
   DEFAULT_USERS_PAGE_SIZE,
@@ -27,5 +31,14 @@ export function usersQueryOptions(search: UsersSearch) {
         pagination: response.pagination,
       }
     },
+  })
+}
+
+// -- Custom hook --
+
+export function useUsers(search: UsersSearch) {
+  return useQuery({
+    ...usersQueryOptions(search),
+    placeholderData: keepPreviousData,
   })
 }

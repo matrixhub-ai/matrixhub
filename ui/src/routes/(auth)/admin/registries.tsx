@@ -10,11 +10,11 @@ import { registriesSearchSchema } from '@/features/admin/registries/registries.s
 export const Route = createFileRoute('/(auth)/admin/registries')({
   validateSearch: registriesSearchSchema,
   loaderDeps: ({ search }) => ({ search }),
-  loader: async ({
+  loader: ({
     context: { queryClient },
     deps: { search },
   }) => {
-    await queryClient.ensureQueryData(registriesQueryOptions(search))
+    queryClient.prefetchQuery(registriesQueryOptions(search))
   },
   component: RouteComponent,
 })
