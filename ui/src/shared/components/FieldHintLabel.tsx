@@ -3,7 +3,8 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core'
-import { IconInfoCircle } from '@tabler/icons-react'
+
+import IconQuestion from '@/assets/svgs/question.svg?react'
 
 import type { TooltipProps } from '@mantine/core'
 import type { ReactNode } from 'react'
@@ -42,9 +43,9 @@ export function FieldHintLabel({
         w={DEFAULT_TOOLTIP_WIDTH}
         {...tooltipProps}
       >
-        <IconInfoCircle
-          size={18}
-          color="var(--mantine-color-dimmed)"
+        <IconQuestion
+          width={18}
+          height={18}
           style={{
             cursor: 'help',
             flex: 'none',
