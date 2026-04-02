@@ -7,6 +7,7 @@ import {
 import humanFormat from 'human-format'
 
 import i18n from '@/i18n'
+import { BaseBadge } from '@/shared/components/badges/BaseBadge'
 import { LibraryBadge } from '@/shared/components/badges/LibraryBadge'
 import { ParameterCountBadge } from '@/shared/components/badges/ParameterCountBadge'
 import { TaskBadge } from '@/shared/components/badges/TaskBadge'
@@ -43,6 +44,13 @@ export function buildModelBadges(
     })
   }
 
+  if (model.parameterCount) {
+    badges.push({
+      key: 'parameterCount',
+      content: <ParameterCountBadge parameterCount={formatParameterCount(model.parameterCount)} maw={132} />,
+    })
+  }
+
   for (const name of libraryLabels) {
     badges.push({
       key: `library-${name}`,
@@ -50,10 +58,15 @@ export function buildModelBadges(
     })
   }
 
-  if (model.parameterCount) {
+  const handledCategories = new Set([options.taskCategory, options.libraryCategory])
+  const additionalLabels = (model.labels ?? []).filter(
+    l => l.name && !handledCategories.has(l.category as Category),
+  )
+
+  for (const label of additionalLabels) {
     badges.push({
-      key: 'parameterCount',
-      content: <ParameterCountBadge parameterCount={formatParameterCount(model.parameterCount)} maw={132} />,
+      key: `label-${label.category}-${label.name}`,
+      content: <BaseBadge label={label.name} maw={132} />,
     })
   }
 
