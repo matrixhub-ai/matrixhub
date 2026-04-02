@@ -26,9 +26,14 @@ export const replicationTriggerTypeValues = [
 export const replicationBandwidthUnitValues = ['Kbps', 'Mbps'] as const
 export type ReplicationBandwidthUnit = typeof replicationBandwidthUnitValues[number]
 
+export const replicationsSearchDefaults = {
+  page: DEFAULT_REPLICATIONS_PAGE,
+  query: undefined as string | undefined,
+}
+
 export const replicationsSearchSchema = z.object({
-  page: z.coerce.number().int().positive().catch(DEFAULT_REPLICATIONS_PAGE).default(DEFAULT_REPLICATIONS_PAGE),
-  query: z.string().trim().optional().catch(undefined),
+  page: z.coerce.number().int().positive().default(replicationsSearchDefaults.page).catch(replicationsSearchDefaults.page),
+  query: z.string().trim().optional().catch(replicationsSearchDefaults.query),
 })
 
 export type ReplicationsSearch = z.infer<typeof replicationsSearchSchema>
