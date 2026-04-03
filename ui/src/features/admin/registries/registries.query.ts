@@ -1,5 +1,9 @@
 import { Registries } from '@matrixhub/api-ts/v1alpha1/registry.pb'
-import { queryOptions } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  queryOptions,
+  useQuery,
+} from '@tanstack/react-query'
 
 import {
   DEFAULT_REGISTRIES_PAGE_SIZE,
@@ -27,5 +31,14 @@ export function registriesQueryOptions(search: RegistriesSearch) {
         pagination: response.pagination,
       }
     },
+  })
+}
+
+// -- Custom hook --
+
+export function useRegistries(search: RegistriesSearch) {
+  return useQuery({
+    ...registriesQueryOptions(search),
+    placeholderData: keepPreviousData,
   })
 }

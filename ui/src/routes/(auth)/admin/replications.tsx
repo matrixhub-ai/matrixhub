@@ -13,11 +13,11 @@ export const Route = createFileRoute('/(auth)/admin/replications')({
     middlewares: [stripSearchParams(replicationsSearchDefaults)],
   },
   loaderDeps: ({ search }) => ({ search }),
-  loader: async ({
+  loader: ({
     context: { queryClient },
     deps: { search },
   }) => {
-    await queryClient.ensureQueryData(replicationsQueryOptions(search))
+    queryClient.prefetchQuery(replicationsQueryOptions(search))
   },
   component: RouteComponent,
 })

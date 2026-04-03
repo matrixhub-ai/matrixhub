@@ -1,5 +1,9 @@
 import { SyncPolicy } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
-import { queryOptions } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  queryOptions,
+  useQuery,
+} from '@tanstack/react-query'
 
 import {
   DEFAULT_REPLICATIONS_PAGE_SIZE,
@@ -27,5 +31,14 @@ export function replicationsQueryOptions(search: ReplicationsSearch) {
         pagination: response.pagination,
       }
     },
+  })
+}
+
+// -- Custom hook --
+
+export function useReplications(search: ReplicationsSearch) {
+  return useQuery({
+    ...replicationsQueryOptions(search),
+    placeholderData: keepPreviousData,
   })
 }

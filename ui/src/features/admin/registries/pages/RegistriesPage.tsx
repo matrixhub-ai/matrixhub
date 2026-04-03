@@ -1,11 +1,5 @@
-import {
-  useQueryClient,
-  useSuspenseQuery,
-} from '@tanstack/react-query'
-import {
-  getRouteApi,
-  useRouterState,
-} from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import { getRouteApi } from '@tanstack/react-router'
 
 import { useRouteListState } from '@/shared/hooks/useRouteListState'
 
@@ -13,7 +7,7 @@ import { CreateRegistryAction } from '../components/CreateRegistryAction'
 import { RegistriesTable } from '../components/RegistriesTable'
 import {
   adminRegistryKeys,
-  registriesQueryOptions,
+  useRegistries,
 } from '../registries.query'
 import { DEFAULT_REGISTRIES_PAGE } from '../registries.schema'
 import { getRegistryRowId } from '../registries.utils'
@@ -26,15 +20,11 @@ export function RegistriesPage() {
   const search = registriesRouteApi.useSearch()
   const {
     data,
+    isLoading,
     isFetching,
-  } = useSuspenseQuery(registriesQueryOptions(search))
-  const {
-    registries,
-    pagination,
-  } = data
-  const routeLoading = useRouterState({
-    select: state => state.isLoading,
-  })
+  } = useRegistries(search)
+  const registries = data?.registries ?? []
+  const pagination = data?.pagination
 
   const refreshRegistries = () => queryClient.invalidateQueries({
     queryKey: adminRegistryKeys.lists(),
@@ -56,7 +46,7 @@ export function RegistriesPage() {
     <RegistriesTable
       data={registries}
       pagination={pagination}
-      loading={routeLoading}
+      loading={isLoading}
       fetching={isFetching}
       page={search.page ?? DEFAULT_REGISTRIES_PAGE}
       searchValue={search.query ?? ''}

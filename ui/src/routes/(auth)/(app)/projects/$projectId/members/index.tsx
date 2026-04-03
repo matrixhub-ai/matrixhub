@@ -17,12 +17,12 @@ export const Route = createFileRoute(
     middlewares: [stripSearchParams(membersSearchDefaults)],
   },
   loaderDeps: ({ search }) => search,
-  loader: async ({
+  loader: ({
     context,
     params,
     deps,
   }) => {
-    await context.queryClient.ensureQueryData(
+    context.queryClient.prefetchQuery(
       membersQueryOptions(params.projectId, deps),
     )
   },
