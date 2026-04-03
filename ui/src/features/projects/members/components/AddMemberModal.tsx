@@ -1,7 +1,7 @@
 import { Select, Stack } from '@mantine/core'
 import { MemberType } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { Users } from '@matrixhub/api-ts/v1alpha1/user.pb'
-import { useForm, useStore } from '@tanstack/react-form'
+import { useStore } from '@tanstack/react-form'
 import {
   useMutation,
   useQuery,
@@ -9,8 +9,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
-import i18n from '@/i18n'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
 import { useProjectRoleOptions } from '../member.utils'
@@ -23,8 +23,6 @@ interface AddMemberModalProps {
   onClose: () => void
   projectId: string
 }
-
-const requiredString = z.string().min(1, i18n.t('common.validation.required'))
 
 const defaultValues = {
   memberType: MemberType.MEMBER_TYPE_USER as string,
@@ -39,6 +37,8 @@ export function AddMemberModal({
 }: AddMemberModalProps) {
   const { t } = useTranslation()
   const mutation = useMutation(addMemberMutationOptions())
+
+  const requiredString = z.string().min(1, t('common.validation.required'))
 
   const form = useForm({
     defaultValues,

@@ -9,12 +9,13 @@ import {
   Textarea,
 } from '@mantine/core'
 import { RegistryType } from '@matrixhub/api-ts/v1alpha1/registry.pb'
-import { useForm, useStore } from '@tanstack/react-form'
+import { useStore } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
 import {

@@ -18,7 +18,7 @@ import {
   SyncPolicyType,
   TriggerType,
 } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
-import { useForm, useStore } from '@tanstack/react-form'
+import { useStore } from '@tanstack/react-form'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next'
 import { registriesQueryOptions } from '@/features/admin/registries/registries.query'
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
 import {

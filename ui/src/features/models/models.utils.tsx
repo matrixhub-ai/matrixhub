@@ -15,6 +15,7 @@ import { formatDateTime } from '@/shared/utils/date'
 import { formatStorageSize } from '@/shared/utils/format'
 
 import type { ResourceBadge, ResourceMetaItem } from '@/shared/components/resource-card/BaseCard'
+import type { TFunction } from 'i18next'
 
 export function buildModelTitle(model: Model, projectId: string) {
   const projectName = model.project ?? projectId
@@ -76,6 +77,7 @@ export function buildModelBadges(
 export function buildModelMetaItems(
   model: Model,
   projectId: string,
+  t: TFunction = i18n.t.bind(i18n),
   options?: {
     projectIcon?: ResourceMetaItem['icon']
     sizeIcon?: ResourceMetaItem['icon']
@@ -85,19 +87,19 @@ export function buildModelMetaItems(
   return [
     {
       key: 'project',
-      label: i18n.t('common.fromProject'),
+      label: t('common.fromProject'),
       icon: options?.projectIcon ?? <IconApiApp size={20} />,
       value: model.project ?? projectId,
     },
     {
       key: 'size',
-      label: i18n.t('common.modelSize'),
+      label: t('common.modelSize'),
       icon: options?.sizeIcon ?? <IconCube size={20} />,
       value: formatStorageSize(model.size),
     },
     {
       key: 'updatedAt',
-      label: i18n.t('common.updatedAt'),
+      label: t('common.updatedAt'),
       icon: options?.updatedAtIcon ?? <IconClock size={20} />,
       value: formatDateTime(model.updatedAt),
     },

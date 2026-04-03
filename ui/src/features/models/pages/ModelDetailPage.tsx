@@ -11,13 +11,12 @@ import {
   linkOptions,
   useMatchRoute,
 } from '@tanstack/react-router'
+import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/context/project-role-context.tsx'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
-
-import type { ReactNode } from 'react'
 
 interface ModelDetailPageProps {
   children: ReactNode
@@ -31,7 +30,9 @@ const {
 export function ModelDetailPage({
   children,
 }: ModelDetailPageProps) {
-  const { t } = useTranslation()
+  const {
+    t, i18n,
+  } = useTranslation()
   const {
     projectId, modelId,
   } = useParams()
@@ -93,7 +94,7 @@ export function ModelDetailPage({
           projectId={projectId}
           name={modelId}
           badges={buildModelBadges(model)}
-          metaItems={buildModelMetaItems(model, projectId)}
+          metaItems={buildModelMetaItems(model, projectId, i18n.t.bind(i18n))}
           actions={(
             <>
               <Button size="xs" color="cyan" variant="light" leftSection={<IconCloudUpload size={16} />}>{t('model.detail.upload')}</Button>

@@ -18,7 +18,6 @@ import {
   IconKey,
   IconRefresh,
 } from '@tabler/icons-react'
-import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useState } from 'react'
@@ -29,6 +28,7 @@ import { AccessTokenTable } from '@/features/profile/components/AccessTokenTable
 import { profileKeys, useAccessTokens } from '@/features/profile/profile.query'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
+import { useForm } from '@/shared/hooks/useForm'
 
 const validityRadios = [
   {
