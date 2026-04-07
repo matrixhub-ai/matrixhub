@@ -668,6 +668,442 @@ func (x *GetCurrentUserResponse) GetIsAdmin() bool {
 	return false
 }
 
+type CreateSSHKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SshKeyName    string                 `protobuf:"bytes,1,opt,name=ssh_key_name,json=sshKeyName,proto3" json:"ssh_key_name,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,2,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	ExpiredAt     string                 `protobuf:"bytes,3,opt,name=expired_at,json=expiredAt,proto3" json:"expired_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSSHKeyRequest) Reset() {
+	*x = CreateSSHKeyRequest{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSSHKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSSHKeyRequest) ProtoMessage() {}
+
+func (x *CreateSSHKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSSHKeyRequest.ProtoReflect.Descriptor instead.
+func (*CreateSSHKeyRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CreateSSHKeyRequest) GetSshKeyName() string {
+	if x != nil {
+		return x.SshKeyName
+	}
+	return ""
+}
+
+func (x *CreateSSHKeyRequest) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+func (x *CreateSSHKeyRequest) GetExpiredAt() string {
+	if x != nil {
+		return x.ExpiredAt
+	}
+	return ""
+}
+
+type CreateSSHKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSSHKeyResponse) Reset() {
+	*x = CreateSSHKeyResponse{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSSHKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSSHKeyResponse) ProtoMessage() {}
+
+func (x *CreateSSHKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSSHKeyResponse.ProtoReflect.Descriptor instead.
+func (*CreateSSHKeyResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{14}
+}
+
+type UpdateSSHKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SshKeyId      uint32                 `protobuf:"varint,1,opt,name=ssh_key_id,json=sshKeyId,proto3" json:"ssh_key_id,omitempty"`
+	SshKeyName    string                 `protobuf:"bytes,2,opt,name=ssh_key_name,json=sshKeyName,proto3" json:"ssh_key_name,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,3,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSSHKeyRequest) Reset() {
+	*x = UpdateSSHKeyRequest{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSSHKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSSHKeyRequest) ProtoMessage() {}
+
+func (x *UpdateSSHKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSSHKeyRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSSHKeyRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateSSHKeyRequest) GetSshKeyId() uint32 {
+	if x != nil {
+		return x.SshKeyId
+	}
+	return 0
+}
+
+func (x *UpdateSSHKeyRequest) GetSshKeyName() string {
+	if x != nil {
+		return x.SshKeyName
+	}
+	return ""
+}
+
+func (x *UpdateSSHKeyRequest) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+type UpdateSSHKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSSHKeyResponse) Reset() {
+	*x = UpdateSSHKeyResponse{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSSHKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSSHKeyResponse) ProtoMessage() {}
+
+func (x *UpdateSSHKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSSHKeyResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSSHKeyResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{16}
+}
+
+type DeleteSSHKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SshKeyId      uint32                 `protobuf:"varint,1,opt,name=ssh_key_id,json=sshKeyId,proto3" json:"ssh_key_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSSHKeyRequest) Reset() {
+	*x = DeleteSSHKeyRequest{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSSHKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSSHKeyRequest) ProtoMessage() {}
+
+func (x *DeleteSSHKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSSHKeyRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSSHKeyRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *DeleteSSHKeyRequest) GetSshKeyId() uint32 {
+	if x != nil {
+		return x.SshKeyId
+	}
+	return 0
+}
+
+type DeleteSSHKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSSHKeyResponse) Reset() {
+	*x = DeleteSSHKeyResponse{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSSHKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSSHKeyResponse) ProtoMessage() {}
+
+func (x *DeleteSSHKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSSHKeyResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSSHKeyResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{18}
+}
+
+type ListSSHKeysRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSSHKeysRequest) Reset() {
+	*x = ListSSHKeysRequest{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSSHKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSSHKeysRequest) ProtoMessage() {}
+
+func (x *ListSSHKeysRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSSHKeysRequest.ProtoReflect.Descriptor instead.
+func (*ListSSHKeysRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{19}
+}
+
+type ListSSHKeysResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*SSHKey              `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSSHKeysResponse) Reset() {
+	*x = ListSSHKeysResponse{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSSHKeysResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSSHKeysResponse) ProtoMessage() {}
+
+func (x *ListSSHKeysResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSSHKeysResponse.ProtoReflect.Descriptor instead.
+func (*ListSSHKeysResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ListSSHKeysResponse) GetItems() []*SSHKey {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type SSHKey struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	SshKeyName    string                 `protobuf:"bytes,2,opt,name=ssh_key_name,json=sshKeyName,proto3" json:"ssh_key_name,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,3,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ExpiredAt     string                 `protobuf:"bytes,6,opt,name=expired_at,json=expiredAt,proto3" json:"expired_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SSHKey) Reset() {
+	*x = SSHKey{}
+	mi := &file_v1alpha1_current_user_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SSHKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SSHKey) ProtoMessage() {}
+
+func (x *SSHKey) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_current_user_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SSHKey.ProtoReflect.Descriptor instead.
+func (*SSHKey) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_current_user_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *SSHKey) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SSHKey) GetSshKeyName() string {
+	if x != nil {
+		return x.SshKeyName
+	}
+	return ""
+}
+
+func (x *SSHKey) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+func (x *SSHKey) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *SSHKey) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *SSHKey) GetExpiredAt() string {
+	if x != nil {
+		return x.ExpiredAt
+	}
+	return ""
+}
+
 var File_v1alpha1_current_user_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_current_user_proto_rawDesc = "" +
@@ -706,18 +1142,57 @@ const file_v1alpha1_current_user_proto_rawDesc = "" +
 	"\x16GetCurrentUserResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x19\n" +
-	"\bis_admin\x18\x03 \x01(\bR\aisAdmin*t\n" +
+	"\bis_admin\x18\x03 \x01(\bR\aisAdmin\"\x87\x01\n" +
+	"\x13CreateSSHKeyRequest\x12)\n" +
+	"\fssh_key_name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\n" +
+	"sshKeyName\x12&\n" +
+	"\n" +
+	"public_key\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\tpublicKey\x12\x1d\n" +
+	"\n" +
+	"expired_at\x18\x03 \x01(\tR\texpiredAt\"\x16\n" +
+	"\x14CreateSSHKeyResponse\"\x86\x01\n" +
+	"\x13UpdateSSHKeyRequest\x12\x1c\n" +
+	"\n" +
+	"ssh_key_id\x18\x01 \x01(\rR\bsshKeyId\x12)\n" +
+	"\fssh_key_name\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\n" +
+	"sshKeyName\x12&\n" +
+	"\n" +
+	"public_key\x18\x03 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\tpublicKey\"\x16\n" +
+	"\x14UpdateSSHKeyResponse\"3\n" +
+	"\x13DeleteSSHKeyRequest\x12\x1c\n" +
+	"\n" +
+	"ssh_key_id\x18\x01 \x01(\rR\bsshKeyId\"\x16\n" +
+	"\x14DeleteSSHKeyResponse\"\x14\n" +
+	"\x12ListSSHKeysRequest\"G\n" +
+	"\x13ListSSHKeysResponse\x120\n" +
+	"\x05items\x18\x01 \x03(\v2\x1a.matrixhub.v1alpha1.SSHKeyR\x05items\"\xb6\x01\n" +
+	"\x06SSHKey\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\x12 \n" +
+	"\fssh_key_name\x18\x02 \x01(\tR\n" +
+	"sshKeyName\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x03 \x01(\tR\tpublicKey\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"expired_at\x18\x06 \x01(\tR\texpiredAt*t\n" +
 	"\x11AccessTokenStatus\x12\x1f\n" +
 	"\x1bACCESS_TOKEN_STATUS_UNKNOWN\x10\x00\x12\x1d\n" +
 	"\x19ACCESS_TOKEN_STATUS_VALID\x10\x01\x12\x1f\n" +
-	"\x1bACCESS_TOKEN_STATUS_EXPIRED\x10\x022\xcb\a\n" +
+	"\x1bACCESS_TOKEN_STATUS_EXPIRED\x10\x022\xac\f\n" +
 	"\vCurrentUser\x12\x8b\x01\n" +
 	"\x0eGetCurrentUser\x12).matrixhub.v1alpha1.GetCurrentUserRequest\x1a*.matrixhub.v1alpha1.GetCurrentUserResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1alpha1/current-user\x12\x9a\x01\n" +
 	"\rResetPassword\x12(.matrixhub.v1alpha1.ResetPasswordRequest\x1a).matrixhub.v1alpha1.ResetPasswordResponse\"4\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1alpha1/current-user/reset-password\x12\x9f\x01\n" +
 	"\x10ListAccessTokens\x12+.matrixhub.v1alpha1.ListAccessTokensRequest\x1a,.matrixhub.v1alpha1.ListAccessTokensResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1alpha1/current-user/access-tokens\x12\xa5\x01\n" +
 	"\x11CreateAccessToken\x12,.matrixhub.v1alpha1.CreateAccessTokenRequest\x1a-.matrixhub.v1alpha1.CreateAccessTokenResponse\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1alpha1/current-user/access-tokens\x12\xa7\x01\n" +
 	"\x11DeleteAccessToken\x12,.matrixhub.v1alpha1.DeleteAccessTokenRequest\x1a-.matrixhub.v1alpha1.DeleteAccessTokenResponse\"5\x82\xd3\xe4\x93\x02/*-/api/v1alpha1/current-user/access-tokens/{id}\x12\x9c\x01\n" +
-	"\x0fGetProjectRoles\x12*.matrixhub.v1alpha1.GetProjectRolesRequest\x1a+.matrixhub.v1alpha1.GetProjectRolesResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1alpha1/current-user/projects/roleB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
+	"\x0fGetProjectRoles\x12*.matrixhub.v1alpha1.GetProjectRolesRequest\x1a+.matrixhub.v1alpha1.GetProjectRolesResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1alpha1/current-user/projects/role\x12\x91\x01\n" +
+	"\fCreateSSHKey\x12'.matrixhub.v1alpha1.CreateSSHKeyRequest\x1a(.matrixhub.v1alpha1.CreateSSHKeyResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1alpha1/current-user/ssh-keys\x12\x9e\x01\n" +
+	"\fUpdateSSHKey\x12'.matrixhub.v1alpha1.UpdateSSHKeyRequest\x1a(.matrixhub.v1alpha1.UpdateSSHKeyResponse\";\x82\xd3\xe4\x93\x025:\x01*\x1a0/api/v1alpha1/current-user/ssh-keys/{ssh_key_id}\x12\x9b\x01\n" +
+	"\fDeleteSSHKey\x12'.matrixhub.v1alpha1.DeleteSSHKeyRequest\x1a(.matrixhub.v1alpha1.DeleteSSHKeyResponse\"8\x82\xd3\xe4\x93\x022*0/api/v1alpha1/current-user/ssh-keys/{ssh_key_id}\x12\x8b\x01\n" +
+	"\vListSSHKeys\x12&.matrixhub.v1alpha1.ListSSHKeysRequest\x1a'.matrixhub.v1alpha1.ListSSHKeysResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1alpha1/current-user/ssh-keysB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
 
 var (
 	file_v1alpha1_current_user_proto_rawDescOnce sync.Once
@@ -732,7 +1207,7 @@ func file_v1alpha1_current_user_proto_rawDescGZIP() []byte {
 }
 
 var file_v1alpha1_current_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_v1alpha1_current_user_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_v1alpha1_current_user_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_v1alpha1_current_user_proto_goTypes = []any{
 	(AccessTokenStatus)(0),            // 0: matrixhub.v1alpha1.AccessTokenStatus
 	(*ResetPasswordRequest)(nil),      // 1: matrixhub.v1alpha1.ResetPasswordRequest
@@ -748,31 +1223,49 @@ var file_v1alpha1_current_user_proto_goTypes = []any{
 	(*GetProjectRolesResponse)(nil),   // 11: matrixhub.v1alpha1.GetProjectRolesResponse
 	(*GetCurrentUserRequest)(nil),     // 12: matrixhub.v1alpha1.GetCurrentUserRequest
 	(*GetCurrentUserResponse)(nil),    // 13: matrixhub.v1alpha1.GetCurrentUserResponse
-	nil,                               // 14: matrixhub.v1alpha1.GetProjectRolesResponse.ProjectRolesEntry
-	(ProjectRoleType)(0),              // 15: matrixhub.v1alpha1.ProjectRoleType
+	(*CreateSSHKeyRequest)(nil),       // 14: matrixhub.v1alpha1.CreateSSHKeyRequest
+	(*CreateSSHKeyResponse)(nil),      // 15: matrixhub.v1alpha1.CreateSSHKeyResponse
+	(*UpdateSSHKeyRequest)(nil),       // 16: matrixhub.v1alpha1.UpdateSSHKeyRequest
+	(*UpdateSSHKeyResponse)(nil),      // 17: matrixhub.v1alpha1.UpdateSSHKeyResponse
+	(*DeleteSSHKeyRequest)(nil),       // 18: matrixhub.v1alpha1.DeleteSSHKeyRequest
+	(*DeleteSSHKeyResponse)(nil),      // 19: matrixhub.v1alpha1.DeleteSSHKeyResponse
+	(*ListSSHKeysRequest)(nil),        // 20: matrixhub.v1alpha1.ListSSHKeysRequest
+	(*ListSSHKeysResponse)(nil),       // 21: matrixhub.v1alpha1.ListSSHKeysResponse
+	(*SSHKey)(nil),                    // 22: matrixhub.v1alpha1.SSHKey
+	nil,                               // 23: matrixhub.v1alpha1.GetProjectRolesResponse.ProjectRolesEntry
+	(ProjectRoleType)(0),              // 24: matrixhub.v1alpha1.ProjectRoleType
 }
 var file_v1alpha1_current_user_proto_depIdxs = []int32{
 	5,  // 0: matrixhub.v1alpha1.ListAccessTokensResponse.items:type_name -> matrixhub.v1alpha1.AccessToken
 	0,  // 1: matrixhub.v1alpha1.AccessToken.status:type_name -> matrixhub.v1alpha1.AccessTokenStatus
-	14, // 2: matrixhub.v1alpha1.GetProjectRolesResponse.project_roles:type_name -> matrixhub.v1alpha1.GetProjectRolesResponse.ProjectRolesEntry
-	15, // 3: matrixhub.v1alpha1.GetProjectRolesResponse.ProjectRolesEntry.value:type_name -> matrixhub.v1alpha1.ProjectRoleType
-	12, // 4: matrixhub.v1alpha1.CurrentUser.GetCurrentUser:input_type -> matrixhub.v1alpha1.GetCurrentUserRequest
-	1,  // 5: matrixhub.v1alpha1.CurrentUser.ResetPassword:input_type -> matrixhub.v1alpha1.ResetPasswordRequest
-	3,  // 6: matrixhub.v1alpha1.CurrentUser.ListAccessTokens:input_type -> matrixhub.v1alpha1.ListAccessTokensRequest
-	6,  // 7: matrixhub.v1alpha1.CurrentUser.CreateAccessToken:input_type -> matrixhub.v1alpha1.CreateAccessTokenRequest
-	8,  // 8: matrixhub.v1alpha1.CurrentUser.DeleteAccessToken:input_type -> matrixhub.v1alpha1.DeleteAccessTokenRequest
-	10, // 9: matrixhub.v1alpha1.CurrentUser.GetProjectRoles:input_type -> matrixhub.v1alpha1.GetProjectRolesRequest
-	13, // 10: matrixhub.v1alpha1.CurrentUser.GetCurrentUser:output_type -> matrixhub.v1alpha1.GetCurrentUserResponse
-	2,  // 11: matrixhub.v1alpha1.CurrentUser.ResetPassword:output_type -> matrixhub.v1alpha1.ResetPasswordResponse
-	4,  // 12: matrixhub.v1alpha1.CurrentUser.ListAccessTokens:output_type -> matrixhub.v1alpha1.ListAccessTokensResponse
-	7,  // 13: matrixhub.v1alpha1.CurrentUser.CreateAccessToken:output_type -> matrixhub.v1alpha1.CreateAccessTokenResponse
-	9,  // 14: matrixhub.v1alpha1.CurrentUser.DeleteAccessToken:output_type -> matrixhub.v1alpha1.DeleteAccessTokenResponse
-	11, // 15: matrixhub.v1alpha1.CurrentUser.GetProjectRoles:output_type -> matrixhub.v1alpha1.GetProjectRolesResponse
-	10, // [10:16] is the sub-list for method output_type
-	4,  // [4:10] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	23, // 2: matrixhub.v1alpha1.GetProjectRolesResponse.project_roles:type_name -> matrixhub.v1alpha1.GetProjectRolesResponse.ProjectRolesEntry
+	22, // 3: matrixhub.v1alpha1.ListSSHKeysResponse.items:type_name -> matrixhub.v1alpha1.SSHKey
+	24, // 4: matrixhub.v1alpha1.GetProjectRolesResponse.ProjectRolesEntry.value:type_name -> matrixhub.v1alpha1.ProjectRoleType
+	12, // 5: matrixhub.v1alpha1.CurrentUser.GetCurrentUser:input_type -> matrixhub.v1alpha1.GetCurrentUserRequest
+	1,  // 6: matrixhub.v1alpha1.CurrentUser.ResetPassword:input_type -> matrixhub.v1alpha1.ResetPasswordRequest
+	3,  // 7: matrixhub.v1alpha1.CurrentUser.ListAccessTokens:input_type -> matrixhub.v1alpha1.ListAccessTokensRequest
+	6,  // 8: matrixhub.v1alpha1.CurrentUser.CreateAccessToken:input_type -> matrixhub.v1alpha1.CreateAccessTokenRequest
+	8,  // 9: matrixhub.v1alpha1.CurrentUser.DeleteAccessToken:input_type -> matrixhub.v1alpha1.DeleteAccessTokenRequest
+	10, // 10: matrixhub.v1alpha1.CurrentUser.GetProjectRoles:input_type -> matrixhub.v1alpha1.GetProjectRolesRequest
+	14, // 11: matrixhub.v1alpha1.CurrentUser.CreateSSHKey:input_type -> matrixhub.v1alpha1.CreateSSHKeyRequest
+	16, // 12: matrixhub.v1alpha1.CurrentUser.UpdateSSHKey:input_type -> matrixhub.v1alpha1.UpdateSSHKeyRequest
+	18, // 13: matrixhub.v1alpha1.CurrentUser.DeleteSSHKey:input_type -> matrixhub.v1alpha1.DeleteSSHKeyRequest
+	20, // 14: matrixhub.v1alpha1.CurrentUser.ListSSHKeys:input_type -> matrixhub.v1alpha1.ListSSHKeysRequest
+	13, // 15: matrixhub.v1alpha1.CurrentUser.GetCurrentUser:output_type -> matrixhub.v1alpha1.GetCurrentUserResponse
+	2,  // 16: matrixhub.v1alpha1.CurrentUser.ResetPassword:output_type -> matrixhub.v1alpha1.ResetPasswordResponse
+	4,  // 17: matrixhub.v1alpha1.CurrentUser.ListAccessTokens:output_type -> matrixhub.v1alpha1.ListAccessTokensResponse
+	7,  // 18: matrixhub.v1alpha1.CurrentUser.CreateAccessToken:output_type -> matrixhub.v1alpha1.CreateAccessTokenResponse
+	9,  // 19: matrixhub.v1alpha1.CurrentUser.DeleteAccessToken:output_type -> matrixhub.v1alpha1.DeleteAccessTokenResponse
+	11, // 20: matrixhub.v1alpha1.CurrentUser.GetProjectRoles:output_type -> matrixhub.v1alpha1.GetProjectRolesResponse
+	15, // 21: matrixhub.v1alpha1.CurrentUser.CreateSSHKey:output_type -> matrixhub.v1alpha1.CreateSSHKeyResponse
+	17, // 22: matrixhub.v1alpha1.CurrentUser.UpdateSSHKey:output_type -> matrixhub.v1alpha1.UpdateSSHKeyResponse
+	19, // 23: matrixhub.v1alpha1.CurrentUser.DeleteSSHKey:output_type -> matrixhub.v1alpha1.DeleteSSHKeyResponse
+	21, // 24: matrixhub.v1alpha1.CurrentUser.ListSSHKeys:output_type -> matrixhub.v1alpha1.ListSSHKeysResponse
+	15, // [15:25] is the sub-list for method output_type
+	5,  // [5:15] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_current_user_proto_init() }
@@ -787,7 +1280,7 @@ func file_v1alpha1_current_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_current_user_proto_rawDesc), len(file_v1alpha1_current_user_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   14,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

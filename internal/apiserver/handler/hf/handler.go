@@ -27,6 +27,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -45,16 +46,18 @@ type Handler struct {
 	mirror              *mirror.Mirror
 	modelService        model.IModelService
 	gitRepo             git.IGitRepo
+	authzService        authz.IAuthzService
 }
 
 // Option defines a functional option for configuring the Handler.
 type Option func(*Handler)
 
 // WithServices sets the services for the router.
-func WithServices(model model.IModelService, git git.IGitRepo) Option {
+func WithServices(model model.IModelService, git git.IGitRepo, authz authz.IAuthzService) Option {
 	return func(h *Handler) {
 		h.modelService = model
 		h.gitRepo = git
+		h.authzService = authz
 	}
 }
 

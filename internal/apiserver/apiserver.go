@@ -236,7 +236,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 			middleware.HFAuthenticationMiddleware(server.repos.AccessToken),
 			middleware.HFAuthzMiddleware(server.repos.Project, server.services.Authz),
 		),
-		backendhf.WithServices(server.services.Model, server.repos.Git),
+		backendhf.WithServices(server.services.Model, server.repos.Git, server.services.Authz),
 	)
 
 	handler = backendlfs.NewHandler(

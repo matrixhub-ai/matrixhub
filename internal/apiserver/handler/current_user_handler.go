@@ -38,6 +38,26 @@ type CurrentUserHandler struct {
 	accessTokenRepo user.IAccessTokenRepo
 }
 
+func (cu *CurrentUserHandler) CreateSSHKey(ctx context.Context, request *v1alpha1.CreateSSHKeyRequest) (*v1alpha1.CreateSSHKeyResponse, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (cu *CurrentUserHandler) UpdateSSHKey(ctx context.Context, request *v1alpha1.UpdateSSHKeyRequest) (*v1alpha1.UpdateSSHKeyResponse, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (cu *CurrentUserHandler) DeleteSSHKey(ctx context.Context, request *v1alpha1.DeleteSSHKeyRequest) (*v1alpha1.DeleteSSHKeyResponse, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (cu *CurrentUserHandler) ListSSHKeys(ctx context.Context, request *v1alpha1.ListSSHKeysRequest) (*v1alpha1.ListSSHKeysResponse, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (cu *CurrentUserHandler) GetCurrentUser(ctx context.Context, request *v1alpha1.GetCurrentUserRequest) (*v1alpha1.GetCurrentUserResponse, error) {
 	user, err := cu.userRepo.GetUser(ctx, user.GetCurrentUserId(ctx))
 	if err != nil {

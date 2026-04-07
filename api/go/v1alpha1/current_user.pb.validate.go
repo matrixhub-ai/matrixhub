@@ -1448,3 +1448,1013 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetCurrentUserResponseValidationError{}
+
+// Validate checks the field values on CreateSSHKeyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateSSHKeyRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateSSHKeyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateSSHKeyRequestMultiError, or nil if none found.
+func (m *CreateSSHKeyRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateSSHKeyRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetSshKeyName()) < 1 {
+		err := CreateSSHKeyRequestValidationError{
+			field:  "SshKeyName",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetPublicKey()) < 1 {
+		err := CreateSSHKeyRequestValidationError{
+			field:  "PublicKey",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for ExpiredAt
+
+	if len(errors) > 0 {
+		return CreateSSHKeyRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateSSHKeyRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateSSHKeyRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateSSHKeyRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateSSHKeyRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateSSHKeyRequestMultiError) AllErrors() []error { return m }
+
+// CreateSSHKeyRequestValidationError is the validation error returned by
+// CreateSSHKeyRequest.Validate if the designated constraints aren't met.
+type CreateSSHKeyRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateSSHKeyRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateSSHKeyRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateSSHKeyRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateSSHKeyRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateSSHKeyRequestValidationError) ErrorName() string {
+	return "CreateSSHKeyRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateSSHKeyRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateSSHKeyRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateSSHKeyRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateSSHKeyRequestValidationError{}
+
+// Validate checks the field values on CreateSSHKeyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateSSHKeyResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateSSHKeyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateSSHKeyResponseMultiError, or nil if none found.
+func (m *CreateSSHKeyResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateSSHKeyResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return CreateSSHKeyResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateSSHKeyResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateSSHKeyResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateSSHKeyResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateSSHKeyResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateSSHKeyResponseMultiError) AllErrors() []error { return m }
+
+// CreateSSHKeyResponseValidationError is the validation error returned by
+// CreateSSHKeyResponse.Validate if the designated constraints aren't met.
+type CreateSSHKeyResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateSSHKeyResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateSSHKeyResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateSSHKeyResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateSSHKeyResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateSSHKeyResponseValidationError) ErrorName() string {
+	return "CreateSSHKeyResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateSSHKeyResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateSSHKeyResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateSSHKeyResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateSSHKeyResponseValidationError{}
+
+// Validate checks the field values on UpdateSSHKeyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateSSHKeyRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateSSHKeyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateSSHKeyRequestMultiError, or nil if none found.
+func (m *UpdateSSHKeyRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateSSHKeyRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SshKeyId
+
+	if utf8.RuneCountInString(m.GetSshKeyName()) < 1 {
+		err := UpdateSSHKeyRequestValidationError{
+			field:  "SshKeyName",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetPublicKey()) < 1 {
+		err := UpdateSSHKeyRequestValidationError{
+			field:  "PublicKey",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return UpdateSSHKeyRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateSSHKeyRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateSSHKeyRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateSSHKeyRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateSSHKeyRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateSSHKeyRequestMultiError) AllErrors() []error { return m }
+
+// UpdateSSHKeyRequestValidationError is the validation error returned by
+// UpdateSSHKeyRequest.Validate if the designated constraints aren't met.
+type UpdateSSHKeyRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateSSHKeyRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateSSHKeyRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateSSHKeyRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateSSHKeyRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateSSHKeyRequestValidationError) ErrorName() string {
+	return "UpdateSSHKeyRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateSSHKeyRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateSSHKeyRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateSSHKeyRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateSSHKeyRequestValidationError{}
+
+// Validate checks the field values on UpdateSSHKeyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateSSHKeyResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateSSHKeyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateSSHKeyResponseMultiError, or nil if none found.
+func (m *UpdateSSHKeyResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateSSHKeyResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return UpdateSSHKeyResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateSSHKeyResponseMultiError is an error wrapping multiple validation
+// errors returned by UpdateSSHKeyResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateSSHKeyResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateSSHKeyResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateSSHKeyResponseMultiError) AllErrors() []error { return m }
+
+// UpdateSSHKeyResponseValidationError is the validation error returned by
+// UpdateSSHKeyResponse.Validate if the designated constraints aren't met.
+type UpdateSSHKeyResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateSSHKeyResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateSSHKeyResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateSSHKeyResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateSSHKeyResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateSSHKeyResponseValidationError) ErrorName() string {
+	return "UpdateSSHKeyResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateSSHKeyResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateSSHKeyResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateSSHKeyResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateSSHKeyResponseValidationError{}
+
+// Validate checks the field values on DeleteSSHKeyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteSSHKeyRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteSSHKeyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteSSHKeyRequestMultiError, or nil if none found.
+func (m *DeleteSSHKeyRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteSSHKeyRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SshKeyId
+
+	if len(errors) > 0 {
+		return DeleteSSHKeyRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteSSHKeyRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteSSHKeyRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteSSHKeyRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteSSHKeyRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteSSHKeyRequestMultiError) AllErrors() []error { return m }
+
+// DeleteSSHKeyRequestValidationError is the validation error returned by
+// DeleteSSHKeyRequest.Validate if the designated constraints aren't met.
+type DeleteSSHKeyRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteSSHKeyRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteSSHKeyRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteSSHKeyRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteSSHKeyRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteSSHKeyRequestValidationError) ErrorName() string {
+	return "DeleteSSHKeyRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteSSHKeyRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteSSHKeyRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteSSHKeyRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteSSHKeyRequestValidationError{}
+
+// Validate checks the field values on DeleteSSHKeyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteSSHKeyResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteSSHKeyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteSSHKeyResponseMultiError, or nil if none found.
+func (m *DeleteSSHKeyResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteSSHKeyResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DeleteSSHKeyResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteSSHKeyResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteSSHKeyResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteSSHKeyResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteSSHKeyResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteSSHKeyResponseMultiError) AllErrors() []error { return m }
+
+// DeleteSSHKeyResponseValidationError is the validation error returned by
+// DeleteSSHKeyResponse.Validate if the designated constraints aren't met.
+type DeleteSSHKeyResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteSSHKeyResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteSSHKeyResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteSSHKeyResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteSSHKeyResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteSSHKeyResponseValidationError) ErrorName() string {
+	return "DeleteSSHKeyResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteSSHKeyResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteSSHKeyResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteSSHKeyResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteSSHKeyResponseValidationError{}
+
+// Validate checks the field values on ListSSHKeysRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSSHKeysRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSSHKeysRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSSHKeysRequestMultiError, or nil if none found.
+func (m *ListSSHKeysRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSSHKeysRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListSSHKeysRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSSHKeysRequestMultiError is an error wrapping multiple validation errors
+// returned by ListSSHKeysRequest.ValidateAll() if the designated constraints
+// aren't met.
+type ListSSHKeysRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSSHKeysRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSSHKeysRequestMultiError) AllErrors() []error { return m }
+
+// ListSSHKeysRequestValidationError is the validation error returned by
+// ListSSHKeysRequest.Validate if the designated constraints aren't met.
+type ListSSHKeysRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSSHKeysRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSSHKeysRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSSHKeysRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSSHKeysRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSSHKeysRequestValidationError) ErrorName() string {
+	return "ListSSHKeysRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSSHKeysRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSSHKeysRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSSHKeysRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSSHKeysRequestValidationError{}
+
+// Validate checks the field values on ListSSHKeysResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSSHKeysResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSSHKeysResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSSHKeysResponseMultiError, or nil if none found.
+func (m *ListSSHKeysResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSSHKeysResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetItems() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListSSHKeysResponseValidationError{
+						field:  fmt.Sprintf("Items[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListSSHKeysResponseValidationError{
+						field:  fmt.Sprintf("Items[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListSSHKeysResponseValidationError{
+					field:  fmt.Sprintf("Items[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListSSHKeysResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSSHKeysResponseMultiError is an error wrapping multiple validation
+// errors returned by ListSSHKeysResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListSSHKeysResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSSHKeysResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSSHKeysResponseMultiError) AllErrors() []error { return m }
+
+// ListSSHKeysResponseValidationError is the validation error returned by
+// ListSSHKeysResponse.Validate if the designated constraints aren't met.
+type ListSSHKeysResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSSHKeysResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSSHKeysResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSSHKeysResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSSHKeysResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSSHKeysResponseValidationError) ErrorName() string {
+	return "ListSSHKeysResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSSHKeysResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSSHKeysResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSSHKeysResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSSHKeysResponseValidationError{}
+
+// Validate checks the field values on SSHKey with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SSHKey) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SSHKey with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in SSHKeyMultiError, or nil if none found.
+func (m *SSHKey) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SSHKey) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for SshKeyName
+
+	// no validation rules for PublicKey
+
+	// no validation rules for UpdatedAt
+
+	// no validation rules for CreatedAt
+
+	// no validation rules for ExpiredAt
+
+	if len(errors) > 0 {
+		return SSHKeyMultiError(errors)
+	}
+
+	return nil
+}
+
+// SSHKeyMultiError is an error wrapping multiple validation errors returned by
+// SSHKey.ValidateAll() if the designated constraints aren't met.
+type SSHKeyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SSHKeyMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SSHKeyMultiError) AllErrors() []error { return m }
+
+// SSHKeyValidationError is the validation error returned by SSHKey.Validate if
+// the designated constraints aren't met.
+type SSHKeyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SSHKeyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SSHKeyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SSHKeyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SSHKeyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SSHKeyValidationError) ErrorName() string { return "SSHKeyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SSHKeyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSSHKey.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SSHKeyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SSHKeyValidationError{}

@@ -174,9 +174,140 @@
           "CurrentUser"
         ]
       }
+    },
+    "/api/v1alpha1/current-user/ssh-keys": {
+      "get": {
+        "operationId": "CurrentUser_ListSSHKeys",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListSSHKeysResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CurrentUser"
+        ]
+      },
+      "post": {
+        "operationId": "CurrentUser_CreateSSHKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateSSHKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateSSHKeyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CurrentUser"
+        ]
+      }
+    },
+    "/api/v1alpha1/current-user/ssh-keys/{sshKeyId}": {
+      "delete": {
+        "operationId": "CurrentUser_DeleteSSHKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1DeleteSSHKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sshKeyId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CurrentUser"
+        ]
+      },
+      "put": {
+        "operationId": "CurrentUser_UpdateSSHKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateSSHKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sshKeyId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CurrentUserUpdateSSHKeyBody"
+            }
+          }
+        ],
+        "tags": [
+          "CurrentUser"
+        ]
+      }
     }
   },
   "definitions": {
+    "CurrentUserUpdateSSHKeyBody": {
+      "type": "object",
+      "properties": {
+        "sshKeyName": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -254,7 +385,27 @@
         }
       }
     },
+    "v1alpha1CreateSSHKeyRequest": {
+      "type": "object",
+      "properties": {
+        "sshKeyName": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        },
+        "expiredAt": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1CreateSSHKeyResponse": {
+      "type": "object"
+    },
     "v1alpha1DeleteAccessTokenResponse": {
+      "type": "object"
+    },
+    "v1alpha1DeleteSSHKeyResponse": {
       "type": "object"
     },
     "v1alpha1GetCurrentUserResponse": {
@@ -295,6 +446,18 @@
         }
       }
     },
+    "v1alpha1ListSSHKeysResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1SSHKey"
+          }
+        }
+      }
+    },
     "v1alpha1ProjectRoleType": {
       "type": "string",
       "enum": [
@@ -316,6 +479,33 @@
       }
     },
     "v1alpha1ResetPasswordResponse": {
+      "type": "object"
+    },
+    "v1alpha1SSHKey": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sshKeyName": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "expiredAt": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1UpdateSSHKeyResponse": {
       "type": "object"
     }
   }

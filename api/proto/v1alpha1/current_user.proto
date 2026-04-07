@@ -42,6 +42,29 @@ service CurrentUser {
       get: "/api/v1alpha1/current-user/projects/role"
     };
   }
+
+  rpc CreateSSHKey(CreateSSHKeyRequest) returns (CreateSSHKeyResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/current-user/ssh-keys"
+      body: "*"
+    };
+  }
+  rpc UpdateSSHKey(UpdateSSHKeyRequest) returns (UpdateSSHKeyResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/current-user/ssh-keys/{ssh_key_id}"
+      body: "*"
+    };
+  }
+  rpc DeleteSSHKey(DeleteSSHKeyRequest) returns (DeleteSSHKeyResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1alpha1/current-user/ssh-keys/{ssh_key_id}"
+    };
+  }
+  rpc ListSSHKeys(ListSSHKeysRequest) returns (ListSSHKeysResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/current-user/ssh-keys"
+    };
+  }
 }
 
 message ResetPasswordRequest {
@@ -101,4 +124,42 @@ message GetCurrentUserResponse{
   uint32 id = 1;
   string username = 2;
   bool is_admin = 3;
+}
+
+message CreateSSHKeyRequest {
+  string ssh_key_name = 1 [(validate.rules).string.min_len = 1];
+  string public_key = 2 [(validate.rules).string.min_len = 1];
+  string expired_at = 3;
+}
+
+message CreateSSHKeyResponse {}
+
+message UpdateSSHKeyRequest {
+  uint32 ssh_key_id = 1;
+  string ssh_key_name = 2 [(validate.rules).string.min_len = 1];
+  string public_key = 3 [(validate.rules).string.min_len = 1];
+}
+
+message UpdateSSHKeyResponse {}
+
+message DeleteSSHKeyRequest {
+  uint32 ssh_key_id = 1 ;
+}
+
+message DeleteSSHKeyResponse {}
+
+
+message ListSSHKeysRequest {}
+
+message ListSSHKeysResponse {
+  repeated SSHKey items = 1;
+}
+
+message SSHKey {
+  uint32 id = 1;
+  string ssh_key_name = 2;
+  string public_key = 3;
+  string updated_at = 4;
+  string created_at = 5;
+  string expired_at = 6;
 }
