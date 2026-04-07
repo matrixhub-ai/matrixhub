@@ -227,7 +227,7 @@
         ]
       }
     },
-    "/api/v1alpha1/current-user/ssh-keys/{sshKeyId}": {
+    "/api/v1alpha1/current-user/ssh-keys/{id}": {
       "delete": {
         "operationId": "CurrentUser_DeleteSSHKey",
         "responses": {
@@ -246,48 +246,11 @@
         },
         "parameters": [
           {
-            "name": "sshKeyId",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "integer",
             "format": "int64"
-          }
-        ],
-        "tags": [
-          "CurrentUser"
-        ]
-      },
-      "put": {
-        "operationId": "CurrentUser_UpdateSSHKey",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1alpha1UpdateSSHKeyResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "sshKeyId",
-            "in": "path",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/CurrentUserUpdateSSHKeyBody"
-            }
           }
         ],
         "tags": [
@@ -297,17 +260,6 @@
     }
   },
   "definitions": {
-    "CurrentUserUpdateSSHKeyBody": {
-      "type": "object",
-      "properties": {
-        "sshKeyName": {
-          "type": "string"
-        },
-        "publicKey": {
-          "type": "string"
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -388,13 +340,13 @@
     "v1alpha1CreateSSHKeyRequest": {
       "type": "object",
       "properties": {
-        "sshKeyName": {
+        "name": {
           "type": "string"
         },
         "publicKey": {
           "type": "string"
         },
-        "expiredAt": {
+        "expireAt": {
           "type": "string"
         }
       }
@@ -488,25 +440,28 @@
           "type": "integer",
           "format": "int64"
         },
-        "sshKeyName": {
+        "name": {
           "type": "string"
         },
-        "publicKey": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
+        "status": {
+          "$ref": "#/definitions/v1alpha1SSHKeyStatus"
         },
         "createdAt": {
           "type": "string"
         },
-        "expiredAt": {
+        "expireAt": {
           "type": "string"
         }
       }
     },
-    "v1alpha1UpdateSSHKeyResponse": {
-      "type": "object"
+    "v1alpha1SSHKeyStatus": {
+      "type": "string",
+      "enum": [
+        "SSH_KEY_STATUS_UNKNOWN",
+        "SSH_KEY_STATUS_VALID",
+        "SSH_KEY_STATUS_EXPIRED"
+      ],
+      "default": "SSH_KEY_STATUS_UNKNOWN"
     }
   }
 }

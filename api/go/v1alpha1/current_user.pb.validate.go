@@ -1471,9 +1471,9 @@ func (m *CreateSSHKeyRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetSshKeyName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		err := CreateSSHKeyRequestValidationError{
-			field:  "SshKeyName",
+			field:  "Name",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -1493,7 +1493,7 @@ func (m *CreateSSHKeyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for ExpiredAt
+	// no validation rules for ExpireAt
 
 	if len(errors) > 0 {
 		return CreateSSHKeyRequestMultiError(errors)
@@ -1677,234 +1677,6 @@ var _ interface {
 	ErrorName() string
 } = CreateSSHKeyResponseValidationError{}
 
-// Validate checks the field values on UpdateSSHKeyRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateSSHKeyRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on UpdateSSHKeyRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// UpdateSSHKeyRequestMultiError, or nil if none found.
-func (m *UpdateSSHKeyRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateSSHKeyRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for SshKeyId
-
-	if utf8.RuneCountInString(m.GetSshKeyName()) < 1 {
-		err := UpdateSSHKeyRequestValidationError{
-			field:  "SshKeyName",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetPublicKey()) < 1 {
-		err := UpdateSSHKeyRequestValidationError{
-			field:  "PublicKey",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if len(errors) > 0 {
-		return UpdateSSHKeyRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// UpdateSSHKeyRequestMultiError is an error wrapping multiple validation
-// errors returned by UpdateSSHKeyRequest.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateSSHKeyRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateSSHKeyRequestMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateSSHKeyRequestMultiError) AllErrors() []error { return m }
-
-// UpdateSSHKeyRequestValidationError is the validation error returned by
-// UpdateSSHKeyRequest.Validate if the designated constraints aren't met.
-type UpdateSSHKeyRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateSSHKeyRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateSSHKeyRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateSSHKeyRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateSSHKeyRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateSSHKeyRequestValidationError) ErrorName() string {
-	return "UpdateSSHKeyRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateSSHKeyRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateSSHKeyRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateSSHKeyRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateSSHKeyRequestValidationError{}
-
-// Validate checks the field values on UpdateSSHKeyResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateSSHKeyResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on UpdateSSHKeyResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// UpdateSSHKeyResponseMultiError, or nil if none found.
-func (m *UpdateSSHKeyResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateSSHKeyResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(errors) > 0 {
-		return UpdateSSHKeyResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// UpdateSSHKeyResponseMultiError is an error wrapping multiple validation
-// errors returned by UpdateSSHKeyResponse.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateSSHKeyResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateSSHKeyResponseMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateSSHKeyResponseMultiError) AllErrors() []error { return m }
-
-// UpdateSSHKeyResponseValidationError is the validation error returned by
-// UpdateSSHKeyResponse.Validate if the designated constraints aren't met.
-type UpdateSSHKeyResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateSSHKeyResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateSSHKeyResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateSSHKeyResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateSSHKeyResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateSSHKeyResponseValidationError) ErrorName() string {
-	return "UpdateSSHKeyResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateSSHKeyResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateSSHKeyResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateSSHKeyResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateSSHKeyResponseValidationError{}
-
 // Validate checks the field values on DeleteSSHKeyRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1927,7 +1699,7 @@ func (m *DeleteSSHKeyRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SshKeyId
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return DeleteSSHKeyRequestMultiError(errors)
@@ -2372,15 +2144,13 @@ func (m *SSHKey) validate(all bool) error {
 
 	// no validation rules for Id
 
-	// no validation rules for SshKeyName
+	// no validation rules for Name
 
-	// no validation rules for PublicKey
-
-	// no validation rules for UpdatedAt
+	// no validation rules for Status
 
 	// no validation rules for CreatedAt
 
-	// no validation rules for ExpiredAt
+	// no validation rules for ExpireAt
 
 	if len(errors) > 0 {
 		return SSHKeyMultiError(errors)

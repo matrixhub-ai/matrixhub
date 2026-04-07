@@ -43,11 +43,6 @@ func (cu *CurrentUserHandler) CreateSSHKey(ctx context.Context, request *v1alpha
 	panic("implement me")
 }
 
-func (cu *CurrentUserHandler) UpdateSSHKey(ctx context.Context, request *v1alpha1.UpdateSSHKeyRequest) (*v1alpha1.UpdateSSHKeyResponse, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
 func (cu *CurrentUserHandler) DeleteSSHKey(ctx context.Context, request *v1alpha1.DeleteSSHKeyRequest) (*v1alpha1.DeleteSSHKeyResponse, error) {
 	// TODO implement me
 	panic("implement me")

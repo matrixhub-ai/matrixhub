@@ -13,6 +13,12 @@ export enum AccessTokenStatus {
   ACCESS_TOKEN_STATUS_EXPIRED = "ACCESS_TOKEN_STATUS_EXPIRED",
 }
 
+export enum SSHKeyStatus {
+  SSH_KEY_STATUS_UNKNOWN = "SSH_KEY_STATUS_UNKNOWN",
+  SSH_KEY_STATUS_VALID = "SSH_KEY_STATUS_VALID",
+  SSH_KEY_STATUS_EXPIRED = "SSH_KEY_STATUS_EXPIRED",
+}
+
 export type ResetPasswordRequest = {
   oldPassword?: string
   newPassword?: string
@@ -69,25 +75,16 @@ export type GetCurrentUserResponse = {
 }
 
 export type CreateSSHKeyRequest = {
-  sshKeyName?: string
+  name?: string
   publicKey?: string
-  expiredAt?: string
+  expireAt?: string
 }
 
 export type CreateSSHKeyResponse = {
 }
 
-export type UpdateSSHKeyRequest = {
-  sshKeyId?: number
-  sshKeyName?: string
-  publicKey?: string
-}
-
-export type UpdateSSHKeyResponse = {
-}
-
 export type DeleteSSHKeyRequest = {
-  sshKeyId?: number
+  id?: number
 }
 
 export type DeleteSSHKeyResponse = {
@@ -102,11 +99,10 @@ export type ListSSHKeysResponse = {
 
 export type SSHKey = {
   id?: number
-  sshKeyName?: string
-  publicKey?: string
-  updatedAt?: string
+  name?: string
+  status?: SSHKeyStatus
   createdAt?: string
-  expiredAt?: string
+  expireAt?: string
 }
 
 export class CurrentUser {
@@ -131,11 +127,8 @@ export class CurrentUser {
   static CreateSSHKey(req: CreateSSHKeyRequest, initReq?: fm.InitReq): Promise<CreateSSHKeyResponse> {
     return fm.fetchReq<CreateSSHKeyRequest, CreateSSHKeyResponse>(`/api/v1alpha1/current-user/ssh-keys`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
-  static UpdateSSHKey(req: UpdateSSHKeyRequest, initReq?: fm.InitReq): Promise<UpdateSSHKeyResponse> {
-    return fm.fetchReq<UpdateSSHKeyRequest, UpdateSSHKeyResponse>(`/api/v1alpha1/current-user/ssh-keys/${req["sshKeyId"]}`, {...initReq, method: "PUT", body: JSON.stringify(req, fm.replacer)})
-  }
   static DeleteSSHKey(req: DeleteSSHKeyRequest, initReq?: fm.InitReq): Promise<DeleteSSHKeyResponse> {
-    return fm.fetchReq<DeleteSSHKeyRequest, DeleteSSHKeyResponse>(`/api/v1alpha1/current-user/ssh-keys/${req["sshKeyId"]}`, {...initReq, method: "DELETE"})
+    return fm.fetchReq<DeleteSSHKeyRequest, DeleteSSHKeyResponse>(`/api/v1alpha1/current-user/ssh-keys/${req["id"]}`, {...initReq, method: "DELETE"})
   }
   static ListSSHKeys(req: ListSSHKeysRequest, initReq?: fm.InitReq): Promise<ListSSHKeysResponse> {
     return fm.fetchReq<ListSSHKeysRequest, ListSSHKeysResponse>(`/api/v1alpha1/current-user/ssh-keys?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

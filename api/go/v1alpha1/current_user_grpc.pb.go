@@ -26,7 +26,6 @@ const (
 	CurrentUser_DeleteAccessToken_FullMethodName = "/matrixhub.v1alpha1.CurrentUser/DeleteAccessToken"
 	CurrentUser_GetProjectRoles_FullMethodName   = "/matrixhub.v1alpha1.CurrentUser/GetProjectRoles"
 	CurrentUser_CreateSSHKey_FullMethodName      = "/matrixhub.v1alpha1.CurrentUser/CreateSSHKey"
-	CurrentUser_UpdateSSHKey_FullMethodName      = "/matrixhub.v1alpha1.CurrentUser/UpdateSSHKey"
 	CurrentUser_DeleteSSHKey_FullMethodName      = "/matrixhub.v1alpha1.CurrentUser/DeleteSSHKey"
 	CurrentUser_ListSSHKeys_FullMethodName       = "/matrixhub.v1alpha1.CurrentUser/ListSSHKeys"
 )
@@ -42,7 +41,6 @@ type CurrentUserClient interface {
 	DeleteAccessToken(ctx context.Context, in *DeleteAccessTokenRequest, opts ...grpc.CallOption) (*DeleteAccessTokenResponse, error)
 	GetProjectRoles(ctx context.Context, in *GetProjectRolesRequest, opts ...grpc.CallOption) (*GetProjectRolesResponse, error)
 	CreateSSHKey(ctx context.Context, in *CreateSSHKeyRequest, opts ...grpc.CallOption) (*CreateSSHKeyResponse, error)
-	UpdateSSHKey(ctx context.Context, in *UpdateSSHKeyRequest, opts ...grpc.CallOption) (*UpdateSSHKeyResponse, error)
 	DeleteSSHKey(ctx context.Context, in *DeleteSSHKeyRequest, opts ...grpc.CallOption) (*DeleteSSHKeyResponse, error)
 	ListSSHKeys(ctx context.Context, in *ListSSHKeysRequest, opts ...grpc.CallOption) (*ListSSHKeysResponse, error)
 }
@@ -125,16 +123,6 @@ func (c *currentUserClient) CreateSSHKey(ctx context.Context, in *CreateSSHKeyRe
 	return out, nil
 }
 
-func (c *currentUserClient) UpdateSSHKey(ctx context.Context, in *UpdateSSHKeyRequest, opts ...grpc.CallOption) (*UpdateSSHKeyResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateSSHKeyResponse)
-	err := c.cc.Invoke(ctx, CurrentUser_UpdateSSHKey_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *currentUserClient) DeleteSSHKey(ctx context.Context, in *DeleteSSHKeyRequest, opts ...grpc.CallOption) (*DeleteSSHKeyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteSSHKeyResponse)
@@ -166,7 +154,6 @@ type CurrentUserServer interface {
 	DeleteAccessToken(context.Context, *DeleteAccessTokenRequest) (*DeleteAccessTokenResponse, error)
 	GetProjectRoles(context.Context, *GetProjectRolesRequest) (*GetProjectRolesResponse, error)
 	CreateSSHKey(context.Context, *CreateSSHKeyRequest) (*CreateSSHKeyResponse, error)
-	UpdateSSHKey(context.Context, *UpdateSSHKeyRequest) (*UpdateSSHKeyResponse, error)
 	DeleteSSHKey(context.Context, *DeleteSSHKeyRequest) (*DeleteSSHKeyResponse, error)
 	ListSSHKeys(context.Context, *ListSSHKeysRequest) (*ListSSHKeysResponse, error)
 }
@@ -198,9 +185,6 @@ func (UnimplementedCurrentUserServer) GetProjectRoles(context.Context, *GetProje
 }
 func (UnimplementedCurrentUserServer) CreateSSHKey(context.Context, *CreateSSHKeyRequest) (*CreateSSHKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateSSHKey not implemented")
-}
-func (UnimplementedCurrentUserServer) UpdateSSHKey(context.Context, *UpdateSSHKeyRequest) (*UpdateSSHKeyResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method UpdateSSHKey not implemented")
 }
 func (UnimplementedCurrentUserServer) DeleteSSHKey(context.Context, *DeleteSSHKeyRequest) (*DeleteSSHKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteSSHKey not implemented")
@@ -354,24 +338,6 @@ func _CurrentUser_CreateSSHKey_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CurrentUser_UpdateSSHKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateSSHKeyRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CurrentUserServer).UpdateSSHKey(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CurrentUser_UpdateSSHKey_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CurrentUserServer).UpdateSSHKey(ctx, req.(*UpdateSSHKeyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _CurrentUser_DeleteSSHKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteSSHKeyRequest)
 	if err := dec(in); err != nil {
@@ -442,10 +408,6 @@ var CurrentUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSSHKey",
 			Handler:    _CurrentUser_CreateSSHKey_Handler,
-		},
-		{
-			MethodName: "UpdateSSHKey",
-			Handler:    _CurrentUser_UpdateSSHKey_Handler,
 		},
 		{
 			MethodName: "DeleteSSHKey",
