@@ -8,35 +8,78 @@ const modules = import.meta.glob<Record<string, LocaleResource>>(
 )
 
 /**
- * Sets a value at a specific deep path within a target object.
- * Creates nested objects as needed and merges values if an object already exists at the path.
+ * Sort locale files so shallower paths load first.
+ * Deeper paths load later and override duplicate keys
+ * (e.g. `shared/components/A.json` overrides keys in `shared.json`).
  */
-function setDeep(obj: LocaleResource, path: string[], value: LocaleResource) {
-  let current = obj as Record<string, unknown>
+function sortLocalePaths(paths: string[]) {
+  return [...paths].sort((a, b) => {
+    const depthDiff = a.split('/').length - b.split('/').length
 
-  for (let i = 0; i < path.length - 1; i++) {
-    const segment = path[i]
-
-    if (!current[segment] || typeof current[segment] !== 'object') {
-      current[segment] = {}
+    if (depthDiff !== 0) {
+      return depthDiff
     }
-    current = current[segment] as Record<string, unknown>
+
+    return a.localeCompare(b)
+  })
+}
+
+function isLocaleResource(value: unknown): value is LocaleResource {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function warnDuplicateKey(keyPath: string, sourcePath: string) {
+  if (import.meta.env.DEV) {
+    console.warn(
+      `[i18n] Duplicate key "${keyPath}": overridden by "${sourcePath}".`,
+    )
+  }
+}
+
+/**
+ * Wrap a value in nested objects following the given path segments.
+ *
+ * @example
+ * wrapInPath(["shared", "components", "Foo"], { bar: "baz" })
+ * // => { shared: { components: { Foo: { bar: "baz" } } } }
+ */
+function wrapInPath(path: string[], value: LocaleResource): LocaleResource {
+  let result: LocaleResource = value
+
+  for (let i = path.length - 1; i >= 0; i--) {
+    result = { [path[i]]: result }
   }
 
-  const lastSegment = path[path.length - 1]
-  const existingValue = current[lastSegment]
+  return result
+}
 
-  if (
-    existingValue
-    && typeof existingValue === 'object'
-    && !Array.isArray(existingValue)
-  ) {
-    current[lastSegment] = {
-      ...existingValue,
-      ...value,
+/**
+ * Recursively merge source into target.
+ * Non-conflicting keys are merged in; duplicate leaf keys are overridden with a warning.
+ */
+function mergeDeep(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+  sourcePath: string,
+  parentKey: string,
+) {
+  for (const key in source) {
+    const keyPath = parentKey ? `${parentKey}.${key}` : key
+    const targetVal = target[key]
+    const sourceVal = source[key]
+
+    if (targetVal === undefined) {
+      target[key] = sourceVal
+      continue
     }
-  } else {
-    current[lastSegment] = value
+
+    if (isLocaleResource(targetVal) && isLocaleResource(sourceVal)) {
+      mergeDeep(targetVal, sourceVal, sourcePath, keyPath)
+      continue
+    }
+
+    warnDuplicateKey(keyPath, sourcePath)
+    target[key] = sourceVal
   }
 }
 
@@ -47,7 +90,7 @@ function setDeep(obj: LocaleResource, path: string[], value: LocaleResource) {
 export function loadLocale(lang: string) {
   const result: LocaleResource = {}
 
-  for (const path in modules) {
+  for (const path of sortLocalePaths(Object.keys(modules))) {
     if (!path.includes(`/${lang}/`)) {
       continue
     }
@@ -63,7 +106,7 @@ export function loadLocale(lang: string) {
     const moduleContent = modules[path].default
 
     if (moduleContent) {
-      setDeep(result, pathSegments, moduleContent)
+      mergeDeep(result, wrapInPath(pathSegments, moduleContent), path, '')
     }
   }
 
