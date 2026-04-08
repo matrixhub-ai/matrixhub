@@ -27,7 +27,6 @@ import {
   Outlet,
   useMatchRoute,
   CatchBoundary,
-  ErrorComponent,
   useRouterState, redirect,
 } from '@tanstack/react-router'
 import { use } from 'react'
@@ -48,8 +47,12 @@ import { Route as ProjectDatasetRoute } from '@/routes/(auth)/(app)/projects_.$p
 import { Route as ProjectModelRoute } from '@/routes/(auth)/(app)/projects_.$projectId/models.$modelId/route'
 import { Route as AdminRoute } from '@/routes/(auth)/admin'
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
+import { RouterErrorComponent } from '@/shared/components/RouterErrorComponent'
 import { RouteStatusPage } from '@/shared/components/RouteStatusPage'
-import { isForbiddenRouteError, isNotFoundRouteError } from '@/utils/routerAccess'
+import {
+  isForbiddenRouteError, isNotFoundRouteError,
+  isSdkNotFound, isSdkPermissionDenied,
+} from '@/utils/routerAccess'
 
 export const Route = createFileRoute('/(auth)')({
   component: AuthLayout,
@@ -277,14 +280,14 @@ function AccountMenu() {
 }
 
 function AuthErrorComponent({ error }: { error: unknown }) {
-  if (isForbiddenRouteError(error)) {
+  if (isForbiddenRouteError(error) || isSdkPermissionDenied(error)) {
     return <RouteStatusPage code={403} />
   }
-  if (isNotFoundRouteError(error)) {
+  if (isNotFoundRouteError(error) || isSdkNotFound(error)) {
     return <RouteStatusPage code={404} />
   }
 
-  return <ErrorComponent error={error} />
+  return <RouterErrorComponent error={error} />
 }
 
 function AuthLayout() {

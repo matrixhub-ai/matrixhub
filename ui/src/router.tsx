@@ -2,7 +2,6 @@ import { createRouter } from '@tanstack/react-router'
 
 import { queryClient } from './queryClient'
 import { routeTree } from './routeTree.gen.ts'
-import { RouterErrorComponent } from './shared/components/RouterErrorComponent'
 import { RouterPendingComponent } from './shared/components/RouterPendingComponent'
 import { adminContentViewportSelector, contentViewportSelector } from './utils/setContentViewport'
 
@@ -19,7 +18,6 @@ export const router = createRouter({
   context: {
     queryClient,
   },
-  defaultErrorComponent: RouterErrorComponent,
   defaultPendingComponent: RouterPendingComponent,
 })
 

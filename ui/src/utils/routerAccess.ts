@@ -78,8 +78,12 @@ export async function ensureProjectAccess(
   if (!role) {
     try {
       await queryClient.ensureQueryData(projectDetailQueryOptions(projectId))
-    } catch {
-      throw notFoundError()
+    } catch (error) {
+      if (isSdkNotFound(error)) {
+        throw notFoundError()
+      }
+
+      throw error
     }
 
     // Public projects
