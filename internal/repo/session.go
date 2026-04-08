@@ -42,7 +42,7 @@ func NewSessionRepository(db *gorm.DB) user.ISessionRepo {
 	sessionManager := scs.New()
 	sessionManager.Lifetime = user.DefaultSessionLifetime
 	sessionManager.IdleTimeout = user.DefaultSessionIdleTimeout
-	sessionManager.Cookie.Name = "token"
+	sessionManager.Cookie.Name = user.CookieName
 	sessionManager.Cookie.HttpOnly = true
 	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
 	sessionManager.Store = mysqlstore.New(sqlDB)

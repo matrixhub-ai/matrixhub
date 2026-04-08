@@ -29,6 +29,8 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
 
 // handleInfoRevision handles the /api/{repoType}/{repo_id}/revision/{rev} and /api/{repoType}/{repo_id} endpoint
@@ -142,7 +144,17 @@ func (h *Handler) handleDeleteRepo(w http.ResponseWriter, r *http.Request) {
 	if prefix != "" {
 		storageName = prefix + "/" + repoName
 	}
-
+	perm := role.ModelPush
+	if req.Type == "dataset" {
+		perm = role.DatasetPush
+	}
+	if passed, err := h.authzService.VerifyProjectPermissionByName(r.Context(), req.Organization, perm); err != nil {
+		responseJSON(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else if !passed {
+		responseJSON(w, "permission denied", http.StatusForbidden)
+		return
+	}
 	if h.permissionHookFunc != nil {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationDeleteRepo, storageName, permission.Context{}); err != nil {
 			responseJSON(w, err.Error(), http.StatusInternalServerError)
@@ -195,7 +207,6 @@ func (h *Handler) handleMoveRepo(w http.ResponseWriter, r *http.Request) {
 	if prefix != "" {
 		toName = prefix + "/" + toName
 	}
-
 	if h.permissionHookFunc != nil {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, fromName, permission.Context{DestRepo: toName}); err != nil {
 			responseJSON(w, err.Error(), http.StatusInternalServerError)

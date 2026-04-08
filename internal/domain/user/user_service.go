@@ -81,7 +81,7 @@ func (us UserService) LoginUser(ctx context.Context, username, password string, 
 	sessionCookie := us.sessionRepo.GetSessionCookie()
 
 	return &http.Cookie{
-		Name:     sessionCookie.Name, // Default "session"
+		Name:     sessionCookie.Name,
 		Value:    token,
 		Path:     sessionCookie.Path,
 		Domain:   sessionCookie.Domain,
