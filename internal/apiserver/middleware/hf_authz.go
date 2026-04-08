@@ -15,15 +15,12 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 	"slices"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
@@ -40,8 +37,12 @@ const (
 )
 
 var (
-	hfPublicMethods = map[string]bool{
-		"/api/whoami-v2": true,
+	hfSkipAuthzMethods = map[string]bool{
+		"/api/whoami-v2":     true,
+		"/api/repos/create":  true,
+		"/api/repos/delete":  true,
+		"/api/repos/move":    true,
+		"/api/validate-yaml": true,
 	}
 	readMethods = []string{http.MethodGet, http.MethodHead, http.MethodOptions}
 
@@ -57,14 +58,14 @@ var (
 	}
 )
 
-func HFAuthzMiddleware(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
+func HFAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if hfPublicMethods[r.URL.Path] {
+			if hfSkipAuthzMethods[r.URL.Path] {
 				next.ServeHTTP(w, r)
 				return
 			}
-			if !checkPerm(projectRepo, authzSvc, r) {
+			if !checkPerm(authzSvc, r) {
 				http.Error(w, "permission denied", http.StatusForbidden)
 				return
 			}
@@ -74,26 +75,13 @@ func HFAuthzMiddleware(projectRepo project.IProjectRepo, authzSvc authz.IAuthzSe
 	}
 }
 
-func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r *http.Request) bool {
+func checkPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
 	vars := mux.Vars(r)
 	projectName, resource := vars["namespace"], vars["repoType"]
 	method := r.Method
 	act := actionRead
 	if !slices.Contains(readMethods, method) {
 		act = actionWrite
-	}
-
-	prj, err := projectRepo.GetProjectByName(r.Context(), projectName)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return true
-		}
-		log.Errorf("Failed to get project by name: %s", err)
-		return false
-	}
-
-	if prj.IsPublic() && act == actionRead {
-		return true
 	}
 	var permission role.Permission
 	if resource == "" {
@@ -104,7 +92,7 @@ func checkPerm(projectRepo project.IProjectRepo, authzSvc authz.IAuthzService, r
 	if permission == "" {
 		return false
 	}
-	passed, err := authzSvc.VerifyProjectPermission(r.Context(), prj.ID, permission)
+	passed, err := authzSvc.VerifyProjectPermissionByName(r.Context(), projectName, permission)
 	if err != nil {
 		log.Errorf("Failed to verify project permission: %s", err)
 		return false

@@ -35,6 +35,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
 
 const (
@@ -96,6 +97,17 @@ func (h *Handler) handleCreateRepo(w http.ResponseWriter, r *http.Request) {
 	prefix := repoTypePrefix(req.Type)
 	if prefix != "" {
 		storageName = prefix + "/" + repoName
+	}
+	perm := role.ModelPush
+	if req.Type == "dataset" {
+		perm = role.DatasetPush
+	}
+	if passed, err := h.authzService.VerifyProjectPermissionByName(r.Context(), req.Organization, perm); err != nil {
+		responseJSON(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else if !passed {
+		responseJSON(w, "permission denied", http.StatusForbidden)
+		return
 	}
 
 	if h.permissionHookFunc != nil {

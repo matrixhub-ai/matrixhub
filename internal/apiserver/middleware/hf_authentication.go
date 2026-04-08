@@ -28,28 +28,43 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
-func HFAuthenticationMiddleware(akRepo user.IAccessTokenRepo) func(http.Handler) http.Handler {
+func HFAuthenticationMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			rawToken, ok := parseBearerToken(r)
-			if !ok {
+			if ok {
+				ak, err := akRepo.GetByTokenHash(r.Context(), utils.Sha256Hex(rawToken))
+				if err != nil {
+					log.Errorf("fail to get ak by secret: %s", err)
+				}
+				if ak != nil && ak.IsValid(time.Now()) {
+					r = setUserInfo(r, ak.UserId)
+				}
 				next.ServeHTTP(w, r)
 				return
 			}
-			ak, err := akRepo.GetByTokenHash(r.Context(), utils.Sha256Hex(rawToken))
-			if err != nil {
-				log.Errorf("fail to get ak by secret: %s", err)
-			}
-			if ak != nil && ak.IsValid(time.Now()) {
-				r = r.WithContext(authenticate.WithContext(r.Context(), authenticate.UserInfo{
-					User: strconv.Itoa(ak.UserId),
-				}))
-				r = r.WithContext(context.WithValue(r.Context(), user.UserIdCtxKey, ak.UserId))
+
+			token, ok := parseCookie(r)
+			if ok {
+				ctx, err := sessionRepo.Load(r.Context(), token)
+				if err == nil {
+					if sessionRepo.Exists(ctx, user.UsernameCtxKey.String()) {
+						r = setUserInfo(r, sessionRepo.GetInt(ctx, user.UserIdCtxKey.String()))
+					}
+				}
 			}
 
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func setUserInfo(r *http.Request, userId int) *http.Request {
+	r = r.WithContext(authenticate.WithContext(r.Context(), authenticate.UserInfo{
+		User: strconv.Itoa(userId),
+	}))
+	r = r.WithContext(context.WithValue(r.Context(), user.UserIdCtxKey, userId))
+	return r
 }
 
 func parseBearerToken(r *http.Request) (string, bool) {
@@ -63,4 +78,12 @@ func parseBearerToken(r *http.Request) (string, bool) {
 	}
 	token := strings.TrimSpace(parts[1])
 	return token, token != ""
+}
+
+func parseCookie(r *http.Request) (string, bool) {
+	cookie, err := r.Cookie(user.CookieName)
+	if err != nil {
+		return "", false
+	}
+	return cookie.Value, true
 }

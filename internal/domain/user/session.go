@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	CookieName                = "token"
 	DefaultSessionLifetime    = time.Hour * 24 * 7
 	DefaultSessionIdleTimeout = time.Hour * 8
 )
