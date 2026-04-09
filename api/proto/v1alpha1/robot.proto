@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package matrixhub.v1alpha1;
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
+
+import "v1alpha1/utils.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service Robots {
+  rpc CreateRobotAccount(CreateRobotAccountRequest) returns (CreateRobotAccountResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/robot-accounts"
+      body: "*"
+    };
+  }
+  rpc ListRobotAccounts(ListRobotAccountsRequest) returns (ListRobotAccountsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/robot-accounts"
+    };
+  }
+  rpc GetRobotAccount(GetRobotAccountRequest) returns (GetRobotAccountResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/robot-accounts/{id}"
+    };
+  }
+  rpc DeleteRobotAccount(DeleteRobotAccountRequest) returns (DeleteRobotAccountResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1alpha1/robot-accounts/{id}"
+    };
+  }
+  rpc UpdateRobotAccount(UpdateRobotAccountRequest) returns (UpdateRobotAccountResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/robot-accounts/{id}"
+      body: "*"
+    };
+  }
+  rpc RefreshRobotAccountToken(RefreshRobotAccountTokenRequest) returns (RefreshRobotAccountTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/robot-accounts/{id}"
+      body: "*"
+    };
+  }
+}
+
+message CreateRobotAccountRequest {
+  string name = 1 [(validate.rules).string.min_len = 1];
+  string description = 2 [(validate.rules).string.min_len = 1];
+  int32 expire_days = 3;
+  repeated string system_permissions = 4;
+  repeated string project_permissions = 5;
+  repeated string projects = 6;
+  RobotAccountProjectScope project_scope = 7;
+}
+
+enum RobotAccountProjectScope {
+  ROBOT_ACCOUNT_PROJECT_SCOPE_SELECTED = 0;
+  ROBOT_ACCOUNT_PROJECT_SCOPE_ALL = 1;
+}
+
+message CreateRobotAccountResponse {
+  string token = 1;
+}
+
+message ListRobotAccountsRequest {
+  string search = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListRobotAccountsResponse {
+  repeated RobotAccount items = 1;
+  Pagination pagination = 2;
+}
+
+message RobotAccount {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  RobotAccountStatus status = 4;
+  repeated string system_permissions = 5;
+  repeated string project_permissions = 6;
+  repeated string projects = 7;
+  string created_at = 8;
+  RobotAccountExpireStatus expire_status = 9;
+  string remain_period = 10;
+  int32 expire_days = 11;
+  RobotAccountProjectScope project_scope = 12;
+}
+
+
+enum RobotAccountStatus {
+  ROBOT_ACCOUNT_STATUS_DISABLED = 0;
+  ROBOT_ACCOUNT_STATUS_ENABLED = 1;
+}
+
+enum RobotAccountExpireStatus {
+  ROBOT_ACCOUNT_EXPIRE_STATUS_EXPIRED = 0;
+  ROBOT_ACCOUNT_EXPIRE_STATUS_VALID = 1;
+  ROBOT_ACCOUNT_EXPIRE_STATUS_NEVER = 2;
+}
+
+message GetRobotAccountRequest {
+  uint32 id = 1;
+}
+
+message GetRobotAccountResponse {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  RobotAccountStatus status = 4;
+  repeated string system_permissions = 5;
+  repeated string project_permissions = 6;
+  repeated string projects = 7;
+  string created_at = 8;
+  RobotAccountExpireStatus expire_status = 9;
+  string remain_period = 10;
+  int32 expire_days = 11;
+  RobotAccountProjectScope project_scope = 12;
+}
+
+message DeleteRobotAccountRequest {
+  uint32 id = 1;
+}
+
+message DeleteRobotAccountResponse {}
+
+message UpdateRobotAccountRequest {
+  uint32 id = 1;
+  string description = 2;
+  RobotAccountStatus status = 3;
+  repeated string system_permissions = 4;
+  repeated string project_permissions = 5;
+  repeated string projects = 6;
+  RobotAccountProjectScope project_scope = 7;
+  int32 expire_days = 8;
+}
+
+message UpdateRobotAccountResponse {}
+
+message RefreshRobotAccountTokenRequest {
+  uint32 id = 1;
+  bool auto_generate = 2;
+  string token = 3;
+}
+
+message RefreshRobotAccountTokenResponse {
+  string token = 1;
+}

@@ -1,0 +1,533 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1alpha1/robot.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Robots"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1alpha1/robot-accounts": {
+      "get": {
+        "operationId": "Robots_ListRobotAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListRobotAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "Robots"
+        ]
+      },
+      "post": {
+        "operationId": "Robots_CreateRobotAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateRobotAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateRobotAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Robots"
+        ]
+      }
+    },
+    "/api/v1alpha1/robot-accounts/{id}": {
+      "get": {
+        "operationId": "Robots_GetRobotAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1GetRobotAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Robots"
+        ]
+      },
+      "delete": {
+        "operationId": "Robots_DeleteRobotAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1DeleteRobotAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Robots"
+        ]
+      },
+      "post": {
+        "operationId": "Robots_RefreshRobotAccountToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1RefreshRobotAccountTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RobotsRefreshRobotAccountTokenBody"
+            }
+          }
+        ],
+        "tags": [
+          "Robots"
+        ]
+      },
+      "put": {
+        "operationId": "Robots_UpdateRobotAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateRobotAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RobotsUpdateRobotAccountBody"
+            }
+          }
+        ],
+        "tags": [
+          "Robots"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "RobotsRefreshRobotAccountTokenBody": {
+      "type": "object",
+      "properties": {
+        "autoGenerate": {
+          "type": "boolean"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "RobotsUpdateRobotAccountBody": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1alpha1RobotAccountStatus"
+        },
+        "systemPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectScope": {
+          "$ref": "#/definitions/v1alpha1RobotAccountProjectScope"
+        },
+        "expireDays": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1CreateRobotAccountRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "expireDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "systemPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectScope": {
+          "$ref": "#/definitions/v1alpha1RobotAccountProjectScope"
+        }
+      }
+    },
+    "v1alpha1CreateRobotAccountResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1DeleteRobotAccountResponse": {
+      "type": "object"
+    },
+    "v1alpha1GetRobotAccountResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1alpha1RobotAccountStatus"
+        },
+        "systemPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "expireStatus": {
+          "$ref": "#/definitions/v1alpha1RobotAccountExpireStatus"
+        },
+        "remainPeriod": {
+          "type": "string"
+        },
+        "expireDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "projectScope": {
+          "$ref": "#/definitions/v1alpha1RobotAccountProjectScope"
+        }
+      }
+    },
+    "v1alpha1ListRobotAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1RobotAccount"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/v1alpha1Pagination"
+        }
+      }
+    },
+    "v1alpha1Pagination": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total is the total number of referents."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Page is current page."
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32",
+          "description": "PageSize is the data number shown per page."
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Pages is the number of pages."
+        }
+      },
+      "description": "Pagination is for data paging."
+    },
+    "v1alpha1RefreshRobotAccountTokenResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1RobotAccount": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1alpha1RobotAccountStatus"
+        },
+        "systemPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "expireStatus": {
+          "$ref": "#/definitions/v1alpha1RobotAccountExpireStatus"
+        },
+        "remainPeriod": {
+          "type": "string"
+        },
+        "expireDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "projectScope": {
+          "$ref": "#/definitions/v1alpha1RobotAccountProjectScope"
+        }
+      }
+    },
+    "v1alpha1RobotAccountExpireStatus": {
+      "type": "string",
+      "enum": [
+        "ROBOT_ACCOUNT_EXPIRE_STATUS_EXPIRED",
+        "ROBOT_ACCOUNT_EXPIRE_STATUS_VALID",
+        "ROBOT_ACCOUNT_EXPIRE_STATUS_NEVER"
+      ],
+      "default": "ROBOT_ACCOUNT_EXPIRE_STATUS_EXPIRED"
+    },
+    "v1alpha1RobotAccountProjectScope": {
+      "type": "string",
+      "enum": [
+        "ROBOT_ACCOUNT_PROJECT_SCOPE_SELECTED",
+        "ROBOT_ACCOUNT_PROJECT_SCOPE_ALL"
+      ],
+      "default": "ROBOT_ACCOUNT_PROJECT_SCOPE_SELECTED"
+    },
+    "v1alpha1RobotAccountStatus": {
+      "type": "string",
+      "enum": [
+        "ROBOT_ACCOUNT_STATUS_DISABLED",
+        "ROBOT_ACCOUNT_STATUS_ENABLED"
+      ],
+      "default": "ROBOT_ACCOUNT_STATUS_DISABLED"
+    },
+    "v1alpha1UpdateRobotAccountResponse": {
+      "type": "object"
+    }
+  }
+}

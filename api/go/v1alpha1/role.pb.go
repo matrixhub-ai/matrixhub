@@ -7,6 +7,7 @@
 package v1alpha1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -70,15 +71,222 @@ func (ProjectRoleType) EnumDescriptor() ([]byte, []int) {
 	return file_v1alpha1_role_proto_rawDescGZIP(), []int{0}
 }
 
+type ListAllPermissionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAllPermissionsRequest) Reset() {
+	*x = ListAllPermissionsRequest{}
+	mi := &file_v1alpha1_role_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAllPermissionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAllPermissionsRequest) ProtoMessage() {}
+
+func (x *ListAllPermissionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_role_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAllPermissionsRequest.ProtoReflect.Descriptor instead.
+func (*ListAllPermissionsRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_role_proto_rawDescGZIP(), []int{0}
+}
+
+type ListAllPermissionsResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	SystemCategories  []*RoleCategory        `protobuf:"bytes,1,rep,name=system_categories,json=systemCategories,proto3" json:"system_categories,omitempty"`
+	ProjectCategories []*RoleCategory        `protobuf:"bytes,2,rep,name=project_categories,json=projectCategories,proto3" json:"project_categories,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ListAllPermissionsResponse) Reset() {
+	*x = ListAllPermissionsResponse{}
+	mi := &file_v1alpha1_role_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAllPermissionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAllPermissionsResponse) ProtoMessage() {}
+
+func (x *ListAllPermissionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_role_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAllPermissionsResponse.ProtoReflect.Descriptor instead.
+func (*ListAllPermissionsResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_role_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListAllPermissionsResponse) GetSystemCategories() []*RoleCategory {
+	if x != nil {
+		return x.SystemCategories
+	}
+	return nil
+}
+
+func (x *ListAllPermissionsResponse) GetProjectCategories() []*RoleCategory {
+	if x != nil {
+		return x.ProjectCategories
+	}
+	return nil
+}
+
+type RoleCategory struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Permissions   []*Permission          `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoleCategory) Reset() {
+	*x = RoleCategory{}
+	mi := &file_v1alpha1_role_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleCategory) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleCategory) ProtoMessage() {}
+
+func (x *RoleCategory) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_role_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleCategory.ProtoReflect.Descriptor instead.
+func (*RoleCategory) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_role_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RoleCategory) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RoleCategory) GetPermissions() []*Permission {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
+type Permission struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Permission    string                 `protobuf:"bytes,2,opt,name=permission,proto3" json:"permission,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Permission) Reset() {
+	*x = Permission{}
+	mi := &file_v1alpha1_role_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Permission) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Permission) ProtoMessage() {}
+
+func (x *Permission) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_role_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Permission.ProtoReflect.Descriptor instead.
+func (*Permission) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_role_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Permission) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Permission) GetPermission() string {
+	if x != nil {
+		return x.Permission
+	}
+	return ""
+}
+
 var File_v1alpha1_role_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_role_proto_rawDesc = "" +
 	"\n" +
-	"\x13v1alpha1/role.proto\x12\x12matrixhub.v1alpha1*j\n" +
+	"\x13v1alpha1/role.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\"\x1b\n" +
+	"\x19ListAllPermissionsRequest\"\xbc\x01\n" +
+	"\x1aListAllPermissionsResponse\x12M\n" +
+	"\x11system_categories\x18\x01 \x03(\v2 .matrixhub.v1alpha1.RoleCategoryR\x10systemCategories\x12O\n" +
+	"\x12project_categories\x18\x02 \x03(\v2 .matrixhub.v1alpha1.RoleCategoryR\x11projectCategories\"d\n" +
+	"\fRoleCategory\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12@\n" +
+	"\vpermissions\x18\x02 \x03(\v2\x1e.matrixhub.v1alpha1.PermissionR\vpermissions\"@\n" +
+	"\n" +
+	"Permission\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1e\n" +
+	"\n" +
+	"permission\x18\x02 \x01(\tR\n" +
+	"permission*j\n" +
 	"\x0fProjectRoleType\x12\x1b\n" +
 	"\x17ROLE_TYPE_PROJECT_ADMIN\x10\x00\x12\x1c\n" +
 	"\x18ROLE_TYPE_PROJECT_EDITOR\x10\x01\x12\x1c\n" +
-	"\x18ROLE_TYPE_PROJECT_VIEWER\x10\x02B<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
+	"\x18ROLE_TYPE_PROJECT_VIEWER\x10\x022\xa6\x01\n" +
+	"\x05Roles\x12\x9c\x01\n" +
+	"\x12ListAllPermissions\x12-.matrixhub.v1alpha1.ListAllPermissionsRequest\x1a..matrixhub.v1alpha1.ListAllPermissionsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1alpha1/roles/permissionsB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
 
 var (
 	file_v1alpha1_role_proto_rawDescOnce sync.Once
@@ -93,15 +301,25 @@ func file_v1alpha1_role_proto_rawDescGZIP() []byte {
 }
 
 var file_v1alpha1_role_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_v1alpha1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_v1alpha1_role_proto_goTypes = []any{
-	(ProjectRoleType)(0), // 0: matrixhub.v1alpha1.ProjectRoleType
+	(ProjectRoleType)(0),               // 0: matrixhub.v1alpha1.ProjectRoleType
+	(*ListAllPermissionsRequest)(nil),  // 1: matrixhub.v1alpha1.ListAllPermissionsRequest
+	(*ListAllPermissionsResponse)(nil), // 2: matrixhub.v1alpha1.ListAllPermissionsResponse
+	(*RoleCategory)(nil),               // 3: matrixhub.v1alpha1.RoleCategory
+	(*Permission)(nil),                 // 4: matrixhub.v1alpha1.Permission
 }
 var file_v1alpha1_role_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: matrixhub.v1alpha1.ListAllPermissionsResponse.system_categories:type_name -> matrixhub.v1alpha1.RoleCategory
+	3, // 1: matrixhub.v1alpha1.ListAllPermissionsResponse.project_categories:type_name -> matrixhub.v1alpha1.RoleCategory
+	4, // 2: matrixhub.v1alpha1.RoleCategory.permissions:type_name -> matrixhub.v1alpha1.Permission
+	1, // 3: matrixhub.v1alpha1.Roles.ListAllPermissions:input_type -> matrixhub.v1alpha1.ListAllPermissionsRequest
+	2, // 4: matrixhub.v1alpha1.Roles.ListAllPermissions:output_type -> matrixhub.v1alpha1.ListAllPermissionsResponse
+	4, // [4:5] is the sub-list for method output_type
+	3, // [3:4] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_role_proto_init() }
@@ -115,13 +333,14 @@ func file_v1alpha1_role_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_role_proto_rawDesc), len(file_v1alpha1_role_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   0,
+			NumMessages:   4,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_v1alpha1_role_proto_goTypes,
 		DependencyIndexes: file_v1alpha1_role_proto_depIdxs,
 		EnumInfos:         file_v1alpha1_role_proto_enumTypes,
+		MessageInfos:      file_v1alpha1_role_proto_msgTypes,
 	}.Build()
 	File_v1alpha1_role_proto = out.File
 	file_v1alpha1_role_proto_goTypes = nil

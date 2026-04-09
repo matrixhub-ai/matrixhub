@@ -4,8 +4,37 @@ package matrixhub.v1alpha1;
 
 option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
+import "google/api/annotations.proto";
+
+
 enum ProjectRoleType {
   ROLE_TYPE_PROJECT_ADMIN = 0;
   ROLE_TYPE_PROJECT_EDITOR = 1;
   ROLE_TYPE_PROJECT_VIEWER = 2;
+}
+
+service Roles {
+  rpc ListAllPermissions(ListAllPermissionsRequest) returns (ListAllPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/roles/permissions"
+    };
+  }
+}
+
+message ListAllPermissionsRequest {
+}
+
+message ListAllPermissionsResponse {
+  repeated RoleCategory system_categories = 1;
+  repeated RoleCategory project_categories = 2;
+}
+
+message RoleCategory {
+  string name = 1;
+  repeated Permission permissions = 2;
+}
+
+message Permission {
+  string name = 1;
+  string permission = 2;
 }

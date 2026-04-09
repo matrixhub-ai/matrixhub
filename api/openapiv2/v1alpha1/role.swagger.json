@@ -4,13 +4,41 @@
     "title": "v1alpha1/role.proto",
     "version": "version not set"
   },
+  "tags": [
+    {
+      "name": "Roles"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/api/v1alpha1/roles/permissions": {
+      "get": {
+        "operationId": "Roles_ListAllPermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListAllPermissionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Roles"
+        ]
+      }
+    }
+  },
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -36,6 +64,51 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1ListAllPermissionsResponse": {
+      "type": "object",
+      "properties": {
+        "systemCategories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1RoleCategory"
+          }
+        },
+        "projectCategories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1RoleCategory"
+          }
+        }
+      }
+    },
+    "v1alpha1Permission": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "permission": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1RoleCategory": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1Permission"
           }
         }
       }
