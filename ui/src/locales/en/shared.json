@@ -35,15 +35,5 @@
     "actions": {
       "detail": "Detail"
     }
-  },
-  "components": {
-    "RouterErrorComponent": {
-      "somethingWentWrong": "Something went wrong",
-      "reload": "Reload",
-      "backToHome": "Back to Home"
-    },
-    "RouterPendingComponent": {
-      "loading": "Loading..."
-    }
   }
 }

@@ -35,15 +35,5 @@
     "actions": {
       "detail": "详情"
     }
-  },
-  "components": {
-    "RouterErrorComponent": {
-      "somethingWentWrong": "出错了",
-      "reload": "重新加载",
-      "backToHome": "返回首页"
-    },
-    "RouterPendingComponent": {
-      "loading": "加载中..."
-    }
   }
 }
