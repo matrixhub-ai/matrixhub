@@ -96,6 +96,7 @@ message RegistryBasicCredential {
 enum RegistryType {
   REGISTRY_TYPE_UNSPECIFIED = 0;
   REGISTRY_TYPE_HUGGINGFACE = 1;
+  REGISTRY_TYPE_MATRIXHUB = 2;
 }
 
 enum RegistryStatus {

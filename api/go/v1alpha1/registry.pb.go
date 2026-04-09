@@ -28,6 +28,7 @@ type RegistryType int32
 const (
 	RegistryType_REGISTRY_TYPE_UNSPECIFIED RegistryType = 0
 	RegistryType_REGISTRY_TYPE_HUGGINGFACE RegistryType = 1
+	RegistryType_REGISTRY_TYPE_MATRIXHUB   RegistryType = 2
 )
 
 // Enum value maps for RegistryType.
@@ -35,10 +36,12 @@ var (
 	RegistryType_name = map[int32]string{
 		0: "REGISTRY_TYPE_UNSPECIFIED",
 		1: "REGISTRY_TYPE_HUGGINGFACE",
+		2: "REGISTRY_TYPE_MATRIXHUB",
 	}
 	RegistryType_value = map[string]int32{
 		"REGISTRY_TYPE_UNSPECIFIED": 0,
 		"REGISTRY_TYPE_HUGGINGFACE": 1,
+		"REGISTRY_TYPE_MATRIXHUB":   2,
 	}
 )
 
@@ -1137,10 +1140,11 @@ const file_v1alpha1_registry_proto_rawDesc = "" +
 	"\binsecure\x18\x06 \x01(\bR\binsecureB\f\n" +
 	"\n" +
 	"credential\"\x16\n" +
-	"\x14PingRegistryResponse*L\n" +
+	"\x14PingRegistryResponse*i\n" +
 	"\fRegistryType\x12\x1d\n" +
 	"\x19REGISTRY_TYPE_UNSPECIFIED\x10\x00\x12\x1d\n" +
-	"\x19REGISTRY_TYPE_HUGGINGFACE\x10\x01*m\n" +
+	"\x19REGISTRY_TYPE_HUGGINGFACE\x10\x01\x12\x1b\n" +
+	"\x17REGISTRY_TYPE_MATRIXHUB\x10\x02*m\n" +
 	"\x0eRegistryStatus\x12\x1f\n" +
 	"\x1bREGISTRY_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17REGISTRY_STATUS_HEALTHY\x10\x01\x12\x1d\n" +
