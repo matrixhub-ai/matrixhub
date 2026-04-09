@@ -23,6 +23,58 @@ const sidebars: SidebarsConfig = {
         'getting-started/examples',
       ],
     },
+    {
+      type: 'category',
+      label: 'Operations',
+      items: [
+        'operations/overview',
+        {
+          type: 'category',
+          label: 'Project Management',
+          items: [
+            'operations/projects/create-delete',
+            'operations/projects/members',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Models and Datasets',
+          items: [
+            'operations/assets/create-delete',
+            'operations/assets/upload-download',
+            'operations/assets/popular',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Repository Management',
+          items: [
+            'operations/repository/management',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'User Management',
+          items: [
+            'operations/users/management',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Remote Sync',
+          items: [
+            'operations/sync/remote',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Developer',
+          items: [
+            'operations/developer/access-token',
+          ],
+        },
+      ],
+    },
   ],
 };
 

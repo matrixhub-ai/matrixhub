@@ -1,0 +1,26 @@
+{
+  "link.title.Product": {
+    "message": "产品",
+    "description": "The title of the footer Product column"
+  },
+  "link.title.Resources": {
+    "message": "资源",
+    "description": "The title of the footer Resources column"
+  },
+  "link.title.Connect": {
+    "message": "联系我们",
+    "description": "The title of the footer Connect column"
+  },
+  "link.item.label.Documentation": {
+    "message": "文档",
+    "description": "The label of footer Documentation link"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer GitHub link"
+  },
+  "copyright": {
+    "message": "© 2024 MatrixHub 开源项目。Apache 2.0 许可证。",
+    "description": "The footer copyright"
+  }
+}

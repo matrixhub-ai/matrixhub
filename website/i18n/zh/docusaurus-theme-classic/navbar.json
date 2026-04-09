@@ -1,0 +1,18 @@
+{
+  "title": {
+    "message": "MatrixHub",
+    "description": "The title in the navbar"
+  },
+  "item.label.Documentation": {
+    "message": "文档",
+    "description": "The label of Documentation navbar item"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of GitHub navbar item"
+  },
+  "item.label.Get Started": {
+    "message": "开始使用",
+    "description": "The label of Get Started navbar button"
+  }
+}

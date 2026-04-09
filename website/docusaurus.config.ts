@@ -7,9 +7,9 @@ const config: Config = {
   tagline: 'The Open Source Hub for AI Models',
   favicon: 'img/favicon.ico',
 
-  future: {
-    v4: true,
-  },
+  // future: {
+  //   v4: true,
+  // },
 
   url: 'https://matrixhub.ai',
   baseUrl: '/',
@@ -22,7 +22,17 @@ const config: Config = {
 
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'zh'],
+    localeConfigs: {
+      en: {
+        label: 'English',
+        direction: 'ltr',
+      },
+      zh: {
+        label: '中文',
+        direction: 'ltr',
+      },
+    },
   },
 
   presets: [
@@ -73,6 +83,10 @@ const config: Config = {
           label: 'Get Started',
           position: 'right',
           className: 'navbar-get-started-button',
+        },
+        {
+          type: 'localeDropdown',
+          position: 'right',
         },
       ],
     },
