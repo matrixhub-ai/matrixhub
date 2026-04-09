@@ -616,7 +616,8 @@
       "type": "string",
       "enum": [
         "REGISTRY_TYPE_UNSPECIFIED",
-        "REGISTRY_TYPE_HUGGINGFACE"
+        "REGISTRY_TYPE_HUGGINGFACE",
+        "REGISTRY_TYPE_MATRIXHUB"
       ],
       "default": "REGISTRY_TYPE_UNSPECIFIED"
     },
