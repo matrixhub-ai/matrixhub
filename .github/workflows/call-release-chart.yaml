@@ -1,0 +1,237 @@
+name: Call Release Charts
+
+# This workflow packages the Helm chart and pushes it to:
+# 1. GitHub Container Registry (OCI) - ghcr.io
+# 2. GitHub Pages (index.yaml for traditional helm repo)
+
+env:
+  HELM_VERSION: v3.13.0
+  CHART_NAME: matrixhub
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+      submit:
+        required: true
+        type: string
+    outputs:
+      artifact:
+        description: "Name of chart artifact"
+        value: chart_package_artifact
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag, sha, or branch'
+        required: true
+        default: v0.0.1
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  get-ref:
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.get_ref.outputs.ref }}
+      submit: ${{ steps.get_ref.outputs.submit }}
+      chart-version: ${{ steps.get_ref.outputs.chart-version }}
+    steps:
+      - name: Get Ref
+        id: get_ref
+        run: |
+          if [ "${{ inputs.ref }}" != "" ]; then
+            echo "Called by workflow_call"
+            REF="${{ inputs.ref }}"
+            SUBMIT="${{ inputs.submit }}"
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Called by workflow_dispatch"
+            REF="${{ inputs.ref }}"
+            SUBMIT="true"
+          else
+            echo "Unexpected event: ${{ github.event_name }}"
+            exit 1
+          fi
+          # Extract chart version (remove 'v' prefix)
+          CHART_VERSION=$(echo "${REF}" | sed 's/^v//')
+          echo "ref=${REF}" >> $GITHUB_OUTPUT
+          echo "submit=${SUBMIT}" >> $GITHUB_OUTPUT
+          echo "chart-version=${CHART_VERSION}" >> $GITHUB_OUTPUT
+          echo "Ref: ${REF}"
+          echo "Chart version: ${CHART_VERSION}"
+
+  package-chart:
+    runs-on: ubuntu-latest
+    needs: get-ref
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.get-ref.outputs.ref }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Update Chart Version
+        run: |
+          cd deploy/charts
+          chart_version="${{ needs.get-ref.outputs.chart-version }}"
+          image_ref="${{ needs.get-ref.outputs.ref }}"
+          echo "Updating chart version to: ${chart_version}"
+          echo "Image ref: ${image_ref}"
+
+          # Update version in Chart.yaml
+          sed -i "s/^version:.*/version: ${chart_version}/" matrixhub/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${chart_version}\"/" matrixhub/Chart.yaml
+
+          # Update image tag in values.yaml
+          sed -i "s|tag: \"\"|tag: ${image_ref}|" matrixhub/values.yaml
+
+          echo "Updated Chart.yaml:"
+          cat matrixhub/Chart.yaml
+          echo "Updated values.yaml (image section):"
+          grep -A5 "image:" matrixhub/values.yaml | head -20
+
+      - name: Lint Chart
+        run: |
+          cd deploy/charts
+          helm lint --with-subcharts --values matrixhub/values.yaml matrixhub
+
+      - name: Package Chart
+        run: |
+          cd deploy/charts
+          helm package matrixhub -d .
+          if ! ls *.tgz &>/dev/null; then
+            echo "Failed to generate chart package"
+            exit 1
+          fi
+          mkdir -p tmp
+          mv *.tgz tmp/
+          echo "Packaged chart:"
+          ls -la tmp/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: chart_package_artifact_${{ needs.get-ref.outputs.ref }}
+          path: deploy/charts/tmp/*
+          retention-days: 7
+          if-no-files-found: error
+
+  push-to-oci:
+    runs-on: ubuntu-latest
+    needs: [get-ref, package-chart]
+    if: needs.get-ref.outputs.submit == 'true'
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4.2.1
+        with:
+          name: chart_package_artifact_${{ needs.get-ref.outputs.ref }}
+          path: charts/
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Chart to OCI Registry
+        run: |
+          echo "Pushing chart to OCI registry..."
+          chart_file=$(ls charts/*.tgz)
+          echo "Chart file: ${chart_file}"
+
+          # Convert repository owner to lowercase for OCI registry
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "Repository owner (lowercase): ${REPO_OWNER}"
+
+          # Push to ghcr.io as OCI artifact
+          helm push "${chart_file}" oci://ghcr.io/${REPO_OWNER}
+
+          echo "Chart pushed to: oci://ghcr.io/${REPO_OWNER}/${{ env.CHART_NAME }}:${{ needs.get-ref.outputs.chart-version }}"
+          echo ""
+          echo "To install this chart, run:"
+          echo "  helm repo add matrixhub oci://ghcr.io/${REPO_OWNER}"
+          echo "  helm install matrixhub matrixhub/${{ env.CHART_NAME }} --version ${{ needs.get-ref.outputs.chart-version }}"
+
+      - name: Verify OCI Push
+        run: |
+          echo "Verifying chart is available in OCI registry..."
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          mkdir -p /tmp/verify 
+          helm pull oci://ghcr.io/${REPO_OWNER}/${{ env.CHART_NAME }} --version ${{ needs.get-ref.outputs.chart-version }} --destination /tmp/verify
+          ls -la /tmp/verify/
+          echo "Verification successful!"
+
+  # Optional: Also update GitHub Pages for traditional helm repo
+  update-github-pages:
+    runs-on: ubuntu-latest
+    needs: [get-ref, package-chart]
+    if: ${{ needs.get-ref.outputs.submit == 'true' }}
+    permissions:
+      pages: write
+      id-token: write
+      contents: write
+    steps:
+      - name: Get Base Chart URL
+        id: get_base_url
+        run: |
+          name=${{ github.repository }}
+          proj=${name#*/}
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          url=https://${owner}.github.io/${proj}
+          echo "URL=${url}" >> $GITHUB_ENV
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: "true"
+
+      - name: Setup GitHub Pages Branch
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+          # Check if gh-pages branch exists
+          if git ls-remote --heads origin gh-pages | grep -q .; then
+            echo "gh-pages branch exists, checking out..."
+            git checkout gh-pages
+          else
+            echo "gh-pages branch does not exist, creating..."
+            git checkout --orphan gh-pages
+            git rm -rf . || true
+            git commit --allow-empty -m "Initialize gh-pages"
+            git push origin gh-pages
+          fi
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4.2.1
+        with:
+          name: chart_package_artifact_${{ needs.get-ref.outputs.ref }}
+          path: charts/
+
+      - name: Update Chart Index
+        run: |
+          mkdir -p charts
+          helm repo index ./charts --url ${{ env.URL }}/charts
+          mv ./charts/index.yaml ./index.yaml
+
+      - name: Push to GitHub Pages
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add .
+          git commit -m "Update chart to ${{ needs.get-ref.outputs.ref }}" || echo "No changes to commit"
+          git push origin gh-pages

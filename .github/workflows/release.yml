@@ -1,33 +1,129 @@
-name: Release image
+name: Release
+
+# This workflow is triggered by tag push:
+# 1. Builds and pushes container images to ghcr.io
+# 2. Packages Helm chart and pushes to ghcr.io (OCI) and GitHub Pages
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        required: true
+        default: v1.0.0
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+      - 'v[0-9]*.[0-9]*.[0-9]*-rc[0-9]*'
+      - 'v[0-9]*.[0-9]*.[0-9]*-dev[0-9]*'
 
-permissions:
-  contents: read
-  packages: write
+permissions: write-all
 
 jobs:
-  build-and-push:
+  get-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.get_tag.outputs.tag }}
+      is-official-release: ${{ steps.get_tag.outputs.is_official_release }}
+    steps:
+      - name: Get Tag
+        id: get_tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Called by workflow_dispatch"
+            RUN_TAG="${{ github.event.inputs.tag || 'v0.0.1' }}"
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            echo "Called by push tag"
+            RUN_TAG="${GITHUB_REF##*/}"
+          else
+            echo "Unexpected event: ${{ github.event_name }}"
+            exit 1
+          fi
+          echo "Tag: ${RUN_TAG}"
+          echo "tag=${RUN_TAG}" >> $GITHUB_OUTPUT
+
+          # Check if this is an official release (vX.Y.Z without -rc or -dev suffix)
+          if [[ "${RUN_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "is_official_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_official_release=false" >> $GITHUB_OUTPUT
+          fi
+          echo "Is official release: $(cat $GITHUB_OUTPUT | grep is_official_release)"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get_tag.outputs.tag }}
+
+  build-and-push-image:
+    needs: get-tag
+    uses: ./.github/workflows/call-release-image.yaml
+    with:
+      ref: ${{ needs.get-tag.outputs.tag }}
+    secrets: inherit
+
+  release-chart:
+    needs: [get-tag, build-and-push-image]
+    uses: ./.github/workflows/call-release-chart.yaml
+    with:
+      ref: ${{ needs.get-tag.outputs.tag }}
+      submit: true
+    secrets: inherit
+
+  release-changelog:
+    needs: [build-and-push-image, release-chart, get-tag]
+    uses: ./.github/workflows/call-release-changelog.yaml
+    with:
+      dest_tag: ${{ needs.get-tag.outputs.tag }}
+    secrets: inherit
+
+  create-release:
+    needs: [release-chart, release-changelog, get-tag]
+    if: needs.get-tag.outputs.is-official-release == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - name: Download Chart Artifact
+        uses: actions/download-artifact@v4.2.1
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: chart_package_artifact_${{ needs.get-tag.outputs.tag }}
+          path: chart-package/
 
-      - name: Push release images
-        run: make image-push
+      - name: Download Changelog Artifact
+        uses: actions/download-artifact@v4.2.1
+        with:
+          name: changelog_artifact_${{ needs.get-tag.outputs.tag }}
+          path: changelog-result/
+
+      - name: Get Downloaded Files
+        id: download_file
+        run: |
+          # ========= chart
+          if ! ls chart-package/*.tgz &>/dev/null ; then
+              echo "error, failed to find any chart "
+              exit 1
+          fi
+          chart_path=$( ls chart-package/*.tgz )
+          echo "chart_path=${chart_path}" >> $GITHUB_ENV
+          # ========== changelog
+          if ! ls changelog-result/*.md &>/dev/null ; then
+              echo "error, failed to find changelog "
+              exit 2
+          fi
+          ls changelog-result/
+          cat changelog-result/*.md
+          changelog_file=$( ls changelog-result/ )
+          changelog_path=./changelog-result/${changelog_file}
+          echo "changelog_path=${changelog_path}" >> $GITHUB_ENV
+          cp ./changelog-result/${changelog_file} ./changelog-result/changelog.md
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1.15.0
+        with:
+          artifacts: "chart-package/*"
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          bodyFile: "./changelog-result/changelog.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.get-tag.outputs.tag }}
+          name: "Release ${{ needs.get-tag.outputs.tag }}"
