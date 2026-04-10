@@ -158,7 +158,7 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     MYSQL_READY=$(kubectl get pods -n matrixhub -l app=matrixhub-mysql -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "false")
 
     # Check MatrixHub
-    MATRIXHUB_READY=$(kubectl get pods -n matrixhub -l app=matrixhub-apiserver -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "false")
+    MATRIXHUB_READY=$(kubectl get pods -n matrixhub -l app=matrixhub -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "false")
 
     if [ "$MYSQL_READY" = "True" ] && [ "$MATRIXHUB_READY" = "True" ]; then
         echo ""
@@ -186,10 +186,10 @@ if [ $ELAPSED -ge $TIMEOUT ]; then
     kubectl get pods -n matrixhub -o wide
     echo ""
     echo "MatrixHub pod logs (init containers):"
-    kubectl logs -n matrixhub -l app=matrixhub-apiserver -c check-db-ready --tail=30 || true
+    kubectl logs -n matrixhub -l app=matrixhub -c check-db-ready --tail=30 || true
     echo ""
     echo "MatrixHub pod logs (main container):"
-    kubectl logs -n matrixhub -l app=matrixhub-apiserver -c matrixhub-apiserver --tail=50 || true
+    kubectl logs -n matrixhub -l app=matrixhub -c matrixhub --tail=50 || true
     echo ""
     echo "MySQL pod logs:"
     kubectl logs -n matrixhub -l app=matrixhub-mysql --tail=50 || true

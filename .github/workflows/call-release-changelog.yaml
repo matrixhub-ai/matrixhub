@@ -5,9 +5,6 @@ env:
   LABEL_FEATURE: "release/feature-new"
   LABEL_CHANGED: "release/feature-changed"
   LABEL_BUG: "release/bug"
-  DEST_BRANCH: gh-pages
-  DEST_DIRECTORY: 'changelogs/'
-
 on:
   workflow_call:
     inputs:
@@ -82,28 +79,3 @@ jobs:
           path: ${{ env.FILE_PATH }}
           retention-days: 1
           if-no-files-found: error
-
-  update_githubpage:
-    runs-on: ubuntu-latest
-    needs: [generate_changelog]
-    steps:
-      - name: Checkout gh-pages
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.DEST_BRANCH }}
-          fetch-depth: 0
-          persist-credentials: "true"
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4.2.1
-        with:
-          name: changelog_artifact_${{ needs.generate_changelog.outputs.dest_tag }}
-          path: ${{ env.DEST_DIRECTORY }}
-
-      - name: Commit Changelog
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add .
-          git commit -m "robot update changelog from tag ${{ needs.generate_changelog.outputs.begin_tag }} to tag ${{ needs.generate_changelog.outputs.dest_tag }}" || echo "No changes to commit"
-          git push origin ${{ env.DEST_BRANCH }}

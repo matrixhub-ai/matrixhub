@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "matrixhub.fullname" . }}-apiserver
+  name: {{ include "matrixhub.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "matrixhub.apiserver.labels" . | nindent 4 }}
@@ -37,14 +37,14 @@ spec:
         {{- end }}
       {{- include "matrixhub.imagePullSecrets" . | nindent 6 }}
       containers:
-        - name: {{ include "matrixhub.fullname" . }}-apiserver
+        - name: {{ include "matrixhub.fullname" . }}
           image: {{ include "matrixhub.image" . }}
           imagePullPolicy: {{ .Values.apiserver.image.pullPolicy }}
           resources:
             {{- toYaml .Values.apiserver.resources | nindent 12 }}
           volumeMounts:
             - mountPath: /etc/matrixhub/config.yaml
-              name: {{ include "matrixhub.fullname" . }}-apiserver-config
+              name: {{ include "matrixhub.fullname" . }}-config
               subPath: config.yaml
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
@@ -72,9 +72,9 @@ spec:
                   name: {{ include "matrixhub.fullname" . }}-secret
                   key: matrixhub.dsn
       volumes:
-        - name: {{ include "matrixhub.fullname" . }}-apiserver-config
+        - name: {{ include "matrixhub.fullname" . }}-config
           configMap:
-            name: {{ include "matrixhub.fullname" . }}-apiserver-config
+            name: {{ include "matrixhub.fullname" . }}-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -60,8 +60,8 @@ help: ## Display this help.
 lint-fix: ## Run golangci-lint with --fix option
 	$(GO_CMD) run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0 run --fix
 
-.PHONY: image-build-apiserver
-image-build-apiserver: ## Build the MatrixHub apiserver image
+.PHONY: image-build
+image-build: ## Build the MatrixHub image
 	$(IMAGE_BUILD_CMD) \
 		-t $(IMAGE_REPO):$(VERSION) \
 		-f deploy/docker/matrixhub/Dockerfile \
@@ -72,13 +72,9 @@ image-build-apiserver: ## Build the MatrixHub apiserver image
 		$(IMAGE_BUILD_EXTRA_OPTS) \
 		.
 
-.PHONY: image-push-apiserver
-image-push-apiserver: ## Build and push the MatrixHub apiserver image
-	$(MAKE) image-build-apiserver PUSH=--push
-
 .PHONY: image-push
-image-push: PUSH=--push
-image-push: image-build
+image-push: ## Build and push the MatrixHub image
+	$(MAKE) image-build PUSH=--push
 
 website/build: website
 	make -C website build

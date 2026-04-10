@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "matrixhub.fullname" . }}-apiserver
+  name: {{ include "matrixhub.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "matrixhub.apiserver.labels" . | nindent 4 }}

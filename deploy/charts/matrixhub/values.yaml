@@ -2,7 +2,7 @@ apiserver:
   # -- matrixhub-apiserver deployment labels
   labels:
     # -- matrixhub-apiserver deployment app name
-    app: matrixhub-apiserver
+    app: matrixhub
   # -- target replicas
   replicaCount: 1
   # -- Add matrixhub apiserver pod annotations

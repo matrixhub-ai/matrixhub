@@ -1,8 +1,7 @@
 name: Call Release Charts
 
 # This workflow packages the Helm chart and pushes it to:
-# 1. GitHub Container Registry (OCI) - ghcr.io
-# 2. GitHub Pages (index.yaml for traditional helm repo)
+# GitHub Container Registry (OCI) - ghcr.io
 
 env:
   HELM_VERSION: v3.13.0
@@ -174,64 +173,3 @@ jobs:
           ls -la /tmp/verify/
           echo "Verification successful!"
 
-  # Optional: Also update GitHub Pages for traditional helm repo
-  update-github-pages:
-    runs-on: ubuntu-latest
-    needs: [get-ref, package-chart]
-    if: ${{ needs.get-ref.outputs.submit == 'true' }}
-    permissions:
-      pages: write
-      id-token: write
-      contents: write
-    steps:
-      - name: Get Base Chart URL
-        id: get_base_url
-        run: |
-          name=${{ github.repository }}
-          proj=${name#*/}
-          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          url=https://${owner}.github.io/${proj}
-          echo "URL=${url}" >> $GITHUB_ENV
-
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: "true"
-
-      - name: Setup GitHub Pages Branch
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-          # Check if gh-pages branch exists
-          if git ls-remote --heads origin gh-pages | grep -q .; then
-            echo "gh-pages branch exists, checking out..."
-            git checkout gh-pages
-          else
-            echo "gh-pages branch does not exist, creating..."
-            git checkout --orphan gh-pages
-            git rm -rf . || true
-            git commit --allow-empty -m "Initialize gh-pages"
-            git push origin gh-pages
-          fi
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4.2.1
-        with:
-          name: chart_package_artifact_${{ needs.get-ref.outputs.ref }}
-          path: charts/
-
-      - name: Update Chart Index
-        run: |
-          mkdir -p charts
-          helm repo index ./charts --url ${{ env.URL }}/charts
-          mv ./charts/index.yaml ./index.yaml
-
-      - name: Push to GitHub Pages
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add .
-          git commit -m "Update chart to ${{ needs.get-ref.outputs.ref }}" || echo "No changes to commit"
-          git push origin gh-pages

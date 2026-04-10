@@ -2,7 +2,7 @@ name: Release
 
 # This workflow is triggered by tag push:
 # 1. Builds and pushes container images to ghcr.io
-# 2. Packages Helm chart and pushes to ghcr.io (OCI) and GitHub Pages
+# 2. Packages Helm chart and pushes to ghcr.io (OCI)
 
 on:
   workflow_dispatch:
