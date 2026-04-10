@@ -76,11 +76,7 @@ export async function ensureProjectAccess(
   const role = projectRoles.projectRoles?.[projectId]
 
   if (!role) {
-    try {
-      await queryClient.ensureQueryData(projectDetailQueryOptions(projectId))
-    } catch {
-      throw notFoundError()
-    }
+    await queryClient.ensureQueryData(projectDetailQueryOptions(projectId))
 
     // Public projects
     if (allowPublicRead) {
