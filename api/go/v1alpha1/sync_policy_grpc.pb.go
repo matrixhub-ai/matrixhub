@@ -27,6 +27,8 @@ const (
 	SyncPolicy_CreateSyncTask_FullMethodName   = "/matrixhub.v1alpha1.SyncPolicy/CreateSyncTask"
 	SyncPolicy_ListSyncTasks_FullMethodName    = "/matrixhub.v1alpha1.SyncPolicy/ListSyncTasks"
 	SyncPolicy_StopSyncTask_FullMethodName     = "/matrixhub.v1alpha1.SyncPolicy/StopSyncTask"
+	SyncPolicy_ListSyncJobs_FullMethodName     = "/matrixhub.v1alpha1.SyncPolicy/ListSyncJobs"
+	SyncPolicy_GetSyncJobLog_FullMethodName    = "/matrixhub.v1alpha1.SyncPolicy/GetSyncJobLog"
 )
 
 // SyncPolicyClient is the client API for SyncPolicy service.
@@ -49,6 +51,10 @@ type SyncPolicyClient interface {
 	ListSyncTasks(ctx context.Context, in *ListSyncTasksRequest, opts ...grpc.CallOption) (*ListSyncTasksResponse, error)
 	// StopSyncTask stops a sync task.
 	StopSyncTask(ctx context.Context, in *StopSyncTaskRequest, opts ...grpc.CallOption) (*StopSyncTaskResponse, error)
+	// ListSyncJobs lists all sync jobs.
+	ListSyncJobs(ctx context.Context, in *ListSyncJobsRequest, opts ...grpc.CallOption) (*ListSyncJobsResponse, error)
+	// GetSyncJobLog gets the log of a sync job.
+	GetSyncJobLog(ctx context.Context, in *GetSyncJobLogRequest, opts ...grpc.CallOption) (*GetSyncJobLogResponse, error)
 }
 
 type syncPolicyClient struct {
@@ -139,6 +145,26 @@ func (c *syncPolicyClient) StopSyncTask(ctx context.Context, in *StopSyncTaskReq
 	return out, nil
 }
 
+func (c *syncPolicyClient) ListSyncJobs(ctx context.Context, in *ListSyncJobsRequest, opts ...grpc.CallOption) (*ListSyncJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSyncJobsResponse)
+	err := c.cc.Invoke(ctx, SyncPolicy_ListSyncJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *syncPolicyClient) GetSyncJobLog(ctx context.Context, in *GetSyncJobLogRequest, opts ...grpc.CallOption) (*GetSyncJobLogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSyncJobLogResponse)
+	err := c.cc.Invoke(ctx, SyncPolicy_GetSyncJobLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SyncPolicyServer is the server API for SyncPolicy service.
 // All implementations should embed UnimplementedSyncPolicyServer
 // for forward compatibility.
@@ -159,6 +185,10 @@ type SyncPolicyServer interface {
 	ListSyncTasks(context.Context, *ListSyncTasksRequest) (*ListSyncTasksResponse, error)
 	// StopSyncTask stops a sync task.
 	StopSyncTask(context.Context, *StopSyncTaskRequest) (*StopSyncTaskResponse, error)
+	// ListSyncJobs lists all sync jobs.
+	ListSyncJobs(context.Context, *ListSyncJobsRequest) (*ListSyncJobsResponse, error)
+	// GetSyncJobLog gets the log of a sync job.
+	GetSyncJobLog(context.Context, *GetSyncJobLogRequest) (*GetSyncJobLogResponse, error)
 }
 
 // UnimplementedSyncPolicyServer should be embedded to have
@@ -191,6 +221,12 @@ func (UnimplementedSyncPolicyServer) ListSyncTasks(context.Context, *ListSyncTas
 }
 func (UnimplementedSyncPolicyServer) StopSyncTask(context.Context, *StopSyncTaskRequest) (*StopSyncTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method StopSyncTask not implemented")
+}
+func (UnimplementedSyncPolicyServer) ListSyncJobs(context.Context, *ListSyncJobsRequest) (*ListSyncJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSyncJobs not implemented")
+}
+func (UnimplementedSyncPolicyServer) GetSyncJobLog(context.Context, *GetSyncJobLogRequest) (*GetSyncJobLogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSyncJobLog not implemented")
 }
 func (UnimplementedSyncPolicyServer) testEmbeddedByValue() {}
 
@@ -356,6 +392,42 @@ func _SyncPolicy_StopSyncTask_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SyncPolicy_ListSyncJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSyncJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SyncPolicyServer).ListSyncJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SyncPolicy_ListSyncJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SyncPolicyServer).ListSyncJobs(ctx, req.(*ListSyncJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SyncPolicy_GetSyncJobLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSyncJobLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SyncPolicyServer).GetSyncJobLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SyncPolicy_GetSyncJobLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SyncPolicyServer).GetSyncJobLog(ctx, req.(*GetSyncJobLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SyncPolicy_ServiceDesc is the grpc.ServiceDesc for SyncPolicy service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -394,6 +466,14 @@ var SyncPolicy_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopSyncTask",
 			Handler:    _SyncPolicy_StopSyncTask_Handler,
+		},
+		{
+			MethodName: "ListSyncJobs",
+			Handler:    _SyncPolicy_ListSyncJobs_Handler,
+		},
+		{
+			MethodName: "GetSyncJobLog",
+			Handler:    _SyncPolicy_GetSyncJobLog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

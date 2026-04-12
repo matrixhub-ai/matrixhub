@@ -224,6 +224,61 @@ func (SyncTaskStatus) EnumDescriptor() ([]byte, []int) {
 	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{3}
 }
 
+type SyncJobStatus int32
+
+const (
+	SyncJobStatus_SYNC_JOB_STATUS_UNSPECIFIED SyncJobStatus = 0
+	SyncJobStatus_SYNC_JOB_STATUS_RUNNING     SyncJobStatus = 1
+	SyncJobStatus_SYNC_JOB_STATUS_SUCCEEDED   SyncJobStatus = 2
+	SyncJobStatus_SYNC_JOB_STATUS_FAILED      SyncJobStatus = 3
+	SyncJobStatus_SYNC_JOB_STATUS_STOPPED     SyncJobStatus = 4
+)
+
+// Enum value maps for SyncJobStatus.
+var (
+	SyncJobStatus_name = map[int32]string{
+		0: "SYNC_JOB_STATUS_UNSPECIFIED",
+		1: "SYNC_JOB_STATUS_RUNNING",
+		2: "SYNC_JOB_STATUS_SUCCEEDED",
+		3: "SYNC_JOB_STATUS_FAILED",
+		4: "SYNC_JOB_STATUS_STOPPED",
+	}
+	SyncJobStatus_value = map[string]int32{
+		"SYNC_JOB_STATUS_UNSPECIFIED": 0,
+		"SYNC_JOB_STATUS_RUNNING":     1,
+		"SYNC_JOB_STATUS_SUCCEEDED":   2,
+		"SYNC_JOB_STATUS_FAILED":      3,
+		"SYNC_JOB_STATUS_STOPPED":     4,
+	}
+)
+
+func (x SyncJobStatus) Enum() *SyncJobStatus {
+	p := new(SyncJobStatus)
+	*p = x
+	return p
+}
+
+func (x SyncJobStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SyncJobStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1alpha1_sync_policy_proto_enumTypes[4].Descriptor()
+}
+
+func (SyncJobStatus) Type() protoreflect.EnumType {
+	return &file_v1alpha1_sync_policy_proto_enumTypes[4]
+}
+
+func (x SyncJobStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SyncJobStatus.Descriptor instead.
+func (SyncJobStatus) EnumDescriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{4}
+}
+
 type PullBasePolicy struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	SourceRegistryId   uint32                 `protobuf:"varint,1,opt,name=source_registry_id,json=sourceRegistryId,proto3" json:"source_registry_id,omitempty"`
@@ -407,11 +462,12 @@ type SyncPolicyItem struct {
 	//	*SyncPolicyItem_PushBasePolicy
 	Policy isSyncPolicyItem_Policy `protobuf_oneof:"policy"`
 	// The bandwidth to use for the sync policy.
-	Bandwidth     string `protobuf:"bytes,8,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
-	IsOverwrite   bool   `protobuf:"varint,9,opt,name=is_overwrite,json=isOverwrite,proto3" json:"is_overwrite,omitempty"`
-	IsDisabled    bool   `protobuf:"varint,10,opt,name=is_disabled,json=isDisabled,proto3" json:"is_disabled,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Bandwidth           string               `protobuf:"bytes,8,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
+	IsOverwrite         bool                 `protobuf:"varint,9,opt,name=is_overwrite,json=isOverwrite,proto3" json:"is_overwrite,omitempty"`
+	IsDisabled          bool                 `protobuf:"varint,10,opt,name=is_disabled,json=isDisabled,proto3" json:"is_disabled,omitempty"`
+	TriggerTypeSchedule *TriggerTypeSchedule `protobuf:"bytes,11,opt,name=trigger_type_schedule,json=triggerTypeSchedule,proto3" json:"trigger_type_schedule,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *SyncPolicyItem) Reset() {
@@ -525,6 +581,13 @@ func (x *SyncPolicyItem) GetIsDisabled() bool {
 	return false
 }
 
+func (x *SyncPolicyItem) GetTriggerTypeSchedule() *TriggerTypeSchedule {
+	if x != nil {
+		return x.TriggerTypeSchedule
+	}
+	return nil
+}
+
 type isSyncPolicyItem_Policy interface {
 	isSyncPolicyItem_Policy()
 }
@@ -556,10 +619,11 @@ type CreateSyncPolicyRequest struct {
 	//	*CreateSyncPolicyRequest_PushBasePolicy
 	Policy isCreateSyncPolicyRequest_Policy `protobuf_oneof:"policy"`
 	// The bandwidth to use for the sync policy.
-	Bandwidth     string `protobuf:"bytes,7,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
-	IsOverwrite   bool   `protobuf:"varint,8,opt,name=is_overwrite,json=isOverwrite,proto3" json:"is_overwrite,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Bandwidth           string               `protobuf:"bytes,7,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
+	IsOverwrite         bool                 `protobuf:"varint,8,opt,name=is_overwrite,json=isOverwrite,proto3" json:"is_overwrite,omitempty"`
+	TriggerTypeSchedule *TriggerTypeSchedule `protobuf:"bytes,9,opt,name=trigger_type_schedule,json=triggerTypeSchedule,proto3" json:"trigger_type_schedule,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CreateSyncPolicyRequest) Reset() {
@@ -659,6 +723,13 @@ func (x *CreateSyncPolicyRequest) GetIsOverwrite() bool {
 	return false
 }
 
+func (x *CreateSyncPolicyRequest) GetTriggerTypeSchedule() *TriggerTypeSchedule {
+	if x != nil {
+		return x.TriggerTypeSchedule
+	}
+	return nil
+}
+
 type isCreateSyncPolicyRequest_Policy interface {
 	isCreateSyncPolicyRequest_Policy()
 }
@@ -675,6 +746,50 @@ func (*CreateSyncPolicyRequest_PullBasePolicy) isCreateSyncPolicyRequest_Policy(
 
 func (*CreateSyncPolicyRequest_PushBasePolicy) isCreateSyncPolicyRequest_Policy() {}
 
+type TriggerTypeSchedule struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cron          string                 `protobuf:"bytes,1,opt,name=cron,proto3" json:"cron,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TriggerTypeSchedule) Reset() {
+	*x = TriggerTypeSchedule{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TriggerTypeSchedule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TriggerTypeSchedule) ProtoMessage() {}
+
+func (x *TriggerTypeSchedule) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TriggerTypeSchedule.ProtoReflect.Descriptor instead.
+func (*TriggerTypeSchedule) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *TriggerTypeSchedule) GetCron() string {
+	if x != nil {
+		return x.Cron
+	}
+	return ""
+}
+
 type CreateSyncPolicyResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SyncPolicy    *SyncPolicyItem        `protobuf:"bytes,1,opt,name=sync_policy,json=syncPolicy,proto3" json:"sync_policy,omitempty"`
@@ -684,7 +799,7 @@ type CreateSyncPolicyResponse struct {
 
 func (x *CreateSyncPolicyResponse) Reset() {
 	*x = CreateSyncPolicyResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[4]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -696,7 +811,7 @@ func (x *CreateSyncPolicyResponse) String() string {
 func (*CreateSyncPolicyResponse) ProtoMessage() {}
 
 func (x *CreateSyncPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[4]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -709,7 +824,7 @@ func (x *CreateSyncPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSyncPolicyResponse.ProtoReflect.Descriptor instead.
 func (*CreateSyncPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{4}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateSyncPolicyResponse) GetSyncPolicy() *SyncPolicyItem {
@@ -734,16 +849,17 @@ type UpdateSyncPolicyRequest struct {
 	//	*UpdateSyncPolicyRequest_PushBasePolicy
 	Policy isUpdateSyncPolicyRequest_Policy `protobuf_oneof:"policy"`
 	// The bandwidth to use for the sync policy.
-	Bandwidth     string `protobuf:"bytes,7,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
-	IsOverwrite   bool   `protobuf:"varint,8,opt,name=is_overwrite,json=isOverwrite,proto3" json:"is_overwrite,omitempty"`
-	IsDisabled    bool   `protobuf:"varint,9,opt,name=is_disabled,json=isDisabled,proto3" json:"is_disabled,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Bandwidth           string               `protobuf:"bytes,7,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
+	IsOverwrite         bool                 `protobuf:"varint,8,opt,name=is_overwrite,json=isOverwrite,proto3" json:"is_overwrite,omitempty"`
+	IsDisabled          bool                 `protobuf:"varint,9,opt,name=is_disabled,json=isDisabled,proto3" json:"is_disabled,omitempty"`
+	TriggerTypeSchedule *TriggerTypeSchedule `protobuf:"bytes,10,opt,name=trigger_type_schedule,json=triggerTypeSchedule,proto3" json:"trigger_type_schedule,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *UpdateSyncPolicyRequest) Reset() {
 	*x = UpdateSyncPolicyRequest{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[5]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -755,7 +871,7 @@ func (x *UpdateSyncPolicyRequest) String() string {
 func (*UpdateSyncPolicyRequest) ProtoMessage() {}
 
 func (x *UpdateSyncPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[5]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -768,7 +884,7 @@ func (x *UpdateSyncPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSyncPolicyRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSyncPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{5}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateSyncPolicyRequest) GetSyncPolicyId() int32 {
@@ -845,6 +961,13 @@ func (x *UpdateSyncPolicyRequest) GetIsDisabled() bool {
 	return false
 }
 
+func (x *UpdateSyncPolicyRequest) GetTriggerTypeSchedule() *TriggerTypeSchedule {
+	if x != nil {
+		return x.TriggerTypeSchedule
+	}
+	return nil
+}
+
 type isUpdateSyncPolicyRequest_Policy interface {
 	isUpdateSyncPolicyRequest_Policy()
 }
@@ -870,7 +993,7 @@ type UpdateSyncPolicyResponse struct {
 
 func (x *UpdateSyncPolicyResponse) Reset() {
 	*x = UpdateSyncPolicyResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[6]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -882,7 +1005,7 @@ func (x *UpdateSyncPolicyResponse) String() string {
 func (*UpdateSyncPolicyResponse) ProtoMessage() {}
 
 func (x *UpdateSyncPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[6]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -895,7 +1018,7 @@ func (x *UpdateSyncPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSyncPolicyResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSyncPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{6}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateSyncPolicyResponse) GetSyncPolicy() *SyncPolicyItem {
@@ -914,7 +1037,7 @@ type DeleteSyncPolicyRequest struct {
 
 func (x *DeleteSyncPolicyRequest) Reset() {
 	*x = DeleteSyncPolicyRequest{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[7]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -926,7 +1049,7 @@ func (x *DeleteSyncPolicyRequest) String() string {
 func (*DeleteSyncPolicyRequest) ProtoMessage() {}
 
 func (x *DeleteSyncPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[7]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -939,7 +1062,7 @@ func (x *DeleteSyncPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSyncPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSyncPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{7}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeleteSyncPolicyRequest) GetSyncPolicyId() int32 {
@@ -958,7 +1081,7 @@ type DeleteSyncPolicyResponse struct {
 
 func (x *DeleteSyncPolicyResponse) Reset() {
 	*x = DeleteSyncPolicyResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[8]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -970,7 +1093,7 @@ func (x *DeleteSyncPolicyResponse) String() string {
 func (*DeleteSyncPolicyResponse) ProtoMessage() {}
 
 func (x *DeleteSyncPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[8]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -983,7 +1106,7 @@ func (x *DeleteSyncPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSyncPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSyncPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{8}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteSyncPolicyResponse) GetSyncPolicy() *SyncPolicyItem {
@@ -1004,7 +1127,7 @@ type ListSyncPoliciesRequest struct {
 
 func (x *ListSyncPoliciesRequest) Reset() {
 	*x = ListSyncPoliciesRequest{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[9]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1016,7 +1139,7 @@ func (x *ListSyncPoliciesRequest) String() string {
 func (*ListSyncPoliciesRequest) ProtoMessage() {}
 
 func (x *ListSyncPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[9]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1029,7 +1152,7 @@ func (x *ListSyncPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSyncPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListSyncPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{9}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListSyncPoliciesRequest) GetPage() int32 {
@@ -1063,7 +1186,7 @@ type ListSyncPoliciesResponse struct {
 
 func (x *ListSyncPoliciesResponse) Reset() {
 	*x = ListSyncPoliciesResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[10]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1075,7 +1198,7 @@ func (x *ListSyncPoliciesResponse) String() string {
 func (*ListSyncPoliciesResponse) ProtoMessage() {}
 
 func (x *ListSyncPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[10]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1088,7 +1211,7 @@ func (x *ListSyncPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSyncPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListSyncPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{10}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListSyncPoliciesResponse) GetSyncPolicies() []*SyncPolicyItem {
@@ -1114,7 +1237,7 @@ type GetSyncPolicyRequest struct {
 
 func (x *GetSyncPolicyRequest) Reset() {
 	*x = GetSyncPolicyRequest{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[11]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1126,7 +1249,7 @@ func (x *GetSyncPolicyRequest) String() string {
 func (*GetSyncPolicyRequest) ProtoMessage() {}
 
 func (x *GetSyncPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[11]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1262,7 @@ func (x *GetSyncPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSyncPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetSyncPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{11}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetSyncPolicyRequest) GetSyncPolicyId() int32 {
@@ -1158,7 +1281,7 @@ type GetSyncPolicyResponse struct {
 
 func (x *GetSyncPolicyResponse) Reset() {
 	*x = GetSyncPolicyResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[12]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1170,7 +1293,7 @@ func (x *GetSyncPolicyResponse) String() string {
 func (*GetSyncPolicyResponse) ProtoMessage() {}
 
 func (x *GetSyncPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[12]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1183,7 +1306,7 @@ func (x *GetSyncPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSyncPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetSyncPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{12}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetSyncPolicyResponse) GetSyncPolicy() *SyncPolicyItem {
@@ -1202,7 +1325,7 @@ type CreateSyncTaskRequest struct {
 
 func (x *CreateSyncTaskRequest) Reset() {
 	*x = CreateSyncTaskRequest{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[13]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1214,7 +1337,7 @@ func (x *CreateSyncTaskRequest) String() string {
 func (*CreateSyncTaskRequest) ProtoMessage() {}
 
 func (x *CreateSyncTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[13]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +1350,7 @@ func (x *CreateSyncTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSyncTaskRequest.ProtoReflect.Descriptor instead.
 func (*CreateSyncTaskRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{13}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateSyncTaskRequest) GetSyncPolicyId() int32 {
@@ -1246,7 +1369,7 @@ type CreateSyncTaskResponse struct {
 
 func (x *CreateSyncTaskResponse) Reset() {
 	*x = CreateSyncTaskResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[14]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1258,7 +1381,7 @@ func (x *CreateSyncTaskResponse) String() string {
 func (*CreateSyncTaskResponse) ProtoMessage() {}
 
 func (x *CreateSyncTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[14]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1271,7 +1394,7 @@ func (x *CreateSyncTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSyncTaskResponse.ProtoReflect.Descriptor instead.
 func (*CreateSyncTaskResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{14}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateSyncTaskResponse) GetId() int32 {
@@ -1291,13 +1414,15 @@ type SyncTask struct {
 	CompletedTimestamp int64                  `protobuf:"varint,6,opt,name=completed_timestamp,json=completedTimestamp,proto3" json:"completed_timestamp,omitempty"`
 	TotalItems         int64                  `protobuf:"varint,7,opt,name=total_items,json=totalItems,proto3" json:"total_items,omitempty"`
 	SuccessfulItems    int64                  `protobuf:"varint,8,opt,name=successful_items,json=successfulItems,proto3" json:"successful_items,omitempty"`
+	StoppedItems       int64                  `protobuf:"varint,9,opt,name=stopped_items,json=stoppedItems,proto3" json:"stopped_items,omitempty"`
+	FailedItems        int64                  `protobuf:"varint,10,opt,name=failed_items,json=failedItems,proto3" json:"failed_items,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *SyncTask) Reset() {
 	*x = SyncTask{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[15]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1309,7 +1434,7 @@ func (x *SyncTask) String() string {
 func (*SyncTask) ProtoMessage() {}
 
 func (x *SyncTask) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[15]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1322,7 +1447,7 @@ func (x *SyncTask) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncTask.ProtoReflect.Descriptor instead.
 func (*SyncTask) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{15}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *SyncTask) GetId() int32 {
@@ -1381,6 +1506,20 @@ func (x *SyncTask) GetSuccessfulItems() int64 {
 	return 0
 }
 
+func (x *SyncTask) GetStoppedItems() int64 {
+	if x != nil {
+		return x.StoppedItems
+	}
+	return 0
+}
+
+func (x *SyncTask) GetFailedItems() int64 {
+	if x != nil {
+		return x.FailedItems
+	}
+	return 0
+}
+
 type ListSyncTasksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SyncPolicyId  int32                  `protobuf:"varint,1,opt,name=sync_policy_id,json=syncPolicyId,proto3" json:"sync_policy_id,omitempty"`
@@ -1393,7 +1532,7 @@ type ListSyncTasksRequest struct {
 
 func (x *ListSyncTasksRequest) Reset() {
 	*x = ListSyncTasksRequest{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[16]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1405,7 +1544,7 @@ func (x *ListSyncTasksRequest) String() string {
 func (*ListSyncTasksRequest) ProtoMessage() {}
 
 func (x *ListSyncTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[16]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1418,7 +1557,7 @@ func (x *ListSyncTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSyncTasksRequest.ProtoReflect.Descriptor instead.
 func (*ListSyncTasksRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{16}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListSyncTasksRequest) GetSyncPolicyId() int32 {
@@ -1459,7 +1598,7 @@ type ListSyncTasksResponse struct {
 
 func (x *ListSyncTasksResponse) Reset() {
 	*x = ListSyncTasksResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[17]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1471,7 +1610,7 @@ func (x *ListSyncTasksResponse) String() string {
 func (*ListSyncTasksResponse) ProtoMessage() {}
 
 func (x *ListSyncTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[17]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1484,7 +1623,7 @@ func (x *ListSyncTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSyncTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListSyncTasksResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{17}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListSyncTasksResponse) GetSyncTasks() []*SyncTask {
@@ -1511,7 +1650,7 @@ type StopSyncTaskRequest struct {
 
 func (x *StopSyncTaskRequest) Reset() {
 	*x = StopSyncTaskRequest{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[18]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1523,7 +1662,7 @@ func (x *StopSyncTaskRequest) String() string {
 func (*StopSyncTaskRequest) ProtoMessage() {}
 
 func (x *StopSyncTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[18]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1536,7 +1675,7 @@ func (x *StopSyncTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSyncTaskRequest.ProtoReflect.Descriptor instead.
 func (*StopSyncTaskRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{18}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *StopSyncTaskRequest) GetSyncPolicyId() int32 {
@@ -1562,7 +1701,7 @@ type StopSyncTaskResponse struct {
 
 func (x *StopSyncTaskResponse) Reset() {
 	*x = StopSyncTaskResponse{}
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[19]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1574,7 +1713,7 @@ func (x *StopSyncTaskResponse) String() string {
 func (*StopSyncTaskResponse) ProtoMessage() {}
 
 func (x *StopSyncTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_sync_policy_proto_msgTypes[19]
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1587,7 +1726,7 @@ func (x *StopSyncTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSyncTaskResponse.ProtoReflect.Descriptor instead.
 func (*StopSyncTaskResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{19}
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *StopSyncTaskResponse) GetSyncTask() *SyncTask {
@@ -1595,6 +1734,346 @@ func (x *StopSyncTaskResponse) GetSyncTask() *SyncTask {
 		return x.SyncTask
 	}
 	return nil
+}
+
+type SyncJob struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	SyncTaskId         int32                  `protobuf:"varint,2,opt,name=sync_task_id,json=syncTaskId,proto3" json:"sync_task_id,omitempty"`
+	ResourceType       ResourceType           `protobuf:"varint,3,opt,name=resource_type,json=resourceType,proto3,enum=matrixhub.v1alpha1.ResourceType" json:"resource_type,omitempty"`
+	ResourceName       string                 `protobuf:"bytes,4,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
+	TargetResourceName string                 `protobuf:"bytes,5,opt,name=target_resource_name,json=targetResourceName,proto3" json:"target_resource_name,omitempty"`
+	Action             string                 `protobuf:"bytes,6,opt,name=action,proto3" json:"action,omitempty"`
+	Status             SyncJobStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=matrixhub.v1alpha1.SyncJobStatus" json:"status,omitempty"`
+	CompletedTimestamp int64                  `protobuf:"varint,8,opt,name=completed_timestamp,json=completedTimestamp,proto3" json:"completed_timestamp,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *SyncJob) Reset() {
+	*x = SyncJob{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncJob) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncJob) ProtoMessage() {}
+
+func (x *SyncJob) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncJob.ProtoReflect.Descriptor instead.
+func (*SyncJob) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *SyncJob) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SyncJob) GetSyncTaskId() int32 {
+	if x != nil {
+		return x.SyncTaskId
+	}
+	return 0
+}
+
+func (x *SyncJob) GetResourceType() ResourceType {
+	if x != nil {
+		return x.ResourceType
+	}
+	return ResourceType_RESOURCE_TYPE_UNSPECIFIED
+}
+
+func (x *SyncJob) GetResourceName() string {
+	if x != nil {
+		return x.ResourceName
+	}
+	return ""
+}
+
+func (x *SyncJob) GetTargetResourceName() string {
+	if x != nil {
+		return x.TargetResourceName
+	}
+	return ""
+}
+
+func (x *SyncJob) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *SyncJob) GetStatus() SyncJobStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SyncJobStatus_SYNC_JOB_STATUS_UNSPECIFIED
+}
+
+func (x *SyncJob) GetCompletedTimestamp() int64 {
+	if x != nil {
+		return x.CompletedTimestamp
+	}
+	return 0
+}
+
+type ListSyncJobsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SyncPolicyId  int32                  `protobuf:"varint,1,opt,name=sync_policy_id,json=syncPolicyId,proto3" json:"sync_policy_id,omitempty"`
+	SyncTaskId    int32                  `protobuf:"varint,2,opt,name=sync_task_id,json=syncTaskId,proto3" json:"sync_task_id,omitempty"`
+	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Status        SyncJobStatus          `protobuf:"varint,5,opt,name=status,proto3,enum=matrixhub.v1alpha1.SyncJobStatus" json:"status,omitempty"`
+	ResourceType  ResourceType           `protobuf:"varint,6,opt,name=resource_type,json=resourceType,proto3,enum=matrixhub.v1alpha1.ResourceType" json:"resource_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSyncJobsRequest) Reset() {
+	*x = ListSyncJobsRequest{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSyncJobsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSyncJobsRequest) ProtoMessage() {}
+
+func (x *ListSyncJobsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSyncJobsRequest.ProtoReflect.Descriptor instead.
+func (*ListSyncJobsRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListSyncJobsRequest) GetSyncPolicyId() int32 {
+	if x != nil {
+		return x.SyncPolicyId
+	}
+	return 0
+}
+
+func (x *ListSyncJobsRequest) GetSyncTaskId() int32 {
+	if x != nil {
+		return x.SyncTaskId
+	}
+	return 0
+}
+
+func (x *ListSyncJobsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListSyncJobsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSyncJobsRequest) GetStatus() SyncJobStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SyncJobStatus_SYNC_JOB_STATUS_UNSPECIFIED
+}
+
+func (x *ListSyncJobsRequest) GetResourceType() ResourceType {
+	if x != nil {
+		return x.ResourceType
+	}
+	return ResourceType_RESOURCE_TYPE_UNSPECIFIED
+}
+
+type ListSyncJobsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SyncJobs      []*SyncJob             `protobuf:"bytes,1,rep,name=sync_jobs,json=syncJobs,proto3" json:"sync_jobs,omitempty"`
+	Pagination    *Pagination            `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSyncJobsResponse) Reset() {
+	*x = ListSyncJobsResponse{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSyncJobsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSyncJobsResponse) ProtoMessage() {}
+
+func (x *ListSyncJobsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSyncJobsResponse.ProtoReflect.Descriptor instead.
+func (*ListSyncJobsResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ListSyncJobsResponse) GetSyncJobs() []*SyncJob {
+	if x != nil {
+		return x.SyncJobs
+	}
+	return nil
+}
+
+func (x *ListSyncJobsResponse) GetPagination() *Pagination {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+type GetSyncJobLogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SyncPolicyId  int32                  `protobuf:"varint,1,opt,name=sync_policy_id,json=syncPolicyId,proto3" json:"sync_policy_id,omitempty"`
+	SyncTaskId    int32                  `protobuf:"varint,2,opt,name=sync_task_id,json=syncTaskId,proto3" json:"sync_task_id,omitempty"`
+	SyncJobId     int32                  `protobuf:"varint,3,opt,name=sync_job_id,json=syncJobId,proto3" json:"sync_job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSyncJobLogRequest) Reset() {
+	*x = GetSyncJobLogRequest{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSyncJobLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSyncJobLogRequest) ProtoMessage() {}
+
+func (x *GetSyncJobLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSyncJobLogRequest.ProtoReflect.Descriptor instead.
+func (*GetSyncJobLogRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetSyncJobLogRequest) GetSyncPolicyId() int32 {
+	if x != nil {
+		return x.SyncPolicyId
+	}
+	return 0
+}
+
+func (x *GetSyncJobLogRequest) GetSyncTaskId() int32 {
+	if x != nil {
+		return x.SyncTaskId
+	}
+	return 0
+}
+
+func (x *GetSyncJobLogRequest) GetSyncJobId() int32 {
+	if x != nil {
+		return x.SyncJobId
+	}
+	return 0
+}
+
+type GetSyncJobLogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Log           string                 `protobuf:"bytes,1,opt,name=log,proto3" json:"log,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSyncJobLogResponse) Reset() {
+	*x = GetSyncJobLogResponse{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSyncJobLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSyncJobLogResponse) ProtoMessage() {}
+
+func (x *GetSyncJobLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSyncJobLogResponse.ProtoReflect.Descriptor instead.
+func (*GetSyncJobLogResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetSyncJobLogResponse) GetLog() string {
+	if x != nil {
+		return x.Log
+	}
+	return ""
 }
 
 var File_v1alpha1_sync_policy_proto protoreflect.FileDescriptor
@@ -1615,7 +2094,7 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x12target_registry_id\x18\x03 \x01(\rR\x10targetRegistryId\x120\n" +
 	"\x14target_resource_name\x18\x04 \x01(\tR\x12targetResourceName\x12E\n" +
 	"\x0ftarget_registry\x18\x05 \x01(\v2\x1c.matrixhub.v1alpha1.RegistryR\x0etargetRegistry\x12.\n" +
-	"\x13target_project_name\x18\x06 \x01(\tR\x11targetProjectName\"\xeb\x03\n" +
+	"\x13target_project_name\x18\x06 \x01(\tR\x11targetProjectName\"\xc8\x04\n" +
 	"\x0eSyncPolicyItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -1629,8 +2108,9 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\fis_overwrite\x18\t \x01(\bR\visOverwrite\x12\x1f\n" +
 	"\vis_disabled\x18\n" +
 	" \x01(\bR\n" +
-	"isDisabledB\b\n" +
-	"\x06policy\"\xc3\x03\n" +
+	"isDisabled\x12[\n" +
+	"\x15trigger_type_schedule\x18\v \x01(\v2'.matrixhub.v1alpha1.TriggerTypeScheduleR\x13triggerTypeScheduleB\b\n" +
+	"\x06policy\"\xa0\x04\n" +
 	"\x17CreateSyncPolicyRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12C\n" +
@@ -1640,11 +2120,14 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x10pull_base_policy\x18\x05 \x01(\v2\".matrixhub.v1alpha1.PullBasePolicyH\x00R\x0epullBasePolicy\x12N\n" +
 	"\x10push_base_policy\x18\x06 \x01(\v2\".matrixhub.v1alpha1.PushBasePolicyH\x00R\x0epushBasePolicy\x12\x1c\n" +
 	"\tbandwidth\x18\a \x01(\tR\tbandwidth\x12!\n" +
-	"\fis_overwrite\x18\b \x01(\bR\visOverwriteB\b\n" +
-	"\x06policy\"_\n" +
+	"\fis_overwrite\x18\b \x01(\bR\visOverwrite\x12[\n" +
+	"\x15trigger_type_schedule\x18\t \x01(\v2'.matrixhub.v1alpha1.TriggerTypeScheduleR\x13triggerTypeScheduleB\b\n" +
+	"\x06policy\")\n" +
+	"\x13TriggerTypeSchedule\x12\x12\n" +
+	"\x04cron\x18\x01 \x01(\tR\x04cron\"_\n" +
 	"\x18CreateSyncPolicyResponse\x12C\n" +
 	"\vsync_policy\x18\x01 \x01(\v2\".matrixhub.v1alpha1.SyncPolicyItemR\n" +
-	"syncPolicy\"\xc5\x03\n" +
+	"syncPolicy\"\xa2\x04\n" +
 	"\x17UpdateSyncPolicyRequest\x12$\n" +
 	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -1655,7 +2138,9 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\tbandwidth\x18\a \x01(\tR\tbandwidth\x12!\n" +
 	"\fis_overwrite\x18\b \x01(\bR\visOverwrite\x12\x1f\n" +
 	"\vis_disabled\x18\t \x01(\bR\n" +
-	"isDisabledB\b\n" +
+	"isDisabled\x12[\n" +
+	"\x15trigger_type_schedule\x18\n" +
+	" \x01(\v2'.matrixhub.v1alpha1.TriggerTypeScheduleR\x13triggerTypeScheduleB\b\n" +
 	"\x06policy\"_\n" +
 	"\x18UpdateSyncPolicyResponse\x12C\n" +
 	"\vsync_policy\x18\x01 \x01(\v2\".matrixhub.v1alpha1.SyncPolicyItemR\n" +
@@ -1682,7 +2167,7 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x15CreateSyncTaskRequest\x12$\n" +
 	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\"(\n" +
 	"\x16CreateSyncTaskResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"\xea\x02\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"\xb2\x03\n" +
 	"\bSyncTask\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12$\n" +
 	"\x0esync_policy_id\x18\x02 \x01(\x05R\fsyncPolicyId\x12B\n" +
@@ -1692,7 +2177,10 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x13completed_timestamp\x18\x06 \x01(\x03R\x12completedTimestamp\x12\x1f\n" +
 	"\vtotal_items\x18\a \x01(\x03R\n" +
 	"totalItems\x12)\n" +
-	"\x10successful_items\x18\b \x01(\x03R\x0fsuccessfulItems\"\x85\x01\n" +
+	"\x10successful_items\x18\b \x01(\x03R\x0fsuccessfulItems\x12#\n" +
+	"\rstopped_items\x18\t \x01(\x03R\fstoppedItems\x12!\n" +
+	"\ffailed_items\x18\n" +
+	" \x01(\x03R\vfailedItems\"\x85\x01\n" +
 	"\x14ListSyncTasksRequest\x12$\n" +
 	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
@@ -1709,7 +2197,37 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
 	"syncTaskId\"Q\n" +
 	"\x14StopSyncTaskResponse\x129\n" +
-	"\tsync_task\x18\x01 \x01(\v2\x1c.matrixhub.v1alpha1.SyncTaskR\bsyncTask*r\n" +
+	"\tsync_task\x18\x01 \x01(\v2\x1c.matrixhub.v1alpha1.SyncTaskR\bsyncTask\"\xdd\x02\n" +
+	"\aSyncJob\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12 \n" +
+	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
+	"syncTaskId\x12E\n" +
+	"\rresource_type\x18\x03 \x01(\x0e2 .matrixhub.v1alpha1.ResourceTypeR\fresourceType\x12#\n" +
+	"\rresource_name\x18\x04 \x01(\tR\fresourceName\x120\n" +
+	"\x14target_resource_name\x18\x05 \x01(\tR\x12targetResourceName\x12\x16\n" +
+	"\x06action\x18\x06 \x01(\tR\x06action\x129\n" +
+	"\x06status\x18\a \x01(\x0e2!.matrixhub.v1alpha1.SyncJobStatusR\x06status\x12/\n" +
+	"\x13completed_timestamp\x18\b \x01(\x03R\x12completedTimestamp\"\x90\x02\n" +
+	"\x13ListSyncJobsRequest\x12$\n" +
+	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12 \n" +
+	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
+	"syncTaskId\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\x129\n" +
+	"\x06status\x18\x05 \x01(\x0e2!.matrixhub.v1alpha1.SyncJobStatusR\x06status\x12E\n" +
+	"\rresource_type\x18\x06 \x01(\x0e2 .matrixhub.v1alpha1.ResourceTypeR\fresourceType\"\x90\x01\n" +
+	"\x14ListSyncJobsResponse\x128\n" +
+	"\tsync_jobs\x18\x01 \x03(\v2\x1b.matrixhub.v1alpha1.SyncJobR\bsyncJobs\x12>\n" +
+	"\n" +
+	"pagination\x18\x02 \x01(\v2\x1e.matrixhub.v1alpha1.PaginationR\n" +
+	"pagination\"~\n" +
+	"\x14GetSyncJobLogRequest\x12$\n" +
+	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12 \n" +
+	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
+	"syncTaskId\x12\x1e\n" +
+	"\vsync_job_id\x18\x03 \x01(\x05R\tsyncJobId\")\n" +
+	"\x15GetSyncJobLogResponse\x12\x10\n" +
+	"\x03log\x18\x01 \x01(\tR\x03log*r\n" +
 	"\x0eSyncPolicyType\x12 \n" +
 	"\x1cSYNC_POLICY_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSYNC_POLICY_TYPE_PULL_BASE\x10\x01\x12\x1e\n" +
@@ -1727,8 +2245,13 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x18SYNC_TASK_STATUS_RUNNING\x10\x01\x12\x1e\n" +
 	"\x1aSYNC_TASK_STATUS_SUCCEEDED\x10\x02\x12\x1b\n" +
 	"\x17SYNC_TASK_STATUS_FAILED\x10\x03\x12\x1c\n" +
-	"\x18SYNC_TASK_STATUS_STOPPED\x10\x042\xb1\n" +
-	"\n" +
+	"\x18SYNC_TASK_STATUS_STOPPED\x10\x04*\xa5\x01\n" +
+	"\rSyncJobStatus\x12\x1f\n" +
+	"\x1bSYNC_JOB_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17SYNC_JOB_STATUS_RUNNING\x10\x01\x12\x1d\n" +
+	"\x19SYNC_JOB_STATUS_SUCCEEDED\x10\x02\x12\x1a\n" +
+	"\x16SYNC_JOB_STATUS_FAILED\x10\x03\x12\x1b\n" +
+	"\x17SYNC_JOB_STATUS_STOPPED\x10\x042\xc2\r\n" +
 	"\n" +
 	"SyncPolicy\x12\x92\x01\n" +
 	"\x10ListSyncPolicies\x12+.matrixhub.v1alpha1.ListSyncPoliciesRequest\x1a,.matrixhub.v1alpha1.ListSyncPoliciesResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1alpha1/sync-policies\x12\x9a\x01\n" +
@@ -1738,7 +2261,9 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x10DeleteSyncPolicy\x12+.matrixhub.v1alpha1.DeleteSyncPolicyRequest\x1a,.matrixhub.v1alpha1.DeleteSyncPolicyResponse\"4\x82\xd3\xe4\x93\x02.*,/api/v1alpha1/sync-policies/{sync_policy_id}\x12\xa8\x01\n" +
 	"\x0eCreateSyncTask\x12).matrixhub.v1alpha1.CreateSyncTaskRequest\x1a*.matrixhub.v1alpha1.CreateSyncTaskResponse\"?\x82\xd3\xe4\x93\x029\"7/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks\x12\xa5\x01\n" +
 	"\rListSyncTasks\x12(.matrixhub.v1alpha1.ListSyncTasksRequest\x1a).matrixhub.v1alpha1.ListSyncTasksResponse\"?\x82\xd3\xe4\x93\x029\x127/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks\x12\xb6\x01\n" +
-	"\fStopSyncTask\x12'.matrixhub.v1alpha1.StopSyncTaskRequest\x1a(.matrixhub.v1alpha1.StopSyncTaskResponse\"S\x82\xd3\xe4\x93\x02M\"K/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/stopB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
+	"\fStopSyncTask\x12'.matrixhub.v1alpha1.StopSyncTaskRequest\x1a(.matrixhub.v1alpha1.StopSyncTaskResponse\"S\x82\xd3\xe4\x93\x02M\"K/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/stop\x12\xbb\x01\n" +
+	"\fListSyncJobs\x12'.matrixhub.v1alpha1.ListSyncJobsRequest\x1a(.matrixhub.v1alpha1.ListSyncJobsResponse\"X\x82\xd3\xe4\x93\x02R\x12P/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs\x12\xd0\x01\n" +
+	"\rGetSyncJobLog\x12(.matrixhub.v1alpha1.GetSyncJobLogRequest\x1a).matrixhub.v1alpha1.GetSyncJobLogResponse\"j\x82\xd3\xe4\x93\x02d\x12b/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs/{sync_job_id}/logB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
 
 var (
 	file_v1alpha1_sync_policy_proto_rawDescOnce sync.Once
@@ -1752,84 +2277,104 @@ func file_v1alpha1_sync_policy_proto_rawDescGZIP() []byte {
 	return file_v1alpha1_sync_policy_proto_rawDescData
 }
 
-var file_v1alpha1_sync_policy_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_v1alpha1_sync_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_v1alpha1_sync_policy_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_v1alpha1_sync_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_v1alpha1_sync_policy_proto_goTypes = []any{
 	(SyncPolicyType)(0),              // 0: matrixhub.v1alpha1.SyncPolicyType
 	(ResourceType)(0),                // 1: matrixhub.v1alpha1.ResourceType
 	(TriggerType)(0),                 // 2: matrixhub.v1alpha1.TriggerType
 	(SyncTaskStatus)(0),              // 3: matrixhub.v1alpha1.SyncTaskStatus
-	(*PullBasePolicy)(nil),           // 4: matrixhub.v1alpha1.PullBasePolicy
-	(*PushBasePolicy)(nil),           // 5: matrixhub.v1alpha1.PushBasePolicy
-	(*SyncPolicyItem)(nil),           // 6: matrixhub.v1alpha1.SyncPolicyItem
-	(*CreateSyncPolicyRequest)(nil),  // 7: matrixhub.v1alpha1.CreateSyncPolicyRequest
-	(*CreateSyncPolicyResponse)(nil), // 8: matrixhub.v1alpha1.CreateSyncPolicyResponse
-	(*UpdateSyncPolicyRequest)(nil),  // 9: matrixhub.v1alpha1.UpdateSyncPolicyRequest
-	(*UpdateSyncPolicyResponse)(nil), // 10: matrixhub.v1alpha1.UpdateSyncPolicyResponse
-	(*DeleteSyncPolicyRequest)(nil),  // 11: matrixhub.v1alpha1.DeleteSyncPolicyRequest
-	(*DeleteSyncPolicyResponse)(nil), // 12: matrixhub.v1alpha1.DeleteSyncPolicyResponse
-	(*ListSyncPoliciesRequest)(nil),  // 13: matrixhub.v1alpha1.ListSyncPoliciesRequest
-	(*ListSyncPoliciesResponse)(nil), // 14: matrixhub.v1alpha1.ListSyncPoliciesResponse
-	(*GetSyncPolicyRequest)(nil),     // 15: matrixhub.v1alpha1.GetSyncPolicyRequest
-	(*GetSyncPolicyResponse)(nil),    // 16: matrixhub.v1alpha1.GetSyncPolicyResponse
-	(*CreateSyncTaskRequest)(nil),    // 17: matrixhub.v1alpha1.CreateSyncTaskRequest
-	(*CreateSyncTaskResponse)(nil),   // 18: matrixhub.v1alpha1.CreateSyncTaskResponse
-	(*SyncTask)(nil),                 // 19: matrixhub.v1alpha1.SyncTask
-	(*ListSyncTasksRequest)(nil),     // 20: matrixhub.v1alpha1.ListSyncTasksRequest
-	(*ListSyncTasksResponse)(nil),    // 21: matrixhub.v1alpha1.ListSyncTasksResponse
-	(*StopSyncTaskRequest)(nil),      // 22: matrixhub.v1alpha1.StopSyncTaskRequest
-	(*StopSyncTaskResponse)(nil),     // 23: matrixhub.v1alpha1.StopSyncTaskResponse
-	(*Registry)(nil),                 // 24: matrixhub.v1alpha1.Registry
-	(*Pagination)(nil),               // 25: matrixhub.v1alpha1.Pagination
+	(SyncJobStatus)(0),               // 4: matrixhub.v1alpha1.SyncJobStatus
+	(*PullBasePolicy)(nil),           // 5: matrixhub.v1alpha1.PullBasePolicy
+	(*PushBasePolicy)(nil),           // 6: matrixhub.v1alpha1.PushBasePolicy
+	(*SyncPolicyItem)(nil),           // 7: matrixhub.v1alpha1.SyncPolicyItem
+	(*CreateSyncPolicyRequest)(nil),  // 8: matrixhub.v1alpha1.CreateSyncPolicyRequest
+	(*TriggerTypeSchedule)(nil),      // 9: matrixhub.v1alpha1.TriggerTypeSchedule
+	(*CreateSyncPolicyResponse)(nil), // 10: matrixhub.v1alpha1.CreateSyncPolicyResponse
+	(*UpdateSyncPolicyRequest)(nil),  // 11: matrixhub.v1alpha1.UpdateSyncPolicyRequest
+	(*UpdateSyncPolicyResponse)(nil), // 12: matrixhub.v1alpha1.UpdateSyncPolicyResponse
+	(*DeleteSyncPolicyRequest)(nil),  // 13: matrixhub.v1alpha1.DeleteSyncPolicyRequest
+	(*DeleteSyncPolicyResponse)(nil), // 14: matrixhub.v1alpha1.DeleteSyncPolicyResponse
+	(*ListSyncPoliciesRequest)(nil),  // 15: matrixhub.v1alpha1.ListSyncPoliciesRequest
+	(*ListSyncPoliciesResponse)(nil), // 16: matrixhub.v1alpha1.ListSyncPoliciesResponse
+	(*GetSyncPolicyRequest)(nil),     // 17: matrixhub.v1alpha1.GetSyncPolicyRequest
+	(*GetSyncPolicyResponse)(nil),    // 18: matrixhub.v1alpha1.GetSyncPolicyResponse
+	(*CreateSyncTaskRequest)(nil),    // 19: matrixhub.v1alpha1.CreateSyncTaskRequest
+	(*CreateSyncTaskResponse)(nil),   // 20: matrixhub.v1alpha1.CreateSyncTaskResponse
+	(*SyncTask)(nil),                 // 21: matrixhub.v1alpha1.SyncTask
+	(*ListSyncTasksRequest)(nil),     // 22: matrixhub.v1alpha1.ListSyncTasksRequest
+	(*ListSyncTasksResponse)(nil),    // 23: matrixhub.v1alpha1.ListSyncTasksResponse
+	(*StopSyncTaskRequest)(nil),      // 24: matrixhub.v1alpha1.StopSyncTaskRequest
+	(*StopSyncTaskResponse)(nil),     // 25: matrixhub.v1alpha1.StopSyncTaskResponse
+	(*SyncJob)(nil),                  // 26: matrixhub.v1alpha1.SyncJob
+	(*ListSyncJobsRequest)(nil),      // 27: matrixhub.v1alpha1.ListSyncJobsRequest
+	(*ListSyncJobsResponse)(nil),     // 28: matrixhub.v1alpha1.ListSyncJobsResponse
+	(*GetSyncJobLogRequest)(nil),     // 29: matrixhub.v1alpha1.GetSyncJobLogRequest
+	(*GetSyncJobLogResponse)(nil),    // 30: matrixhub.v1alpha1.GetSyncJobLogResponse
+	(*Registry)(nil),                 // 31: matrixhub.v1alpha1.Registry
+	(*Pagination)(nil),               // 32: matrixhub.v1alpha1.Pagination
 }
 var file_v1alpha1_sync_policy_proto_depIdxs = []int32{
 	1,  // 0: matrixhub.v1alpha1.PullBasePolicy.resource_types:type_name -> matrixhub.v1alpha1.ResourceType
-	24, // 1: matrixhub.v1alpha1.PullBasePolicy.source_registry:type_name -> matrixhub.v1alpha1.Registry
+	31, // 1: matrixhub.v1alpha1.PullBasePolicy.source_registry:type_name -> matrixhub.v1alpha1.Registry
 	1,  // 2: matrixhub.v1alpha1.PushBasePolicy.resource_types:type_name -> matrixhub.v1alpha1.ResourceType
-	24, // 3: matrixhub.v1alpha1.PushBasePolicy.target_registry:type_name -> matrixhub.v1alpha1.Registry
+	31, // 3: matrixhub.v1alpha1.PushBasePolicy.target_registry:type_name -> matrixhub.v1alpha1.Registry
 	0,  // 4: matrixhub.v1alpha1.SyncPolicyItem.policy_type:type_name -> matrixhub.v1alpha1.SyncPolicyType
 	2,  // 5: matrixhub.v1alpha1.SyncPolicyItem.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
-	4,  // 6: matrixhub.v1alpha1.SyncPolicyItem.pull_base_policy:type_name -> matrixhub.v1alpha1.PullBasePolicy
-	5,  // 7: matrixhub.v1alpha1.SyncPolicyItem.push_base_policy:type_name -> matrixhub.v1alpha1.PushBasePolicy
-	0,  // 8: matrixhub.v1alpha1.CreateSyncPolicyRequest.policy_type:type_name -> matrixhub.v1alpha1.SyncPolicyType
-	2,  // 9: matrixhub.v1alpha1.CreateSyncPolicyRequest.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
-	4,  // 10: matrixhub.v1alpha1.CreateSyncPolicyRequest.pull_base_policy:type_name -> matrixhub.v1alpha1.PullBasePolicy
-	5,  // 11: matrixhub.v1alpha1.CreateSyncPolicyRequest.push_base_policy:type_name -> matrixhub.v1alpha1.PushBasePolicy
-	6,  // 12: matrixhub.v1alpha1.CreateSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
-	2,  // 13: matrixhub.v1alpha1.UpdateSyncPolicyRequest.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
-	4,  // 14: matrixhub.v1alpha1.UpdateSyncPolicyRequest.pull_base_policy:type_name -> matrixhub.v1alpha1.PullBasePolicy
-	5,  // 15: matrixhub.v1alpha1.UpdateSyncPolicyRequest.push_base_policy:type_name -> matrixhub.v1alpha1.PushBasePolicy
-	6,  // 16: matrixhub.v1alpha1.UpdateSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
-	6,  // 17: matrixhub.v1alpha1.DeleteSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
-	6,  // 18: matrixhub.v1alpha1.ListSyncPoliciesResponse.sync_policies:type_name -> matrixhub.v1alpha1.SyncPolicyItem
-	25, // 19: matrixhub.v1alpha1.ListSyncPoliciesResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	6,  // 20: matrixhub.v1alpha1.GetSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
-	2,  // 21: matrixhub.v1alpha1.SyncTask.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
-	3,  // 22: matrixhub.v1alpha1.SyncTask.status:type_name -> matrixhub.v1alpha1.SyncTaskStatus
-	19, // 23: matrixhub.v1alpha1.ListSyncTasksResponse.sync_tasks:type_name -> matrixhub.v1alpha1.SyncTask
-	25, // 24: matrixhub.v1alpha1.ListSyncTasksResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	19, // 25: matrixhub.v1alpha1.StopSyncTaskResponse.sync_task:type_name -> matrixhub.v1alpha1.SyncTask
-	13, // 26: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:input_type -> matrixhub.v1alpha1.ListSyncPoliciesRequest
-	15, // 27: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:input_type -> matrixhub.v1alpha1.GetSyncPolicyRequest
-	7,  // 28: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:input_type -> matrixhub.v1alpha1.CreateSyncPolicyRequest
-	9,  // 29: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:input_type -> matrixhub.v1alpha1.UpdateSyncPolicyRequest
-	11, // 30: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:input_type -> matrixhub.v1alpha1.DeleteSyncPolicyRequest
-	17, // 31: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:input_type -> matrixhub.v1alpha1.CreateSyncTaskRequest
-	20, // 32: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:input_type -> matrixhub.v1alpha1.ListSyncTasksRequest
-	22, // 33: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:input_type -> matrixhub.v1alpha1.StopSyncTaskRequest
-	14, // 34: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:output_type -> matrixhub.v1alpha1.ListSyncPoliciesResponse
-	16, // 35: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:output_type -> matrixhub.v1alpha1.GetSyncPolicyResponse
-	8,  // 36: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:output_type -> matrixhub.v1alpha1.CreateSyncPolicyResponse
-	10, // 37: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:output_type -> matrixhub.v1alpha1.UpdateSyncPolicyResponse
-	12, // 38: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:output_type -> matrixhub.v1alpha1.DeleteSyncPolicyResponse
-	18, // 39: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:output_type -> matrixhub.v1alpha1.CreateSyncTaskResponse
-	21, // 40: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:output_type -> matrixhub.v1alpha1.ListSyncTasksResponse
-	23, // 41: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:output_type -> matrixhub.v1alpha1.StopSyncTaskResponse
-	34, // [34:42] is the sub-list for method output_type
-	26, // [26:34] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	5,  // 6: matrixhub.v1alpha1.SyncPolicyItem.pull_base_policy:type_name -> matrixhub.v1alpha1.PullBasePolicy
+	6,  // 7: matrixhub.v1alpha1.SyncPolicyItem.push_base_policy:type_name -> matrixhub.v1alpha1.PushBasePolicy
+	9,  // 8: matrixhub.v1alpha1.SyncPolicyItem.trigger_type_schedule:type_name -> matrixhub.v1alpha1.TriggerTypeSchedule
+	0,  // 9: matrixhub.v1alpha1.CreateSyncPolicyRequest.policy_type:type_name -> matrixhub.v1alpha1.SyncPolicyType
+	2,  // 10: matrixhub.v1alpha1.CreateSyncPolicyRequest.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
+	5,  // 11: matrixhub.v1alpha1.CreateSyncPolicyRequest.pull_base_policy:type_name -> matrixhub.v1alpha1.PullBasePolicy
+	6,  // 12: matrixhub.v1alpha1.CreateSyncPolicyRequest.push_base_policy:type_name -> matrixhub.v1alpha1.PushBasePolicy
+	9,  // 13: matrixhub.v1alpha1.CreateSyncPolicyRequest.trigger_type_schedule:type_name -> matrixhub.v1alpha1.TriggerTypeSchedule
+	7,  // 14: matrixhub.v1alpha1.CreateSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
+	2,  // 15: matrixhub.v1alpha1.UpdateSyncPolicyRequest.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
+	5,  // 16: matrixhub.v1alpha1.UpdateSyncPolicyRequest.pull_base_policy:type_name -> matrixhub.v1alpha1.PullBasePolicy
+	6,  // 17: matrixhub.v1alpha1.UpdateSyncPolicyRequest.push_base_policy:type_name -> matrixhub.v1alpha1.PushBasePolicy
+	9,  // 18: matrixhub.v1alpha1.UpdateSyncPolicyRequest.trigger_type_schedule:type_name -> matrixhub.v1alpha1.TriggerTypeSchedule
+	7,  // 19: matrixhub.v1alpha1.UpdateSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
+	7,  // 20: matrixhub.v1alpha1.DeleteSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
+	7,  // 21: matrixhub.v1alpha1.ListSyncPoliciesResponse.sync_policies:type_name -> matrixhub.v1alpha1.SyncPolicyItem
+	32, // 22: matrixhub.v1alpha1.ListSyncPoliciesResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	7,  // 23: matrixhub.v1alpha1.GetSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
+	2,  // 24: matrixhub.v1alpha1.SyncTask.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
+	3,  // 25: matrixhub.v1alpha1.SyncTask.status:type_name -> matrixhub.v1alpha1.SyncTaskStatus
+	21, // 26: matrixhub.v1alpha1.ListSyncTasksResponse.sync_tasks:type_name -> matrixhub.v1alpha1.SyncTask
+	32, // 27: matrixhub.v1alpha1.ListSyncTasksResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	21, // 28: matrixhub.v1alpha1.StopSyncTaskResponse.sync_task:type_name -> matrixhub.v1alpha1.SyncTask
+	1,  // 29: matrixhub.v1alpha1.SyncJob.resource_type:type_name -> matrixhub.v1alpha1.ResourceType
+	4,  // 30: matrixhub.v1alpha1.SyncJob.status:type_name -> matrixhub.v1alpha1.SyncJobStatus
+	4,  // 31: matrixhub.v1alpha1.ListSyncJobsRequest.status:type_name -> matrixhub.v1alpha1.SyncJobStatus
+	1,  // 32: matrixhub.v1alpha1.ListSyncJobsRequest.resource_type:type_name -> matrixhub.v1alpha1.ResourceType
+	26, // 33: matrixhub.v1alpha1.ListSyncJobsResponse.sync_jobs:type_name -> matrixhub.v1alpha1.SyncJob
+	32, // 34: matrixhub.v1alpha1.ListSyncJobsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	15, // 35: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:input_type -> matrixhub.v1alpha1.ListSyncPoliciesRequest
+	17, // 36: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:input_type -> matrixhub.v1alpha1.GetSyncPolicyRequest
+	8,  // 37: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:input_type -> matrixhub.v1alpha1.CreateSyncPolicyRequest
+	11, // 38: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:input_type -> matrixhub.v1alpha1.UpdateSyncPolicyRequest
+	13, // 39: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:input_type -> matrixhub.v1alpha1.DeleteSyncPolicyRequest
+	19, // 40: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:input_type -> matrixhub.v1alpha1.CreateSyncTaskRequest
+	22, // 41: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:input_type -> matrixhub.v1alpha1.ListSyncTasksRequest
+	24, // 42: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:input_type -> matrixhub.v1alpha1.StopSyncTaskRequest
+	27, // 43: matrixhub.v1alpha1.SyncPolicy.ListSyncJobs:input_type -> matrixhub.v1alpha1.ListSyncJobsRequest
+	29, // 44: matrixhub.v1alpha1.SyncPolicy.GetSyncJobLog:input_type -> matrixhub.v1alpha1.GetSyncJobLogRequest
+	16, // 45: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:output_type -> matrixhub.v1alpha1.ListSyncPoliciesResponse
+	18, // 46: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:output_type -> matrixhub.v1alpha1.GetSyncPolicyResponse
+	10, // 47: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:output_type -> matrixhub.v1alpha1.CreateSyncPolicyResponse
+	12, // 48: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:output_type -> matrixhub.v1alpha1.UpdateSyncPolicyResponse
+	14, // 49: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:output_type -> matrixhub.v1alpha1.DeleteSyncPolicyResponse
+	20, // 50: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:output_type -> matrixhub.v1alpha1.CreateSyncTaskResponse
+	23, // 51: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:output_type -> matrixhub.v1alpha1.ListSyncTasksResponse
+	25, // 52: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:output_type -> matrixhub.v1alpha1.StopSyncTaskResponse
+	28, // 53: matrixhub.v1alpha1.SyncPolicy.ListSyncJobs:output_type -> matrixhub.v1alpha1.ListSyncJobsResponse
+	30, // 54: matrixhub.v1alpha1.SyncPolicy.GetSyncJobLog:output_type -> matrixhub.v1alpha1.GetSyncJobLogResponse
+	45, // [45:55] is the sub-list for method output_type
+	35, // [35:45] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_sync_policy_proto_init() }
@@ -1847,7 +2392,7 @@ func file_v1alpha1_sync_policy_proto_init() {
 		(*CreateSyncPolicyRequest_PullBasePolicy)(nil),
 		(*CreateSyncPolicyRequest_PushBasePolicy)(nil),
 	}
-	file_v1alpha1_sync_policy_proto_msgTypes[5].OneofWrappers = []any{
+	file_v1alpha1_sync_policy_proto_msgTypes[6].OneofWrappers = []any{
 		(*UpdateSyncPolicyRequest_PullBasePolicy)(nil),
 		(*UpdateSyncPolicyRequest_PushBasePolicy)(nil),
 	}
@@ -1856,8 +2401,8 @@ func file_v1alpha1_sync_policy_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_sync_policy_proto_rawDesc), len(file_v1alpha1_sync_policy_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   20,
+			NumEnums:      5,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
