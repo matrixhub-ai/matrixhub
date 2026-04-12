@@ -347,6 +347,35 @@ func (m *SyncPolicyItem) validate(all bool) error {
 
 	// no validation rules for IsDisabled
 
+	if all {
+		switch v := interface{}(m.GetTriggerTypeSchedule()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SyncPolicyItemValidationError{
+					field:  "TriggerTypeSchedule",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SyncPolicyItemValidationError{
+					field:  "TriggerTypeSchedule",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTriggerTypeSchedule()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SyncPolicyItemValidationError{
+				field:  "TriggerTypeSchedule",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.Policy.(type) {
 	case *SyncPolicyItem_PullBasePolicy:
 		if v == nil {
@@ -546,6 +575,35 @@ func (m *CreateSyncPolicyRequest) validate(all bool) error {
 
 	// no validation rules for IsOverwrite
 
+	if all {
+		switch v := interface{}(m.GetTriggerTypeSchedule()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateSyncPolicyRequestValidationError{
+					field:  "TriggerTypeSchedule",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateSyncPolicyRequestValidationError{
+					field:  "TriggerTypeSchedule",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTriggerTypeSchedule()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateSyncPolicyRequestValidationError{
+				field:  "TriggerTypeSchedule",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.Policy.(type) {
 	case *CreateSyncPolicyRequest_PullBasePolicy:
 		if v == nil {
@@ -713,6 +771,110 @@ var _ interface {
 	ErrorName() string
 } = CreateSyncPolicyRequestValidationError{}
 
+// Validate checks the field values on TriggerTypeSchedule with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TriggerTypeSchedule) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TriggerTypeSchedule with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TriggerTypeScheduleMultiError, or nil if none found.
+func (m *TriggerTypeSchedule) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TriggerTypeSchedule) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Cron
+
+	if len(errors) > 0 {
+		return TriggerTypeScheduleMultiError(errors)
+	}
+
+	return nil
+}
+
+// TriggerTypeScheduleMultiError is an error wrapping multiple validation
+// errors returned by TriggerTypeSchedule.ValidateAll() if the designated
+// constraints aren't met.
+type TriggerTypeScheduleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TriggerTypeScheduleMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TriggerTypeScheduleMultiError) AllErrors() []error { return m }
+
+// TriggerTypeScheduleValidationError is the validation error returned by
+// TriggerTypeSchedule.Validate if the designated constraints aren't met.
+type TriggerTypeScheduleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TriggerTypeScheduleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TriggerTypeScheduleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TriggerTypeScheduleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TriggerTypeScheduleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TriggerTypeScheduleValidationError) ErrorName() string {
+	return "TriggerTypeScheduleValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TriggerTypeScheduleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTriggerTypeSchedule.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TriggerTypeScheduleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TriggerTypeScheduleValidationError{}
+
 // Validate checks the field values on CreateSyncPolicyResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -879,6 +1041,35 @@ func (m *UpdateSyncPolicyRequest) validate(all bool) error {
 	// no validation rules for IsOverwrite
 
 	// no validation rules for IsDisabled
+
+	if all {
+		switch v := interface{}(m.GetTriggerTypeSchedule()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateSyncPolicyRequestValidationError{
+					field:  "TriggerTypeSchedule",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateSyncPolicyRequestValidationError{
+					field:  "TriggerTypeSchedule",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTriggerTypeSchedule()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateSyncPolicyRequestValidationError{
+				field:  "TriggerTypeSchedule",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	switch v := m.Policy.(type) {
 	case *UpdateSyncPolicyRequest_PullBasePolicy:
@@ -2167,6 +2358,10 @@ func (m *SyncTask) validate(all bool) error {
 
 	// no validation rules for SuccessfulItems
 
+	// no validation rules for StoppedItems
+
+	// no validation rules for FailedItems
+
 	if len(errors) > 0 {
 		return SyncTaskMultiError(errors)
 	}
@@ -2755,3 +2950,608 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StopSyncTaskResponseValidationError{}
+
+// Validate checks the field values on SyncJob with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SyncJob) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SyncJob with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in SyncJobMultiError, or nil if none found.
+func (m *SyncJob) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SyncJob) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for SyncTaskId
+
+	// no validation rules for ResourceType
+
+	// no validation rules for ResourceName
+
+	// no validation rules for TargetResourceName
+
+	// no validation rules for Action
+
+	// no validation rules for Status
+
+	// no validation rules for CompletedTimestamp
+
+	if len(errors) > 0 {
+		return SyncJobMultiError(errors)
+	}
+
+	return nil
+}
+
+// SyncJobMultiError is an error wrapping multiple validation errors returned
+// by SyncJob.ValidateAll() if the designated constraints aren't met.
+type SyncJobMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SyncJobMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SyncJobMultiError) AllErrors() []error { return m }
+
+// SyncJobValidationError is the validation error returned by SyncJob.Validate
+// if the designated constraints aren't met.
+type SyncJobValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SyncJobValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SyncJobValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SyncJobValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SyncJobValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SyncJobValidationError) ErrorName() string { return "SyncJobValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SyncJobValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSyncJob.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SyncJobValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SyncJobValidationError{}
+
+// Validate checks the field values on ListSyncJobsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSyncJobsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSyncJobsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSyncJobsRequestMultiError, or nil if none found.
+func (m *ListSyncJobsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSyncJobsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SyncPolicyId
+
+	// no validation rules for SyncTaskId
+
+	// no validation rules for Page
+
+	// no validation rules for PageSize
+
+	// no validation rules for Status
+
+	// no validation rules for ResourceType
+
+	if len(errors) > 0 {
+		return ListSyncJobsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSyncJobsRequestMultiError is an error wrapping multiple validation
+// errors returned by ListSyncJobsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListSyncJobsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSyncJobsRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSyncJobsRequestMultiError) AllErrors() []error { return m }
+
+// ListSyncJobsRequestValidationError is the validation error returned by
+// ListSyncJobsRequest.Validate if the designated constraints aren't met.
+type ListSyncJobsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSyncJobsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSyncJobsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSyncJobsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSyncJobsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSyncJobsRequestValidationError) ErrorName() string {
+	return "ListSyncJobsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSyncJobsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSyncJobsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSyncJobsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSyncJobsRequestValidationError{}
+
+// Validate checks the field values on ListSyncJobsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSyncJobsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSyncJobsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSyncJobsResponseMultiError, or nil if none found.
+func (m *ListSyncJobsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSyncJobsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetSyncJobs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListSyncJobsResponseValidationError{
+						field:  fmt.Sprintf("SyncJobs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListSyncJobsResponseValidationError{
+						field:  fmt.Sprintf("SyncJobs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListSyncJobsResponseValidationError{
+					field:  fmt.Sprintf("SyncJobs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagination()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListSyncJobsResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListSyncJobsResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagination()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListSyncJobsResponseValidationError{
+				field:  "Pagination",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ListSyncJobsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSyncJobsResponseMultiError is an error wrapping multiple validation
+// errors returned by ListSyncJobsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListSyncJobsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSyncJobsResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSyncJobsResponseMultiError) AllErrors() []error { return m }
+
+// ListSyncJobsResponseValidationError is the validation error returned by
+// ListSyncJobsResponse.Validate if the designated constraints aren't met.
+type ListSyncJobsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSyncJobsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSyncJobsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSyncJobsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSyncJobsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSyncJobsResponseValidationError) ErrorName() string {
+	return "ListSyncJobsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSyncJobsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSyncJobsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSyncJobsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSyncJobsResponseValidationError{}
+
+// Validate checks the field values on GetSyncJobLogRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetSyncJobLogRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetSyncJobLogRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetSyncJobLogRequestMultiError, or nil if none found.
+func (m *GetSyncJobLogRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetSyncJobLogRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SyncPolicyId
+
+	// no validation rules for SyncTaskId
+
+	// no validation rules for SyncJobId
+
+	if len(errors) > 0 {
+		return GetSyncJobLogRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetSyncJobLogRequestMultiError is an error wrapping multiple validation
+// errors returned by GetSyncJobLogRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetSyncJobLogRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetSyncJobLogRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetSyncJobLogRequestMultiError) AllErrors() []error { return m }
+
+// GetSyncJobLogRequestValidationError is the validation error returned by
+// GetSyncJobLogRequest.Validate if the designated constraints aren't met.
+type GetSyncJobLogRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetSyncJobLogRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetSyncJobLogRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetSyncJobLogRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetSyncJobLogRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetSyncJobLogRequestValidationError) ErrorName() string {
+	return "GetSyncJobLogRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetSyncJobLogRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetSyncJobLogRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetSyncJobLogRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetSyncJobLogRequestValidationError{}
+
+// Validate checks the field values on GetSyncJobLogResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetSyncJobLogResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetSyncJobLogResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetSyncJobLogResponseMultiError, or nil if none found.
+func (m *GetSyncJobLogResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetSyncJobLogResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Log
+
+	if len(errors) > 0 {
+		return GetSyncJobLogResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetSyncJobLogResponseMultiError is an error wrapping multiple validation
+// errors returned by GetSyncJobLogResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetSyncJobLogResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetSyncJobLogResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetSyncJobLogResponseMultiError) AllErrors() []error { return m }
+
+// GetSyncJobLogResponseValidationError is the validation error returned by
+// GetSyncJobLogResponse.Validate if the designated constraints aren't met.
+type GetSyncJobLogResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetSyncJobLogResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetSyncJobLogResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetSyncJobLogResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetSyncJobLogResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetSyncJobLogResponseValidationError) ErrorName() string {
+	return "GetSyncJobLogResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetSyncJobLogResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetSyncJobLogResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetSyncJobLogResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetSyncJobLogResponseValidationError{}

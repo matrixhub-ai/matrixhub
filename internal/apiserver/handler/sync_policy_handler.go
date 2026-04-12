@@ -33,6 +33,14 @@ type SyncPolicyHandler struct {
 	registryRepo      registry.IRegistryRepo
 }
 
+func (h *SyncPolicyHandler) ListSyncJobs(ctx context.Context, request *v1alpha1.ListSyncJobsRequest) (*v1alpha1.ListSyncJobsResponse, error) {
+	panic("implement me")
+}
+
+func (h *SyncPolicyHandler) GetSyncJobLog(ctx context.Context, request *v1alpha1.GetSyncJobLogRequest) (*v1alpha1.GetSyncJobLogResponse, error) {
+	panic("implement me")
+}
+
 func NewSyncPolicyHandler(syncPolicyService syncpolicy.ISyncPolicyService, registryRepo registry.IRegistryRepo) IHandler {
 	return &SyncPolicyHandler{
 		syncPolicyService: syncPolicyService,

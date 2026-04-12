@@ -43,6 +43,14 @@ export enum SyncTaskStatus {
   SYNC_TASK_STATUS_STOPPED = "SYNC_TASK_STATUS_STOPPED",
 }
 
+export enum SyncJobStatus {
+  SYNC_JOB_STATUS_UNSPECIFIED = "SYNC_JOB_STATUS_UNSPECIFIED",
+  SYNC_JOB_STATUS_RUNNING = "SYNC_JOB_STATUS_RUNNING",
+  SYNC_JOB_STATUS_SUCCEEDED = "SYNC_JOB_STATUS_SUCCEEDED",
+  SYNC_JOB_STATUS_FAILED = "SYNC_JOB_STATUS_FAILED",
+  SYNC_JOB_STATUS_STOPPED = "SYNC_JOB_STATUS_STOPPED",
+}
+
 export type PullBasePolicy = {
   sourceRegistryId?: number
   resourceName?: string
@@ -71,6 +79,7 @@ type BaseSyncPolicyItem = {
   bandwidth?: string
   isOverwrite?: boolean
   isDisabled?: boolean
+  triggerTypeSchedule?: TriggerTypeSchedule
 }
 
 export type SyncPolicyItem = BaseSyncPolicyItem
@@ -84,10 +93,15 @@ type BaseCreateSyncPolicyRequest = {
   triggerType?: TriggerType
   bandwidth?: string
   isOverwrite?: boolean
+  triggerTypeSchedule?: TriggerTypeSchedule
 }
 
 export type CreateSyncPolicyRequest = BaseCreateSyncPolicyRequest
   & OneOf<{ pullBasePolicy: PullBasePolicy; pushBasePolicy: PushBasePolicy }>
+
+export type TriggerTypeSchedule = {
+  cron?: string
+}
 
 export type CreateSyncPolicyResponse = {
   syncPolicy?: SyncPolicyItem
@@ -102,6 +116,7 @@ type BaseUpdateSyncPolicyRequest = {
   bandwidth?: string
   isOverwrite?: boolean
   isDisabled?: boolean
+  triggerTypeSchedule?: TriggerTypeSchedule
 }
 
 export type UpdateSyncPolicyRequest = BaseUpdateSyncPolicyRequest
@@ -155,6 +170,8 @@ export type SyncTask = {
   completedTimestamp?: string
   totalItems?: string
   successfulItems?: string
+  stoppedItems?: string
+  failedItems?: string
 }
 
 export type ListSyncTasksRequest = {
@@ -176,6 +193,41 @@ export type StopSyncTaskRequest = {
 
 export type StopSyncTaskResponse = {
   syncTask?: SyncTask
+}
+
+export type SyncJob = {
+  id?: number
+  syncTaskId?: number
+  resourceType?: ResourceType
+  resourceName?: string
+  targetResourceName?: string
+  action?: string
+  status?: SyncJobStatus
+  completedTimestamp?: string
+}
+
+export type ListSyncJobsRequest = {
+  syncPolicyId?: number
+  syncTaskId?: number
+  page?: number
+  pageSize?: number
+  status?: SyncJobStatus
+  resourceType?: ResourceType
+}
+
+export type ListSyncJobsResponse = {
+  syncJobs?: SyncJob[]
+  pagination?: MatrixhubV1alpha1Utils.Pagination
+}
+
+export type GetSyncJobLogRequest = {
+  syncPolicyId?: number
+  syncTaskId?: number
+  syncJobId?: number
+}
+
+export type GetSyncJobLogResponse = {
+  log?: string
 }
 
 export class SyncPolicy {
@@ -202,5 +254,11 @@ export class SyncPolicy {
   }
   static StopSyncTask(req: StopSyncTaskRequest, initReq?: fm.InitReq): Promise<StopSyncTaskResponse> {
     return fm.fetchReq<StopSyncTaskRequest, StopSyncTaskResponse>(`/api/v1alpha1/sync-policies/${req["syncPolicyId"]}/sync-tasks/${req["syncTaskId"]}/stop`, {...initReq, method: "POST"})
+  }
+  static ListSyncJobs(req: ListSyncJobsRequest, initReq?: fm.InitReq): Promise<ListSyncJobsResponse> {
+    return fm.fetchReq<ListSyncJobsRequest, ListSyncJobsResponse>(`/api/v1alpha1/sync-policies/${req["syncPolicyId"]}/sync-tasks/${req["syncTaskId"]}/sync-jobs?${fm.renderURLSearchParams(req, ["syncPolicyId", "syncTaskId"])}`, {...initReq, method: "GET"})
+  }
+  static GetSyncJobLog(req: GetSyncJobLogRequest, initReq?: fm.InitReq): Promise<GetSyncJobLogResponse> {
+    return fm.fetchReq<GetSyncJobLogRequest, GetSyncJobLogResponse>(`/api/v1alpha1/sync-policies/${req["syncPolicyId"]}/sync-tasks/${req["syncTaskId"]}/sync-jobs/${req["syncJobId"]}/log?${fm.renderURLSearchParams(req, ["syncPolicyId", "syncTaskId", "syncJobId"])}`, {...initReq, method: "GET"})
   }
 }

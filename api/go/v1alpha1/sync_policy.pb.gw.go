@@ -367,6 +367,146 @@ func local_request_SyncPolicy_StopSyncTask_0(ctx context.Context, marshaler runt
 	return msg, metadata, err
 }
 
+var filter_SyncPolicy_ListSyncJobs_0 = &utilities.DoubleArray{Encoding: map[string]int{"sync_policy_id": 0, "sync_task_id": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+
+func request_SyncPolicy_ListSyncJobs_0(ctx context.Context, marshaler runtime.Marshaler, client SyncPolicyClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListSyncJobsRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["sync_policy_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_policy_id")
+	}
+	protoReq.SyncPolicyId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_policy_id", err)
+	}
+	val, ok = pathParams["sync_task_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_task_id")
+	}
+	protoReq.SyncTaskId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_task_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SyncPolicy_ListSyncJobs_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.ListSyncJobs(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_SyncPolicy_ListSyncJobs_0(ctx context.Context, marshaler runtime.Marshaler, server SyncPolicyServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListSyncJobsRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["sync_policy_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_policy_id")
+	}
+	protoReq.SyncPolicyId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_policy_id", err)
+	}
+	val, ok = pathParams["sync_task_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_task_id")
+	}
+	protoReq.SyncTaskId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_task_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SyncPolicy_ListSyncJobs_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.ListSyncJobs(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_SyncPolicy_GetSyncJobLog_0(ctx context.Context, marshaler runtime.Marshaler, client SyncPolicyClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetSyncJobLogRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["sync_policy_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_policy_id")
+	}
+	protoReq.SyncPolicyId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_policy_id", err)
+	}
+	val, ok = pathParams["sync_task_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_task_id")
+	}
+	protoReq.SyncTaskId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_task_id", err)
+	}
+	val, ok = pathParams["sync_job_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_job_id")
+	}
+	protoReq.SyncJobId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_job_id", err)
+	}
+	msg, err := client.GetSyncJobLog(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_SyncPolicy_GetSyncJobLog_0(ctx context.Context, marshaler runtime.Marshaler, server SyncPolicyServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetSyncJobLogRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["sync_policy_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_policy_id")
+	}
+	protoReq.SyncPolicyId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_policy_id", err)
+	}
+	val, ok = pathParams["sync_task_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_task_id")
+	}
+	protoReq.SyncTaskId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_task_id", err)
+	}
+	val, ok = pathParams["sync_job_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sync_job_id")
+	}
+	protoReq.SyncJobId, err = runtime.Int32(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sync_job_id", err)
+	}
+	msg, err := server.GetSyncJobLog(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterSyncPolicyHandlerServer registers the http handlers for service SyncPolicy to "mux".
 // UnaryRPC     :call SyncPolicyServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -532,6 +672,46 @@ func RegisterSyncPolicyHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 		forward_SyncPolicy_StopSyncTask_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_SyncPolicy_ListSyncJobs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/matrixhub.v1alpha1.SyncPolicy/ListSyncJobs", runtime.WithHTTPPathPattern("/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_SyncPolicy_ListSyncJobs_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_SyncPolicy_ListSyncJobs_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_SyncPolicy_GetSyncJobLog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/matrixhub.v1alpha1.SyncPolicy/GetSyncJobLog", runtime.WithHTTPPathPattern("/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs/{sync_job_id}/log"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_SyncPolicy_GetSyncJobLog_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_SyncPolicy_GetSyncJobLog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -709,6 +889,40 @@ func RegisterSyncPolicyHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		}
 		forward_SyncPolicy_StopSyncTask_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_SyncPolicy_ListSyncJobs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/matrixhub.v1alpha1.SyncPolicy/ListSyncJobs", runtime.WithHTTPPathPattern("/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_SyncPolicy_ListSyncJobs_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_SyncPolicy_ListSyncJobs_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_SyncPolicy_GetSyncJobLog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/matrixhub.v1alpha1.SyncPolicy/GetSyncJobLog", runtime.WithHTTPPathPattern("/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs/{sync_job_id}/log"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_SyncPolicy_GetSyncJobLog_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_SyncPolicy_GetSyncJobLog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -721,6 +935,8 @@ var (
 	pattern_SyncPolicy_CreateSyncTask_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1alpha1", "sync-policies", "sync_policy_id", "sync-tasks"}, ""))
 	pattern_SyncPolicy_ListSyncTasks_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1alpha1", "sync-policies", "sync_policy_id", "sync-tasks"}, ""))
 	pattern_SyncPolicy_StopSyncTask_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"api", "v1alpha1", "sync-policies", "sync_policy_id", "sync-tasks", "sync_task_id", "stop"}, ""))
+	pattern_SyncPolicy_ListSyncJobs_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"api", "v1alpha1", "sync-policies", "sync_policy_id", "sync-tasks", "sync_task_id", "sync-jobs"}, ""))
+	pattern_SyncPolicy_GetSyncJobLog_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"api", "v1alpha1", "sync-policies", "sync_policy_id", "sync-tasks", "sync_task_id", "sync-jobs", "sync_job_id", "log"}, ""))
 )
 
 var (
@@ -732,4 +948,6 @@ var (
 	forward_SyncPolicy_CreateSyncTask_0   = runtime.ForwardResponseMessage
 	forward_SyncPolicy_ListSyncTasks_0    = runtime.ForwardResponseMessage
 	forward_SyncPolicy_StopSyncTask_0     = runtime.ForwardResponseMessage
+	forward_SyncPolicy_ListSyncJobs_0     = runtime.ForwardResponseMessage
+	forward_SyncPolicy_GetSyncJobLog_0    = runtime.ForwardResponseMessage
 )

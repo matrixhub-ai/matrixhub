@@ -59,6 +59,18 @@ service SyncPolicy {
       post: "/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/stop"
     };
   }
+  // ListSyncJobs lists all sync jobs.
+  rpc ListSyncJobs(ListSyncJobsRequest) returns (ListSyncJobsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs"
+    };
+  }
+  // GetSyncJobLog gets the log of a sync job.
+  rpc GetSyncJobLog(GetSyncJobLogRequest) returns (GetSyncJobLogResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs/{sync_job_id}/log"
+    };
+  }
 }
 
 enum SyncPolicyType {
@@ -113,6 +125,7 @@ message SyncPolicyItem {
     string bandwidth = 8;
     bool is_overwrite = 9;
     bool is_disabled = 10;
+    TriggerTypeSchedule trigger_type_schedule = 11;
 }
 
 message CreateSyncPolicyRequest {
@@ -129,6 +142,11 @@ message CreateSyncPolicyRequest {
   // The bandwidth to use for the sync policy.
   string bandwidth = 7;
   bool is_overwrite = 8;
+  TriggerTypeSchedule trigger_type_schedule = 9;
+}
+
+message TriggerTypeSchedule {
+  string cron = 1;
 }
 
 message CreateSyncPolicyResponse {
@@ -151,6 +169,7 @@ message UpdateSyncPolicyRequest {
   string bandwidth = 7;
   bool is_overwrite = 8;
   bool is_disabled = 9;
+  TriggerTypeSchedule trigger_type_schedule = 10;
 }
 
 message UpdateSyncPolicyResponse {
@@ -210,6 +229,8 @@ message SyncTask {
   int64 completed_timestamp = 6;
   int64 total_items = 7;
   int64 successful_items = 8;
+  int64 stopped_items = 9;
+  int64 failed_items = 10;
 }
 
 
@@ -233,4 +254,48 @@ message StopSyncTaskRequest {
 
 message StopSyncTaskResponse {
   SyncTask sync_task = 1;
+}
+
+
+message SyncJob {
+  int32 id = 1;
+  int32 sync_task_id = 2;
+  ResourceType resource_type = 3;
+  string resource_name = 4;
+  string target_resource_name = 5;
+  string action = 6;
+  SyncJobStatus status = 7;
+  int64 completed_timestamp = 8;
+}
+
+enum SyncJobStatus {
+  SYNC_JOB_STATUS_UNSPECIFIED = 0;
+  SYNC_JOB_STATUS_RUNNING = 1;
+  SYNC_JOB_STATUS_SUCCEEDED = 2;
+  SYNC_JOB_STATUS_FAILED = 3;
+  SYNC_JOB_STATUS_STOPPED = 4;
+}
+
+message ListSyncJobsRequest {
+  int32 sync_policy_id = 1;
+  int32 sync_task_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  SyncJobStatus status = 5;
+  ResourceType resource_type = 6;
+}
+
+message ListSyncJobsResponse {
+  repeated SyncJob sync_jobs = 1;
+  Pagination pagination = 2;
+}
+
+message GetSyncJobLogRequest {
+  int32 sync_policy_id = 1;
+  int32 sync_task_id = 2;
+  int32 sync_job_id = 3;
+}
+
+message GetSyncJobLogResponse {
+  string log = 1;
 }
