@@ -46,7 +46,7 @@ spec:
             - mountPath: /etc/matrixhub/config.yaml
               name: {{ include "matrixhub.fullname" . }}-config
               subPath: config.yaml
-            {{- if .Values.apiserver.persistence.enabled }}
+            {{- if eq .Values.apiserver.storage.mode "pvc" }}
             - mountPath: /data/matrixhub
               name: {{ include "matrixhub.fullname" . }}-apiserver-data
             {{- end }}
@@ -79,10 +79,10 @@ spec:
         - name: {{ include "matrixhub.fullname" . }}-config
           configMap:
             name: {{ include "matrixhub.fullname" . }}-config
-        {{- if .Values.apiserver.persistence.enabled }}
+        {{- if eq .Values.apiserver.storage.mode "pvc" }}
         - name: {{ include "matrixhub.fullname" . }}-apiserver-data
           persistentVolumeClaim:
-            claimName: {{ .Values.apiserver.persistence.existingClaim | default (printf "%s-apiserver-data" (include "matrixhub.fullname" .)) }}
+            claimName: {{ .Values.apiserver.storage.pvc.existingClaim | default (printf "%s-apiserver-data" (include "matrixhub.fullname" .)) }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

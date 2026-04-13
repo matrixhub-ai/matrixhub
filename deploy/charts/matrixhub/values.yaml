@@ -73,16 +73,32 @@ apiserver:
   # -- api server port
   port: 9527
 
-  # -- persistence configuration for git storage (models, datasets, lfs)
-  persistence:
-    # -- enable persistence
-    enabled: true
-    # -- storage class name
-    storageClass: ""
-    # -- persistence size
-    size: 50Gi
-    # -- existing claim name (if set, no new PVC will be created)
-    existingClaim: ""
+  # -- storage configuration for git storage (models, datasets, lfs)
+  storage:
+    # -- storage mode: none (no persistence), pvc (PersistentVolumeClaim), s3 (object storage)
+    mode: "pvc"
+    # -- PVC storage configuration (used when mode is "pvc")
+    pvc:
+      # -- storage class name
+      storageClass: ""
+      # -- persistence size
+      size: 50Gi
+      # -- existing claim name (if set, no new PVC will be created)
+      existingClaim: ""
+    # -- S3 storage configuration (used when mode is "s3")
+    s3:
+      # -- S3 endpoint URL
+      endpoint: ""
+      # -- S3 bucket name
+      bucket: ""
+      # -- S3 region
+      region: ""
+      # -- S3 access key
+      accessKey: ""
+      # -- S3 secret key
+      secretKey: ""
+      # -- use SSL for S3 connection
+      useSSL: true
 
 # -- mysql configuration (only when global.storage.apiserver.builtIn is true)
 mysql:

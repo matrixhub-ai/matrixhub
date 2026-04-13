@@ -1,4 +1,4 @@
-{{- if and .Values.apiserver.persistence.enabled (not .Values.apiserver.persistence.existingClaim) }}
+{{- if and (eq .Values.apiserver.storage.mode "pvc") (not .Values.apiserver.storage.pvc.existingClaim) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -11,8 +11,8 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.apiserver.persistence.size }}
-  {{- if .Values.apiserver.persistence.storageClass }}
-  storageClassName: {{ .Values.apiserver.persistence.storageClass }}
+      storage: {{ .Values.apiserver.storage.pvc.size }}
+  {{- if .Values.apiserver.storage.pvc.storageClass }}
+  storageClassName: {{ .Values.apiserver.storage.pvc.storageClass }}
   {{- end }}
 {{- end }}
