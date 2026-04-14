@@ -137,10 +137,6 @@ export function ProjectsTable({
       header: t('projects.table.modelCount'),
     },
     {
-      accessorKey: 'datasetCount',
-      header: t('projects.table.datasetCount'),
-    },
-    {
       id: 'updatedAt',
       header: t('projects.table.updatedAt'),
       accessorFn: row => formatDateTime(row.updatedAt),

@@ -13,7 +13,6 @@ import { Login } from '@matrixhub/api-ts/v1alpha1/login.pb'
 import {
   IconChevronDown as ArrowDownIcon,
   IconCube as ModelIcon,
-  IconDatabase as DatasetIcon,
   IconLogout as LogOutIcon,
   IconSettings as SettingsIcon,
   IconUser as UserIcon,
@@ -37,13 +36,10 @@ import { CurrentUserContext } from '@/context/current-user-context.tsx'
 import { ProjectRolesContext } from '@/context/project-role-context'
 import { currentUserQueryOptions, projectRolesQueryOptions } from '@/features/auth/auth.query'
 import { queryClient } from '@/queryClient'
-import { Route as DatasetsRoute } from '@/routes/(auth)/(app)/datasets'
-import { Route as CreateDatasetRoute } from '@/routes/(auth)/(app)/datasets/new'
 import { Route as ModelsRoute } from '@/routes/(auth)/(app)/models'
 import { Route as CreateModelRoute } from '@/routes/(auth)/(app)/models/new'
 import { Route as ProfileRoute } from '@/routes/(auth)/(app)/profile'
 import { Route as ProjectsRoute } from '@/routes/(auth)/(app)/projects'
-import { Route as ProjectDatasetRoute } from '@/routes/(auth)/(app)/projects_.$projectId/datasets.$datasetId/route'
 import { Route as ProjectModelRoute } from '@/routes/(auth)/(app)/projects_.$projectId/models.$modelId/route'
 import { Route as AdminRoute } from '@/routes/(auth)/admin'
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
@@ -106,16 +102,10 @@ function AppNavbar() {
       extraMatch: ProjectModelRoute.to,
     },
     {
-      label: t('nav.datasets'),
-      icon: DatasetIcon,
-      to: DatasetsRoute.to,
-      extraMatch: ProjectDatasetRoute.to,
-    },
-    {
       label: t('nav.projectManagement'),
       icon: ProjectIcon,
       to: ProjectsRoute.to,
-      repelMatch: [ProjectModelRoute.to, ProjectDatasetRoute.to],
+      repelMatch: [ProjectModelRoute.to],
     },
   ])
   const matchRoute = useMatchRoute()
@@ -192,11 +182,6 @@ function AccountMenu() {
       label: t('nav.createModel'),
       icon: ModelIcon,
       to: CreateModelRoute.to,
-    },
-    {
-      label: t('nav.createDataset'),
-      icon: DatasetIcon,
-      to: CreateDatasetRoute.to,
     },
   ])
 
