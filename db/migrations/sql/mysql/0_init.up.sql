@@ -148,7 +148,22 @@ CREATE TABLE `access_tokens` (
      `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
      `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
      PRIMARY KEY (`id`),
-     UNIQUE KEY `uniq_token_hash` (`token_hash`)
+     UNIQUE KEY `uniq_token_hash` (`token_hash`),
+     KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `ssh_keys` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `user_id` bigint NOT NULL,
+    `name` varchar(128) NOT NULL,
+    `public_key` text NOT NULL,
+    `fingerprint` varchar(128) NOT NULL,
+    `expire_at` timestamp NULL DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_ssh_keys_fingerprint` (`fingerprint`),
+    KEY `ix_ssh_keys_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `sync_policies`

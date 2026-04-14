@@ -17,6 +17,7 @@ package middleware
 import (
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -25,64 +26,41 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
-type action string
-
-const (
-	resourceDataset = "datasets"
-	resourceModel   = "models"
-	resourceSpace   = "spaces"
-
-	actionRead  action = "read"
-	actionWrite action = "write"
-)
-
-var (
-	hfSkipAuthzMethods = map[string]bool{
-		"/api/whoami-v2":     true,
-		"/api/repos/create":  true,
-		"/api/repos/delete":  true,
-		"/api/repos/move":    true,
-		"/api/validate-yaml": true,
-	}
-	readMethods = []string{http.MethodGet, http.MethodHead, http.MethodOptions}
-
-	resourcePermissions = map[string]map[action]role.Permission{
-		resourceDataset: {
-			actionRead:  role.DatasetPull,
-			actionWrite: role.DatasetPush,
-		},
-		resourceModel: {
-			actionRead:  role.ModelPull,
-			actionWrite: role.ModelPush,
-		},
-	}
-)
-
-func HFAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
+func GitAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if hfSkipAuthzMethods[r.URL.Path] {
+			// todo: objects API add auth
+			if strings.HasPrefix(r.URL.Path, "/objects") {
 				next.ServeHTTP(w, r)
 				return
 			}
-			if !checkHFPerm(authzSvc, r) {
+			if !checkGitPerm(authzSvc, r) {
 				http.Error(w, "permission denied", http.StatusForbidden)
 				return
 			}
-
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func checkHFPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
+func checkGitPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
 	vars := mux.Vars(r)
-	projectName, resource := vars["namespace"], vars["repoType"]
+	repo := vars["repo"]
 	method := r.Method
+	if repo == "" {
+		return false
+	}
+	repo = strings.TrimSuffix(repo, ".git")
+
 	act := actionRead
 	if !slices.Contains(readMethods, method) {
 		act = actionWrite
 	}
+	project, resource := parseProject(repo)
+	if project == "" {
+		return false
+	}
+
 	var permission role.Permission
 	if resource == "" {
 		permission = role.ModelPull
@@ -92,11 +70,22 @@ func checkHFPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
 	if permission == "" {
 		return false
 	}
-	passed, err := authzSvc.VerifyProjectPermissionByName(r.Context(), projectName, permission)
+
+	passed, err := authzSvc.VerifyProjectPermissionByName(r.Context(), project, permission)
 	if err != nil {
 		log.Errorf("Failed to verify project permission: %s", err)
-		return false
+	}
+	return passed
+}
+
+func parseProject(repo string) (string, string) {
+	s := strings.Split(repo, "/")
+	if len(s) < 2 {
+		return "", ""
+	}
+	if s[0] == resourceDataset {
+		return s[1], resourceDataset
 	}
 
-	return passed
+	return s[0], resourceModel
 }

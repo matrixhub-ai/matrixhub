@@ -47,6 +47,7 @@ type Repos struct {
 	Dataset     dataset.IDatasetRepo
 	Session     user.ISessionRepo
 	AccessToken user.IAccessTokenRepo
+	SSHKey      user.ISSHKeyRepo
 	SyncPolicy  syncpolicy.ISyncPolicyRepo
 	SyncTask    syncpolicy.ISyncTaskRepo
 	SyncJob     syncjob.ISyncJobRepo
@@ -71,6 +72,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.User = NewUserRepo(repos.DB)
 	repos.Session = NewSessionRepository(repos.DB)
 	repos.AccessToken = NewAccessTokenRepo(repos.DB)
+	repos.SSHKey = NewSSHKeyRepo(repos.DB)
 	repos.Model = NewModelDB(repos.DB)
 	repos.Label = NewLabelDB(repos.DB)
 	repos.Git = NewGitDB(repos.GitStorage, repos.GitMirror)

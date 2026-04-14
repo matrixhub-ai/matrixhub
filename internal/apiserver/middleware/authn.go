@@ -25,6 +25,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware/authenticator"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
@@ -38,15 +39,18 @@ var noRenewCookieMethods = map[string]bool{
 
 func AuthInterceptor(sessionRepo user.ISessionRepo) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		token := getTokenFromContext(ctx, sessionRepo)
+		token := authenticator.GetCookieFromContext(ctx)
 		ctx, err := sessionRepo.Load(ctx, token)
 		if err != nil {
-			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
+			return nil, err
 		}
-		if publicMethods[info.FullMethod] {
-			return handler(ctx, req)
-		}
-		if !sessionRepo.Exists(ctx, user.UsernameCtxKey.String()) {
+
+		auth := authenticator.NewWebAuthenticator(sessionRepo)
+		identity, err := auth.Authenticate(ctx, nil)
+		if err != nil {
+			if publicMethods[info.FullMethod] {
+				return handler(ctx, req)
+			}
 			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 		}
 		if !noRenewCookieMethods[info.FullMethod] {
@@ -56,44 +60,11 @@ func AuthInterceptor(sessionRepo user.ISessionRepo) grpc.UnaryServerInterceptor 
 		}
 
 		// set username, user id in context
-		ctx = context.WithValue(ctx, user.UsernameCtxKey, sessionRepo.GetString(ctx, user.UsernameCtxKey.String()))
-		ctx = context.WithValue(ctx, user.UserIdCtxKey, sessionRepo.GetInt(ctx, user.UserIdCtxKey.String()))
+		ctx = context.WithValue(ctx, user.UserIdCtxKey, identity.UserId)
+		ctx = context.WithValue(ctx, user.UsernameCtxKey, identity.Username)
 
 		return handler(ctx, req)
 	}
-}
-
-func getTokenFromContext(ctx context.Context, session user.ISessionRepo) (token string) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return
-	}
-	sessionCookie := session.GetSessionCookie()
-	cookieHeader := firstMD(md, "grpcgateway-cookie", "cookie")
-	if cookieHeader == "" {
-		return
-	}
-
-	return extractSessionToken(cookieHeader, sessionCookie.Name)
-}
-
-func extractSessionToken(cookieHeader, name string) string {
-	h := http.Header{}
-	h.Add("Cookie", cookieHeader)
-	c, err := (&http.Request{Header: h}).Cookie(name)
-	if err != nil {
-		return ""
-	}
-	return c.Value
-}
-
-func firstMD(md metadata.MD, keys ...string) string {
-	for _, k := range keys {
-		if vs := md.Get(k); len(vs) > 0 && vs[0] != "" {
-			return vs[0]
-		}
-	}
-	return ""
 }
 
 func commitAndWriteSessionCookie(ctx context.Context, session user.ISessionRepo) error {
