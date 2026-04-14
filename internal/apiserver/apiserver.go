@@ -29,8 +29,6 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
-	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
-	backendlfs "github.com/matrixhub-ai/hfd/pkg/backend/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
@@ -42,6 +40,8 @@ import (
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/handler"
 	backendhf "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf"
+	backendhttp "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http"
+	backendlfs "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/lfs"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
@@ -233,7 +233,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhf.WithPostReceiveHookFunc(postReceiveHookFunc),
 		backendhf.WithLFSStorage(lfsStorage),
 		backendhf.WithMiddlewares(
-			middleware.HFAuthenticationMiddleware(server.repos.AccessToken, server.repos.Session),
+			middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session),
 			middleware.HFAuthzMiddleware(server.services.Authz),
 		),
 		backendhf.WithServices(server.services.Model, server.repos.Git, server.services.Authz),
@@ -246,6 +246,10 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendlfs.WithPermissionHookFunc(permissionHookFunc),
 		backendlfs.WithLFSStorage(lfsStorage),
 		backendlfs.WithMirror(sharedMirror),
+		backendlfs.WithMiddlewares(
+			middleware.GitAuthnMiddleware(server.repos.AccessToken),
+			middleware.GitAuthzMiddleware(server.services.Authz),
+		),
 	)
 
 	handler = backendhttp.NewHandler(
@@ -255,6 +259,10 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhttp.WithPermissionHookFunc(permissionHookFunc),
 		backendhttp.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendhttp.WithPostReceiveHookFunc(postReceiveHookFunc),
+		backendhttp.WithMiddlewares(
+			middleware.GitAuthnMiddleware(server.repos.AccessToken),
+			middleware.GitAuthzMiddleware(server.services.Authz),
+		),
 	)
 
 	handler = authenticate.AnonymousAuthenticateHandler(handler)
@@ -319,7 +327,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewLoginHandler(userService),
 		handler.NewRegistryHandler(repos.Registry),
 		handler.NewProjectHandler(repos.Project, authzService),
-		handler.NewCurrentUserHandler(repos.User, repos.AccessToken),
+		handler.NewCurrentUserHandler(repos.User, repos.AccessToken, repos.SSHKey),
 		handler.NewUserHandler(repos.User, authzService),
 		handler.NewDatasetHandler(datasetService),
 		handler.NewModelHandler(modelService, authzService),
