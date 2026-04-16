@@ -414,6 +414,8 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewDatasetHandler(datasetService),
 		handler.NewModelHandler(modelService, authzService),
 		handler.NewSyncPolicyHandler(syncPolicyService, repos.Registry),
+		handler.NewRoleHandler(),
+		handler.NewRobotHandler(repos.Robot, repos.Project),
 	}
 
 	server.repos = repos

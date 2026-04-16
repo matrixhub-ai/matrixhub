@@ -123,6 +123,117 @@ func (p *PermissionList) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, p)
 }
 
+type PermissionCategory string
+
+func (p PermissionCategory) String() string {
+	return string(p)
+}
+
+type PermissionCategories struct {
+	Category    PermissionCategory
+	Permissions []Permission
+}
+
+type PermissionCategoriesList []PermissionCategories
+
+func (p PermissionCategoriesList) CheckPermissions(permissions []string) error {
+	permissionMap := make(map[string]bool)
+	for _, ps := range p {
+		for _, permission := range ps.Permissions {
+			permissionMap[permission.String()] = true
+		}
+	}
+
+	for _, permission := range permissions {
+		if !permissionMap[permission] {
+			return fmt.Errorf("invalid permission: %s", permission)
+		}
+	}
+
+	return nil
+}
+
+var (
+	PlatformPermissions = PermissionCategoriesList{
+		{
+			Category: UserManagement,
+			Permissions: []Permission{
+				UserCreate, UserDelete, UserResetPassword, UserAuthorize,
+			},
+		},
+		{
+			Category: RegistryManagement,
+			Permissions: []Permission{
+				RegistryCreate, RegistryDelete, RegistryUpdate,
+			},
+		},
+		{
+			Category: SyncRemote,
+			Permissions: []Permission{
+				SyncCreate, SyncDelete, SyncUpdate, SyncRun,
+			},
+		},
+		{
+			Category: ProjectManagement,
+			Permissions: []Permission{
+				ProjectCreate, ProjectDelete,
+			},
+		},
+		{
+			Category: RobotManagement,
+			Permissions: []Permission{
+				RobotCreate, RobotDelete, RobotUpdate,
+			},
+		},
+	}
+
+	ProjectPermissions = PermissionCategoriesList{
+		{
+			Category: ModelManagement,
+			Permissions: []Permission{
+				ModelPush, ModelPull, ModelDelete,
+			},
+		},
+		{
+			Category: DatasetManagement,
+			Permissions: []Permission{
+				DatasetPush, DatasetPull, DatasetDelete,
+			},
+		},
+		{
+			Category: ProjectMemberManagement,
+			Permissions: []Permission{
+				MemberAdd, MemberRemove, MemberRoleUpdate,
+			},
+		},
+		{
+			Category: ProjectRobotManagement,
+			Permissions: []Permission{
+				RobotCreate, RobotDelete, RobotUpdate,
+			},
+		},
+		{
+			Category: ProjectSetting,
+			Permissions: []Permission{
+				ProjectUpdate,
+			},
+		},
+	}
+)
+
+const (
+	UserManagement          PermissionCategory = "user_management"
+	RegistryManagement      PermissionCategory = "registry_management"
+	SyncRemote              PermissionCategory = "sync_remote"
+	ProjectManagement       PermissionCategory = "project_management"
+	RobotManagement         PermissionCategory = "robot_management"
+	ModelManagement         PermissionCategory = "model_management"
+	DatasetManagement       PermissionCategory = "dataset_management"
+	ProjectMemberManagement PermissionCategory = "project_member_management"
+	ProjectRobotManagement  PermissionCategory = "project_robot_management"
+	ProjectSetting          PermissionCategory = "project_setting"
+)
+
 // Platform-level permissions
 const (
 	// User management
@@ -143,6 +254,7 @@ const (
 	SyncCreate Permission = "sync.create" // Create sync policy
 	SyncUpdate Permission = "sync.update" // Update sync policy
 	SyncDelete Permission = "sync.delete" // Delete sync policy
+	SyncRun    Permission = "sync.run"    // Run sync
 
 	// Access key management
 	AccessKeyGet    Permission = "access_key.get"    // View access keys
@@ -176,4 +288,10 @@ const (
 	DatasetPull   Permission = "dataset.pull"   // Pull dataset
 	DatasetPush   Permission = "dataset.push"   // Push dataset
 	DatasetDelete Permission = "dataset.delete" // Delete dataset
+
+	// Robot permissions
+	RobotGet    Permission = "robot.get"
+	RobotCreate Permission = "robot.create"
+	RobotUpdate Permission = "robot.update"
+	RobotDelete Permission = "robot.delete"
 )

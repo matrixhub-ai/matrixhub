@@ -165,16 +165,16 @@ func (RobotAccountExpireStatus) EnumDescriptor() ([]byte, []int) {
 }
 
 type CreateRobotAccountRequest struct {
-	state              protoimpl.MessageState   `protogen:"open.v1"`
-	Name               string                   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Description        string                   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	ExpireDays         int32                    `protobuf:"varint,3,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
-	SystemPermissions  []string                 `protobuf:"bytes,4,rep,name=system_permissions,json=systemPermissions,proto3" json:"system_permissions,omitempty"`
-	ProjectPermissions []string                 `protobuf:"bytes,5,rep,name=project_permissions,json=projectPermissions,proto3" json:"project_permissions,omitempty"`
-	Projects           []string                 `protobuf:"bytes,6,rep,name=projects,proto3" json:"projects,omitempty"`
-	ProjectScope       RobotAccountProjectScope `protobuf:"varint,7,opt,name=project_scope,json=projectScope,proto3,enum=matrixhub.v1alpha1.RobotAccountProjectScope" json:"project_scope,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state               protoimpl.MessageState   `protogen:"open.v1"`
+	Name                string                   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description         string                   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	ExpireDays          int32                    `protobuf:"varint,3,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
+	PlatformPermissions []string                 `protobuf:"bytes,4,rep,name=platform_permissions,json=platformPermissions,proto3" json:"platform_permissions,omitempty"`
+	ProjectPermissions  []string                 `protobuf:"bytes,5,rep,name=project_permissions,json=projectPermissions,proto3" json:"project_permissions,omitempty"`
+	Projects            []string                 `protobuf:"bytes,6,rep,name=projects,proto3" json:"projects,omitempty"`
+	ProjectScope        RobotAccountProjectScope `protobuf:"varint,7,opt,name=project_scope,json=projectScope,proto3,enum=matrixhub.v1alpha1.RobotAccountProjectScope" json:"project_scope,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CreateRobotAccountRequest) Reset() {
@@ -228,9 +228,9 @@ func (x *CreateRobotAccountRequest) GetExpireDays() int32 {
 	return 0
 }
 
-func (x *CreateRobotAccountRequest) GetSystemPermissions() []string {
+func (x *CreateRobotAccountRequest) GetPlatformPermissions() []string {
 	if x != nil {
-		return x.SystemPermissions
+		return x.PlatformPermissions
 	}
 	return nil
 }
@@ -361,9 +361,9 @@ func (x *ListRobotAccountsRequest) GetPageSize() int32 {
 }
 
 type ListRobotAccountsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*RobotAccount        `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	Pagination    *Pagination            `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Items         []*GetRobotAccountResponse `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Pagination    *Pagination                `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -398,7 +398,7 @@ func (*ListRobotAccountsResponse) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ListRobotAccountsResponse) GetItems() []*RobotAccount {
+func (x *ListRobotAccountsResponse) GetItems() []*GetRobotAccountResponse {
 	if x != nil {
 		return x.Items
 	}
@@ -412,138 +412,6 @@ func (x *ListRobotAccountsResponse) GetPagination() *Pagination {
 	return nil
 }
 
-type RobotAccount struct {
-	state              protoimpl.MessageState   `protogen:"open.v1"`
-	Id                 uint32                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name               string                   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description        string                   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Status             RobotAccountStatus       `protobuf:"varint,4,opt,name=status,proto3,enum=matrixhub.v1alpha1.RobotAccountStatus" json:"status,omitempty"`
-	SystemPermissions  []string                 `protobuf:"bytes,5,rep,name=system_permissions,json=systemPermissions,proto3" json:"system_permissions,omitempty"`
-	ProjectPermissions []string                 `protobuf:"bytes,6,rep,name=project_permissions,json=projectPermissions,proto3" json:"project_permissions,omitempty"`
-	Projects           []string                 `protobuf:"bytes,7,rep,name=projects,proto3" json:"projects,omitempty"`
-	CreatedAt          string                   `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	ExpireStatus       RobotAccountExpireStatus `protobuf:"varint,9,opt,name=expire_status,json=expireStatus,proto3,enum=matrixhub.v1alpha1.RobotAccountExpireStatus" json:"expire_status,omitempty"`
-	RemainPeriod       string                   `protobuf:"bytes,10,opt,name=remain_period,json=remainPeriod,proto3" json:"remain_period,omitempty"`
-	ExpireDays         int32                    `protobuf:"varint,11,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
-	ProjectScope       RobotAccountProjectScope `protobuf:"varint,12,opt,name=project_scope,json=projectScope,proto3,enum=matrixhub.v1alpha1.RobotAccountProjectScope" json:"project_scope,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *RobotAccount) Reset() {
-	*x = RobotAccount{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RobotAccount) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RobotAccount) ProtoMessage() {}
-
-func (x *RobotAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RobotAccount.ProtoReflect.Descriptor instead.
-func (*RobotAccount) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *RobotAccount) GetId() uint32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *RobotAccount) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *RobotAccount) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *RobotAccount) GetStatus() RobotAccountStatus {
-	if x != nil {
-		return x.Status
-	}
-	return RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED
-}
-
-func (x *RobotAccount) GetSystemPermissions() []string {
-	if x != nil {
-		return x.SystemPermissions
-	}
-	return nil
-}
-
-func (x *RobotAccount) GetProjectPermissions() []string {
-	if x != nil {
-		return x.ProjectPermissions
-	}
-	return nil
-}
-
-func (x *RobotAccount) GetProjects() []string {
-	if x != nil {
-		return x.Projects
-	}
-	return nil
-}
-
-func (x *RobotAccount) GetCreatedAt() string {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return ""
-}
-
-func (x *RobotAccount) GetExpireStatus() RobotAccountExpireStatus {
-	if x != nil {
-		return x.ExpireStatus
-	}
-	return RobotAccountExpireStatus_ROBOT_ACCOUNT_EXPIRE_STATUS_EXPIRED
-}
-
-func (x *RobotAccount) GetRemainPeriod() string {
-	if x != nil {
-		return x.RemainPeriod
-	}
-	return ""
-}
-
-func (x *RobotAccount) GetExpireDays() int32 {
-	if x != nil {
-		return x.ExpireDays
-	}
-	return 0
-}
-
-func (x *RobotAccount) GetProjectScope() RobotAccountProjectScope {
-	if x != nil {
-		return x.ProjectScope
-	}
-	return RobotAccountProjectScope_ROBOT_ACCOUNT_PROJECT_SCOPE_SELECTED
-}
-
 type GetRobotAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -553,7 +421,7 @@ type GetRobotAccountRequest struct {
 
 func (x *GetRobotAccountRequest) Reset() {
 	*x = GetRobotAccountRequest{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[5]
+	mi := &file_v1alpha1_robot_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -565,7 +433,7 @@ func (x *GetRobotAccountRequest) String() string {
 func (*GetRobotAccountRequest) ProtoMessage() {}
 
 func (x *GetRobotAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[5]
+	mi := &file_v1alpha1_robot_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -578,7 +446,7 @@ func (x *GetRobotAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRobotAccountRequest.ProtoReflect.Descriptor instead.
 func (*GetRobotAccountRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{5}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetRobotAccountRequest) GetId() uint32 {
@@ -589,26 +457,26 @@ func (x *GetRobotAccountRequest) GetId() uint32 {
 }
 
 type GetRobotAccountResponse struct {
-	state              protoimpl.MessageState   `protogen:"open.v1"`
-	Id                 uint32                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name               string                   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description        string                   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Status             RobotAccountStatus       `protobuf:"varint,4,opt,name=status,proto3,enum=matrixhub.v1alpha1.RobotAccountStatus" json:"status,omitempty"`
-	SystemPermissions  []string                 `protobuf:"bytes,5,rep,name=system_permissions,json=systemPermissions,proto3" json:"system_permissions,omitempty"`
-	ProjectPermissions []string                 `protobuf:"bytes,6,rep,name=project_permissions,json=projectPermissions,proto3" json:"project_permissions,omitempty"`
-	Projects           []string                 `protobuf:"bytes,7,rep,name=projects,proto3" json:"projects,omitempty"`
-	CreatedAt          string                   `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	ExpireStatus       RobotAccountExpireStatus `protobuf:"varint,9,opt,name=expire_status,json=expireStatus,proto3,enum=matrixhub.v1alpha1.RobotAccountExpireStatus" json:"expire_status,omitempty"`
-	RemainPeriod       string                   `protobuf:"bytes,10,opt,name=remain_period,json=remainPeriod,proto3" json:"remain_period,omitempty"`
-	ExpireDays         int32                    `protobuf:"varint,11,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
-	ProjectScope       RobotAccountProjectScope `protobuf:"varint,12,opt,name=project_scope,json=projectScope,proto3,enum=matrixhub.v1alpha1.RobotAccountProjectScope" json:"project_scope,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state               protoimpl.MessageState   `protogen:"open.v1"`
+	Id                  uint32                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                string                   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description         string                   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Status              RobotAccountStatus       `protobuf:"varint,4,opt,name=status,proto3,enum=matrixhub.v1alpha1.RobotAccountStatus" json:"status,omitempty"`
+	PlatformPermissions []string                 `protobuf:"bytes,5,rep,name=platform_permissions,json=platformPermissions,proto3" json:"platform_permissions,omitempty"`
+	ProjectPermissions  []string                 `protobuf:"bytes,6,rep,name=project_permissions,json=projectPermissions,proto3" json:"project_permissions,omitempty"`
+	Projects            []string                 `protobuf:"bytes,7,rep,name=projects,proto3" json:"projects,omitempty"`
+	CreatedAt           string                   `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ExpireStatus        RobotAccountExpireStatus `protobuf:"varint,9,opt,name=expire_status,json=expireStatus,proto3,enum=matrixhub.v1alpha1.RobotAccountExpireStatus" json:"expire_status,omitempty"`
+	RemainPeriod        string                   `protobuf:"bytes,10,opt,name=remain_period,json=remainPeriod,proto3" json:"remain_period,omitempty"`
+	ExpireDays          int32                    `protobuf:"varint,11,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
+	ProjectScope        RobotAccountProjectScope `protobuf:"varint,12,opt,name=project_scope,json=projectScope,proto3,enum=matrixhub.v1alpha1.RobotAccountProjectScope" json:"project_scope,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *GetRobotAccountResponse) Reset() {
 	*x = GetRobotAccountResponse{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[6]
+	mi := &file_v1alpha1_robot_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +488,7 @@ func (x *GetRobotAccountResponse) String() string {
 func (*GetRobotAccountResponse) ProtoMessage() {}
 
 func (x *GetRobotAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[6]
+	mi := &file_v1alpha1_robot_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +501,7 @@ func (x *GetRobotAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRobotAccountResponse.ProtoReflect.Descriptor instead.
 func (*GetRobotAccountResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{6}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetRobotAccountResponse) GetId() uint32 {
@@ -664,9 +532,9 @@ func (x *GetRobotAccountResponse) GetStatus() RobotAccountStatus {
 	return RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED
 }
 
-func (x *GetRobotAccountResponse) GetSystemPermissions() []string {
+func (x *GetRobotAccountResponse) GetPlatformPermissions() []string {
 	if x != nil {
-		return x.SystemPermissions
+		return x.PlatformPermissions
 	}
 	return nil
 }
@@ -729,7 +597,7 @@ type DeleteRobotAccountRequest struct {
 
 func (x *DeleteRobotAccountRequest) Reset() {
 	*x = DeleteRobotAccountRequest{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[7]
+	mi := &file_v1alpha1_robot_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -741,7 +609,7 @@ func (x *DeleteRobotAccountRequest) String() string {
 func (*DeleteRobotAccountRequest) ProtoMessage() {}
 
 func (x *DeleteRobotAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[7]
+	mi := &file_v1alpha1_robot_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -754,7 +622,7 @@ func (x *DeleteRobotAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRobotAccountRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRobotAccountRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{7}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DeleteRobotAccountRequest) GetId() uint32 {
@@ -772,7 +640,7 @@ type DeleteRobotAccountResponse struct {
 
 func (x *DeleteRobotAccountResponse) Reset() {
 	*x = DeleteRobotAccountResponse{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[8]
+	mi := &file_v1alpha1_robot_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -784,7 +652,7 @@ func (x *DeleteRobotAccountResponse) String() string {
 func (*DeleteRobotAccountResponse) ProtoMessage() {}
 
 func (x *DeleteRobotAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[8]
+	mi := &file_v1alpha1_robot_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -797,26 +665,26 @@ func (x *DeleteRobotAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRobotAccountResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRobotAccountResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{8}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{7}
 }
 
 type UpdateRobotAccountRequest struct {
-	state              protoimpl.MessageState   `protogen:"open.v1"`
-	Id                 uint32                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Description        string                   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Status             RobotAccountStatus       `protobuf:"varint,3,opt,name=status,proto3,enum=matrixhub.v1alpha1.RobotAccountStatus" json:"status,omitempty"`
-	SystemPermissions  []string                 `protobuf:"bytes,4,rep,name=system_permissions,json=systemPermissions,proto3" json:"system_permissions,omitempty"`
-	ProjectPermissions []string                 `protobuf:"bytes,5,rep,name=project_permissions,json=projectPermissions,proto3" json:"project_permissions,omitempty"`
-	Projects           []string                 `protobuf:"bytes,6,rep,name=projects,proto3" json:"projects,omitempty"`
-	ProjectScope       RobotAccountProjectScope `protobuf:"varint,7,opt,name=project_scope,json=projectScope,proto3,enum=matrixhub.v1alpha1.RobotAccountProjectScope" json:"project_scope,omitempty"`
-	ExpireDays         int32                    `protobuf:"varint,8,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state               protoimpl.MessageState   `protogen:"open.v1"`
+	Id                  uint32                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Description         string                   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Status              RobotAccountStatus       `protobuf:"varint,3,opt,name=status,proto3,enum=matrixhub.v1alpha1.RobotAccountStatus" json:"status,omitempty"`
+	PlatformPermissions []string                 `protobuf:"bytes,4,rep,name=platform_permissions,json=platformPermissions,proto3" json:"platform_permissions,omitempty"`
+	ProjectPermissions  []string                 `protobuf:"bytes,5,rep,name=project_permissions,json=projectPermissions,proto3" json:"project_permissions,omitempty"`
+	Projects            []string                 `protobuf:"bytes,6,rep,name=projects,proto3" json:"projects,omitempty"`
+	ProjectScope        RobotAccountProjectScope `protobuf:"varint,7,opt,name=project_scope,json=projectScope,proto3,enum=matrixhub.v1alpha1.RobotAccountProjectScope" json:"project_scope,omitempty"`
+	ExpireDays          int32                    `protobuf:"varint,8,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *UpdateRobotAccountRequest) Reset() {
 	*x = UpdateRobotAccountRequest{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[9]
+	mi := &file_v1alpha1_robot_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -828,7 +696,7 @@ func (x *UpdateRobotAccountRequest) String() string {
 func (*UpdateRobotAccountRequest) ProtoMessage() {}
 
 func (x *UpdateRobotAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[9]
+	mi := &file_v1alpha1_robot_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -841,7 +709,7 @@ func (x *UpdateRobotAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRobotAccountRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRobotAccountRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{9}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateRobotAccountRequest) GetId() uint32 {
@@ -865,9 +733,9 @@ func (x *UpdateRobotAccountRequest) GetStatus() RobotAccountStatus {
 	return RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED
 }
 
-func (x *UpdateRobotAccountRequest) GetSystemPermissions() []string {
+func (x *UpdateRobotAccountRequest) GetPlatformPermissions() []string {
 	if x != nil {
-		return x.SystemPermissions
+		return x.PlatformPermissions
 	}
 	return nil
 }
@@ -908,7 +776,7 @@ type UpdateRobotAccountResponse struct {
 
 func (x *UpdateRobotAccountResponse) Reset() {
 	*x = UpdateRobotAccountResponse{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[10]
+	mi := &file_v1alpha1_robot_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -920,7 +788,7 @@ func (x *UpdateRobotAccountResponse) String() string {
 func (*UpdateRobotAccountResponse) ProtoMessage() {}
 
 func (x *UpdateRobotAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[10]
+	mi := &file_v1alpha1_robot_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -933,7 +801,7 @@ func (x *UpdateRobotAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRobotAccountResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRobotAccountResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{10}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{9}
 }
 
 type RefreshRobotAccountTokenRequest struct {
@@ -947,7 +815,7 @@ type RefreshRobotAccountTokenRequest struct {
 
 func (x *RefreshRobotAccountTokenRequest) Reset() {
 	*x = RefreshRobotAccountTokenRequest{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[11]
+	mi := &file_v1alpha1_robot_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -959,7 +827,7 @@ func (x *RefreshRobotAccountTokenRequest) String() string {
 func (*RefreshRobotAccountTokenRequest) ProtoMessage() {}
 
 func (x *RefreshRobotAccountTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[11]
+	mi := &file_v1alpha1_robot_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -972,7 +840,7 @@ func (x *RefreshRobotAccountTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshRobotAccountTokenRequest.ProtoReflect.Descriptor instead.
 func (*RefreshRobotAccountTokenRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{11}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *RefreshRobotAccountTokenRequest) GetId() uint32 {
@@ -1005,7 +873,7 @@ type RefreshRobotAccountTokenResponse struct {
 
 func (x *RefreshRobotAccountTokenResponse) Reset() {
 	*x = RefreshRobotAccountTokenResponse{}
-	mi := &file_v1alpha1_robot_proto_msgTypes[12]
+	mi := &file_v1alpha1_robot_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1017,7 +885,7 @@ func (x *RefreshRobotAccountTokenResponse) String() string {
 func (*RefreshRobotAccountTokenResponse) ProtoMessage() {}
 
 func (x *RefreshRobotAccountTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_robot_proto_msgTypes[12]
+	mi := &file_v1alpha1_robot_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1030,7 +898,7 @@ func (x *RefreshRobotAccountTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshRobotAccountTokenResponse.ProtoReflect.Descriptor instead.
 func (*RefreshRobotAccountTokenResponse) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{12}
+	return file_v1alpha1_robot_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *RefreshRobotAccountTokenResponse) GetToken() string {
@@ -1044,13 +912,13 @@ var File_v1alpha1_robot_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_robot_proto_rawDesc = "" +
 	"\n" +
-	"\x14v1alpha1/robot.proto\x12\x12matrixhub.v1alpha1\x1a\x14v1alpha1/utils.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\"\xd3\x02\n" +
+	"\x14v1alpha1/robot.proto\x12\x12matrixhub.v1alpha1\x1a\x14v1alpha1/utils.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17validate/validate.proto\"\xce\x02\n" +
 	"\x19CreateRobotAccountRequest\x12\x1b\n" +
-	"\x04name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\x12)\n" +
-	"\vdescription\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\vdescription\x12\x1f\n" +
+	"\x04name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1f\n" +
 	"\vexpire_days\x18\x03 \x01(\x05R\n" +
-	"expireDays\x12-\n" +
-	"\x12system_permissions\x18\x04 \x03(\tR\x11systemPermissions\x12/\n" +
+	"expireDays\x121\n" +
+	"\x14platform_permissions\x18\x04 \x03(\tR\x13platformPermissions\x12/\n" +
 	"\x13project_permissions\x18\x05 \x03(\tR\x12projectPermissions\x12\x1a\n" +
 	"\bprojects\x18\x06 \x03(\tR\bprojects\x12Q\n" +
 	"\rproject_scope\x18\a \x01(\x0e2,.matrixhub.v1alpha1.RobotAccountProjectScopeR\fprojectScope\"2\n" +
@@ -1059,36 +927,20 @@ const file_v1alpha1_robot_proto_rawDesc = "" +
 	"\x18ListRobotAccountsRequest\x12\x16\n" +
 	"\x06search\x18\x01 \x01(\tR\x06search\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x93\x01\n" +
-	"\x19ListRobotAccountsResponse\x126\n" +
-	"\x05items\x18\x01 \x03(\v2 .matrixhub.v1alpha1.RobotAccountR\x05items\x12>\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x9e\x01\n" +
+	"\x19ListRobotAccountsResponse\x12A\n" +
+	"\x05items\x18\x01 \x03(\v2+.matrixhub.v1alpha1.GetRobotAccountResponseR\x05items\x12>\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1e.matrixhub.v1alpha1.PaginationR\n" +
-	"pagination\"\x9b\x04\n" +
-	"\fRobotAccount\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12>\n" +
-	"\x06status\x18\x04 \x01(\x0e2&.matrixhub.v1alpha1.RobotAccountStatusR\x06status\x12-\n" +
-	"\x12system_permissions\x18\x05 \x03(\tR\x11systemPermissions\x12/\n" +
-	"\x13project_permissions\x18\x06 \x03(\tR\x12projectPermissions\x12\x1a\n" +
-	"\bprojects\x18\a \x03(\tR\bprojects\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\b \x01(\tR\tcreatedAt\x12Q\n" +
-	"\rexpire_status\x18\t \x01(\x0e2,.matrixhub.v1alpha1.RobotAccountExpireStatusR\fexpireStatus\x12#\n" +
-	"\rremain_period\x18\n" +
-	" \x01(\tR\fremainPeriod\x12\x1f\n" +
-	"\vexpire_days\x18\v \x01(\x05R\n" +
-	"expireDays\x12Q\n" +
-	"\rproject_scope\x18\f \x01(\x0e2,.matrixhub.v1alpha1.RobotAccountProjectScopeR\fprojectScope\"(\n" +
+	"pagination\"(\n" +
 	"\x16GetRobotAccountRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id\"\xa6\x04\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\"\xaa\x04\n" +
 	"\x17GetRobotAccountResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12>\n" +
-	"\x06status\x18\x04 \x01(\x0e2&.matrixhub.v1alpha1.RobotAccountStatusR\x06status\x12-\n" +
-	"\x12system_permissions\x18\x05 \x03(\tR\x11systemPermissions\x12/\n" +
+	"\x06status\x18\x04 \x01(\x0e2&.matrixhub.v1alpha1.RobotAccountStatusR\x06status\x121\n" +
+	"\x14platform_permissions\x18\x05 \x03(\tR\x13platformPermissions\x12/\n" +
 	"\x13project_permissions\x18\x06 \x03(\tR\x12projectPermissions\x12\x1a\n" +
 	"\bprojects\x18\a \x03(\tR\bprojects\x12\x1d\n" +
 	"\n" +
@@ -1101,12 +953,12 @@ const file_v1alpha1_robot_proto_rawDesc = "" +
 	"\rproject_scope\x18\f \x01(\x0e2,.matrixhub.v1alpha1.RobotAccountProjectScopeR\fprojectScope\"+\n" +
 	"\x19DeleteRobotAccountRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\"\x1c\n" +
-	"\x1aDeleteRobotAccountResponse\"\xfd\x02\n" +
+	"\x1aDeleteRobotAccountResponse\"\x81\x03\n" +
 	"\x19UpdateRobotAccountRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12>\n" +
-	"\x06status\x18\x03 \x01(\x0e2&.matrixhub.v1alpha1.RobotAccountStatusR\x06status\x12-\n" +
-	"\x12system_permissions\x18\x04 \x03(\tR\x11systemPermissions\x12/\n" +
+	"\x06status\x18\x03 \x01(\x0e2&.matrixhub.v1alpha1.RobotAccountStatusR\x06status\x121\n" +
+	"\x14platform_permissions\x18\x04 \x03(\tR\x13platformPermissions\x12/\n" +
 	"\x13project_permissions\x18\x05 \x03(\tR\x12projectPermissions\x12\x1a\n" +
 	"\bprojects\x18\x06 \x03(\tR\bprojects\x12Q\n" +
 	"\rproject_scope\x18\a \x01(\x0e2,.matrixhub.v1alpha1.RobotAccountProjectScopeR\fprojectScope\x12\x1f\n" +
@@ -1150,7 +1002,7 @@ func file_v1alpha1_robot_proto_rawDescGZIP() []byte {
 }
 
 var file_v1alpha1_robot_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_v1alpha1_robot_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_v1alpha1_robot_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_v1alpha1_robot_proto_goTypes = []any{
 	(RobotAccountProjectScope)(0),            // 0: matrixhub.v1alpha1.RobotAccountProjectScope
 	(RobotAccountStatus)(0),                  // 1: matrixhub.v1alpha1.RobotAccountStatus
@@ -1159,46 +1011,42 @@ var file_v1alpha1_robot_proto_goTypes = []any{
 	(*CreateRobotAccountResponse)(nil),       // 4: matrixhub.v1alpha1.CreateRobotAccountResponse
 	(*ListRobotAccountsRequest)(nil),         // 5: matrixhub.v1alpha1.ListRobotAccountsRequest
 	(*ListRobotAccountsResponse)(nil),        // 6: matrixhub.v1alpha1.ListRobotAccountsResponse
-	(*RobotAccount)(nil),                     // 7: matrixhub.v1alpha1.RobotAccount
-	(*GetRobotAccountRequest)(nil),           // 8: matrixhub.v1alpha1.GetRobotAccountRequest
-	(*GetRobotAccountResponse)(nil),          // 9: matrixhub.v1alpha1.GetRobotAccountResponse
-	(*DeleteRobotAccountRequest)(nil),        // 10: matrixhub.v1alpha1.DeleteRobotAccountRequest
-	(*DeleteRobotAccountResponse)(nil),       // 11: matrixhub.v1alpha1.DeleteRobotAccountResponse
-	(*UpdateRobotAccountRequest)(nil),        // 12: matrixhub.v1alpha1.UpdateRobotAccountRequest
-	(*UpdateRobotAccountResponse)(nil),       // 13: matrixhub.v1alpha1.UpdateRobotAccountResponse
-	(*RefreshRobotAccountTokenRequest)(nil),  // 14: matrixhub.v1alpha1.RefreshRobotAccountTokenRequest
-	(*RefreshRobotAccountTokenResponse)(nil), // 15: matrixhub.v1alpha1.RefreshRobotAccountTokenResponse
-	(*Pagination)(nil),                       // 16: matrixhub.v1alpha1.Pagination
+	(*GetRobotAccountRequest)(nil),           // 7: matrixhub.v1alpha1.GetRobotAccountRequest
+	(*GetRobotAccountResponse)(nil),          // 8: matrixhub.v1alpha1.GetRobotAccountResponse
+	(*DeleteRobotAccountRequest)(nil),        // 9: matrixhub.v1alpha1.DeleteRobotAccountRequest
+	(*DeleteRobotAccountResponse)(nil),       // 10: matrixhub.v1alpha1.DeleteRobotAccountResponse
+	(*UpdateRobotAccountRequest)(nil),        // 11: matrixhub.v1alpha1.UpdateRobotAccountRequest
+	(*UpdateRobotAccountResponse)(nil),       // 12: matrixhub.v1alpha1.UpdateRobotAccountResponse
+	(*RefreshRobotAccountTokenRequest)(nil),  // 13: matrixhub.v1alpha1.RefreshRobotAccountTokenRequest
+	(*RefreshRobotAccountTokenResponse)(nil), // 14: matrixhub.v1alpha1.RefreshRobotAccountTokenResponse
+	(*Pagination)(nil),                       // 15: matrixhub.v1alpha1.Pagination
 }
 var file_v1alpha1_robot_proto_depIdxs = []int32{
 	0,  // 0: matrixhub.v1alpha1.CreateRobotAccountRequest.project_scope:type_name -> matrixhub.v1alpha1.RobotAccountProjectScope
-	7,  // 1: matrixhub.v1alpha1.ListRobotAccountsResponse.items:type_name -> matrixhub.v1alpha1.RobotAccount
-	16, // 2: matrixhub.v1alpha1.ListRobotAccountsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	1,  // 3: matrixhub.v1alpha1.RobotAccount.status:type_name -> matrixhub.v1alpha1.RobotAccountStatus
-	2,  // 4: matrixhub.v1alpha1.RobotAccount.expire_status:type_name -> matrixhub.v1alpha1.RobotAccountExpireStatus
-	0,  // 5: matrixhub.v1alpha1.RobotAccount.project_scope:type_name -> matrixhub.v1alpha1.RobotAccountProjectScope
-	1,  // 6: matrixhub.v1alpha1.GetRobotAccountResponse.status:type_name -> matrixhub.v1alpha1.RobotAccountStatus
-	2,  // 7: matrixhub.v1alpha1.GetRobotAccountResponse.expire_status:type_name -> matrixhub.v1alpha1.RobotAccountExpireStatus
-	0,  // 8: matrixhub.v1alpha1.GetRobotAccountResponse.project_scope:type_name -> matrixhub.v1alpha1.RobotAccountProjectScope
-	1,  // 9: matrixhub.v1alpha1.UpdateRobotAccountRequest.status:type_name -> matrixhub.v1alpha1.RobotAccountStatus
-	0,  // 10: matrixhub.v1alpha1.UpdateRobotAccountRequest.project_scope:type_name -> matrixhub.v1alpha1.RobotAccountProjectScope
-	3,  // 11: matrixhub.v1alpha1.Robots.CreateRobotAccount:input_type -> matrixhub.v1alpha1.CreateRobotAccountRequest
-	5,  // 12: matrixhub.v1alpha1.Robots.ListRobotAccounts:input_type -> matrixhub.v1alpha1.ListRobotAccountsRequest
-	8,  // 13: matrixhub.v1alpha1.Robots.GetRobotAccount:input_type -> matrixhub.v1alpha1.GetRobotAccountRequest
-	10, // 14: matrixhub.v1alpha1.Robots.DeleteRobotAccount:input_type -> matrixhub.v1alpha1.DeleteRobotAccountRequest
-	12, // 15: matrixhub.v1alpha1.Robots.UpdateRobotAccount:input_type -> matrixhub.v1alpha1.UpdateRobotAccountRequest
-	14, // 16: matrixhub.v1alpha1.Robots.RefreshRobotAccountToken:input_type -> matrixhub.v1alpha1.RefreshRobotAccountTokenRequest
-	4,  // 17: matrixhub.v1alpha1.Robots.CreateRobotAccount:output_type -> matrixhub.v1alpha1.CreateRobotAccountResponse
-	6,  // 18: matrixhub.v1alpha1.Robots.ListRobotAccounts:output_type -> matrixhub.v1alpha1.ListRobotAccountsResponse
-	9,  // 19: matrixhub.v1alpha1.Robots.GetRobotAccount:output_type -> matrixhub.v1alpha1.GetRobotAccountResponse
-	11, // 20: matrixhub.v1alpha1.Robots.DeleteRobotAccount:output_type -> matrixhub.v1alpha1.DeleteRobotAccountResponse
-	13, // 21: matrixhub.v1alpha1.Robots.UpdateRobotAccount:output_type -> matrixhub.v1alpha1.UpdateRobotAccountResponse
-	15, // 22: matrixhub.v1alpha1.Robots.RefreshRobotAccountToken:output_type -> matrixhub.v1alpha1.RefreshRobotAccountTokenResponse
-	17, // [17:23] is the sub-list for method output_type
-	11, // [11:17] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	8,  // 1: matrixhub.v1alpha1.ListRobotAccountsResponse.items:type_name -> matrixhub.v1alpha1.GetRobotAccountResponse
+	15, // 2: matrixhub.v1alpha1.ListRobotAccountsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	1,  // 3: matrixhub.v1alpha1.GetRobotAccountResponse.status:type_name -> matrixhub.v1alpha1.RobotAccountStatus
+	2,  // 4: matrixhub.v1alpha1.GetRobotAccountResponse.expire_status:type_name -> matrixhub.v1alpha1.RobotAccountExpireStatus
+	0,  // 5: matrixhub.v1alpha1.GetRobotAccountResponse.project_scope:type_name -> matrixhub.v1alpha1.RobotAccountProjectScope
+	1,  // 6: matrixhub.v1alpha1.UpdateRobotAccountRequest.status:type_name -> matrixhub.v1alpha1.RobotAccountStatus
+	0,  // 7: matrixhub.v1alpha1.UpdateRobotAccountRequest.project_scope:type_name -> matrixhub.v1alpha1.RobotAccountProjectScope
+	3,  // 8: matrixhub.v1alpha1.Robots.CreateRobotAccount:input_type -> matrixhub.v1alpha1.CreateRobotAccountRequest
+	5,  // 9: matrixhub.v1alpha1.Robots.ListRobotAccounts:input_type -> matrixhub.v1alpha1.ListRobotAccountsRequest
+	7,  // 10: matrixhub.v1alpha1.Robots.GetRobotAccount:input_type -> matrixhub.v1alpha1.GetRobotAccountRequest
+	9,  // 11: matrixhub.v1alpha1.Robots.DeleteRobotAccount:input_type -> matrixhub.v1alpha1.DeleteRobotAccountRequest
+	11, // 12: matrixhub.v1alpha1.Robots.UpdateRobotAccount:input_type -> matrixhub.v1alpha1.UpdateRobotAccountRequest
+	13, // 13: matrixhub.v1alpha1.Robots.RefreshRobotAccountToken:input_type -> matrixhub.v1alpha1.RefreshRobotAccountTokenRequest
+	4,  // 14: matrixhub.v1alpha1.Robots.CreateRobotAccount:output_type -> matrixhub.v1alpha1.CreateRobotAccountResponse
+	6,  // 15: matrixhub.v1alpha1.Robots.ListRobotAccounts:output_type -> matrixhub.v1alpha1.ListRobotAccountsResponse
+	8,  // 16: matrixhub.v1alpha1.Robots.GetRobotAccount:output_type -> matrixhub.v1alpha1.GetRobotAccountResponse
+	10, // 17: matrixhub.v1alpha1.Robots.DeleteRobotAccount:output_type -> matrixhub.v1alpha1.DeleteRobotAccountResponse
+	12, // 18: matrixhub.v1alpha1.Robots.UpdateRobotAccount:output_type -> matrixhub.v1alpha1.UpdateRobotAccountResponse
+	14, // 19: matrixhub.v1alpha1.Robots.RefreshRobotAccountToken:output_type -> matrixhub.v1alpha1.RefreshRobotAccountTokenResponse
+	14, // [14:20] is the sub-list for method output_type
+	8,  // [8:14] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_robot_proto_init() }
@@ -1213,7 +1061,7 @@ func file_v1alpha1_robot_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_robot_proto_rawDesc), len(file_v1alpha1_robot_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   13,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

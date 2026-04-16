@@ -25,11 +25,11 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
-type SessionRepository struct {
+type sessionRepo struct {
 	*scs.SessionManager
 }
 
-func (s *SessionRepository) GetSessionCookie() scs.SessionCookie {
+func (s *sessionRepo) GetSessionCookie() scs.SessionCookie {
 	return s.Cookie
 }
 
@@ -47,7 +47,7 @@ func NewSessionRepository(db *gorm.DB) user.ISessionRepo {
 	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
 	sessionManager.Store = mysqlstore.New(sqlDB)
 
-	return &SessionRepository{
+	return &sessionRepo{
 		SessionManager: sessionManager,
 	}
 }

@@ -46,9 +46,9 @@ service Robots {
 
 message CreateRobotAccountRequest {
   string name = 1 [(validate.rules).string.min_len = 1];
-  string description = 2 [(validate.rules).string.min_len = 1];
+  string description = 2;
   int32 expire_days = 3;
-  repeated string system_permissions = 4;
+  repeated string platform_permissions = 4;
   repeated string project_permissions = 5;
   repeated string projects = 6;
   RobotAccountProjectScope project_scope = 7;
@@ -70,25 +70,9 @@ message ListRobotAccountsRequest {
 }
 
 message ListRobotAccountsResponse {
-  repeated RobotAccount items = 1;
+  repeated GetRobotAccountResponse items = 1;
   Pagination pagination = 2;
 }
-
-message RobotAccount {
-  uint32 id = 1;
-  string name = 2;
-  string description = 3;
-  RobotAccountStatus status = 4;
-  repeated string system_permissions = 5;
-  repeated string project_permissions = 6;
-  repeated string projects = 7;
-  string created_at = 8;
-  RobotAccountExpireStatus expire_status = 9;
-  string remain_period = 10;
-  int32 expire_days = 11;
-  RobotAccountProjectScope project_scope = 12;
-}
-
 
 enum RobotAccountStatus {
   ROBOT_ACCOUNT_STATUS_DISABLED = 0;
@@ -110,7 +94,7 @@ message GetRobotAccountResponse {
   string name = 2;
   string description = 3;
   RobotAccountStatus status = 4;
-  repeated string system_permissions = 5;
+  repeated string platform_permissions = 5;
   repeated string project_permissions = 6;
   repeated string projects = 7;
   string created_at = 8;
@@ -130,7 +114,7 @@ message UpdateRobotAccountRequest {
   uint32 id = 1;
   string description = 2;
   RobotAccountStatus status = 3;
-  repeated string system_permissions = 4;
+  repeated string platform_permissions = 4;
   repeated string project_permissions = 5;
   repeated string projects = 6;
   RobotAccountProjectScope project_scope = 7;

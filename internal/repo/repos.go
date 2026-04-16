@@ -25,6 +25,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
@@ -50,6 +51,7 @@ type Repos struct {
 	SyncTask    syncpolicy.ISyncTaskRepo
 	SyncJob     syncjob.ISyncJobRepo
 	Authz       authz.IAuthzProjectRepo
+	Robot       robot.IRobotRepo
 }
 
 func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror) *Repos {
@@ -78,6 +80,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.SyncTask = NewSyncTaskDB(repos.DB)
 	repos.SyncJob = NewSyncJobDB(repos.DB)
 	repos.Authz = NewAuthzDBRepo(repos.DB)
+	repos.Robot = NewRobotRepo(repos.DB)
 
 	return repos
 }

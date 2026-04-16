@@ -15,6 +15,8 @@
 package utils
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -35,4 +37,24 @@ func (d *Duration) UnmarshalYAML(value *yaml.Node) error {
 	}
 	d.Duration = dur
 	return nil
+}
+
+func FormatDuration(d time.Duration) string {
+	totalSeconds := int(d.Seconds())
+	days := totalSeconds / 86400
+	hours := (totalSeconds % 86400) / 3600
+	minutes := (totalSeconds % 3600) / 60
+
+	var res string
+	if days > 0 {
+		res += fmt.Sprintf("%dd ", days)
+	}
+	if hours > 0 {
+		res += fmt.Sprintf("%dh ", hours)
+	}
+	if minutes > 0 {
+		res += fmt.Sprintf("%dm", minutes)
+	}
+
+	return strings.TrimSpace(res)
 }

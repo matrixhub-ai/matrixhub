@@ -348,3 +348,11 @@ func (r *ProjectDBRepo) GetUserAllProjectRoles(ctx context.Context, userID int) 
 
 	return roles, nil
 }
+
+func (r *ProjectDBRepo) ListProjectInfoByNames(ctx context.Context, names []string) (projects []*project.Project, err error) {
+	if len(names) == 0 {
+		return nil, nil
+	}
+	err = r.db.WithContext(ctx).Where("name IN (?)", names).Find(&projects).Error
+	return
+}

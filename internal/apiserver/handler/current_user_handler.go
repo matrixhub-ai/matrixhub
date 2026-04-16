@@ -131,7 +131,7 @@ func (cu *CurrentUserHandler) CreateAccessToken(ctx context.Context, request *v1
 	}
 
 	for attempt := 1; attempt <= utils.MaxTokenRetries; attempt++ {
-		raw, hash, err := utils.GenerateToken()
+		raw, hash, err := utils.GenerateUserToken()
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}

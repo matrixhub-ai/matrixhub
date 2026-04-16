@@ -232,3 +232,33 @@ VALUES
 INSERT INTO `members_roles_projects` (`member_id`, `member_type`, `role_id`, `project_id`)
 VALUES
     ('1', 'user', 1, NULL);
+
+CREATE TABLE IF NOT EXISTS `robots` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(1024) DEFAULT NULL,
+  `project_id` int DEFAULT NULL,
+  `token_hash` varchar(128) DEFAULT NULL,
+  `duration` int DEFAULT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT '0',
+  `expire_at` timestamp NULL DEFAULT NULL,
+  `platform_permissions` text,
+  `project_permissions` text,
+  `project_scope` varchar(32) NOT NULL,
+  `create_by` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uni_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `robots_projects` (
+   `id` int NOT NULL AUTO_INCREMENT,
+   `robot_id` int NOT NULL,
+   `project_id` int NOT NULL,
+   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   PRIMARY KEY (`id`),
+   UNIQUE KEY `composite_index` (`robot_id`,`project_id`),
+   KEY `idx_project_id` (`project_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
