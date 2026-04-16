@@ -69,7 +69,7 @@ const config: Config = {
       items: [
         {
           to: 'docs/intro',
-          label: 'Documentation',
+          label: '文档',
           position: 'left',
         },
         {
@@ -80,7 +80,7 @@ const config: Config = {
         },
         {
           href: 'https://github.com/matrixhub-ai/matrixhub',
-          label: 'Get Started',
+          label: '开始使用',
           position: 'right',
           className: 'navbar-get-started-button',
         },

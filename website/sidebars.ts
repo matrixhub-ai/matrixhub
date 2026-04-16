@@ -17,7 +17,7 @@ const sidebars: SidebarsConfig = {
     'intro',
     {
       type: 'category',
-      label: 'Getting Started',
+      label: '快速开始',
       items: [
         'getting-started/quickstart',
         'getting-started/examples',
@@ -25,52 +25,64 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Operations',
+      label: '操作指南',
       items: [
         'operations/overview',
         {
           type: 'category',
-          label: 'Project Management',
+          label: '模型仓库',
           items: [
-            'operations/projects/create-delete',
-            'operations/projects/members',
+            'operations/model-repo/upload-download',
+            'operations/model-repo/popular',
           ],
         },
         {
           type: 'category',
-          label: 'Models and Datasets',
+          label: '数据集',
           items: [
-            'operations/assets/create-delete',
-            'operations/assets/upload-download',
-            'operations/assets/popular',
+            'operations/datasets/create-delete',
           ],
         },
         {
           type: 'category',
-          label: 'Repository Management',
+          label: '项目管理',
           items: [
-            'operations/repository/management',
+            'operations/project-management/create-delete',
+            'operations/project-management/members',
           ],
         },
         {
           type: 'category',
-          label: 'User Management',
+          label: '个人中心',
           items: [
-            'operations/users/management',
+            'operations/profile/access-token',
           ],
         },
         {
           type: 'category',
-          label: 'Remote Sync',
+          label: '平台设置',
           items: [
-            'operations/sync/remote',
-          ],
-        },
-        {
-          type: 'category',
-          label: 'Developer',
-          items: [
-            'operations/developer/access-token',
+            {
+              type: 'category',
+              label: '用户管理',
+              items: [
+                'operations/platform-settings/user-management',
+              ],
+            },
+            {
+              type: 'category',
+              label: '仓库管理',
+              items: [
+                'operations/platform-settings/repository-management',
+              ],
+            },
+            {
+              type: 'category',
+              label: '远程同步',
+              items: [
+                'operations/platform-settings/remote-sync',
+              ],
+            },
           ],
         },
       ],
