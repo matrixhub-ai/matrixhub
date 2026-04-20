@@ -245,10 +245,6 @@ func (server *APIServer) initGitStorage() {
 
 	lfsStorage := lfs.NewLocal(storage.LFSDir())
 
-	lfsTeeCache := lfs.NewTeeCache(
-		lfsStorage,
-	)
-
 	mirrorSourceFunc := server.gitHooks.mirrorSourceFunc
 	mirrorRefFilterFunc := server.gitHooks.mirrorRefFilterFunc
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
@@ -259,7 +255,9 @@ func (server *APIServer) initGitStorage() {
 		mirror.WithMirrorRefFilterFunc(mirrorRefFilterFunc),
 		mirror.WithPreReceiveHookFunc(preReceiveHookFunc),
 		mirror.WithPostReceiveHookFunc(postReceiveHookFunc),
-		mirror.WithLFSCache(lfsTeeCache),
+		mirror.WithLFSStorage(lfsStorage),
+		mirror.WithXET(true),
+		mirror.WithConcurrency(4),
 		mirror.WithTTL(time.Minute),
 	)
 

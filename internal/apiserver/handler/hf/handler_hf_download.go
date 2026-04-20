@@ -241,6 +241,13 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 					// Try tee cache fetch if configured
 					pf := h.mirror.Get(ptr.OID())
 					if pf != nil {
+						// Prevent concurrent downloads.
+						if r.Method == http.MethodHead {
+							w.Header().Set("Content-Length", strconv.FormatInt(pf.Total(), 10))
+							w.Header().Set("Last-Modified", pf.ModTime().UTC().Format(http.TimeFormat))
+							return
+						}
+
 						rs := pf.NewReadSeeker()
 						defer func() {
 							_ = rs.Close()
