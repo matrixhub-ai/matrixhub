@@ -34,21 +34,20 @@ const (
 )
 
 type SyncPolicy struct {
-	ID                 int       `gorm:"primarykey"`
-	Name               string    `gorm:"column:name"`
-	Description        string    `gorm:"column:description"`
-	PolicyType         int       `gorm:"column:policy_type"`          // 1: pull, 2: push
-	TriggerType        int       `gorm:"column:trigger_type"`         // 1: manual, 2: scheduled
-	SourceRegistryID   int       `gorm:"column:source_registry_id"`   // for pull policy
-	ResourceName       string    `gorm:"column:resource_name"`        // source resource name
-	ResourceTypes      string    `gorm:"column:resource_types"`       // comma separated: model,dataset
-	TargetResourceName string    `gorm:"column:target_resource_name"` // target resource name
-	TargetProjectName  string    `gorm:"column:target_project_name"`  // target local project name
-	Bandwidth          string    `gorm:"column:bandwidth"`
-	IsOverwrite        bool      `gorm:"column:is_overwrite"`
-	IsDisabled         bool      `gorm:"column:is_disabled"`
-	CreatedAt          time.Time `gorm:"column:created_at"`
-	UpdatedAt          time.Time `gorm:"column:updated_at"`
+	ID                int       `gorm:"primarykey"`
+	Name              string    `gorm:"column:name"`
+	Description       string    `gorm:"column:description"`
+	PolicyType        int       `gorm:"column:policy_type"`         // 1: pull, 2: push
+	TriggerType       int       `gorm:"column:trigger_type"`        // 1: manual, 2: scheduled
+	SourceRegistryID  int       `gorm:"column:source_registry_id"`  // for pull policy
+	ResourceName      string    `gorm:"column:resource_name"`       // source resource name
+	ResourceTypes     string    `gorm:"column:resource_types"`      // comma separated: model,dataset
+	TargetProjectName string    `gorm:"column:target_project_name"` // target local project name
+	Bandwidth         string    `gorm:"column:bandwidth"`
+	IsOverwrite       bool      `gorm:"column:is_overwrite"`
+	IsDisabled        bool      `gorm:"column:is_disabled"`
+	CreatedAt         time.Time `gorm:"column:created_at"`
+	UpdatedAt         time.Time `gorm:"column:updated_at"`
 }
 
 func (SyncPolicy) TableName() string {

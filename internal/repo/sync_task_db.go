@@ -60,7 +60,7 @@ func (r *syncTaskDB) DeleteSyncTask(ctx context.Context, id int) error {
 }
 
 // ListSyncTasksByPolicyID lists sync tasks by policy ID with pagination
-func (r *syncTaskDB) ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, search string) ([]*syncpolicy.SyncTask, int64, error) {
+func (r *syncTaskDB) ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status syncpolicy.SyncTaskStatus) ([]*syncpolicy.SyncTask, int64, error) {
 	var tasks []*syncpolicy.SyncTask
 	var total int64
 

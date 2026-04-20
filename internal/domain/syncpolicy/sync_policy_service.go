@@ -17,6 +17,7 @@ package syncpolicy
 import (
 	"context"
 
+	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
@@ -29,7 +30,7 @@ type ISyncPolicyService interface {
 	ListSyncPolicies(ctx context.Context, page, pageSize int, search string) ([]*SyncPolicy, int64, error)
 	GetSyncTask(ctx context.Context, id int) (*SyncTask, error)
 	CreateSyncTask(ctx context.Context, param *SyncTask) (*SyncTask, error)
-	ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, search string) ([]*SyncTask, int64, error)
+	ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status v1alpha1.SyncTaskStatus) ([]*SyncTask, int64, error)
 	CreateSyncTaskAndSyncJobs(ctx context.Context, param *SyncPolicy) error
 	CreateExcecuteSyncTaskAndSyncJobs(ctx context.Context, param *SyncPolicy) error
 }
@@ -75,8 +76,8 @@ func (sps *SyncPolicyService) CreateSyncTask(ctx context.Context, syncTask *Sync
 	return sps.syncTaskRepo.CreateSyncTask(ctx, syncTask)
 }
 
-func (sps *SyncPolicyService) ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, search string) ([]*SyncTask, int64, error) {
-	return sps.syncTaskRepo.ListSyncTasksByPolicyID(ctx, policyID, page, pageSize, search)
+func (sps *SyncPolicyService) ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status v1alpha1.SyncTaskStatus) ([]*SyncTask, int64, error) {
+	return sps.syncTaskRepo.ListSyncTasksByPolicyID(ctx, policyID, page, pageSize, ConvertSyncTaskStatusFromProto(status))
 }
 
 func (sps *SyncPolicyService) CreateSyncTaskAndSyncJobs(ctx context.Context, policy *SyncPolicy) error {

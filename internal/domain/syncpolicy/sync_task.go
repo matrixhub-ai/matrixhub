@@ -17,11 +17,15 @@ package syncpolicy
 import (
 	"context"
 	"time"
+
+	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 )
+
+type SyncTaskStatus int
 
 // SyncTaskStatus represents the status of a sync task
 const (
-	SyncTaskStatusRunning int = iota + 1
+	SyncTaskStatusRunning SyncTaskStatus = iota + 1
 	SyncTaskStatusSucceeded
 	SyncTaskStatusFailed
 	SyncTaskStatusStopped
@@ -50,5 +54,13 @@ type ISyncTaskRepo interface {
 	GetSyncTask(ctx context.Context, id int) (*SyncTask, error)
 	UpdateSyncTask(ctx context.Context, task *SyncTask) error
 	DeleteSyncTask(ctx context.Context, id int) error
-	ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, search string) ([]*SyncTask, int64, error)
+	ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status SyncTaskStatus) ([]*SyncTask, int64, error)
+}
+
+func ConvertSyncTaskStatusToProto(status SyncTaskStatus) v1alpha1.SyncTaskStatus {
+	return v1alpha1.SyncTaskStatus(status)
+}
+
+func ConvertSyncTaskStatusFromProto(status v1alpha1.SyncTaskStatus) SyncTaskStatus {
+	return SyncTaskStatus(status)
 }

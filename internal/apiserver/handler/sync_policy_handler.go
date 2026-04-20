@@ -133,18 +133,17 @@ func (h *SyncPolicyHandler) CreateSyncPolicy(ctx context.Context, request *v1alp
 	resourceTypes := resourceTypesToString(pullPolicy.GetResourceTypes())
 
 	policy := &syncpolicy.SyncPolicy{
-		Name:               request.Name,
-		Description:        request.Description,
-		PolicyType:         int(request.PolicyType),
-		TriggerType:        int(request.TriggerType),
-		SourceRegistryID:   int(pullPolicy.SourceRegistryId),
-		ResourceName:       pullPolicy.ResourceName,
-		ResourceTypes:      resourceTypes,
-		TargetResourceName: pullPolicy.TargetResourceName,
-		TargetProjectName:  pullPolicy.TargetProjectName,
-		Bandwidth:          request.Bandwidth,
-		IsOverwrite:        request.IsOverwrite,
-		IsDisabled:         false,
+		Name:              request.Name,
+		Description:       request.Description,
+		PolicyType:        int(request.PolicyType),
+		TriggerType:       int(request.TriggerType),
+		SourceRegistryID:  int(pullPolicy.SourceRegistryId),
+		ResourceName:      pullPolicy.ResourceName,
+		ResourceTypes:     resourceTypes,
+		TargetProjectName: pullPolicy.TargetProjectName,
+		Bandwidth:         request.Bandwidth,
+		IsOverwrite:       request.IsOverwrite,
+		IsDisabled:        false,
 	}
 
 	if err := h.syncPolicyService.CreateSyncPolicy(ctx, policy); err != nil {
@@ -184,7 +183,6 @@ func (h *SyncPolicyHandler) UpdateSyncPolicy(ctx context.Context, request *v1alp
 		existingPolicy.SourceRegistryID = int(pullPolicy.SourceRegistryId)
 		existingPolicy.ResourceName = pullPolicy.ResourceName
 		existingPolicy.ResourceTypes = resourceTypesToString(pullPolicy.GetResourceTypes())
-		existingPolicy.TargetResourceName = pullPolicy.TargetResourceName
 		existingPolicy.TargetProjectName = pullPolicy.TargetProjectName
 	}
 
@@ -245,7 +243,7 @@ func (h *SyncPolicyHandler) CreateSyncTask(ctx context.Context, request *v1alpha
 	task := &syncpolicy.SyncTask{
 		SyncPolicyID: int(request.SyncPolicyId),
 		TriggerType:  syncpolicy.TriggerTypeManual,
-		Status:       syncpolicy.SyncTaskStatusRunning,
+		Status:       int(syncpolicy.SyncTaskStatusRunning),
 	}
 
 	task, err = h.syncPolicyService.CreateSyncTask(ctx, task)
@@ -283,7 +281,7 @@ func (h *SyncPolicyHandler) ListSyncTasks(ctx context.Context, request *v1alpha1
 		pageSize = 20
 	}
 
-	tasks, total, err := h.syncPolicyService.ListSyncTasksByPolicyID(ctx, int(request.SyncPolicyId), page, pageSize, request.Search)
+	tasks, total, err := h.syncPolicyService.ListSyncTasksByPolicyID(ctx, int(request.SyncPolicyId), page, pageSize, request.Status)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to list sync tasks")
 	}
@@ -301,6 +299,14 @@ func (h *SyncPolicyHandler) ListSyncTasks(ctx context.Context, request *v1alpha1
 			PageSize: request.PageSize,
 		},
 	}, nil
+}
+
+func (h *SyncPolicyHandler) GetSyncTask(ctx context.Context, request *v1alpha1.GetSyncTaskRequest) (*v1alpha1.GetSyncTaskResponse, error) {
+	panic("implement me")
+}
+
+func (h *SyncPolicyHandler) UpdateSyncPolicySwitch(ctx context.Context, request *v1alpha1.UpdateSyncPolicySwitchRequest) (*v1alpha1.UpdateSyncPolicySwitchResponse, error) {
+	panic("implement me")
 }
 
 // StopSyncTask stops a running sync task
@@ -324,7 +330,7 @@ func (h *SyncPolicyHandler) StopSyncTask(ctx context.Context, request *v1alpha1.
 	}
 
 	// Update task status to stopped
-	task.Status = syncpolicy.SyncTaskStatusStopped
+	task.Status = int(syncpolicy.SyncTaskStatusStopped)
 	task.CompletedTimestamp = time.Now().Unix()
 
 	if _, err := h.syncPolicyService.CreateSyncTask(ctx, task); err != nil {
@@ -358,11 +364,10 @@ func (h *SyncPolicyHandler) syncPolicyToProto(ctx context.Context, p *syncpolicy
 	if p.PolicyType == syncpolicy.SyncPolicyTypePull {
 		resourceTypes := parseResourceTypesString(p.ResourceTypes)
 		pullPolicy := &v1alpha1.PullBasePolicy{
-			SourceRegistryId:   uint32(p.SourceRegistryID),
-			ResourceName:       p.ResourceName,
-			ResourceTypes:      resourceTypes,
-			TargetResourceName: p.TargetResourceName,
-			TargetProjectName:  p.TargetProjectName,
+			SourceRegistryId:  uint32(p.SourceRegistryID),
+			ResourceName:      p.ResourceName,
+			ResourceTypes:     resourceTypes,
+			TargetProjectName: p.TargetProjectName,
 		}
 
 		// Fetch and populate source registry info if registry ID is set

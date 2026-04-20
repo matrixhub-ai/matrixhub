@@ -161,7 +161,6 @@ CREATE TABLE IF NOT EXISTS `sync_policies`
     `source_registry_id`  int,
     `resource_name`       varchar(255),
     `resource_types`      varchar(255),                 -- comma separated: model,dataset
-    `target_resource_name` varchar(255),
     `target_project_name`  varchar(255),
     `bandwidth`           varchar(64),
     `is_overwrite`        tinyint(1) NOT NULL DEFAULT 0,

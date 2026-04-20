@@ -88,7 +88,7 @@ func (r *syncPolicyDB) GenerateSyncTaskAndSyncJobs(ctx context.Context, policy *
 	task := &syncpolicy.SyncTask{
 		SyncPolicyID:       policy.ID,
 		TriggerType:        policy.TriggerType,
-		Status:             syncpolicy.SyncTaskStatusRunning,
+		Status:             int(syncpolicy.SyncTaskStatusRunning),
 		StartedTimestamp:   time.Now().Unix(),
 		CompletedTimestamp: 0,
 		TotalItems:         0,
@@ -105,7 +105,7 @@ func (r *syncPolicyDB) GenerateSyncTaskAndSyncJobs(ctx context.Context, policy *
 
 	// Parse remote project and resource name from policy.ResourceName
 	// e.g., "HuggingFaceTB/test/SmolLM2-135M-Instruct" -> project="HuggingFaceTB", resource="test/SmolLM2-135M-Instruct"
-	remoteProjectName, remoteResourceName := parseRemoteResourceName(policy.TargetResourceName)
+	remoteProjectName, remoteResourceName := parseRemoteResourceName(policy.ResourceName)
 
 	for _, resourceType := range resourceTypes {
 		job := &syncjob.SyncJob{
@@ -113,7 +113,7 @@ func (r *syncPolicyDB) GenerateSyncTaskAndSyncJobs(ctx context.Context, policy *
 			RemoteProjectName:  remoteProjectName,
 			RemoteResourceName: remoteResourceName,
 			ProjectName:        policy.TargetProjectName,
-			ResourceName:       policy.ResourceName,
+			ResourceName:       remoteResourceName,
 			ResourceType:       resourceType,
 			SyncType:           "pull",
 			CompletePercents:   0,
