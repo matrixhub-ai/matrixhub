@@ -312,6 +312,10 @@ export function DataTable<TData extends MRT_RowData>({
         <Box mb="sm">
           <SearchToolbar
             {...searchToolbarProps}
+            toolbarProps={{
+              mb: 'md',
+              ...searchToolbarProps?.toolbarProps,
+            }}
             searchPlaceholder={showSearch ? searchPlaceholderText : undefined}
             searchValue={searchValue}
             onSearchChange={onSearchChange}
