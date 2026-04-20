@@ -13,6 +13,7 @@ import {
 import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks'
 import { IconRefresh, IconTrash } from '@tabler/icons-react'
 import { MantineReactTable } from 'mantine-react-table'
+import 'mantine-react-table/styles.css'
 import { useTranslation } from 'react-i18next'
 
 import { Pagination } from './Pagination'
@@ -156,6 +157,19 @@ function mergeTableOptionProps<TData extends MRT_RowData, TProps extends object>
   }
 }
 
+function resolveTableOptionProps<TArgs extends object, TProps extends object>(
+  props: TProps | ((args: TArgs) => TProps) | undefined,
+  args: TArgs,
+) {
+  if (!props) {
+    return undefined
+  }
+
+  return typeof props === 'function'
+    ? props(args)
+    : props
+}
+
 // -- DataTable --
 
 const emptyRowsFallback = () => null
@@ -201,7 +215,12 @@ export function DataTable<TData extends MRT_RowData>({
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
   const {
+    columnFilterDisplayMode = 'popover',
+    defaultColumn,
+    enableColumnFilters = true,
     initialState,
+    mantineFilterSelectProps,
+    mantineFilterTextInputProps,
     mantinePaperProps,
     mantineTableContainerProps,
     mantineTableProps,
@@ -233,6 +252,10 @@ export function DataTable<TData extends MRT_RowData>({
         <Box mb="sm">
           <SearchToolbar
             {...searchToolbarProps}
+            toolbarProps={{
+              mb: 'md',
+              ...searchToolbarProps?.toolbarProps,
+            }}
             searchPlaceholder={showSearch ? searchPlaceholderText : undefined}
             searchValue={searchValue}
             onSearchChange={onSearchChange}
@@ -309,9 +332,14 @@ export function DataTable<TData extends MRT_RowData>({
         enableGlobalFilterModes={false}
         enableHiding={false}
         enablePagination={false}
-        enableColumnFilters={false}
+        enableColumnFilters={enableColumnFilters}
         enableSorting={false}
         enableTableHead={!hideTableHead}
+        columnFilterDisplayMode={columnFilterDisplayMode}
+        defaultColumn={{
+          enableColumnFilter: false,
+          ...defaultColumn,
+        }}
         // Selection
         enableRowSelection={enableRowSelection}
         enableSelectAll={enableSelectAll}
@@ -341,6 +369,14 @@ export function DataTable<TData extends MRT_RowData>({
           ...initialState,
         }}
         state={tableState}
+        mantineFilterSelectProps={args => ({
+          clearable: true,
+          comboboxProps: { withinPortal: false },
+          ...resolveTableOptionProps(mantineFilterSelectProps, args),
+        })}
+        mantineFilterTextInputProps={args => ({
+          ...resolveTableOptionProps(mantineFilterTextInputProps, args),
+        })}
         mantinePaperProps={mergeTableOptionProps<TData, PaperProps>(
           {
             radius: 0,
