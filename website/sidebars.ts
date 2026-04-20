@@ -33,7 +33,7 @@ const sidebars: SidebarsConfig = {
           label: '模型仓库',
           items: [
             'operations/model-repo/upload-download',
-            'operations/model-repo/popular',
+            'operations/model-repo/project-setting',
           ],
         },
         {
