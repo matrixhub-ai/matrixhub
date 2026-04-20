@@ -75,6 +75,7 @@
     "isOverwriteHint": "如果存在相同名称的资源，指定是否覆盖目标上的资源。"
   },
   "validation": {
+    "resourceNameRequired": "请输入资源名称",
     "resourceTypesRequired": "至少需要选择一个资源类型",
     "sourceRegistryRequired": "请选择源仓库",
     "targetRegistryRequired": "请选择目标仓库"
@@ -84,6 +85,8 @@
     "createError": "同步规则创建失败",
     "updateSuccess": "同步规则更新成功",
     "updateError": "同步规则更新失败",
+    "switchSuccess": "同步规则状态更新成功",
+    "switchError": "同步规则状态更新失败",
     "deleteSuccess": "同步规则删除成功",
     "deleteError": "同步规则删除失败",
     "syncSuccess": "同步任务已启动",
