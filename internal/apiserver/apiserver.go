@@ -406,10 +406,12 @@ func (server *APIServer) initHandlersServicesRepos() {
 	)
 
 	// init sync policy service
+	jobGenerator := syncpolicy.NewSyncJobGenerator()
 	syncPolicyService := syncpolicy.NewSyncPolicyService(
 		repos.SyncPolicy,
 		repos.SyncTask,
 		syncJobService,
+		jobGenerator,
 	)
 
 	if server.config.JobServer.Enabled {
@@ -432,7 +434,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewUserHandler(repos.User, authzService),
 		handler.NewDatasetHandler(datasetService),
 		handler.NewModelHandler(modelService, authzService),
-		handler.NewSyncPolicyHandler(syncPolicyService, repos.Registry),
+		handler.NewSyncPolicyHandler(syncPolicyService, syncJobService, repos.Registry),
 		handler.NewRoleHandler(),
 		handler.NewRobotHandler(repos.Robot, repos.Project),
 	}

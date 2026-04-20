@@ -24,26 +24,21 @@ import (
 
 	v1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
 type SyncPolicyHandler struct {
 	syncPolicyService syncpolicy.ISyncPolicyService
+	syncJobService    syncjob.ISyncJobService
 	registryRepo      registry.IRegistryRepo
 }
 
-func (h *SyncPolicyHandler) ListSyncJobs(ctx context.Context, request *v1alpha1.ListSyncJobsRequest) (*v1alpha1.ListSyncJobsResponse, error) {
-	panic("implement me")
-}
-
-func (h *SyncPolicyHandler) GetSyncJobLog(ctx context.Context, request *v1alpha1.GetSyncJobLogRequest) (*v1alpha1.GetSyncJobLogResponse, error) {
-	panic("implement me")
-}
-
-func NewSyncPolicyHandler(syncPolicyService syncpolicy.ISyncPolicyService, registryRepo registry.IRegistryRepo) IHandler {
+func NewSyncPolicyHandler(syncPolicyService syncpolicy.ISyncPolicyService, syncJobService syncjob.ISyncJobService, registryRepo registry.IRegistryRepo) IHandler {
 	return &SyncPolicyHandler{
 		syncPolicyService: syncPolicyService,
+		syncJobService:    syncJobService,
 		registryRepo:      registryRepo,
 	}
 }
@@ -119,31 +114,26 @@ func (h *SyncPolicyHandler) CreateSyncPolicy(ctx context.Context, request *v1alp
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	// Only support PullBasePolicy for now
-	if request.GetPushBasePolicy() != nil {
-		return nil, status.Error(codes.Unimplemented, "push policy not implemented")
-	}
+	policy := &syncpolicy.SyncPolicy{}
+	h.applyCommonFields(policy, request.Name, request.Description, request.Bandwidth,
+		request.TriggerTypeSchedule, syncpolicy.TriggerType(request.TriggerType),
+		request.IsOverwrite, false)
 
-	pullPolicy := request.GetPullBasePolicy()
-	if pullPolicy == nil {
-		return nil, status.Error(codes.InvalidArgument, "pull_base_policy is required")
-	}
-
-	// Convert resource types
-	resourceTypes := resourceTypesToString(pullPolicy.GetResourceTypes())
-
-	policy := &syncpolicy.SyncPolicy{
-		Name:              request.Name,
-		Description:       request.Description,
-		PolicyType:        int(request.PolicyType),
-		TriggerType:       int(request.TriggerType),
-		SourceRegistryID:  int(pullPolicy.SourceRegistryId),
-		ResourceName:      pullPolicy.ResourceName,
-		ResourceTypes:     resourceTypes,
-		TargetProjectName: pullPolicy.TargetProjectName,
-		Bandwidth:         request.Bandwidth,
-		IsOverwrite:       request.IsOverwrite,
-		IsDisabled:        false,
+	switch request.PolicyType {
+	case v1alpha1.SyncPolicyType_SYNC_POLICY_TYPE_PULL_BASE:
+		pullPolicy := request.GetPullBasePolicy()
+		if pullPolicy == nil {
+			return nil, status.Error(codes.InvalidArgument, "pull_base_policy is required")
+		}
+		h.applyPullBasePolicy(policy, pullPolicy)
+	case v1alpha1.SyncPolicyType_SYNC_POLICY_TYPE_PUSH_BASE:
+		pushPolicy := request.GetPushBasePolicy()
+		if pushPolicy == nil {
+			return nil, status.Error(codes.InvalidArgument, "push_base_policy is required")
+		}
+		h.applyPushBasePolicy(policy, pushPolicy)
+	default:
+		return nil, status.Error(codes.InvalidArgument, "invalid policy_type")
 	}
 
 	if err := h.syncPolicyService.CreateSyncPolicy(ctx, policy); err != nil {
@@ -161,7 +151,6 @@ func (h *SyncPolicyHandler) UpdateSyncPolicy(ctx context.Context, request *v1alp
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	// Get existing policy
 	existingPolicy, err := h.syncPolicyService.GetSyncPolicy(ctx, int(request.SyncPolicyId))
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
@@ -170,20 +159,14 @@ func (h *SyncPolicyHandler) UpdateSyncPolicy(ctx context.Context, request *v1alp
 		return nil, status.Error(codes.Internal, "failed to get sync policy")
 	}
 
-	// Update fields
-	existingPolicy.Name = request.Name
-	existingPolicy.Description = request.Description
-	existingPolicy.TriggerType = int(request.TriggerType)
-	existingPolicy.Bandwidth = request.Bandwidth
-	existingPolicy.IsOverwrite = request.IsOverwrite
-	existingPolicy.IsDisabled = request.IsDisabled
+	h.applyCommonFields(existingPolicy, request.Name, request.Description, request.Bandwidth,
+		request.TriggerTypeSchedule, syncpolicy.TriggerType(request.TriggerType),
+		request.IsOverwrite, request.IsDisabled)
 
-	// Update pull policy if provided
 	if pullPolicy := request.GetPullBasePolicy(); pullPolicy != nil {
-		existingPolicy.SourceRegistryID = int(pullPolicy.SourceRegistryId)
-		existingPolicy.ResourceName = pullPolicy.ResourceName
-		existingPolicy.ResourceTypes = resourceTypesToString(pullPolicy.GetResourceTypes())
-		existingPolicy.TargetProjectName = pullPolicy.TargetProjectName
+		h.applyPullBasePolicy(existingPolicy, pullPolicy)
+	} else if pushPolicy := request.GetPushBasePolicy(); pushPolicy != nil {
+		h.applyPushBasePolicy(existingPolicy, pushPolicy)
 	}
 
 	if err := h.syncPolicyService.UpdateSyncPolicy(ctx, existingPolicy); err != nil {
@@ -239,27 +222,11 @@ func (h *SyncPolicyHandler) CreateSyncTask(ctx context.Context, request *v1alpha
 		return nil, status.Error(codes.FailedPrecondition, "sync policy is disabled")
 	}
 
-	// Create task synchronously
-	task := &syncpolicy.SyncTask{
-		SyncPolicyID: int(request.SyncPolicyId),
-		TriggerType:  syncpolicy.TriggerTypeManual,
-		Status:       int(syncpolicy.SyncTaskStatusRunning),
-	}
-
-	task, err = h.syncPolicyService.CreateSyncTask(ctx, task)
+	// Service creates the task synchronously and executes jobs asynchronously
+	task, err := h.syncPolicyService.CreateExcecuteSyncTaskAndSyncJobs(ctx, policy)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to create sync task")
 	}
-
-	// Execute asynchronously
-	go func() {
-		log.Infow("sync task goroutine started", "task_id", task.ID, "policy_id", policy.ID)
-		if err := h.syncPolicyService.CreateExcecuteSyncTaskAndSyncJobs(context.Background(), policy); err != nil {
-			log.Errorw("failed to execute sync task", "error", err, "task_id", task.ID)
-		} else {
-			log.Infow("sync task goroutine finished", "task_id", task.ID, "policy_id", policy.ID)
-		}
-	}()
 
 	return &v1alpha1.CreateSyncTaskResponse{
 		Id: int32(task.ID),
@@ -281,7 +248,7 @@ func (h *SyncPolicyHandler) ListSyncTasks(ctx context.Context, request *v1alpha1
 		pageSize = 20
 	}
 
-	tasks, total, err := h.syncPolicyService.ListSyncTasksByPolicyID(ctx, int(request.SyncPolicyId), page, pageSize, request.Status)
+	tasks, total, err := h.syncPolicyService.ListSyncTasksByPolicyID(ctx, int(request.SyncPolicyId), page, pageSize, syncpolicy.SyncTaskStatus(request.Status))
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to list sync tasks")
 	}
@@ -301,12 +268,52 @@ func (h *SyncPolicyHandler) ListSyncTasks(ctx context.Context, request *v1alpha1
 	}, nil
 }
 
+// GetSyncTask gets a sync task by ID
 func (h *SyncPolicyHandler) GetSyncTask(ctx context.Context, request *v1alpha1.GetSyncTaskRequest) (*v1alpha1.GetSyncTaskResponse, error) {
-	panic("implement me")
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	task, err := h.syncPolicyService.GetSyncTask(ctx, int(request.SyncTaskId))
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, status.Error(codes.NotFound, "sync task not found")
+		}
+		return nil, status.Error(codes.Internal, "failed to get sync task")
+	}
+
+	if task.SyncPolicyID != int(request.SyncPolicyId) {
+		return nil, status.Error(codes.InvalidArgument, "sync task does not belong to the specified policy")
+	}
+
+	return &v1alpha1.GetSyncTaskResponse{
+		SyncTask: syncTaskToProto(task),
+	}, nil
 }
 
+// UpdateSyncPolicySwitch toggles a sync policy's enable/disable state
 func (h *SyncPolicyHandler) UpdateSyncPolicySwitch(ctx context.Context, request *v1alpha1.UpdateSyncPolicySwitchRequest) (*v1alpha1.UpdateSyncPolicySwitchResponse, error) {
-	panic("implement me")
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	policy, err := h.syncPolicyService.GetSyncPolicy(ctx, int(request.SyncPolicyId))
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, status.Error(codes.NotFound, "sync policy not found")
+		}
+		return nil, status.Error(codes.Internal, "failed to get sync policy")
+	}
+
+	policy.IsDisabled = request.IsDisabled
+
+	if err := h.syncPolicyService.UpdateSyncPolicy(ctx, policy); err != nil {
+		return nil, status.Error(codes.Internal, "failed to update sync policy")
+	}
+
+	return &v1alpha1.UpdateSyncPolicySwitchResponse{
+		SyncPolicy: h.syncPolicyToProto(ctx, policy),
+	}, nil
 }
 
 // StopSyncTask stops a running sync task
@@ -330,16 +337,118 @@ func (h *SyncPolicyHandler) StopSyncTask(ctx context.Context, request *v1alpha1.
 	}
 
 	// Update task status to stopped
-	task.Status = int(syncpolicy.SyncTaskStatusStopped)
+	task.Status = syncpolicy.SyncTaskStatusStopped
 	task.CompletedTimestamp = time.Now().Unix()
 
-	if _, err := h.syncPolicyService.CreateSyncTask(ctx, task); err != nil {
+	if err := h.syncPolicyService.UpdateSyncTask(ctx, task); err != nil {
 		return nil, status.Error(codes.Internal, "failed to stop sync task")
 	}
 
 	return &v1alpha1.StopSyncTaskResponse{
 		SyncTask: syncTaskToProto(task),
 	}, nil
+}
+
+// ListSyncJobs lists sync jobs for a task
+func (h *SyncPolicyHandler) ListSyncJobs(ctx context.Context, request *v1alpha1.ListSyncJobsRequest) (*v1alpha1.ListSyncJobsResponse, error) {
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	page := int(request.Page)
+	pageSize := int(request.PageSize)
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+
+	statusFilter := syncjob.SyncJobStatusUnspecified
+	if request.Status != v1alpha1.SyncJobStatus_SYNC_JOB_STATUS_UNSPECIFIED {
+		statusFilter = syncjob.SyncJobStatus(request.Status)
+	}
+
+	resourceTypeFilter := ""
+	if request.ResourceType != v1alpha1.ResourceType_RESOURCE_TYPE_UNSPECIFIED {
+		resourceTypeFilter = resourceTypeProtoToString(request.ResourceType)
+	}
+
+	jobs, total, err := h.syncJobService.ListSyncJobsByTaskID(ctx, int(request.SyncTaskId), page, pageSize, statusFilter, resourceTypeFilter)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to list sync jobs")
+	}
+
+	items := make([]*v1alpha1.SyncJob, len(jobs))
+	for i, j := range jobs {
+		items[i] = syncJobToProto(j)
+	}
+
+	return &v1alpha1.ListSyncJobsResponse{
+		SyncJobs: items,
+		Pagination: &v1alpha1.Pagination{
+			Total:    int32(total),
+			Page:     request.Page,
+			PageSize: request.PageSize,
+		},
+	}, nil
+}
+
+// GetSyncJobLog gets the log for a sync job
+func (h *SyncPolicyHandler) GetSyncJobLog(ctx context.Context, request *v1alpha1.GetSyncJobLogRequest) (*v1alpha1.GetSyncJobLogResponse, error) {
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	_, err := h.syncJobService.GetSyncJob(ctx, int(request.SyncJobId))
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, status.Error(codes.NotFound, "sync job not found")
+		}
+		return nil, status.Error(codes.Internal, "failed to get sync job")
+	}
+
+	return &v1alpha1.GetSyncJobLogResponse{
+		Log: "",
+	}, nil
+}
+
+// applyCommonFields fills the common scalar fields of a SyncPolicy.
+func (h *SyncPolicyHandler) applyCommonFields(p *syncpolicy.SyncPolicy, name, desc, bandwidth string, triggerSchedule *v1alpha1.TriggerTypeSchedule, triggerType syncpolicy.TriggerType, isOverwrite, isDisabled bool) {
+	p.Name = name
+	p.Description = desc
+	p.TriggerType = triggerType
+	p.Bandwidth = bandwidth
+	p.TriggerSchedule = ""
+	if triggerSchedule != nil {
+		p.TriggerSchedule = triggerSchedule.Cron
+	}
+	p.IsOverwrite = isOverwrite
+	p.IsDisabled = isDisabled
+}
+
+// applyPullBasePolicy fills pull-base-specific fields into a SyncPolicy.
+func (h *SyncPolicyHandler) applyPullBasePolicy(p *syncpolicy.SyncPolicy, pull *v1alpha1.PullBasePolicy) {
+	p.PolicyType = syncpolicy.SyncPolicyTypePull
+	p.RegistryID = int(pull.SourceRegistryId)
+	p.ResourceTypes = resourceTypesToString(pull.GetResourceTypes())
+	remoteProject, remoteName := parseResourcePath(pull.ResourceName)
+	p.RemoteProjectName = remoteProject
+	p.RemoteResourceName = remoteName
+	p.LocalProjectName = pull.TargetProjectName
+	// LocalResourceName is intentionally left empty; generator auto-fills from remote
+}
+
+// applyPushBasePolicy fills push-base-specific fields into a SyncPolicy.
+func (h *SyncPolicyHandler) applyPushBasePolicy(p *syncpolicy.SyncPolicy, push *v1alpha1.PushBasePolicy) {
+	p.PolicyType = syncpolicy.SyncPolicyTypePush
+	p.RegistryID = int(push.TargetRegistryId)
+	p.ResourceTypes = resourceTypesToString(push.GetResourceTypes())
+	localProject, localName := parseResourcePath(push.ResourceName)
+	p.LocalProjectName = localProject
+	p.LocalResourceName = localName
+	p.RemoteProjectName = push.TargetProjectName
+	// RemoteResourceName is intentionally left empty; generator auto-fills from local
 }
 
 // Helper functions
@@ -359,26 +468,45 @@ func (h *SyncPolicyHandler) syncPolicyToProto(ctx context.Context, p *syncpolicy
 		IsOverwrite: p.IsOverwrite,
 		IsDisabled:  p.IsDisabled,
 	}
-
-	// Add pull policy details if it's a pull type
-	if p.PolicyType == syncpolicy.SyncPolicyTypePull {
-		resourceTypes := parseResourceTypesString(p.ResourceTypes)
-		pullPolicy := &v1alpha1.PullBasePolicy{
-			SourceRegistryId:  uint32(p.SourceRegistryID),
-			ResourceName:      p.ResourceName,
-			ResourceTypes:     resourceTypes,
-			TargetProjectName: p.TargetProjectName,
+	if p.TriggerSchedule != "" {
+		item.TriggerTypeSchedule = &v1alpha1.TriggerTypeSchedule{
+			Cron: p.TriggerSchedule,
 		}
+	}
 
-		// Fetch and populate source registry info if registry ID is set
-		if p.SourceRegistryID > 0 && h.registryRepo != nil {
-			if reg, err := h.registryRepo.GetRegistry(ctx, p.SourceRegistryID); err == nil && reg != nil {
+	resourceTypes := parseResourceTypesString(p.ResourceTypes)
+
+	switch p.PolicyType {
+	case syncpolicy.SyncPolicyTypePull:
+		pullPolicy := &v1alpha1.PullBasePolicy{
+			SourceRegistryId:  uint32(p.RegistryID),
+			ResourceName:      buildResourcePath(p.RemoteProjectName, p.RemoteResourceName),
+			ResourceTypes:     resourceTypes,
+			TargetProjectName: p.LocalProjectName,
+		}
+		if p.RegistryID > 0 && h.registryRepo != nil {
+			if reg, err := h.registryRepo.GetRegistry(ctx, p.RegistryID); err == nil && reg != nil {
 				pullPolicy.SourceRegistry = convertDomainRegistryToAPIRegistry(reg)
 			}
 		}
-
 		item.Policy = &v1alpha1.SyncPolicyItem_PullBasePolicy{
 			PullBasePolicy: pullPolicy,
+		}
+
+	case syncpolicy.SyncPolicyTypePush:
+		pushPolicy := &v1alpha1.PushBasePolicy{
+			ResourceName:      buildResourcePath(p.LocalProjectName, p.LocalResourceName),
+			ResourceTypes:     resourceTypes,
+			TargetRegistryId:  uint32(p.RegistryID),
+			TargetProjectName: p.RemoteProjectName,
+		}
+		if p.RegistryID > 0 && h.registryRepo != nil {
+			if reg, err := h.registryRepo.GetRegistry(ctx, p.RegistryID); err == nil && reg != nil {
+				pushPolicy.TargetRegistry = convertDomainRegistryToAPIRegistry(reg)
+			}
+		}
+		item.Policy = &v1alpha1.SyncPolicyItem_PushBasePolicy{
+			PushBasePolicy: pushPolicy,
 		}
 	}
 
@@ -399,6 +527,8 @@ func syncTaskToProto(t *syncpolicy.SyncTask) *v1alpha1.SyncTask {
 		CompletedTimestamp: t.CompletedTimestamp,
 		TotalItems:         int64(t.TotalItems),
 		SuccessfulItems:    int64(t.SuccessfulItems),
+		StoppedItems:       int64(t.StoppedItems),
+		FailedItems:        int64(t.FailedItems),
 	}
 }
 
@@ -443,6 +573,67 @@ func parseResourceTypesString(s string) []v1alpha1.ResourceType {
 		return []v1alpha1.ResourceType{v1alpha1.ResourceType_RESOURCE_TYPE_MODEL}
 	}
 	return result
+}
+
+// parseResourcePath splits "project/name" into project and name.
+func parseResourcePath(fullPath string) (project, name string) {
+	parts := strings.SplitN(fullPath, "/", 2)
+	if len(parts) >= 2 {
+		return parts[0], parts[1]
+	}
+	return "", fullPath
+}
+
+// buildResourcePath joins project and name into "project/name".
+func buildResourcePath(project, name string) string {
+	if project == "" {
+		return name
+	}
+	return project + "/" + name
+}
+
+func syncJobToProto(j *syncjob.SyncJob) *v1alpha1.SyncJob {
+	if j == nil {
+		return nil
+	}
+
+	action := "push"
+	if j.SyncType == "pull" {
+		action = "clone"
+	}
+
+	return &v1alpha1.SyncJob{
+		Id:                 int32(j.ID),
+		SyncTaskId:         int32(j.SyncTaskID),
+		ResourceType:       stringToResourceType(j.ResourceType),
+		ResourceName:       j.ResourceName,
+		TargetResourceName: j.RemoteResourceName,
+		Action:             action,
+		Status:             v1alpha1.SyncJobStatus(j.Status),
+		CompletedTimestamp: j.CompletedTimestamp,
+	}
+}
+
+func resourceTypeProtoToString(rt v1alpha1.ResourceType) string {
+	switch rt {
+	case v1alpha1.ResourceType_RESOURCE_TYPE_MODEL:
+		return "model"
+	case v1alpha1.ResourceType_RESOURCE_TYPE_DATASET:
+		return "dataset"
+	default:
+		return ""
+	}
+}
+
+func stringToResourceType(s string) v1alpha1.ResourceType {
+	switch strings.TrimSpace(strings.ToLower(s)) {
+	case "model":
+		return v1alpha1.ResourceType_RESOURCE_TYPE_MODEL
+	case "dataset":
+		return v1alpha1.ResourceType_RESOURCE_TYPE_DATASET
+	default:
+		return v1alpha1.ResourceType_RESOURCE_TYPE_UNSPECIFIED
+	}
 }
 
 // Ensure SyncPolicyHandler implements v1alpha1.SyncPolicyServer

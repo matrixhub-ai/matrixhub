@@ -16,12 +16,9 @@ package repo
 
 import (
 	"context"
-	"strings"
-	"time"
 
 	"gorm.io/gorm"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 )
 

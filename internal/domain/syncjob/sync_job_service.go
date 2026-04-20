@@ -17,6 +17,7 @@ package syncjob
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
@@ -29,6 +30,7 @@ type ISyncJobService interface {
 	CreateSyncJob(ctx context.Context, param *SyncJob) error
 	CreateAndExcecuteSyncJob(ctx context.Context, param *SyncJob) error
 	ExecuteSyncJob(ctx context.Context, param *SyncJob) error
+	ListSyncJobsByTaskID(ctx context.Context, taskID int, page, pageSize int, status SyncJobStatus, resourceType string) ([]*SyncJob, int64, error)
 }
 
 type SyncJobService struct {
@@ -64,7 +66,18 @@ func (sjs *SyncJobService) CreateAndExcecuteSyncJob(ctx context.Context, syncJob
 	return sjs.ExecuteSyncJob(ctx, syncJob)
 }
 
+func (sjs *SyncJobService) ListSyncJobsByTaskID(ctx context.Context, taskID int, page, pageSize int, status SyncJobStatus, resourceType string) ([]*SyncJob, int64, error) {
+	return sjs.syncJobRepo.ListSyncJobsByTaskID(ctx, taskID, page, pageSize, status, resourceType)
+}
+
 func (sjs *SyncJobService) ExecuteSyncJob(ctx context.Context, syncJob *SyncJob) error {
+	defer func() {
+		syncJob.CompletedTimestamp = time.Now().Unix()
+		if err := sjs.syncJobRepo.UpdateSyncJob(ctx, syncJob); err != nil {
+			fmt.Printf("update sync job failed: %v\n", err)
+		}
+	}()
+
 	reg, err := sjs.registryRepo.GetRegistry(ctx, syncJob.RemoteRegistryID)
 	if err != nil {
 		return fmt.Errorf("get registry(id=%d): %w", syncJob.RemoteRegistryID, err)

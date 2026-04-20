@@ -16,6 +16,8 @@ package syncpolicy
 
 import (
 	"context"
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
@@ -23,36 +25,94 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
-// SyncPolicyType represents the type of sync policy
+// ==================== Custom Types ====================
+
+type SyncPolicyType int
+
 const (
-	SyncPolicyTypePull int = iota + 1
+	SyncPolicyTypeUnspecified SyncPolicyType = iota
+	SyncPolicyTypePull
 	SyncPolicyTypePush
 )
 
-// TriggerType represents how the sync is triggered
+func (t SyncPolicyType) Value() (driver.Value, error) {
+	return int64(t), nil
+}
+
+func (t *SyncPolicyType) Scan(value any) error {
+	if value == nil {
+		*t = SyncPolicyTypeUnspecified
+		return nil
+	}
+	switch v := value.(type) {
+	case int64:
+		*t = SyncPolicyType(v)
+	case int:
+		*t = SyncPolicyType(v)
+	case int32:
+		*t = SyncPolicyType(v)
+	case uint8:
+		*t = SyncPolicyType(v)
+	default:
+		return fmt.Errorf("cannot scan %T into SyncPolicyType", value)
+	}
+	return nil
+}
+
+type TriggerType int
+
 const (
-	TriggerTypeManual int = iota + 1
+	TriggerTypeUnspecified TriggerType = iota
+	TriggerTypeManual
 	TriggerTypeScheduled
 )
 
+func (t TriggerType) Value() (driver.Value, error) {
+	return int64(t), nil
+}
+
+func (t *TriggerType) Scan(value any) error {
+	if value == nil {
+		*t = TriggerTypeUnspecified
+		return nil
+	}
+	switch v := value.(type) {
+	case int64:
+		*t = TriggerType(v)
+	case int:
+		*t = TriggerType(v)
+	case int32:
+		*t = TriggerType(v)
+	case uint8:
+		*t = TriggerType(v)
+	default:
+		return fmt.Errorf("cannot scan %T into TriggerType", value)
+	}
+	return nil
+}
+
+// ==================== Entity ====================
+
 type SyncPolicy struct {
-	ID                int       `gorm:"primarykey"`
-	Name              string    `gorm:"column:name"`
-	Description       string    `gorm:"column:description"`
-	PolicyType        int       `gorm:"column:policy_type"`         // 1: pull, 2: push
-	TriggerType       int       `gorm:"column:trigger_type"`        // 1: manual, 2: scheduled
-	SourceRegistryID  int       `gorm:"column:source_registry_id"`  // for pull policy
-	ResourceName      string    `gorm:"column:resource_name"`       // source resource name
-	ResourceTypes     string    `gorm:"column:resource_types"`      // comma separated: model,dataset
-	TargetProjectName string    `gorm:"column:target_project_name"` // target local project name
-	Bandwidth         string    `gorm:"column:bandwidth"`
-	IsOverwrite       bool      `gorm:"column:is_overwrite"`
-	IsDisabled        bool      `gorm:"column:is_disabled"`
-	CreatedAt         time.Time `gorm:"column:created_at"`
-	UpdatedAt         time.Time `gorm:"column:updated_at"`
+	ID                 int            `gorm:"primarykey"`
+	Name               string         `gorm:"column:name"`
+	Description        string         `gorm:"column:description"`
+	PolicyType         SyncPolicyType `gorm:"column:policy_type"`
+	TriggerType        TriggerType    `gorm:"column:trigger_type"`
+	RegistryID         int            `gorm:"column:registry_id"`
+	LocalResourceName  string         `gorm:"column:local_resource_name"`
+	LocalProjectName   string         `gorm:"column:local_project_name"`
+	RemoteResourceName string         `gorm:"column:remote_resource_name"`
+	RemoteProjectName  string         `gorm:"column:remote_project_name"`
+	ResourceTypes      string         `gorm:"column:resource_types"`
+	Bandwidth          string         `gorm:"column:bandwidth"`
 	Cron              string    `gorm:"column:cron"`        // cron expression when TriggerType is scheduled
 	LastRunAt         int64     `gorm:"column:last_run_at"` // ms since epoch; last claim / run bookkeeping
 	NextRunAt         int64     `gorm:"column:next_run_at"` // ms; 0 = not scheduled
+	IsOverwrite        bool           `gorm:"column:is_overwrite"`
+	IsDisabled         bool           `gorm:"column:is_disabled"`
+	CreatedAt          time.Time      `gorm:"column:created_at"`
+	UpdatedAt          time.Time      `gorm:"column:updated_at"`
 }
 
 func (SyncPolicy) TableName() string {
@@ -105,13 +165,43 @@ func (p *SyncPolicy) nextRunAtAfterClaim(nowMs int64) (nextNext int64, ok bool) 
 	}
 }
 
+// GetRemoteRegistryID returns the registry ID associated with the remote side.
+func (p *SyncPolicy) GetRemoteRegistryID() int {
+	return p.RegistryID
+}
+
+// GetLocalResourcePath returns the local resource path for job execution.
+func (p *SyncPolicy) GetLocalResourcePath() string {
+	if p.LocalProjectName == "" {
+		return p.LocalResourceName
+	}
+	return p.LocalProjectName + "/" + p.LocalResourceName
+}
+
+// GetRemoteResourcePath returns the remote resource path for job execution.
+func (p *SyncPolicy) GetRemoteResourcePath() string {
+	if p.RemoteProjectName == "" {
+		return p.RemoteResourceName
+	}
+	return p.RemoteProjectName + "/" + p.RemoteResourceName
+}
+
+// IsPullBase returns true if this is a pull-based policy.
+func (p *SyncPolicy) IsPullBase() bool {
+	return p.PolicyType == SyncPolicyTypePull
+}
+
+// IsPushBase returns true if this is a push-based policy.
+func (p *SyncPolicy) IsPushBase() bool {
+	return p.PolicyType == SyncPolicyTypePush
+}
+
 type ISyncPolicyRepo interface {
 	CreateSyncPolicy(ctx context.Context, policy *SyncPolicy) error
 	GetSyncPolicy(ctx context.Context, id int) (*SyncPolicy, error)
 	UpdateSyncPolicy(ctx context.Context, policy *SyncPolicy) error
 	DeleteSyncPolicy(ctx context.Context, id int) error
 	ListSyncPolicies(ctx context.Context, page, pageSize int, search string) ([]*SyncPolicy, int64, error)
-	GenerateSyncTaskAndSyncJobs(ctx context.Context, policy *SyncPolicy) (*SyncTask, []*syncjob.SyncJob, error)
 
 	SelectDuePolicies(ctx context.Context, nowMs int64, limit int) ([]*SyncPolicy, error)
 	AdvanceNextRunAtCAS(ctx context.Context, policyID int, snapshotMs, nextNextMs, nowMs int64) (claimed bool, err error)
