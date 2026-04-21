@@ -321,13 +321,13 @@ export function ReplicationFormModal({
             <RadioGroup
               label={t('routes.admin.replications.form.syncRule')}
               withAsterisk
-              value={String(field.state.value)}
+              value={field.state.value}
               onChange={value => field.handleChange(value as ReplicationFormValues['policyType'])}
               onBlur={field.handleBlur}
             >
               <Group mt="xs">
                 <Radio
-                  value={String(SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE)}
+                  value={SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE}
                   label={(
                     <FieldHintLabel
                       label={t('routes.admin.replications.form.pull')}
@@ -338,7 +338,7 @@ export function ReplicationFormModal({
                   disabled={mode === 'edit'}
                 />
                 <Radio
-                  value={String(SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE)}
+                  value={SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE}
                   label={(
                     <FieldHintLabel
                       label={t('routes.admin.replications.form.push')}
