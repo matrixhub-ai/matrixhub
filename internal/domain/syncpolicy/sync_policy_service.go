@@ -18,7 +18,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -142,7 +141,7 @@ func (sps *SyncPolicyService) ClaimDueSyncPolicies(ctx context.Context, nowMs in
 		}
 		out = append(out, job.DueJob{
 			PolicyID:    p.ID,
-			TriggerType: p.TriggerType,
+			TriggerType: int(p.TriggerType),
 			FireAtMs:    nowMs,
 		})
 	}
@@ -156,7 +155,7 @@ func (sps *SyncPolicyService) CreatePendingSyncTask(ctx context.Context, policyI
 	}
 	task := &SyncTask{
 		SyncPolicyID:       policyID,
-		TriggerType:        triggerType,
+		TriggerType:        TriggerType(triggerType),
 		Status:             SyncTaskStatusPending,
 		StartedTimestamp:   0,
 		CompletedTimestamp: 0,

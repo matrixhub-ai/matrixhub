@@ -419,9 +419,9 @@ func (h *SyncPolicyHandler) applyCommonFields(p *syncpolicy.SyncPolicy, name, de
 	p.Description = desc
 	p.TriggerType = triggerType
 	p.Bandwidth = bandwidth
-	p.TriggerSchedule = ""
+	p.Cron = ""
 	if triggerSchedule != nil {
-		p.TriggerSchedule = triggerSchedule.Cron
+		p.Cron = triggerSchedule.Cron
 	}
 	p.IsOverwrite = isOverwrite
 	p.IsDisabled = isDisabled
@@ -468,9 +468,9 @@ func (h *SyncPolicyHandler) syncPolicyToProto(ctx context.Context, p *syncpolicy
 		IsOverwrite: p.IsOverwrite,
 		IsDisabled:  p.IsDisabled,
 	}
-	if p.TriggerSchedule != "" {
+	if p.Cron != "" {
 		item.TriggerTypeSchedule = &v1alpha1.TriggerTypeSchedule{
-			Cron: p.TriggerSchedule,
+			Cron: p.Cron,
 		}
 	}
 

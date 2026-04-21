@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
@@ -106,9 +105,9 @@ type SyncPolicy struct {
 	RemoteProjectName  string         `gorm:"column:remote_project_name"`
 	ResourceTypes      string         `gorm:"column:resource_types"`
 	Bandwidth          string         `gorm:"column:bandwidth"`
-	Cron              string    `gorm:"column:cron"`        // cron expression when TriggerType is scheduled
-	LastRunAt         int64     `gorm:"column:last_run_at"` // ms since epoch; last claim / run bookkeeping
-	NextRunAt         int64     `gorm:"column:next_run_at"` // ms; 0 = not scheduled
+	Cron               string         `gorm:"column:cron"`        // cron expression when TriggerType is scheduled
+	LastRunAt          int64          `gorm:"column:last_run_at"` // ms since epoch; last claim / run bookkeeping
+	NextRunAt          int64          `gorm:"column:next_run_at"` // ms; 0 = not scheduled
 	IsOverwrite        bool           `gorm:"column:is_overwrite"`
 	IsDisabled         bool           `gorm:"column:is_disabled"`
 	CreatedAt          time.Time      `gorm:"column:created_at"`

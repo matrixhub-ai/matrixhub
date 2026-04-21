@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	v1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
@@ -39,6 +38,19 @@ type fakeSyncPolicyService struct {
 	lastPolicyID int
 	lastTrigger  int
 	execFn       func(ctx context.Context, policyID int, triggerType int) error
+}
+
+func (f *fakeSyncPolicyService) UpdateSyncTask(ctx context.Context, param *syncpolicy.SyncTask) error {
+	return errors.New("not used")
+
+}
+
+func (f *fakeSyncPolicyService) ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status syncpolicy.SyncTaskStatus) ([]*syncpolicy.SyncTask, int64, error) {
+	return nil, 0, errors.New("not used")
+}
+
+func (f *fakeSyncPolicyService) CreateExcecuteSyncTaskAndSyncJobs(ctx context.Context, policy *syncpolicy.SyncPolicy) (*syncpolicy.SyncTask, error) {
+	return nil, errors.New("not used")
 }
 
 func (f *fakeSyncPolicyService) ClaimDueSyncPolicies(ctx context.Context, nowMs int64) ([]job.DueJob, error) {
@@ -70,10 +82,6 @@ func (f *fakeSyncPolicyService) CreatePendingSyncTask(ctx context.Context, polic
 	return nil
 }
 
-func (f *fakeSyncPolicyService) CreateExcecuteSyncTaskAndSyncJobs(context.Context, *syncpolicy.SyncPolicy) error {
-	return errors.New("not used")
-}
-
 func (f *fakeSyncPolicyService) GetSyncPolicy(context.Context, int) (*syncpolicy.SyncPolicy, error) {
 	return nil, errors.New("not used")
 }
@@ -94,9 +102,6 @@ func (f *fakeSyncPolicyService) GetSyncTask(context.Context, int) (*syncpolicy.S
 }
 func (f *fakeSyncPolicyService) CreateSyncTask(context.Context, *syncpolicy.SyncTask) (*syncpolicy.SyncTask, error) {
 	return nil, errors.New("not used")
-}
-func (f *fakeSyncPolicyService) ListSyncTasksByPolicyID(context.Context, int, int, int, v1alpha1.SyncTaskStatus) ([]*syncpolicy.SyncTask, int64, error) {
-	return nil, 0, errors.New("not used")
 }
 func (f *fakeSyncPolicyService) CreateSyncTaskAndSyncJobs(context.Context, *syncpolicy.SyncPolicy) error {
 	return errors.New("not used")
