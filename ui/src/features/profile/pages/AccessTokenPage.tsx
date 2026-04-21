@@ -4,13 +4,11 @@ import {
   Button,
   Flex,
   Group,
-  Radio,
   rem,
   Stack,
   Text,
   TextInput,
 } from '@mantine/core'
-import { DatePickerInput } from '@mantine/dates'
 import { useDisclosure } from '@mantine/hooks'
 import { CurrentUser, type CreateAccessTokenRequest } from '@matrixhub/api-ts/v1alpha1/current_user.pb'
 import {
@@ -25,21 +23,12 @@ import { useTranslation } from 'react-i18next'
 import z from 'zod'
 
 import { AccessTokenTable } from '@/features/profile/components/AccessTokenTable'
+import { ExpireAtField } from '@/features/profile/components/ExpireAtField'
 import { profileKeys, useAccessTokens } from '@/features/profile/profile.query'
+import { expireAtSchema } from '@/features/profile/profile.schema.ts'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { useForm } from '@/shared/hooks/useForm'
-
-const validityRadios = [
-  {
-    value: 'never',
-    label: 'profile.expireNever',
-  },
-  {
-    value: 'custom',
-    label: 'profile.expireCustom',
-  },
-] as const
 
 export function AccessTokenPage() {
   const { t } = useTranslation()
@@ -59,16 +48,11 @@ export function AccessTokenPage() {
     open: openCopy, close: closeCopy,
   }] = useDisclosure(false)
 
-  const [validityValue, setValidityValue] = useState<'never' | 'custom'>('never')
-
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: profileKeys.accessTokens })
   }
 
   const nameSchema = z.string().min(1, { error: t('common.validation.fieldRequired', { field: t('profile.tokenName') }) })
-
-  const expireAtSchema = z.string().min(1, { error: t('common.validation.fieldRequired', { field: t('profile.expireTime') }) })
-    .refine(value => dayjs(value).startOf('day').isAfter(dayjs().startOf('day')), { error: t('profile.expireTimeError') })
 
   const [newToken, setNewToken] = useState<string>('')
 
@@ -93,28 +77,19 @@ export function AccessTokenPage() {
   const form = useForm({
     defaultValues: {
       name: '',
-      expireAt: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+      expireAt: '',
     },
     onSubmit: ({ value }) => {
       createToken({
         ...value,
-        expireAt: validityValue === 'custom' ? String(dayjs(value.expireAt).unix()) : '',
+        expireAt: value.expireAt ? String(dayjs(value.expireAt).unix()) : '',
       })
     },
   })
 
-  const handleValidityChange = (v: string) => {
-    setValidityValue(v as 'never' | 'custom')
-
-    if (v === 'never') {
-      form.resetField('expireAt')
-    }
-  }
-
   const handleCreateClose = () => {
     closeCreate()
     form.reset()
-    setValidityValue('never')
   }
 
   const handleCopyClose = () => {
@@ -183,42 +158,17 @@ export function AccessTokenPage() {
             />
           )}
         </form.Field>
-        <Radio.Group
-          label={t('profile.validity')}
-          name="validity"
-          value={validityValue}
-          onChange={handleValidityChange}
-        >
-          <Group mt="xs">
-            {validityRadios.map(radio => (
-              <Radio
-                key={radio.value}
-                value={radio.value}
-                label={t(radio.label)}
-              />
-            ))}
-          </Group>
-        </Radio.Group>
-        {validityValue === 'custom' && (
-          <form.Field
-            name="expireAt"
-            validators={{ onChange: expireAtSchema }}
-          >
-            {({
-              state, handleChange,
-            }) => (
-              <DatePickerInput
-                label={t('profile.expireTime')}
-                valueFormat="YYYY-MM-DD"
-                value={state.value}
-                required
-                highlightToday
-                onChange={e => handleChange(e ?? '')}
-                error={state.meta.errors[0]?.message}
-              />
-            )}
-          </form.Field>
-        )}
+        <form.Field name="expireAt" validators={{ onChange: expireAtSchema }}>
+          {({
+            state, handleChange,
+          }) => (
+            <ExpireAtField
+              value={state.value}
+              onChange={handleChange}
+              error={state.meta.errors[0]?.message}
+            />
+          )}
+        </form.Field>
       </ModalWrapper>
 
       <ModalWrapper

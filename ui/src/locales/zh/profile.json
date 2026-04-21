@@ -2,6 +2,31 @@
   "personalCenter": "个人中心",
   "securitySetting": "安全设置",
   "accessToken": "访问密钥",
+  "sshKey": {
+    "publicKey": "SSH 公钥",
+    "name": "SSH 公钥名称",
+    "statusLabel": "状态",
+    "expireAt": "过期时间",
+    "importedAt": "导入时间",
+    "create": {
+      "button": "导入 SSH 公钥",
+      "title": "导入 SSH 公钥",
+      "name": "SSH 公钥名称",
+      "publicKey": "导入公钥",
+      "success": "SSH 公钥导入成功"
+    },
+    "delete": {
+      "action": "删除",
+      "title": "删除",
+      "confirm": "确认删除 SSH 公钥 {{name}} 吗？删除此公钥后，此公钥立即失效。",
+      "success": "SSH 公钥删除成功"
+    },
+    "status": {
+      "SSH_KEY_STATUS_VALID": "有效",
+      "SSH_KEY_STATUS_EXPIRED": "已过期",
+      "SSH_KEY_STATUS_UNKNOWN": "未知"
+    }
+  },
   "password": "密码",
   "changePassword": "修改密码",
   "editPassword": "编辑密码",

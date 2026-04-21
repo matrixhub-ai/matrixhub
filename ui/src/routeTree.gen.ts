@@ -24,6 +24,7 @@ import { Route as authappProjectsIndexRouteImport } from './routes/(auth)/(app)/
 import { Route as authappProfileIndexRouteImport } from './routes/(auth)/(app)/profile/index'
 import { Route as authappModelsIndexRouteImport } from './routes/(auth)/(app)/models/index'
 import { Route as authappDatasetsIndexRouteImport } from './routes/(auth)/(app)/datasets/index'
+import { Route as authappProfileSshKeysRouteImport } from './routes/(auth)/(app)/profile/ssh-keys'
 import { Route as authappProfileSecurityRouteImport } from './routes/(auth)/(app)/profile/security'
 import { Route as authappProfileAccessTokenRouteImport } from './routes/(auth)/(app)/profile/access-token'
 import { Route as authappModelsNewRouteImport } from './routes/(auth)/(app)/models/new'
@@ -121,6 +122,11 @@ const authappDatasetsIndexRoute = authappDatasetsIndexRouteImport.update({
   id: '/datasets/',
   path: '/datasets/',
   getParentRoute: () => authappRouteRoute,
+} as any)
+const authappProfileSshKeysRoute = authappProfileSshKeysRouteImport.update({
+  id: '/ssh-keys',
+  path: '/ssh-keys',
+  getParentRoute: () => authappProfileRouteRoute,
 } as any)
 const authappProfileSecurityRoute = authappProfileSecurityRouteImport.update({
   id: '/security',
@@ -281,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/models/new': typeof authappModelsNewRoute
   '/profile/access-token': typeof authappProfileAccessTokenRoute
   '/profile/security': typeof authappProfileSecurityRoute
+  '/profile/ssh-keys': typeof authappProfileSshKeysRoute
   '/datasets/': typeof authappDatasetsIndexRoute
   '/models/': typeof authappModelsIndexRoute
   '/profile/': typeof authappProfileIndexRoute
@@ -317,6 +324,7 @@ export interface FileRoutesByTo {
   '/models/new': typeof authappModelsNewRoute
   '/profile/access-token': typeof authappProfileAccessTokenRoute
   '/profile/security': typeof authappProfileSecurityRoute
+  '/profile/ssh-keys': typeof authappProfileSshKeysRoute
   '/datasets': typeof authappDatasetsIndexRoute
   '/models': typeof authappModelsIndexRoute
   '/profile': typeof authappProfileIndexRoute
@@ -358,6 +366,7 @@ export interface FileRoutesById {
   '/(auth)/(app)/models/new': typeof authappModelsNewRoute
   '/(auth)/(app)/profile/access-token': typeof authappProfileAccessTokenRoute
   '/(auth)/(app)/profile/security': typeof authappProfileSecurityRoute
+  '/(auth)/(app)/profile/ssh-keys': typeof authappProfileSshKeysRoute
   '/(auth)/(app)/datasets/': typeof authappDatasetsIndexRoute
   '/(auth)/(app)/models/': typeof authappModelsIndexRoute
   '/(auth)/(app)/profile/': typeof authappProfileIndexRoute
@@ -399,6 +408,7 @@ export interface FileRouteTypes {
     | '/models/new'
     | '/profile/access-token'
     | '/profile/security'
+    | '/profile/ssh-keys'
     | '/datasets/'
     | '/models/'
     | '/profile/'
@@ -435,6 +445,7 @@ export interface FileRouteTypes {
     | '/models/new'
     | '/profile/access-token'
     | '/profile/security'
+    | '/profile/ssh-keys'
     | '/datasets'
     | '/models'
     | '/profile'
@@ -475,6 +486,7 @@ export interface FileRouteTypes {
     | '/(auth)/(app)/models/new'
     | '/(auth)/(app)/profile/access-token'
     | '/(auth)/(app)/profile/security'
+    | '/(auth)/(app)/profile/ssh-keys'
     | '/(auth)/(app)/datasets/'
     | '/(auth)/(app)/models/'
     | '/(auth)/(app)/profile/'
@@ -613,6 +625,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/datasets/'
       preLoaderRoute: typeof authappDatasetsIndexRouteImport
       parentRoute: typeof authappRouteRoute
+    }
+    '/(auth)/(app)/profile/ssh-keys': {
+      id: '/(auth)/(app)/profile/ssh-keys'
+      path: '/ssh-keys'
+      fullPath: '/profile/ssh-keys'
+      preLoaderRoute: typeof authappProfileSshKeysRouteImport
+      parentRoute: typeof authappProfileRouteRoute
     }
     '/(auth)/(app)/profile/security': {
       id: '/(auth)/(app)/profile/security'
@@ -788,12 +807,14 @@ declare module '@tanstack/react-router' {
 interface authappProfileRouteRouteChildren {
   authappProfileAccessTokenRoute: typeof authappProfileAccessTokenRoute
   authappProfileSecurityRoute: typeof authappProfileSecurityRoute
+  authappProfileSshKeysRoute: typeof authappProfileSshKeysRoute
   authappProfileIndexRoute: typeof authappProfileIndexRoute
 }
 
 const authappProfileRouteRouteChildren: authappProfileRouteRouteChildren = {
   authappProfileAccessTokenRoute: authappProfileAccessTokenRoute,
   authappProfileSecurityRoute: authappProfileSecurityRoute,
+  authappProfileSshKeysRoute: authappProfileSshKeysRoute,
   authappProfileIndexRoute: authappProfileIndexRoute,
 }
 
