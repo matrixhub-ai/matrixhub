@@ -31,11 +31,14 @@ const (
 	SyncTaskStatusStopped
 )
 
+// SyncTaskStatusPending means the task row exists; sync_task_processor will claim it and run work later.
+const SyncTaskStatusPending = 5
+
 type SyncTask struct {
 	ID                 int       `gorm:"primarykey"`
 	SyncPolicyID       int       `gorm:"column:sync_policy_id"`
 	TriggerType        int       `gorm:"column:trigger_type"` // 1: manual, 2: scheduled
-	Status             int       `gorm:"column:status"`       // 1: running, 2: succeeded, 3: failed, 4: stopped
+	Status             int       `gorm:"column:status"`       // 1: running, 2: succeeded, 3: failed, 4: stopped, 5: pending (queued for processor)
 	StartedTimestamp   int64     `gorm:"column:started_timestamp"`
 	CompletedTimestamp int64     `gorm:"column:completed_timestamp"`
 	TotalItems         int       `gorm:"column:total_items"`

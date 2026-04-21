@@ -180,11 +180,15 @@ CREATE TABLE IF NOT EXISTS `sync_policies`
     `bandwidth`           varchar(64),
     `is_overwrite`        tinyint(1) NOT NULL DEFAULT 0,
     `is_disabled`         tinyint(1) NOT NULL DEFAULT 0,
+    `cron`                varchar(128) NOT NULL DEFAULT '',
+    `last_run_at`         bigint NOT NULL DEFAULT 0,
+    `next_run_at`         bigint NOT NULL DEFAULT 0,
     `created_at`          timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`          timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `idx_name` (`name`),
     KEY `idx_source_registry_id` (`source_registry_id`),
+    KEY `idx_due` (`is_disabled`, `next_run_at`),
     CONSTRAINT `fk_sync_policies_registry_id`
         FOREIGN KEY (`source_registry_id`) REFERENCES `registries` (`id`) ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

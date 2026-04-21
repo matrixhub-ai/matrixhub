@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	hfdssh "github.com/matrixhub-ai/hfd/pkg/ssh"
 	"github.com/spf13/viper"
@@ -36,6 +37,36 @@ type Config struct {
 	DataDir string `yaml:"dataDir" validate:"required"`
 
 	Database db.Config `yaml:"database" validate:"required"`
+
+	// JobServer runs delayed sync (and future kinds). If nil, DefaultConfig() is applied after load.
+	JobServer *JobServerConfig `yaml:"jobServer"`
+}
+
+// JobServerConfig is the top-level jobserver configuration (YAML key `jobServer`).
+type JobServerConfig struct {
+	Enabled       bool             `yaml:"enabled"`
+	ShutdownGrace time.Duration    `yaml:"shutdownGrace"`
+	SyncPolicy    SyncPolicyConfig `yaml:"syncPolicy"`
+}
+
+// SyncPolicyConfig holds per-processor tuning for the sync-policy delayed-job poller.
+type SyncPolicyConfig struct {
+	PollInterval    time.Duration `yaml:"pollInterval"`
+	MaxConcurrent   int           `yaml:"maxConcurrent"`
+	TaskMaxDuration time.Duration `yaml:"taskMaxDuration"`
+}
+
+// DefaultJobServerConfig returns production-minded defaults (enabled).
+func DefaultJobServerConfig() *JobServerConfig {
+	return &JobServerConfig{
+		Enabled:       true,
+		ShutdownGrace: 30 * time.Second,
+		SyncPolicy: SyncPolicyConfig{
+			PollInterval:    10 * time.Second,
+			MaxConcurrent:   5,
+			TaskMaxDuration: 2 * time.Hour,
+		},
+	}
 }
 
 type APIServerConfig struct {
@@ -121,6 +152,10 @@ func Init(configPath, sqlPath string) (*Config, error) {
 		cfg.Database.SQLPath = filepath.Join(cfg.MigrationPath, sqlPath)
 	}
 	cfg.Database.Debug = cfg.Debug
+
+	if cfg.JobServer == nil {
+		cfg.JobServer = DefaultJobServerConfig()
+	}
 
 	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("config invalid: %v", err)

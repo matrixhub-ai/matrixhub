@@ -30,7 +30,6 @@ type action string
 const (
 	resourceDataset = "datasets"
 	resourceModel   = "models"
-	resourceSpace   = "spaces"
 
 	actionRead  action = "read"
 	actionWrite action = "write"

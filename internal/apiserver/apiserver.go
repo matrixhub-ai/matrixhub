@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -54,6 +55,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+	"github.com/matrixhub-ai/matrixhub/internal/jobserver"
 	"github.com/matrixhub-ai/matrixhub/internal/repo"
 )
 
@@ -77,6 +79,10 @@ type APIServer struct {
 	repos    *repo.Repos
 	services *Services
 	handlers []handler.IHandler
+
+	jobServer *jobserver.JobServer
+	jobCancel context.CancelFunc
+	jobWait   sync.WaitGroup
 }
 
 func NewAPIServer(config *config.Config) *APIServer {
@@ -391,7 +397,6 @@ func (server *APIServer) initHandlersServicesRepos() {
 	)
 	userService := user.NewUserService(repos.Session, repos.User)
 
-	// init sync job service (required by sync policy service)
 	syncJobService := syncjob.NewSyncJobService(
 		repos.SyncJob,
 		repos.Registry,
@@ -406,6 +411,12 @@ func (server *APIServer) initHandlersServicesRepos() {
 		repos.SyncTask,
 		syncJobService,
 	)
+
+	if server.config.JobServer.Enabled {
+		jc := *server.config.JobServer
+		server.jobServer = jobserver.New(&jc, syncPolicyService)
+	}
+
 	server.services = &Services{
 		Model:   modelService,
 		Dataset: datasetService,
@@ -533,11 +544,33 @@ func (server *APIServer) Start() <-chan error {
 		}()
 	}
 
+	if server.jobServer != nil {
+		jsCtx, cancel := context.WithCancel(context.Background())
+		server.jobCancel = cancel
+		server.jobWait.Add(1)
+		go func() {
+			defer server.jobWait.Done()
+			server.jobServer.Run(jsCtx)
+		}()
+	}
+
 	return errorCh
 }
 
 func (server *APIServer) Shutdown() {
 	log.Info("api server shutdown...")
+
+	if server.jobCancel != nil {
+		server.jobCancel()
+	}
+	if server.jobServer != nil {
+		grace := server.config.JobServer.ShutdownGrace
+		if grace == 0 {
+			grace = 30 * time.Second
+		}
+		server.jobServer.Shutdown(grace)
+	}
+	server.jobWait.Wait()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

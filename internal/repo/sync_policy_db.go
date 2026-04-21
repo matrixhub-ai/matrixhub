@@ -159,5 +159,32 @@ func parseRemoteResourceName(fullPath string) (string, string) {
 	return fullPath, ""
 }
 
+// SelectDuePolicies returns policies that are due (enabled, next_run_at in (0, now]).
+func (r *syncPolicyDB) SelectDuePolicies(ctx context.Context, nowMs int64, limit int) ([]*syncpolicy.SyncPolicy, error) {
+	var rows []*syncpolicy.SyncPolicy
+	err := r.db.WithContext(ctx).
+		Where("is_disabled = 0 AND next_run_at > 0 AND next_run_at <= ?", nowMs).
+		Order("next_run_at ASC").
+		Limit(limit).
+		Find(&rows).Error
+	return rows, err
+}
+
+// AdvanceNextRunAtCAS atomically claims a due slot by advancing next_run_at from snapshotMs.
+func (r *syncPolicyDB) AdvanceNextRunAtCAS(
+	ctx context.Context, policyID int, snapshotMs, nextNextMs, nowMs int64,
+) (bool, error) {
+	res := r.db.WithContext(ctx).Exec(`
+		UPDATE sync_policies
+		   SET next_run_at = ?, last_run_at = ?
+		 WHERE id = ? AND next_run_at = ?`,
+		nextNextMs, nowMs, policyID, snapshotMs,
+	)
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected == 1, nil
+}
+
 // Ensure syncPolicyDB implements ISyncPolicyRepo
 var _ syncpolicy.ISyncPolicyRepo = (*syncPolicyDB)(nil)
