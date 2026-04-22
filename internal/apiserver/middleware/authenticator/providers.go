@@ -16,20 +16,20 @@ package authenticator
 
 import "github.com/matrixhub-ai/matrixhub/internal/domain/user"
 
-func NewWebAuthenticator(sessionRepo user.ISessionRepo) HTTPAuthenticator {
+func NewWebAuthenticator(sessionRepo user.ISessionRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewCookieAuthenticator(sessionRepo),
 	)
 }
 
-func NewHfCLIAuthenticator(tokenRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo) HTTPAuthenticator {
+func NewHfCLIAuthenticator(tokenRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewTokenAuthenticator(tokenRepo),
 		NewCookieAuthenticator(sessionRepo),
 	)
 }
 
-func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo) HTTPAuthenticator {
+func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewTokenAuthenticator(tokenRepo),
 	)

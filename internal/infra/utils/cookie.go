@@ -12,36 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authenticator
+package utils
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+
+	"google.golang.org/grpc/metadata"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
-type MultiAuthenticator struct {
-	authenticators []HTTPAuthenticator
-}
-
-func NewMultiAuthenticator(auths ...HTTPAuthenticator) *MultiAuthenticator {
-	return &MultiAuthenticator{
-		authenticators: auths,
+func GetCookieFromContext(ctx context.Context) (token string) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return
 	}
-}
-
-func (m *MultiAuthenticator) Authenticate(ctx context.Context, r *http.Request) (succeeded HTTPAuthenticator, identity *user.Identity, err error) {
-	for _, auth := range m.authenticators {
-		identity, err = auth.Authenticate(ctx, r)
-		if err != nil {
-			return nil, nil, err
-		}
-		if identity != nil {
-			return auth, identity, nil
-		}
+	cookieHeader := firstMD(md, "grpcgateway-cookie", "cookie")
+	if cookieHeader == "" {
+		return
 	}
 
-	return nil, nil, fmt.Errorf("failed to authenticate: %s", err)
+	return extractSessionToken(cookieHeader, user.CookieName)
+}
+
+func extractSessionToken(cookieHeader, name string) string {
+	h := http.Header{}
+	h.Add("Cookie", cookieHeader)
+	c, err := (&http.Request{Header: h}).Cookie(name)
+	if err != nil {
+		return ""
+	}
+	return c.Value
+}
+
+func firstMD(md metadata.MD, keys ...string) string {
+	for _, k := range keys {
+		if vs := md.Get(k); len(vs) > 0 && vs[0] != "" {
+			return vs[0]
+		}
+	}
+	return ""
 }

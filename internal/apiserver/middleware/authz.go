@@ -72,8 +72,8 @@ func AuthzInterceptor(verifyFunc func(ctx context.Context, perm role.Permission)
 		}
 
 		// Check if user is authenticated
-		userID := ctx.Value(user.UserIdCtxKey)
-		if userID == nil {
+		userID := user.GetCurrentUserId(ctx)
+		if userID == 0 {
 			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 		}
 

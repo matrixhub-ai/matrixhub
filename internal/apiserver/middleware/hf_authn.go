@@ -29,7 +29,7 @@ func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRe
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo)
-			identity, err := auth.Authenticate(r.Context(), r)
+			_, identity, err := auth.Authenticate(r.Context(), r)
 			if err == nil {
 				r = setUserInfo(r, identity.UserId)
 			}
@@ -42,6 +42,8 @@ func setUserInfo(r *http.Request, userId int) *http.Request {
 	r = r.WithContext(authenticate.WithContext(r.Context(), authenticate.UserInfo{
 		User: strconv.Itoa(userId),
 	}))
-	r = r.WithContext(context.WithValue(r.Context(), user.UserIdCtxKey, userId))
+	r = r.WithContext(context.WithValue(r.Context(), user.IdentityKey{}, &user.Identity{
+		UserId: userId,
+	}))
 	return r
 }

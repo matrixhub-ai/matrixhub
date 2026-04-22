@@ -35,7 +35,7 @@ func NewTokenAuthenticator(tokenRepo user.IAccessTokenRepo) *TokenAuthenticator 
 	return &TokenAuthenticator{tokenRepo: tokenRepo}
 }
 
-func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (*Identity, error) {
+func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (*user.Identity, error) {
 	token := extractTokenCredential(r)
 	if token == "" {
 		return nil, nil
@@ -45,9 +45,8 @@ func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) 
 		return nil, err
 	}
 	if ak != nil && ak.IsValid(time.Now()) {
-		return &Identity{
+		return &user.Identity{
 			UserId: ak.UserId,
-			Via:    MethodToken,
 		}, nil
 	}
 

@@ -16,29 +16,18 @@ package user
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
 )
 
-type CtxKey string
-
-func (c CtxKey) String() string {
-	return string(c)
-}
-
 var (
 	InvalidUsernameOrPassword = errors.New("invalid username or password")
-
-	UsernameCtxKey CtxKey = "username"
-	UserIdCtxKey   CtxKey = "user_id"
-	LoginAtCtxKey  CtxKey = "login_at"
 )
 
 type IUserService interface {
-	LoginUser(ctx context.Context, username, password string, rememberMe bool) (*http.Cookie, error)
-	LogoutUser(ctx context.Context) (*http.Cookie, error)
+	LoginUser(ctx context.Context, username, password string, rememberMe bool) error
+	LogoutUser(ctx context.Context) error
 	GetCurrentUser(ctx context.Context) (*User, error)
 }
 
@@ -48,7 +37,7 @@ type UserService struct {
 }
 
 func (us UserService) GetCurrentUser(ctx context.Context) (*User, error) {
-	username := us.sessionRepo.GetString(ctx, UsernameCtxKey.String())
+	username := us.sessionRepo.Manager().GetString(ctx, UsernameCtxKey)
 	if username == "" {
 		return nil, InvalidUsernameOrPassword
 	}
@@ -56,60 +45,42 @@ func (us UserService) GetCurrentUser(ctx context.Context) (*User, error) {
 	return us.userRepo.GetUserByName(ctx, username)
 }
 
-func (us UserService) LoginUser(ctx context.Context, username, password string, rememberMe bool) (*http.Cookie, error) {
+func (us UserService) LoginUser(ctx context.Context, username, password string, rememberMe bool) error {
 	u, err := us.userRepo.GetUserByName(ctx, username)
 	if err != nil {
-		return nil, InvalidUsernameOrPassword
+		return InvalidUsernameOrPassword
 	}
 	if !u.CheckPassword(password) {
-		return nil, InvalidUsernameOrPassword
+		return InvalidUsernameOrPassword
 	}
-
-	if err = us.sessionRepo.RenewToken(ctx); err != nil {
-		return nil, err
-	}
-
-	us.sessionRepo.RememberMe(ctx, rememberMe)
-	us.sessionRepo.Put(ctx, UserIdCtxKey.String(), u.ID)
-	us.sessionRepo.Put(ctx, UsernameCtxKey.String(), u.Username)
-	us.sessionRepo.Put(ctx, LoginAtCtxKey.String(), time.Now().Format(time.RFC3339))
-
-	token, expiry, err := us.sessionRepo.Commit(ctx)
+	manager := us.sessionRepo.Manager()
+	ctx, err = manager.Load(ctx, "")
 	if err != nil {
-		return nil, InvalidUsernameOrPassword
+		return err
 	}
-	sessionCookie := us.sessionRepo.GetSessionCookie()
+	if err = manager.RenewToken(ctx); err != nil {
+		return err
+	}
+	now := time.Now().Unix()
+	manager.RememberMe(ctx, rememberMe)
+	manager.Put(ctx, UserIdCtxKey, u.ID)
+	manager.Put(ctx, UsernameCtxKey, u.Username)
+	manager.Put(ctx, LoginAtCtxKey, now)
+	manager.Put(ctx, LastActiveCtxKey, now)
 
-	return &http.Cookie{
-		Name:     sessionCookie.Name,
-		Value:    token,
-		Path:     sessionCookie.Path,
-		Domain:   sessionCookie.Domain,
-		Expires:  expiry,
-		HttpOnly: sessionCookie.HttpOnly,
-		Secure:   sessionCookie.Secure,
-		SameSite: sessionCookie.SameSite,
-	}, nil
+	token, expiry, err := manager.Commit(ctx)
+	if err != nil {
+		return InvalidUsernameOrPassword
+	}
+	return us.sessionRepo.WriteSessionCookie(ctx, token, expiry)
 }
 
-func (us UserService) LogoutUser(ctx context.Context) (*http.Cookie, error) {
-	if err := us.sessionRepo.Destroy(ctx); err != nil {
-		return nil, err
+func (us UserService) LogoutUser(ctx context.Context) error {
+	ctx, err := us.sessionRepo.LoadSession(ctx)
+	if err != nil {
+		return err
 	}
-	sessionCookie := us.sessionRepo.GetSessionCookie()
-	// clear cookie
-	cookie := &http.Cookie{
-		Name:     sessionCookie.Name,
-		Value:    "",
-		Path:     sessionCookie.Path,
-		Domain:   sessionCookie.Domain,
-		Expires:  time.Unix(1, 0),
-		MaxAge:   -1,
-		HttpOnly: sessionCookie.HttpOnly,
-		Secure:   sessionCookie.Secure,
-		SameSite: sessionCookie.SameSite,
-	}
-	return cookie, nil
+	return us.sessionRepo.Manager().Destroy(ctx)
 }
 
 func NewUserService(session ISessionRepo, user IUserRepo) IUserService {
@@ -121,19 +92,17 @@ func NewUserService(session ISessionRepo, user IUserRepo) IUserService {
 
 // GetCurrentUsername get current username from context
 func GetCurrentUsername(ctx context.Context) string {
-	val := ctx.Value(UsernameCtxKey)
-	str, ok := val.(string)
+	val, ok := ctx.Value(IdentityKey{}).(*Identity)
 	if !ok {
 		return ""
 	}
-	return str
+	return val.Username
 }
 
 func GetCurrentUserId(ctx context.Context) int {
-	val := ctx.Value(UserIdCtxKey)
-	i, ok := val.(int)
+	val, ok := ctx.Value(IdentityKey{}).(*Identity)
 	if !ok {
 		return 0
 	}
-	return i
+	return val.UserId
 }

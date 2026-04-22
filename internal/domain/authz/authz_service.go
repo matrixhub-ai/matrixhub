@@ -69,18 +69,10 @@ func (s *AuthzService) GetUserPermissions(ctx context.Context, userID int, proje
 	return append(platformPerms, projectPerms...), nil
 }
 
-func (s *AuthzService) getUserIDFromCtx(ctx context.Context) (int, bool) {
-	userIDValue := ctx.Value(user.UserIdCtxKey)
-	if userIDValue == nil {
-		return 0, false
-	}
-	return userIDValue.(int), true
-}
-
 // VerifyPlatformPermission verifies platform-level permission (gets user info from ctx)
 func (s *AuthzService) VerifyPlatformPermission(ctx context.Context, perm role.Permission) (bool, error) {
-	userID, ok := s.getUserIDFromCtx(ctx)
-	if !ok {
+	userID := user.GetCurrentUserId(ctx)
+	if userID == 0 {
 		return false, nil
 	}
 
@@ -116,8 +108,8 @@ func (s *AuthzService) verifyProjectPermission(ctx context.Context, project *pro
 		return true, nil
 	}
 
-	userID, ok := s.getUserIDFromCtx(ctx)
-	if !ok {
+	userID := user.GetCurrentUserId(ctx)
+	if userID == 0 {
 		return false, nil
 	}
 

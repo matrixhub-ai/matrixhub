@@ -22,22 +22,29 @@ import (
 )
 
 const (
-	CookieName                = "token"
-	DefaultSessionLifetime    = time.Hour * 24 * 7
-	DefaultSessionIdleTimeout = time.Hour * 8
+	CookieName       = "token"
+	UsernameCtxKey   = "username"
+	UserIdCtxKey     = "user_id"
+	LoginAtCtxKey    = "login_at"
+	LastActiveCtxKey = "last_active"
+	RememberMeCtxKey = "__rememberMe"
+
+	MaxPersistentSessionLifetime        = time.Hour * 24 * 30
+	DefaultPersistentSessionIdleTimeout = time.Hour * 24 * 7
+	DefaultSessionIdleTimeout           = time.Hour * 8
 )
+
+type SessionConfig struct {
+	PersistentSessionLifetime    time.Duration
+	PersistentSessionIdleTimeout time.Duration
+	NonPersistentIdleTimeout     time.Duration
+}
 
 type ISessionRepo interface {
 	GetSessionCookie() scs.SessionCookie
-	Load(ctx context.Context, token string) (context.Context, error)
-	Commit(ctx context.Context) (string, time.Time, error)
-	RenewToken(ctx context.Context) error
-	RememberMe(ctx context.Context, val bool)
-	GetString(ctx context.Context, key string) string
-	GetInt(ctx context.Context, key string) int
-	Put(ctx context.Context, key string, val interface{})
-	Destroy(ctx context.Context) error
-	Status(ctx context.Context) scs.Status
-	Exists(ctx context.Context, key string) bool
-	GetBool(ctx context.Context, key string) bool
+	GetSessionConfig() SessionConfig
+	LoadSession(ctx context.Context) (context.Context, error)
+	WriteSessionCookie(ctx context.Context, token string, expiry time.Time) error
+	CommitAndWriteSessionCookie(ctx context.Context) error
+	Manager() *scs.SessionManager
 }
