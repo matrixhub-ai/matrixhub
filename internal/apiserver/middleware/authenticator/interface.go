@@ -17,13 +17,9 @@ package authenticator
 import (
 	"context"
 	"net/http"
-)
 
-type Identity struct {
-	UserId   int
-	Username string
-	Via      AuthMethod // records which auth method was used, useful for logging and auditing
-}
+	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
+)
 
 type AuthMethod string
 
@@ -41,5 +37,9 @@ type HTTPAuthenticator interface {
 	//   (nil, nil)      — this method does not apply to this request; skip and try the next one
 	//   (nil, err)      — credentials were present but invalid; reject immediately, do not try further
 	//   (identity, nil) — authentication succeeded
-	Authenticate(ctx context.Context, r *http.Request) (*Identity, error)
+	Authenticate(ctx context.Context, r *http.Request) (*user.Identity, error)
+}
+
+type SessionRenewer interface {
+	Renew(ctx context.Context) error
 }

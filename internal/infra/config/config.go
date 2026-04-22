@@ -23,6 +23,7 @@ import (
 	hfdssh "github.com/matrixhub-ai/hfd/pkg/ssh"
 	"github.com/spf13/viper"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/db"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
@@ -36,7 +37,8 @@ type Config struct {
 
 	DataDir string `yaml:"dataDir" validate:"required"`
 
-	Database db.Config `yaml:"database" validate:"required"`
+	Database db.Config     `yaml:"database" validate:"required"`
+	Session  SessionConfig `yaml:"session"`
 
 	// JobServer runs delayed sync (and future kinds). If nil, DefaultConfig() is applied after load.
 	JobServer *JobServerConfig `yaml:"jobServer"`
@@ -80,6 +82,26 @@ type UIConfig struct {
 	StaticDir string `yaml:"staticDir"`
 }
 
+type SessionConfig struct {
+	// PersistentSessionLifetime is the absolute maximum duration a persistent session
+	// (i.e. "remember me") can remain valid, regardless of activity. Once this limit
+	// is reached, the user must re-authenticate. Accepts a duration string (e.g. "720h",
+	// "30d" if your config parser supports it). Defaults to 720h (30 days).
+	PersistentSessionLifetime time.Duration `yaml:"persistentSessionLifetime"`
+	// PersistentSessionIdleTimeout is the maximum duration a persistent session
+	// can remain idle (no user activity) before it is invalidated. The idle timer
+	// resets on every authenticated request. Accepts a duration string (e.g. "168h").
+	// Defaults to 168h (7 days).
+	PersistentSessionIdleTimeout time.Duration `yaml:"persistentSessionIdleTimeout"`
+
+	// NonPersistentIdleTimeout is the maximum duration a non-persistent session (i.e. "remember me"
+	// unchecked) can remain idle before it is invalidated. Mirrors the role of
+	// PersistentSessionIdleTimeout but applies to browser-session logins only: the idle timer
+	// resets on every authenticated request, and the session is destroyed if no request is made
+	// within this window. Accepts a duration string (e.g. "8h"). Defaults to 8h.
+	NonPersistentIdleTimeout time.Duration `yaml:"nonPersistentIdleTimeout"`
+}
+
 func Init(configPath, sqlPath string) (*Config, error) {
 	v := viper.New()
 	v.SetConfigFile(configPath)
@@ -107,6 +129,16 @@ func Init(configPath, sqlPath string) (*Config, error) {
 	if cfg.DataDir == "" {
 		log.Warn("dataDir is not set, using default ./data")
 		cfg.DataDir = "./data"
+	}
+
+	if cfg.Session.PersistentSessionLifetime == 0 {
+		cfg.Session.PersistentSessionLifetime = user.MaxPersistentSessionLifetime
+	}
+	if cfg.Session.PersistentSessionIdleTimeout == 0 {
+		cfg.Session.PersistentSessionIdleTimeout = user.DefaultPersistentSessionIdleTimeout
+	}
+	if cfg.Session.NonPersistentIdleTimeout == 0 {
+		cfg.Session.NonPersistentIdleTimeout = user.DefaultSessionIdleTimeout
 	}
 
 	if cfg.APIServer.SSHPort != 0 {

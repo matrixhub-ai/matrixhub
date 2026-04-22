@@ -100,6 +100,20 @@ apiserver:
       # -- use SSL for S3 connection
       useSSL: true
 
+  session:
+    # Maximum duration for persistent sessions (remember me).
+    # Users must re-authenticate after this period.
+    # Example: 720h (30 days)
+    persistentSessionLifetime: 720h
+    # Maximum duration for persistent sessions (remember me).
+    # Users must re-authenticate after this period.
+    # Example: 168h (7 days)
+    persistentSessionIdleTimeout: 168h
+    # Maximum idle time for non-persistent (browser) sessions.
+    # Timer resets on every authenticated request.
+    # Example: 8h
+    nonPersistentIdleTimeout: 8h
+
 # -- mysql configuration (only when global.storage.apiserver.builtIn is true)
 mysql:
   # -- mysql image registry

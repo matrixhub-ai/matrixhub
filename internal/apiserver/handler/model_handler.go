@@ -174,12 +174,8 @@ func (mh *ModelHandler) RegisterToServer(opt *ServerOptions) {
 }
 
 func (mh *ModelHandler) getAccessibleProjectIDs(ctx context.Context) ([]int, error) {
-	userIDVal := ctx.Value(user.UserIdCtxKey)
-	if userIDVal == nil {
-		return mh.authzService.GetUserAccessibleProjectIDs(ctx, 0)
-	}
-	userID, ok := userIDVal.(int)
-	if !ok {
+	userID := user.GetCurrentUserId(ctx)
+	if userID == 0 {
 		return mh.authzService.GetUserAccessibleProjectIDs(ctx, 0)
 	}
 

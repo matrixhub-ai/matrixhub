@@ -24,3 +24,8 @@ data:
       port: {{ .Values.apiserver.port }}
     ui:
       staticDir: /app
+    session:
+      persistentSessionLifetime: {{ .Values.apiserver.session.persistentSessionLifetime }}
+      persistentSessionIdleTimeout: {{ .Values.apiserver.session.persistentSessionIdleTimeout }}
+      nonPersistentIdleTimeout: {{ .Values.apiserver.session.nonPersistentIdleTimeout }}
+

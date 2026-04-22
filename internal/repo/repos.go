@@ -70,7 +70,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 
 	repos.Project = NewProjectDBRepo(repos.DB)
 	repos.User = NewUserRepo(repos.DB)
-	repos.Session = NewSessionRepository(repos.DB)
+	repos.Session = NewSessionRepository(repos.DB, conf)
 	repos.AccessToken = NewAccessTokenRepo(repos.DB)
 	repos.SSHKey = NewSSHKeyRepo(repos.DB)
 	repos.Model = NewModelDB(repos.DB)
