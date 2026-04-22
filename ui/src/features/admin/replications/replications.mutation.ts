@@ -5,6 +5,7 @@ import {
   type DeleteSyncPolicyRequest,
   SyncPolicy,
   type UpdateSyncPolicyRequest,
+  type UpdateSyncPolicySwitchRequest,
 } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
 import { mutationOptions } from '@tanstack/react-query'
 
@@ -69,6 +70,23 @@ export function syncReplicationMutationOptions() {
     meta: {
       successMessage: i18n.t('routes.admin.replications.notifications.syncSuccess'),
       errorMessage: i18n.t('routes.admin.replications.notifications.syncError'),
+    } satisfies NotificationMeta,
+  })
+}
+
+export function switchReplicationMutationOptions() {
+  return mutationOptions({
+    mutationFn: ({
+      syncPolicyId, isDisabled,
+    }: UpdateSyncPolicySwitchRequest) =>
+      SyncPolicy.UpdateSyncPolicySwitch({
+        syncPolicyId: requireSyncPolicyId(syncPolicyId),
+        isDisabled,
+      }),
+    meta: {
+      successMessage: i18n.t('routes.admin.replications.notifications.switchSuccess'),
+      errorMessage: i18n.t('routes.admin.replications.notifications.switchError'),
+      invalidates: [adminReplicationKeys.lists()],
     } satisfies NotificationMeta,
   })
 }
