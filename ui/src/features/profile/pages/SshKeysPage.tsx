@@ -1,6 +1,6 @@
 import { Button } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -17,7 +17,7 @@ export function SshKeysPage() {
   const {
     data,
     isFetching,
-  } = useSuspenseQuery(sshKeysQueryOptions())
+  } = useQuery(sshKeysQueryOptions())
 
   const [createOpened, createHandlers] = useDisclosure(false)
   const [deleteOpened, deleteHandlers] = useDisclosure(false)
@@ -40,11 +40,12 @@ export function SshKeysPage() {
   return (
     <>
       <SshKeysTable
-        data={data.items ?? []}
+        data={data?.items ?? []}
         onDelete={handleDelete}
         loading={false}
         fetching={isFetching}
         onRefresh={handleRefresh}
+        emptyTitle={t('profile.sshKey.emptyTitle')}
         toolbarExtra={(
           <Button
             h={32}

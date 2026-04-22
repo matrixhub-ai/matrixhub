@@ -1,24 +1,26 @@
 import dayjs from 'dayjs'
 import z from 'zod'
 
-import i18n from '@/i18n'
+import type { TFunction } from 'i18next'
 
-function t(key: string, options?: Record<string, unknown>) {
-  return i18n.getFixedT(i18n.resolvedLanguage ?? i18n.language)(key, options)
+export function expireAtSchema(t: TFunction) {
+  return z.string().refine((value) => {
+    if (!value) {
+      return true
+    }
+
+    return !dayjs(value).startOf('day').isBefore(dayjs().startOf('day'))
+  }, { error: t('profile.expireTimeError') })
 }
 
-export const sshKeyNameSchema = z.string().min(1, {
-  error: t('common.validation.fieldRequired', { field: t('profile.sshKey.create.name') }),
-})
-
-export const sshKeyPublicKeySchema = z.string().min(1, {
-  error: t('common.validation.fieldRequired', { field: t('profile.sshKey.create.publicKey') }),
-})
-
-export const expireAtSchema = z.string().refine((value) => {
-  if (!value) {
-    return true
-  }
-
-  return !dayjs(value).startOf('day').isBefore(dayjs().startOf('day'))
-}, { error: t('profile.expireTimeError') })
+export function createSshKeySchema(t: TFunction) {
+  return z.object({
+    name: z.string()
+      .trim()
+      .min(1, t('common.validation.fieldRequired', { field: t('profile.sshKey.create.name') })),
+    publicKey: z.string()
+      .trim()
+      .min(1, t('common.validation.fieldRequired', { field: t('profile.sshKey.create.publicKey') })),
+    expireAt: expireAtSchema(t),
+  })
+}

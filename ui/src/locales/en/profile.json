@@ -8,11 +8,12 @@
     "statusLabel": "Status",
     "expireAt": "Expires At",
     "importedAt": "Imported At",
+    "emptyTitle": "No SSH public keys",
     "create": {
       "button": "Import SSH Public Key",
       "title": "Import SSH Public Key",
       "name": "SSH Public Key Name",
-      "publicKey": "SSH Public Key",
+      "publicKey": "Import Public Key",
       "success": "SSH public key imported successfully"
     },
     "delete": {

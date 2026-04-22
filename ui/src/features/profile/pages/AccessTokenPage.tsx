@@ -29,10 +29,12 @@ import { expireAtSchema } from '@/features/profile/profile.schema.ts'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { useForm } from '@/shared/hooks/useForm'
+import { fieldError } from '@/shared/utils/form.ts'
 
 export function AccessTokenPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const expireAtFieldSchema = expireAtSchema(t)
 
   const {
     data, isFetching,
@@ -158,14 +160,12 @@ export function AccessTokenPage() {
             />
           )}
         </form.Field>
-        <form.Field name="expireAt" validators={{ onChange: expireAtSchema }}>
-          {({
-            state, handleChange,
-          }) => (
+        <form.Field name="expireAt" validators={{ onChange: expireAtFieldSchema }}>
+          {field => (
             <ExpireAtField
-              value={state.value}
-              onChange={handleChange}
-              error={state.meta.errors[0]?.message}
+              value={field.state.value}
+              onChange={field.handleChange}
+              error={fieldError(field)}
             />
           )}
         </form.Field>

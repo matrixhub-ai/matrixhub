@@ -8,6 +8,7 @@
     "statusLabel": "状态",
     "expireAt": "过期时间",
     "importedAt": "导入时间",
+    "emptyTitle": "暂无 SSH 公钥数据",
     "create": {
       "button": "导入 SSH 公钥",
       "title": "导入 SSH 公钥",

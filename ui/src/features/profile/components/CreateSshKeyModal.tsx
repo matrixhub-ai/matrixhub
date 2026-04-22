@@ -8,11 +8,7 @@ import { useTranslation } from 'react-i18next'
 
 import { ExpireAtField } from '@/features/profile/components/ExpireAtField'
 import { createSshKeyMutationOptions } from '@/features/profile/profile.mutation'
-import {
-  expireAtSchema,
-  sshKeyNameSchema,
-  sshKeyPublicKeySchema,
-} from '@/features/profile/profile.schema'
+import { createSshKeySchema } from '@/features/profile/profile.schema'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form.ts'
@@ -28,6 +24,7 @@ export function CreateSshKeyModal({
 }: CreateSshKeyModalProps) {
   const { t } = useTranslation()
   const mutation = useMutation(createSshKeyMutationOptions())
+  const sshKeySchema = createSshKeySchema(t)
 
   const form = useForm({
     defaultValues: {
@@ -62,7 +59,7 @@ export function CreateSshKeyModal({
     >
       <form.Field
         name="name"
-        validators={{ onChange: sshKeyNameSchema }}
+        validators={{ onChange: sshKeySchema.shape.name }}
       >
         {field => (
           <TextInput
@@ -78,7 +75,7 @@ export function CreateSshKeyModal({
 
       <form.Field
         name="publicKey"
-        validators={{ onChange: sshKeyPublicKeySchema }}
+        validators={{ onChange: sshKeySchema.shape.publicKey }}
       >
         {field => (
           <Textarea
@@ -96,7 +93,7 @@ export function CreateSshKeyModal({
 
       <form.Field
         name="expireAt"
-        validators={{ onChange: expireAtSchema }}
+        validators={{ onChange: sshKeySchema.shape.expireAt }}
       >
         {field => (
           <ExpireAtField
