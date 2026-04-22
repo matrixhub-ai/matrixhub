@@ -12,6 +12,7 @@ import DefaultAvatarIcon from '@/assets/svgs/default-avatar.svg?react'
 import { CurrentUserContext } from '@/context/current-user-context'
 import { Route as AccessTokenRoute } from '@/routes/(auth)/(app)/profile/access-token'
 import { Route as SecurityRoute } from '@/routes/(auth)/(app)/profile/security'
+import { Route as SshKeysRoute } from '@/routes/(auth)/(app)/profile/ssh-keys'
 
 export const Route = createFileRoute('/(auth)/(app)/profile')({
   component: Profile,
@@ -32,13 +33,18 @@ function Profile() {
       value: 'access-token',
       to: AccessTokenRoute.to,
     },
+    {
+      label: t('profile.sshKey.publicKey'),
+      value: 'ssh-keys',
+      to: SshKeysRoute.to,
+    },
   ])
 
   const matchRoute = useMatchRoute()
   const activeTab = profileTabs.find(tab => matchRoute({ to: tab.to }))?.value || profileTabs[0].value
 
   return (
-    <Stack gap="lg">
+    <Stack gap="lg" pt="lg">
       <Group gap="xs">
         <IconUser size={32} />
         <Text

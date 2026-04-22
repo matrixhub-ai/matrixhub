@@ -8,6 +8,7 @@ import {
   type TableProps as MantineTableProps,
   Text,
   noop,
+  Box,
 } from '@mantine/core'
 import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks'
 import { IconRefresh, IconTrash } from '@tabler/icons-react'
@@ -229,47 +230,48 @@ export function DataTable<TData extends MRT_RowData>({
   const showToolbar = !!(searchPlaceholder || onRefresh || showBatchDelete || toolbarExtra)
   const defaultToolbar = showToolbar
     ? (
-        <SearchToolbar
-          {...searchToolbarProps}
-          searchPlaceholder={showSearch ? searchPlaceholderText : undefined}
-          searchValue={searchValue}
-          onSearchChange={onSearchChange}
-          searchInputProps={{
-            maw: 360,
-            style: { flex: 1 },
-            w: '100%',
-            mb: 'md',
-            ...searchToolbarProps?.searchInputProps,
-          }}
+        <Box mb="sm">
+          <SearchToolbar
+            {...searchToolbarProps}
+            searchPlaceholder={showSearch ? searchPlaceholderText : undefined}
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
+            searchInputProps={{
+              maw: 360,
+              style: { flex: 1 },
+              w: '100%',
+              ...searchToolbarProps?.searchInputProps,
+            }}
 
-        >
-          {showRefresh && (
-            <ActionIcon
-              variant="transparent"
-              size="lg"
-              onClick={debouncedRefresh}
-              loading={debouncedFetching}
-              c="gray.6"
-            >
-              <IconRefresh size={24} />
-            </ActionIcon>
-          )}
-          {onBatchDelete && (
-            <Button
-              color="red"
-              variant="light"
-              disabled={!showBatchDelete}
-              leftSection={<IconTrash size={16} />}
-              onClick={onBatchDelete}
-            >
-              {!selectedCount
-                ? t('shared.batchDelete')
-                : t('shared.batchDeleteWithCount', { count: selectedCount })}
-            </Button>
-          )}
+          >
+            {showRefresh && (
+              <ActionIcon
+                variant="transparent"
+                size="lg"
+                onClick={debouncedRefresh}
+                loading={debouncedFetching}
+                c="gray.6"
+              >
+                <IconRefresh size={24} />
+              </ActionIcon>
+            )}
+            {onBatchDelete && (
+              <Button
+                color="red"
+                variant="light"
+                disabled={!showBatchDelete}
+                leftSection={<IconTrash size={16} />}
+                onClick={onBatchDelete}
+              >
+                {!selectedCount
+                  ? t('shared.batchDelete')
+                  : t('shared.batchDeleteWithCount', { count: selectedCount })}
+              </Button>
+            )}
 
-          {toolbarExtra}
-        </SearchToolbar>
+            {toolbarExtra}
+          </SearchToolbar>
+        </Box>
       )
     : null
 
