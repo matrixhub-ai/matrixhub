@@ -29,5 +29,3 @@ export const replicationExecutionsSearchSchema = z.object({
     .optional()
     .catch(replicationExecutionsSearchDefaults.status),
 })
-
-export type ReplicationExecutionsSearch = z.infer<typeof replicationExecutionsSearchSchema>

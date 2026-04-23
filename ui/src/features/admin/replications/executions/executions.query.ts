@@ -1,4 +1,7 @@
-import { SyncPolicy } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
+import {
+  type ListSyncTasksRequest,
+  SyncPolicy,
+} from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
 import {
   keepPreviousData,
   queryOptions,
@@ -7,29 +10,29 @@ import {
 
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants'
 
-import { type ReplicationExecutionsSearch } from './executions.schema'
+type ReplicationExecutionsListParams = Pick<ListSyncTasksRequest, 'page' | 'status'>
 
 export const adminReplicationExecutionKeys = {
   all: ['admin', 'replications', 'executions'] as const,
   lists: (syncPolicyId: number) => [...adminReplicationExecutionKeys.all, syncPolicyId, 'list'] as const,
-  list: (syncPolicyId: number, search: ReplicationExecutionsSearch) => [
+  list: (syncPolicyId: number, params: ReplicationExecutionsListParams) => [
     ...adminReplicationExecutionKeys.lists(syncPolicyId),
-    search,
+    params,
   ] as const,
 }
 
 export function replicationExecutionsQueryOptions(
   syncPolicyId: number,
-  search: ReplicationExecutionsSearch,
+  params: ReplicationExecutionsListParams,
 ) {
   return queryOptions({
-    queryKey: adminReplicationExecutionKeys.list(syncPolicyId, search),
+    queryKey: adminReplicationExecutionKeys.list(syncPolicyId, params),
     queryFn: async () => {
       const response = await SyncPolicy.ListSyncTasks({
         syncPolicyId,
-        page: search.page,
+        page: params.page,
         pageSize: DEFAULT_PAGE_SIZE,
-        status: search.status,
+        status: params.status,
       })
 
       return {
@@ -42,10 +45,10 @@ export function replicationExecutionsQueryOptions(
 
 export function useReplicationExecutions(
   syncPolicyId: number,
-  search: ReplicationExecutionsSearch,
+  params: ReplicationExecutionsListParams,
 ) {
   return useQuery({
-    ...replicationExecutionsQueryOptions(syncPolicyId, search),
+    ...replicationExecutionsQueryOptions(syncPolicyId, params),
     placeholderData: keepPreviousData,
   })
 }

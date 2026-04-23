@@ -53,11 +53,7 @@ type ReplicationExecutionsTableProps = Omit<
 }
 
 function ExecutionTaskCell({ row }: ExecutionCellProps) {
-  if (row.original.id == null) {
-    return <Text fw={600}>-</Text>
-  }
-
-  return <Text fw={600}>{row.original.id}</Text>
+  return <Text fw={600}>{row.original.id ?? '-'}</Text>
 }
 
 function ExecutionStatusCell({ row }: ExecutionCellProps) {
