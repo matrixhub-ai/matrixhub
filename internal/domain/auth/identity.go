@@ -12,19 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authz
+package auth
 
-import (
-	"context"
-
-	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
-)
-
-// IAuthzProjectRepo project repository interface required for permission verification
-type IAuthzProjectRepo interface {
-	GetUserProjectPermissions(ctx context.Context, userID int, projectID int) ([]role.Permission, error)
-	GetUserPlatformPermissions(ctx context.Context, userID int) ([]role.Permission, error)
-	GetUserAccessibleProjectIDs(ctx context.Context, userID int) ([]int, error)
-
-	GetRobotProjectPermissions(ctx context.Context, robotID int, projectID int) ([]role.Permission, error)
+type Identity interface {
+	GetID() int
+	GetName() string
 }

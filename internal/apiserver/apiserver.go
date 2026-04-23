@@ -126,7 +126,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 	}
 	unaryMiddleware := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(),
-		middleware.AuthInterceptor(server.repos.Session),
+		middleware.AuthInterceptor(server.repos.Session, server.repos.Robot),
 		middleware.AuthzInterceptor(server.services.Authz.VerifyPlatformPermission),
 	}
 
@@ -379,7 +379,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 	)
 
 	// init permission service
-	authzService := authz.NewAuthzService(repos.Authz, repos.Project)
+	authzService := authz.NewAuthzService(repos.Authz, repos.Project, repos.Robot)
 
 	// init domain services, add if needed
 	modelService := model.NewModelService(

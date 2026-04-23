@@ -16,9 +16,9 @@ package repo
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
@@ -30,37 +30,23 @@ type AuthzDBRepo struct {
 	db *gorm.DB
 }
 
-type permissionRow struct {
-	Permissions string `gorm:"column:permissions"`
-}
-
 var _ authz.IAuthzProjectRepo = (*AuthzDBRepo)(nil)
 
 func NewAuthzDBRepo(db *gorm.DB) authz.IAuthzProjectRepo {
 	return &AuthzDBRepo{db: db}
 }
 
-func parsePermissions(raw string) ([]role.Permission, error) {
-	if raw == "" {
-		return nil, nil
-	}
-
-	var permissions []role.Permission
-	if err := json.Unmarshal([]byte(raw), &permissions); err != nil {
-		return nil, err
-	}
-	return permissions, nil
-}
-
 // GetUserProjectPermissions gets user's permissions in a project
 func (r *AuthzDBRepo) GetUserProjectPermissions(ctx context.Context, userID int, projectID int) ([]role.Permission, error) {
-	var row permissionRow
+	var result struct {
+		Permissions datatypes.JSONSlice[role.Permission]
+	}
 	err := r.db.WithContext(ctx).
 		Table("roles").
 		Select("roles.permissions").
 		Joins("INNER JOIN members_roles_projects mrp ON mrp.role_id = roles.id").
 		Where("mrp.project_id = ? AND mrp.member_id = ? AND mrp.member_type = ?", projectID, userID, project.MemberTypeUser).
-		First(&row).Error
+		First(&result).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -68,18 +54,40 @@ func (r *AuthzDBRepo) GetUserProjectPermissions(ctx context.Context, userID int,
 		return nil, err
 	}
 
-	return parsePermissions(row.Permissions)
+	return result.Permissions, nil
 }
 
 // GetUserPlatformPermissions gets user's platform-level permissions
 func (r *AuthzDBRepo) GetUserPlatformPermissions(ctx context.Context, userID int) ([]role.Permission, error) {
-	var row permissionRow
+	var result struct {
+		Permissions datatypes.JSONSlice[role.Permission]
+	}
 	err := r.db.WithContext(ctx).
 		Table("roles").
 		Select("roles.permissions").
 		Joins("INNER JOIN members_roles_projects mrp ON mrp.role_id = roles.id").
 		Where("mrp.project_id IS NULL AND mrp.member_id = ? AND mrp.member_type = ?", userID, project.MemberTypeUser).
-		First(&row).Error
+		First(&result).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return result.Permissions, nil
+}
+
+// GetRobotProjectPermissions  gets robot's permissions in a project
+func (r *AuthzDBRepo) GetRobotProjectPermissions(ctx context.Context, robotID int, projectID int) ([]role.Permission, error) {
+	var result struct {
+		Permissions datatypes.JSONSlice[role.Permission]
+	}
+	err := r.db.WithContext(ctx).
+		Table("robots").
+		Select("robots.project_permissions").
+		Joins("INNER JOIN robots_projects rp ON robots.id = robot_id").
+		Where("rp.project_id = ? AND rp.robot_id = ?", projectID, robotID).
+		First(&result).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -87,7 +95,7 @@ func (r *AuthzDBRepo) GetUserPlatformPermissions(ctx context.Context, userID int
 		return nil, err
 	}
 
-	return parsePermissions(row.Permissions)
+	return result.Permissions, err
 }
 
 // GetUserAccessibleProjectIDs gets all project IDs where the user has membership

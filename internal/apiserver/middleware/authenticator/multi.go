@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 )
 
 type MultiAuthenticator struct {
@@ -32,7 +32,7 @@ func NewMultiAuthenticator(auths ...HTTPAuthenticator) *MultiAuthenticator {
 	}
 }
 
-func (m *MultiAuthenticator) Authenticate(ctx context.Context, r *http.Request) (succeeded HTTPAuthenticator, identity *user.Identity, err error) {
+func (m *MultiAuthenticator) Authenticate(ctx context.Context, r *http.Request) (succeeded HTTPAuthenticator, identity auth.Identity, err error) {
 	for _, auth := range m.authenticators {
 		identity, err = auth.Authenticate(ctx, r)
 		if err != nil {

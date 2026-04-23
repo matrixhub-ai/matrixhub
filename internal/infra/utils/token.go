@@ -15,11 +15,17 @@
 package utils
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"math/big"
+	"net/http"
+	"strings"
+
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -74,4 +80,48 @@ func GenerateSalt() (string, error) {
 		salt[i] = letters[num.Int64()]
 	}
 	return string(salt), nil
+}
+
+// ParseBearerToken extracts the token from the request's Authorization header.
+// Expects the format: "Authorization: Bearer <token>".
+// Returns (token, true) on success, ("", false) if not present or malformed.
+func ParseBearerToken(r *http.Request) (token string, ok bool) {
+	auth := r.Header.Get("Authorization")
+	bearer, found := strings.CutPrefix(auth, "Bearer ")
+	if !found {
+		return "", false
+	}
+	return strings.TrimSpace(bearer), true
+}
+
+// ParseBasicAuthFromGRPCContext extracts Basic Auth credentials from gRPC metadata.
+// gRPC Gateway converts HTTP Authorization header to metadata with key "authorization".
+// Returns (username, password, nil) on success.
+func ParseBasicAuthFromGRPCContext(ctx context.Context) (username, password string, err error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", "", errors.New("missing metadata")
+	}
+
+	values := md.Get("authorization")
+	if len(values) == 0 {
+		return "", "", errors.New("missing authorization header")
+	}
+
+	encoded, found := strings.CutPrefix(values[0], "Basic ")
+	if !found {
+		return "", "", errors.New("not a basic auth header")
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return "", "", errors.New("invalid base64 encoding")
+	}
+
+	username, password, found = strings.Cut(string(decoded), ":")
+	if !found {
+		return "", "", errors.New("invalid basic auth format")
+	}
+
+	return username, password, nil
 }
