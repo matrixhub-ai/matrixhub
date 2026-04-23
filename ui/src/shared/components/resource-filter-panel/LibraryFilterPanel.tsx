@@ -1,7 +1,4 @@
-import {
-  Group,
-  UnstyledButton,
-} from '@mantine/core'
+import { Group } from '@mantine/core'
 import { type Label } from '@matrixhub/api-ts/v1alpha1/model.pb.ts'
 
 import { LibraryBadge } from '@/shared/components/badges/LibraryBadge'
@@ -39,22 +36,21 @@ export function LibraryFilterPanel({
           <Group gap={8}>
             {
               filteredOptions.map(option => (
-                <UnstyledButton
+                <LibraryBadge
+                  library={option.name as string}
                   key={option.id}
+                  component="button"
+                  type="button"
                   onClick={() => onSelect(option.name as string)}
-                >
-                  <LibraryBadge
-                    library={option.name as string}
-                    styles={{
-                      root: {
-                        cursor: 'pointer',
-                        borderColor: selectedNames.includes(option.name as string)
-                          ? 'var(--mantine-primary-color-6)'
-                          : undefined,
-                      },
-                    }}
-                  />
-                </UnstyledButton>
+                  styles={{
+                    root: {
+                      cursor: 'pointer',
+                      borderColor: selectedNames.includes(option.name as string)
+                        ? 'var(--mantine-primary-color-6)'
+                        : undefined,
+                    },
+                  }}
+                />
               ))
             }
           </Group>
