@@ -1,17 +1,27 @@
 import {
   Badge,
-  Group,
-  Text,
   type BadgeProps,
+  Group,
+  type PolymorphicFactory,
+  polymorphicFactory,
+  Text,
+  useProps,
 } from '@mantine/core'
 
 import type { ReactNode } from 'react'
 
-interface BaseBadgeProps extends Omit<BadgeProps, 'children'> {
+export interface BaseBadgeProps extends Omit<BadgeProps, 'children'> {
   icon?: ReactNode
   label?: ReactNode
   children?: ReactNode
 }
+
+export type BaseBadgeFactory = PolymorphicFactory<{
+  props: BaseBadgeProps
+  defaultComponent: 'div'
+  defaultRef: HTMLDivElement
+  stylesNames: 'root' | 'label'
+}>
 
 type BadgeStylesObject = Exclude<NonNullable<BadgeProps['styles']>, (...args: never[]) => unknown>
 
@@ -27,13 +37,20 @@ const DEFAULT_BADGE_STYLES: BadgeStylesObject = {
   },
 }
 
-export function BaseBadge({
-  icon,
-  label,
-  children,
-  styles,
-  ...badgeProps
-}: BaseBadgeProps) {
+const defaultProps: Partial<BaseBadgeProps> = {
+  h: 24,
+  radius: 'lg',
+}
+
+export const BaseBadge = polymorphicFactory<BaseBadgeFactory>((_props, ref) => {
+  const {
+    icon,
+    label,
+    children,
+    styles,
+    ...badgeProps
+  } = useProps('BaseBadge', defaultProps, _props)
+
   const objectStyles: BadgeStylesObject | undefined = styles && typeof styles !== 'function'
     ? styles
     : undefined
@@ -54,8 +71,7 @@ export function BaseBadge({
 
   return (
     <Badge
-      h={24}
-      radius="lg"
+      ref={ref}
       styles={resolvedStyles}
       {...badgeProps}
     >
@@ -87,4 +103,6 @@ export function BaseBadge({
       </Group>
     </Badge>
   )
-}
+})
+
+BaseBadge.displayName = 'BaseBadge'

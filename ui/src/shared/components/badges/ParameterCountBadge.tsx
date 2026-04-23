@@ -1,21 +1,32 @@
+import {
+  type PolymorphicFactory,
+  polymorphicFactory,
+  useProps,
+} from '@mantine/core'
 import { IconBinaryTree } from '@tabler/icons-react'
 
-import { BaseBadge } from '@/shared/components/badges/BaseBadge'
+import { BaseBadge, type BaseBadgeProps } from '@/shared/components/badges/BaseBadge'
 
-import type { ComponentProps } from 'react'
-
-type BaseBadgeProps = ComponentProps<typeof BaseBadge>
-
-interface ParameterCountBadgeProps extends Omit<BaseBadgeProps, 'icon' | 'label'> {
+export interface ParameterCountBadgeProps extends Omit<BaseBadgeProps, 'icon' | 'label'> {
   parameterCount: string
 }
 
-export function ParameterCountBadge({
-  parameterCount,
-  ...badgeProps
-}: ParameterCountBadgeProps) {
+export type ParameterCountBadgeFactory = PolymorphicFactory<{
+  props: ParameterCountBadgeProps
+  defaultComponent: 'div'
+  defaultRef: HTMLDivElement
+  stylesNames: 'root' | 'label'
+}>
+
+export const ParameterCountBadge = polymorphicFactory<ParameterCountBadgeFactory>((_props, ref) => {
+  const {
+    parameterCount,
+    ...badgeProps
+  } = useProps('ParameterCountBadge', {}, _props)
+
   return (
     <BaseBadge
+      ref={ref}
       icon={(
         <IconBinaryTree
           size={16}
@@ -26,4 +37,6 @@ export function ParameterCountBadge({
       {...badgeProps}
     />
   )
-}
+})
+
+ParameterCountBadge.displayName = 'ParameterCountBadge'
