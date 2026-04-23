@@ -15,6 +15,7 @@
 package hf
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -306,9 +307,22 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 		_ = reader.Close()
 	}()
 
-	_, err = io.Copy(w, reader)
-	if err != nil {
-		// Log but don't send error - we may have already written partial content
-		return
+	if r.Header.Get("Range") != "" {
+		// TODO: Unfortunately, go-git does not support ranged reading of blobs,
+		// so we have to read the entire content into memory before serving.
+		// This is not ideal for large files.
+		// We should consider implementing ranged reading in go-git in the future.
+		content, err := io.ReadAll(reader)
+		if err != nil {
+			responseJSON(w, fmt.Errorf("failed to read blob content for file %q in repository %q at revision %q: %v", path, ri.RepoName, rev, err), http.StatusInternalServerError)
+			return
+		}
+		http.ServeContent(w, r, blob.Name(), blob.ModTime(), bytes.NewReader(content))
+	} else {
+		_, err = io.Copy(w, reader)
+		if err != nil {
+			// Log but don't send error - we may have already written partial content
+			return
+		}
 	}
 }
