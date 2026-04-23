@@ -1,0 +1,266 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1alpha1/cleanup.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Cleanup"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1alpha1/cleanup/execute": {
+      "post": {
+        "summary": "Execute cleanup",
+        "operationId": "Cleanup_ExecuteCleanup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CleanupResult"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ExecuteCleanupRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Cleanup"
+        ]
+      }
+    },
+    "/api/v1alpha1/cleanup/preview": {
+      "post": {
+        "summary": "Preview orphaned data (dry-run)",
+        "operationId": "Cleanup_PreviewCleanup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CleanupPreview"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1PreviewCleanupRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Cleanup"
+        ]
+      }
+    },
+    "/api/v1alpha1/cleanup/stats": {
+      "get": {
+        "summary": "Get storage statistics",
+        "operationId": "Cleanup_GetStorageStats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1StorageStats"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Cleanup"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1CleanupPreview": {
+      "type": "object",
+      "properties": {
+        "orphanedRepos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1OrphanedRepo"
+          }
+        },
+        "orphanedLfsObjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1OrphanedLFS"
+          }
+        },
+        "totalReclaimableBytes": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1alpha1CleanupResult": {
+      "type": "object",
+      "properties": {
+        "reposDeleted": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "lfsObjectsDeleted": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "spaceReclaimedBytes": {
+          "type": "string",
+          "format": "int64"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1alpha1ExecuteCleanupRequest": {
+      "type": "object",
+      "properties": {
+        "cleanOrphanedRepos": {
+          "type": "boolean"
+        },
+        "cleanOrphanedLfs": {
+          "type": "boolean"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "title": "true = preview only, no actual deletion"
+        }
+      }
+    },
+    "v1alpha1OrphanedLFS": {
+      "type": "object",
+      "properties": {
+        "oid": {
+          "type": "string"
+        },
+        "sizeBytes": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1alpha1OrphanedRepo": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "title": "\"model\" or \"dataset\""
+        },
+        "projectName": {
+          "type": "string"
+        },
+        "resourceName": {
+          "type": "string"
+        },
+        "sizeBytes": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1alpha1PreviewCleanupRequest": {
+      "type": "object",
+      "properties": {
+        "includeOrphanedRepos": {
+          "type": "boolean"
+        },
+        "includeOrphanedLfs": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1alpha1StorageStats": {
+      "type": "object",
+      "properties": {
+        "totalSizeBytes": {
+          "type": "string",
+          "format": "int64"
+        },
+        "repositoriesSizeBytes": {
+          "type": "string",
+          "format": "int64"
+        },
+        "lfsSizeBytes": {
+          "type": "string",
+          "format": "int64"
+        },
+        "orphanedSizeBytes": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    }
+  }
+}
