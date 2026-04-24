@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# DeepSeek v4 私有化落地实战：我们是如何解决模型分发问题的
+# DeepSeek v4 跑不起来？99% 的人都卡在分发
 
 最近 DeepSeek 发布了 DeepSeek v4，不少团队都在第一时间尝试接入。
 
