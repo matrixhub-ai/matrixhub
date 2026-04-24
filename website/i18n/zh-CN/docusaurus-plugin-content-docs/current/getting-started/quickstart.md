@@ -119,7 +119,7 @@ curl http://127.0.0.1:3001
 - 密码：`changeme`
 
 👉 **建议立即修改密码**
-![](https://oss-liuchengtu.hudunsoft.com/userimg/43/4372c3f19c4ea9f41d67b9c8ed016fe2.png)
+![](../images/登录.PNG)
 
 ## 🌐 Step 3：创建远程仓库 Remote（代理 Hugging Face）
 
