@@ -20,14 +20,14 @@ const sidebars: SidebarsConfig = {
       label: 'Getting Started',
       items: [
         'getting-started/quickstart',
-        'getting-started/examples',
       ],
+
     },
     {
       type: 'category',
       label: 'Operations',
       items: [
-        'operations/overview',
+      items: [
         {
           type: 'category',
           label: 'Model Repository',
@@ -36,13 +36,7 @@ const sidebars: SidebarsConfig = {
             'operations/model-repo/project-setting',
           ],
         },
-        {
-          type: 'category',
-          label: 'Datasets',
-          items: [
-            'operations/datasets/create-delete',
-          ],
-        },
+
         {
           type: 'category',
           label: 'Project Management',
