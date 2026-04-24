@@ -15,7 +15,13 @@ sidebar_position: 2
 
 1. 登录平台后，进入 **项目管理** ，选择目标项目。
 1. 打开 **模型仓库** 标签页，点击 **创建模型** 。
+
+    ![创建模型](./images/create-model.jpg)
+
 1. 填写模型名称并确认创建，进入模型详情页。
+
+    ![创建成功](./images/after-create-model.jpg)
+
 1. 在本地终端配置服务地址。
 
     ```bash
@@ -29,6 +35,9 @@ sidebar_position: 2
     ```
 
 1. 返回模型详情页刷新，确认文件列表已出现上传文件。
+
+    ![上传成功](./images/after-upload.jpg)
+
 
 :::note
 
