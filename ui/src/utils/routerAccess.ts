@@ -48,6 +48,11 @@ export function isSdkNotFound(error: unknown): boolean {
   return (error as Record<string, unknown>)?.code === 5
 }
 
+// code 16 = Unauthenticated; http code = 401
+export function isSdkUnauthenticated(error: unknown): boolean {
+  return (error as Record<string, unknown>)?.code === 16
+}
+
 // ─── Access guard ─────────────────────────────────────────────────────────────
 
 interface EnsureProjectAccessOptions {

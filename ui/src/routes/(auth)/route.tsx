@@ -48,6 +48,7 @@ import { RouteStatusPage } from '@/shared/components/RouteStatusPage'
 import {
   isForbiddenRouteError, isNotFoundRouteError,
   isSdkNotFound, isSdkPermissionDenied,
+  isSdkUnauthenticated,
 } from '@/utils/routerAccess'
 
 export const Route = createFileRoute('/(auth)')({
@@ -270,6 +271,12 @@ function AuthErrorComponent({ error }: { error: unknown }) {
   }
   if (isNotFoundRouteError(error) || isSdkNotFound(error)) {
     return <RouteStatusPage code={404} />
+  }
+
+  if (isSdkUnauthenticated(error)) {
+    window.location.reload()
+
+    return null
   }
 
   return <RouterErrorComponent error={error} />
