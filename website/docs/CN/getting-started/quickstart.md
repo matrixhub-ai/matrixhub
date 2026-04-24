@@ -97,10 +97,10 @@ vLLM / 推理服务
 ## 六、快速上手
 ## 🧱 Step 1：启动服务
 
+下载 <a href="/deploy/docker/docker-compose.yaml" down load="docker-compose.yaml">docker-compose.yaml</a> 以及 <a href="/deploy/docker/config.yaml" down load="config.yaml">config.yaml</a>， 保证二者在同一目录下
+
 ```
-git clone git@github.com:matrixhub-ai/matrixhub.git
-cd matrixhub
-docker-compose up -d
+docker compose -f docker-compose.yaml up -d
 ```
 默认服务地址：
 
