@@ -256,8 +256,8 @@ func (server *APIServer) initGitStorage() {
 		mirror.WithPreReceiveHookFunc(preReceiveHookFunc),
 		mirror.WithPostReceiveHookFunc(postReceiveHookFunc),
 		mirror.WithLFSStorage(lfsStorage),
-		mirror.WithXET(true),
-		mirror.WithConcurrency(4),
+		mirror.WithXET(false),
+		mirror.WithConcurrency(2),
 		mirror.WithTTL(time.Minute),
 	)
 
