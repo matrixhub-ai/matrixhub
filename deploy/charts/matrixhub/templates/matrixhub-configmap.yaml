@@ -22,6 +22,15 @@ data:
     migrationPath: /etc/matrixhub/migrations
     apiServer:
       port: {{ .Values.apiserver.port }}
+    {{- if .Values.jobServer }}
+    jobServer:
+      enabled: {{ .Values.jobServer.enabled }}
+      shutdownGrace: {{ .Values.jobServer.shutdownGrace | default "30s" }}
+      syncPolicy:
+        pollInterval: {{ .Values.jobServer.syncPolicy.pollInterval | default "30s" }}
+        maxConcurrent: {{ .Values.jobServer.syncPolicy.maxConcurrent | default 5 }}
+        taskMaxDuration: {{ .Values.jobServer.syncPolicy.taskMaxDuration | default "2h" }}
+    {{- end }}
     ui:
       staticDir: /app
     session:

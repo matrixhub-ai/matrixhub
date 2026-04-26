@@ -177,6 +177,7 @@ const (
 	SyncTaskStatus_SYNC_TASK_STATUS_SUCCEEDED   SyncTaskStatus = 2
 	SyncTaskStatus_SYNC_TASK_STATUS_FAILED      SyncTaskStatus = 3
 	SyncTaskStatus_SYNC_TASK_STATUS_STOPPED     SyncTaskStatus = 4
+	SyncTaskStatus_SYNC_TASK_STATUS_PENDING     SyncTaskStatus = 5
 )
 
 // Enum value maps for SyncTaskStatus.
@@ -187,6 +188,7 @@ var (
 		2: "SYNC_TASK_STATUS_SUCCEEDED",
 		3: "SYNC_TASK_STATUS_FAILED",
 		4: "SYNC_TASK_STATUS_STOPPED",
+		5: "SYNC_TASK_STATUS_PENDING",
 	}
 	SyncTaskStatus_value = map[string]int32{
 		"SYNC_TASK_STATUS_UNSPECIFIED": 0,
@@ -194,6 +196,7 @@ var (
 		"SYNC_TASK_STATUS_SUCCEEDED":   2,
 		"SYNC_TASK_STATUS_FAILED":      3,
 		"SYNC_TASK_STATUS_STOPPED":     4,
+		"SYNC_TASK_STATUS_PENDING":     5,
 	}
 )
 
@@ -2434,13 +2437,14 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\vTriggerType\x12\x1c\n" +
 	"\x18TRIGGER_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13TRIGGER_TYPE_MANUAL\x10\x01\x12\x1a\n" +
-	"\x16TRIGGER_TYPE_SCHEDULED\x10\x02*\xab\x01\n" +
+	"\x16TRIGGER_TYPE_SCHEDULED\x10\x02*\xc9\x01\n" +
 	"\x0eSyncTaskStatus\x12 \n" +
 	"\x1cSYNC_TASK_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18SYNC_TASK_STATUS_RUNNING\x10\x01\x12\x1e\n" +
 	"\x1aSYNC_TASK_STATUS_SUCCEEDED\x10\x02\x12\x1b\n" +
 	"\x17SYNC_TASK_STATUS_FAILED\x10\x03\x12\x1c\n" +
-	"\x18SYNC_TASK_STATUS_STOPPED\x10\x04*\xa5\x01\n" +
+	"\x18SYNC_TASK_STATUS_STOPPED\x10\x04\x12\x1c\n" +
+	"\x18SYNC_TASK_STATUS_PENDING\x10\x05*\xa5\x01\n" +
 	"\rSyncJobStatus\x12\x1f\n" +
 	"\x1bSYNC_JOB_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17SYNC_JOB_STATUS_RUNNING\x10\x01\x12\x1d\n" +

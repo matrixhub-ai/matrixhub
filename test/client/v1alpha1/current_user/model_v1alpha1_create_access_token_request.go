@@ -10,6 +10,6 @@
 package v1alpha1
 
 type V1alpha1CreateAccessTokenRequest struct {
-	Name     string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	ExpireAt string `json:"expireAt,omitempty"`
 }

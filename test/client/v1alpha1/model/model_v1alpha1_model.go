@@ -10,17 +10,17 @@
 package v1alpha1
 
 type V1alpha1Model struct {
-	Id             int32                    `json:"id,omitempty"`
-	Name           string                   `json:"name,omitempty"`
-	Nickname       string                   `json:"nickname,omitempty"`
-	DefaultBranch  string                   `json:"defaultBranch,omitempty"`
-	CreatedAt      string                   `json:"createdAt,omitempty"`
-	UpdatedAt      string                   `json:"updatedAt,omitempty"`
-	CloneUrls      *V1alpha1CloneUrls       `json:"cloneUrls,omitempty"`
-	Labels         []MatrixhubV1alpha1Label `json:"labels,omitempty"`
-	Project        string                   `json:"project,omitempty"`
-	ReadmeContent  string                   `json:"readmeContent,omitempty"`
-	Size           string                   `json:"size,omitempty"`
-	ParameterCount string                   `json:"parameterCount,omitempty"`
-	Popular        bool                     `json:"popular,omitempty"`
+	Id int32 `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+	Nickname string `json:"nickname,omitempty"`
+	DefaultBranch string `json:"defaultBranch,omitempty"`
+	CreatedAt string `json:"createdAt,omitempty"`
+	UpdatedAt string `json:"updatedAt,omitempty"`
+	CloneUrls *V1alpha1CloneUrls `json:"cloneUrls,omitempty"`
+	Labels []MatrixhubV1alpha1Label `json:"labels,omitempty"`
+	Project string `json:"project,omitempty"`
+	ReadmeContent string `json:"readmeContent,omitempty"`
+	Size string `json:"size,omitempty"`
+	ParameterCount string `json:"parameterCount,omitempty"`
+	Popular bool `json:"popular,omitempty"`
 }

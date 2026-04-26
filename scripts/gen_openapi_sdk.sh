@@ -8,6 +8,8 @@ set -x
 bash_source_path="$(dirname "${BASH_SOURCE[0]}")"
 pro_path=$(cd "$bash_source_path/.."; pwd)
 
+SWAGGER_CODEGEN_VERSION="${SWAGGER_CODEGEN_VERSION:-2.4.41}"
+
 function gen_openapi_sdk() {
     swagger_path=${1:-"$pro_path/api/openapiv2"}
     client_path="$pro_path/test/client"
@@ -25,14 +27,29 @@ function gen_openapi_sdk() {
                 local name="${file%.swagger.json}"
                 local target="$client_path/$version/$name"
                 rm -rf "$target" && mkdir -p "$target"
-                docker run --rm -u "$(id -u):$(id -g)" \
-                    -v "$swagger_path/$version":/swagger \
-                    -v "$target":/gen \
-                    docker.io/swaggerapi/swagger-codegen-cli generate \
-                    -i /swagger/"$file" \
-                    -l go \
-                    -o /gen \
-                    --additional-properties "packageName=$version,isGoSubmodule=true"
+                if docker info >/dev/null 2>&1; then
+                    docker run --rm -u "$(id -u):$(id -g)" \
+                        -v "$swagger_path/$version":/swagger \
+                        -v "$target":/gen \
+                        docker.io/swaggerapi/swagger-codegen-cli generate \
+                        -i /swagger/"$file" \
+                        -l go \
+                        -o /gen \
+                        --additional-properties "packageName=$version,isGoSubmodule=true"
+                else
+                    local jar_path="$pro_path/.cache/swagger-codegen-cli-${SWAGGER_CODEGEN_VERSION}.jar"
+                    mkdir -p "$(dirname "$jar_path")"
+                    if [[ ! -f "$jar_path" ]]; then
+                        curl -fsSL \
+                            -o "$jar_path" \
+                            "https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${SWAGGER_CODEGEN_VERSION}/swagger-codegen-cli-${SWAGGER_CODEGEN_VERSION}.jar"
+                    fi
+                    java -jar "$jar_path" generate \
+                        -i "$swagger_path/$version/$file" \
+                        -l go \
+                        -o "$target" \
+                        --additional-properties "packageName=$version,isGoSubmodule=true"
+                fi
 
                 find "$target" -type f ! -name "*.go" -delete
 

@@ -18,4 +18,5 @@ const (
 	SUCCEEDED_V1alpha1SyncTaskStatus V1alpha1SyncTaskStatus = "SYNC_TASK_STATUS_SUCCEEDED"
 	FAILED_V1alpha1SyncTaskStatus V1alpha1SyncTaskStatus = "SYNC_TASK_STATUS_FAILED"
 	STOPPED_V1alpha1SyncTaskStatus V1alpha1SyncTaskStatus = "SYNC_TASK_STATUS_STOPPED"
+	PENDING_V1alpha1SyncTaskStatus V1alpha1SyncTaskStatus = "SYNC_TASK_STATUS_PENDING"
 )

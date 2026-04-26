@@ -10,11 +10,10 @@
 package v1alpha1
 
 type V1alpha1PullBasePolicy struct {
-	SourceRegistryId   int64                  `json:"sourceRegistryId,omitempty"`
-	ResourceName       string                 `json:"resourceName,omitempty"`
-	ResourceTypes      []V1alpha1ResourceType `json:"resourceTypes,omitempty"`
-	TargetResourceName string                 `json:"targetResourceName,omitempty"`
+	SourceRegistryId int64 `json:"sourceRegistryId,omitempty"`
+	ResourceName string `json:"resourceName,omitempty"`
+	ResourceTypes []V1alpha1ResourceType `json:"resourceTypes,omitempty"`
 	// post or put do not require this field.
-	SourceRegistry    *V1alpha1Registry `json:"sourceRegistry,omitempty"`
-	TargetProjectName string            `json:"targetProjectName,omitempty"`
+	SourceRegistry *V1alpha1Registry `json:"sourceRegistry,omitempty"`
+	TargetProjectName string `json:"targetProjectName,omitempty"`
 }

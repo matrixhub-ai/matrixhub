@@ -413,7 +413,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		jobGenerator,
 	)
 
-	if server.config.JobServer.Enabled {
+	if server.config.JobServer != nil && server.config.JobServer.Enabled {
 		jc := *server.config.JobServer
 		server.jobServer = jobserver.New(&jc, syncPolicyService)
 	}

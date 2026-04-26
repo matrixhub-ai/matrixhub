@@ -10,11 +10,9 @@
 package v1alpha1
 
 type V1alpha1PushBasePolicy struct {
-	ResourceName       string                 `json:"resourceName,omitempty"`
-	ResourceTypes      []V1alpha1ResourceType `json:"resourceTypes,omitempty"`
-	TargetRegistryId   int64                  `json:"targetRegistryId,omitempty"`
-	TargetResourceName string                 `json:"targetResourceName,omitempty"`
-	// post or put do not require this field.
-	TargetRegistry    *V1alpha1Registry `json:"targetRegistry,omitempty"`
-	TargetProjectName string            `json:"targetProjectName,omitempty"`
+	ResourceName string `json:"resourceName,omitempty"`
+	ResourceTypes []V1alpha1ResourceType `json:"resourceTypes,omitempty"`
+	TargetRegistryId int64 `json:"targetRegistryId,omitempty"`
+	TargetRegistry *V1alpha1Registry `json:"targetRegistry,omitempty"`
+	TargetProjectName string `json:"targetProjectName,omitempty"`
 }

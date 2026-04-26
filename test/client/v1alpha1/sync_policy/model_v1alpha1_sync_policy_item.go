@@ -21,4 +21,5 @@ type V1alpha1SyncPolicyItem struct {
 	Bandwidth string `json:"bandwidth,omitempty"`
 	IsOverwrite bool `json:"isOverwrite,omitempty"`
 	IsDisabled bool `json:"isDisabled,omitempty"`
+	TriggerTypeSchedule *V1alpha1TriggerTypeSchedule `json:"triggerTypeSchedule,omitempty"`
 }
