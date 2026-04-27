@@ -27,8 +27,8 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Operations',
       items: [
-      items: [
         {
+
           type: 'category',
           label: 'Model Repository',
           items: [
