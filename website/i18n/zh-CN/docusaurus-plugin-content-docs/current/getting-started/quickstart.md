@@ -126,7 +126,7 @@ curl http://127.0.0.1:3001
 关键配置：
 
 ```
-Remote URL: https://huggingface.co  
+Remote URL: https://hf-mirror.com ( 或者 https://huggingface.co )
 Type: HuggingFace
 ## 建议远程仓库的名称为 huggingface
 ```

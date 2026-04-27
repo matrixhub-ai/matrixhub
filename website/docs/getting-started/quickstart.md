@@ -138,7 +138,7 @@ curl http://127.0.0.1:3001
 
 Key configuration:
 ```
-Remote URL: https://huggingface.co  
+Remote URL: https://hf-mirror.com ( or https://huggingface.co )
 Type: HuggingFace  
 Recommended name: huggingface
 ```
