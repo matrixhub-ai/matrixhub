@@ -124,7 +124,7 @@ curl http://127.0.0.1:3001
 
 建议立即修改密码。
 
-![](https://oss-liuchengtu.hudunsoft.com/userimg/43/4372c3f19c4ea9f41d67b9c8ed016fe2.png)
+![登录](../images/login.png)
 
 ### Step 3：创建远程仓库
 
@@ -142,10 +142,10 @@ Type: HuggingFace
 请求 -> MatrixHub -> Hugging Face -> 回源
 ```
 
-![](https://oss-liuchengtu.hudunsoft.com/userimg/ae/ae137cf50178d40d90b7421671affb0a.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/74/74276e24d34e56115631408462e4ff46.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/d6/d6a32b05cfb18e1e850db9de5287016d.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/7d/7dbeb3f2689813b5ed0c09cd51b752b1.png)
+![远程仓库1](../images/remote1.png)
+![远程仓库2](../images/remote2.png)
+![远程仓库3](../images/remote3.png)
+![远程仓库4](../images/remote4.png)
 
 ### Step 4：创建 Proxy 项目
 
@@ -160,15 +160,15 @@ Type: HuggingFace
 - 选择刚才创建的 `huggingface` 远程仓库
 - 填写代理模型组织：`deepseek-ai`
 
-![](https://oss-liuchengtu.hudunsoft.com/userimg/ac/aca3a456116390f85ef8b81801abfe4d.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/3f/3f89b5d6b6b285fe1e1ef032c84436f8.png)
+![创建项目1](../images/creprojcet1.png)
+![创建项目2](../images/creprojcet2.png)
 
 ### Step 5：客户端接入
 
 ```bash
 export HF_ENDPOINT="http://127.0.0.1:3001"
 ```
-
+![客户端1](../images/client1.png)
 本质上是在做这几件事：
 
 - 劫持客户端请求
@@ -176,11 +176,16 @@ export HF_ENDPOINT="http://127.0.0.1:3001"
 - 自动缓存到本地
 - 后续请求全部走内网
 
+
 ### Step 6：下载模型
 
 ```bash
 hf download deepseek-ai/DeepSeek-V4-Pro
 ```
+![客户端2](../images/client2.png)
+
+下载完成后，进入‘deepseek-ai' 项目可以看到 DeepSeek-V4-Pro 模型在页面上出现.
+![下载](../images/download.png)
 
 ## 验证缓存是否生效
 
