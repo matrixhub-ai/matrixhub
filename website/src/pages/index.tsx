@@ -168,7 +168,7 @@ export default function Home(): React.ReactElement {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                   <a
-                    href="/docs/getting-started/quickstart"
+                    href="/blog/deepseek-v4-distribution"
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-green-600 hover:bg-green-500 text-black rounded-lg font-bold text-base sm:text-lg transition-all shadow-[0_0_20px_rgba(22,163,74,0.4)] hover:shadow-[0_0_30px_rgba(22,163,74,0.6)] flex items-center justify-center gap-2 hover:text-black hover:no-underline hover:scale-105 transform"
                   >
                     Quick Start <ArrowRight size={20} />
