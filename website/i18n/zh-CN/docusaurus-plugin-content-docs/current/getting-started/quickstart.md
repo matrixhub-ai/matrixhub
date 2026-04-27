@@ -119,7 +119,7 @@ curl http://127.0.0.1:3001
 - 密码：`changeme`
 
 👉 **建议立即修改密码**
-![](../images/登录.PNG)
+![](../images/login.png)
 
 ## 🌐 Step 3：创建远程仓库 Remote（代理 Hugging Face）
 
@@ -210,4 +210,3 @@ MatrixHub 只是把这件事补上了。
   
 如果你正在做类似事情，欢迎交流 👇  
 👉 https://github.com/matrixhub-ai/matrixhub
-
