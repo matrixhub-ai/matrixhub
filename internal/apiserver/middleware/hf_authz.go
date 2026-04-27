@@ -30,7 +30,6 @@ type action string
 const (
 	resourceDataset = "datasets"
 	resourceModel   = "models"
-	resourceSpace   = "spaces"
 
 	actionRead  action = "read"
 	actionWrite action = "write"
@@ -65,7 +64,7 @@ func HFAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Han
 				next.ServeHTTP(w, r)
 				return
 			}
-			if !checkPerm(authzSvc, r) {
+			if !checkHFPerm(authzSvc, r) {
 				http.Error(w, "permission denied", http.StatusForbidden)
 				return
 			}
@@ -75,7 +74,7 @@ func HFAuthzMiddleware(authzSvc authz.IAuthzService) func(http.Handler) http.Han
 	}
 }
 
-func checkPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
+func checkHFPerm(authzSvc authz.IAuthzService, r *http.Request) bool {
 	vars := mux.Vars(r)
 	projectName, resource := vars["namespace"], vars["repoType"]
 	method := r.Method

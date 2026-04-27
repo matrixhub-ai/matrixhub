@@ -12,6 +12,7 @@ import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
 import { DeleteReplicationAction } from './DeleteReplicationAction'
 import { EditReplicationAction } from './EditReplicationAction'
 import { SyncReplicationAction } from './SyncReplicationAction'
+import { ToggleReplicationAction } from './ToggleReplicationAction'
 import {
   formatReplicationBandwidth,
   getReplicationRowId,
@@ -54,23 +55,12 @@ function ReplicationActionsCell({
   row,
 }: ReplicationActionCellProps) {
   const isDisabled = row.original.id == null
-  // const isDisabledToggle = row.original.isDisabled
-  // const toggleLabel = isDisabledToggle
-  //   ? t('routes.admin.replications.actions.enable')
-  //   : t('routes.admin.replications.actions.disable')
 
   return (
     <Group gap={4} wrap="nowrap">
       <EditReplicationAction syncPolicy={row.original} disabled={isDisabled} />
       <SyncReplicationAction syncPolicy={row.original} disabled={isDisabled} />
-      {/* <Button
-        variant="transparent"
-        size="compact-sm"
-        color="blue"
-        disabled={isDisabled}
-      >
-        {toggleLabel}
-      </Button> */}
+      <ToggleReplicationAction syncPolicy={row.original} disabled={isDisabled} />
       <DeleteReplicationAction syncPolicy={row.original} disabled={isDisabled} />
     </Group>
   )
@@ -81,12 +71,15 @@ function getRegistryLabel(registry?: Registry) {
 }
 
 function formatLocation(parts: (string | undefined)[]) {
-  const location = parts
-    .map(part => part?.trim())
-    .filter((part): part is string => Boolean(part))
-    .join(' : ')
+  const normalized = parts.map(part => part?.trim() || '')
 
-  return location || EMPTY_VALUE
+  if (normalized.every(part => !part)) {
+    return EMPTY_VALUE
+  }
+
+  return normalized
+    .map(part => part || EMPTY_VALUE)
+    .join(' : ')
 }
 
 function getReplicationSource(item: SyncPolicyItem, localLabel: string) {

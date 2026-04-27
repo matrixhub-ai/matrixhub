@@ -1,14 +1,24 @@
+import {
+  type PolymorphicFactory,
+  polymorphicFactory,
+  useProps,
+} from '@mantine/core'
 import { IconPhotoUp } from '@tabler/icons-react'
 
-import { BaseBadge } from '@/shared/components/badges/BaseBadge'
+import { BaseBadge, type BaseBadgeProps } from '@/shared/components/badges/BaseBadge'
 
-import type { ComponentProps, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-type BaseBadgeProps = ComponentProps<typeof BaseBadge>
-
-interface TaskBadgeProps extends Omit<BaseBadgeProps, 'icon' | 'label'> {
+export interface TaskBadgeProps extends Omit<BaseBadgeProps, 'icon' | 'label'> {
   task: string
 }
+
+export type TaskBadgeFactory = PolymorphicFactory<{
+  props: TaskBadgeProps
+  defaultComponent: 'div'
+  defaultRef: HTMLDivElement
+  stylesNames: 'root' | 'label'
+}>
 
 const TASK_ICON_ENTRIES = [
   {
@@ -23,15 +33,20 @@ function resolveTaskIcon(task: string): ReactNode {
   return matched?.icon ?? null
 }
 
-export function TaskBadge({
-  task,
-  ...badgeProps
-}: TaskBadgeProps) {
+export const TaskBadge = polymorphicFactory<TaskBadgeFactory>((_props, ref) => {
+  const {
+    task,
+    ...badgeProps
+  } = useProps('TaskBadge', {}, _props)
+
   return (
     <BaseBadge
+      ref={ref}
       icon={resolveTaskIcon(task)}
       label={task}
       {...badgeProps}
     />
   )
-}
+})
+
+TaskBadge.displayName = 'TaskBadge'

@@ -22,18 +22,9 @@ const config: Config = {
 
   i18n: {
     defaultLocale: 'en',
-    locales: ['en', 'zh'],
-    localeConfigs: {
-      en: {
-        label: 'English',
-        direction: 'ltr',
-      },
-      zh: {
-        label: '中文',
-        direction: 'ltr',
-      },
-    },
+    locales: ['en', 'zh-CN'],
   },
+
 
   presets: [
     [

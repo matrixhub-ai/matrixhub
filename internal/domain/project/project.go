@@ -90,6 +90,7 @@ type IProjectRepo interface {
 	ListProjects(ctx context.Context, name string, projectType ProjectType, managedOnly bool, page, pageSize int) ([]*Project, int64, error)
 	UpdateProject(ctx context.Context, project *Project) error
 	DeleteProject(ctx context.Context, id int) error
+	ListProjectInfoByNames(ctx context.Context, names []string) ([]*Project, error)
 
 	ListProjectMembers(ctx context.Context, projectID int, memberName string, page, pageSize int) ([]*ProjectMember, int64, error)
 	AddProjectMemberWithRole(ctx context.Context, projectMember *ProjectMember) error

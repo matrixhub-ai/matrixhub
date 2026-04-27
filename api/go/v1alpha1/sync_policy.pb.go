@@ -280,14 +280,13 @@ func (SyncJobStatus) EnumDescriptor() ([]byte, []int) {
 }
 
 type PullBasePolicy struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	SourceRegistryId   uint32                 `protobuf:"varint,1,opt,name=source_registry_id,json=sourceRegistryId,proto3" json:"source_registry_id,omitempty"`
-	ResourceName       string                 `protobuf:"bytes,2,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
-	ResourceTypes      []ResourceType         `protobuf:"varint,3,rep,packed,name=resource_types,json=resourceTypes,proto3,enum=matrixhub.v1alpha1.ResourceType" json:"resource_types,omitempty"`
-	TargetResourceName string                 `protobuf:"bytes,4,opt,name=target_resource_name,json=targetResourceName,proto3" json:"target_resource_name,omitempty"`
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	SourceRegistryId uint32                 `protobuf:"varint,1,opt,name=source_registry_id,json=sourceRegistryId,proto3" json:"source_registry_id,omitempty"`
+	ResourceName     string                 `protobuf:"bytes,2,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
+	ResourceTypes    []ResourceType         `protobuf:"varint,3,rep,packed,name=resource_types,json=resourceTypes,proto3,enum=matrixhub.v1alpha1.ResourceType" json:"resource_types,omitempty"`
 	// post or put do not require this field.
-	SourceRegistry    *Registry `protobuf:"bytes,5,opt,name=source_registry,json=sourceRegistry,proto3" json:"source_registry,omitempty"`
-	TargetProjectName string    `protobuf:"bytes,6,opt,name=target_project_name,json=targetProjectName,proto3" json:"target_project_name,omitempty"`
+	SourceRegistry    *Registry `protobuf:"bytes,4,opt,name=source_registry,json=sourceRegistry,proto3" json:"source_registry,omitempty"`
+	TargetProjectName string    `protobuf:"bytes,5,opt,name=target_project_name,json=targetProjectName,proto3" json:"target_project_name,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -343,13 +342,6 @@ func (x *PullBasePolicy) GetResourceTypes() []ResourceType {
 	return nil
 }
 
-func (x *PullBasePolicy) GetTargetResourceName() string {
-	if x != nil {
-		return x.TargetResourceName
-	}
-	return ""
-}
-
 func (x *PullBasePolicy) GetSourceRegistry() *Registry {
 	if x != nil {
 		return x.SourceRegistry
@@ -365,14 +357,12 @@ func (x *PullBasePolicy) GetTargetProjectName() string {
 }
 
 type PushBasePolicy struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	ResourceName       string                 `protobuf:"bytes,1,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
-	ResourceTypes      []ResourceType         `protobuf:"varint,2,rep,packed,name=resource_types,json=resourceTypes,proto3,enum=matrixhub.v1alpha1.ResourceType" json:"resource_types,omitempty"`
-	TargetRegistryId   uint32                 `protobuf:"varint,3,opt,name=target_registry_id,json=targetRegistryId,proto3" json:"target_registry_id,omitempty"`
-	TargetResourceName string                 `protobuf:"bytes,4,opt,name=target_resource_name,json=targetResourceName,proto3" json:"target_resource_name,omitempty"`
-	// post or put do not require this field.
-	TargetRegistry    *Registry `protobuf:"bytes,5,opt,name=target_registry,json=targetRegistry,proto3" json:"target_registry,omitempty"`
-	TargetProjectName string    `protobuf:"bytes,6,opt,name=target_project_name,json=targetProjectName,proto3" json:"target_project_name,omitempty"`
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	ResourceName      string                 `protobuf:"bytes,1,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
+	ResourceTypes     []ResourceType         `protobuf:"varint,2,rep,packed,name=resource_types,json=resourceTypes,proto3,enum=matrixhub.v1alpha1.ResourceType" json:"resource_types,omitempty"`
+	TargetRegistryId  uint32                 `protobuf:"varint,3,opt,name=target_registry_id,json=targetRegistryId,proto3" json:"target_registry_id,omitempty"`
+	TargetRegistry    *Registry              `protobuf:"bytes,4,opt,name=target_registry,json=targetRegistry,proto3" json:"target_registry,omitempty"`
+	TargetProjectName string                 `protobuf:"bytes,5,opt,name=target_project_name,json=targetProjectName,proto3" json:"target_project_name,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -426,13 +416,6 @@ func (x *PushBasePolicy) GetTargetRegistryId() uint32 {
 		return x.TargetRegistryId
 	}
 	return 0
-}
-
-func (x *PushBasePolicy) GetTargetResourceName() string {
-	if x != nil {
-		return x.TargetResourceName
-	}
-	return ""
 }
 
 func (x *PushBasePolicy) GetTargetRegistry() *Registry {
@@ -1525,7 +1508,7 @@ type ListSyncTasksRequest struct {
 	SyncPolicyId  int32                  `protobuf:"varint,1,opt,name=sync_policy_id,json=syncPolicyId,proto3" json:"sync_policy_id,omitempty"`
 	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Search        string                 `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	Status        SyncTaskStatus         `protobuf:"varint,4,opt,name=status,proto3,enum=matrixhub.v1alpha1.SyncTaskStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1581,11 +1564,11 @@ func (x *ListSyncTasksRequest) GetPageSize() int32 {
 	return 0
 }
 
-func (x *ListSyncTasksRequest) GetSearch() string {
+func (x *ListSyncTasksRequest) GetStatus() SyncTaskStatus {
 	if x != nil {
-		return x.Search
+		return x.Status
 	}
-	return ""
+	return SyncTaskStatus_SYNC_TASK_STATUS_UNSPECIFIED
 }
 
 type ListSyncTasksResponse struct {
@@ -1746,6 +1729,7 @@ type SyncJob struct {
 	Action             string                 `protobuf:"bytes,6,opt,name=action,proto3" json:"action,omitempty"`
 	Status             SyncJobStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=matrixhub.v1alpha1.SyncJobStatus" json:"status,omitempty"`
 	CompletedTimestamp int64                  `protobuf:"varint,8,opt,name=completed_timestamp,json=completedTimestamp,proto3" json:"completed_timestamp,omitempty"`
+	CreatedTimestamp   int64                  `protobuf:"varint,9,opt,name=created_timestamp,json=createdTimestamp,proto3" json:"created_timestamp,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -1832,6 +1816,13 @@ func (x *SyncJob) GetStatus() SyncJobStatus {
 func (x *SyncJob) GetCompletedTimestamp() int64 {
 	if x != nil {
 		return x.CompletedTimestamp
+	}
+	return 0
+}
+
+func (x *SyncJob) GetCreatedTimestamp() int64 {
+	if x != nil {
+		return x.CreatedTimestamp
 	}
 	return 0
 }
@@ -2076,25 +2067,215 @@ func (x *GetSyncJobLogResponse) GetLog() string {
 	return ""
 }
 
+type GetSyncTaskRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SyncPolicyId  int32                  `protobuf:"varint,1,opt,name=sync_policy_id,json=syncPolicyId,proto3" json:"sync_policy_id,omitempty"`
+	SyncTaskId    int32                  `protobuf:"varint,2,opt,name=sync_task_id,json=syncTaskId,proto3" json:"sync_task_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSyncTaskRequest) Reset() {
+	*x = GetSyncTaskRequest{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSyncTaskRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSyncTaskRequest) ProtoMessage() {}
+
+func (x *GetSyncTaskRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSyncTaskRequest.ProtoReflect.Descriptor instead.
+func (*GetSyncTaskRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetSyncTaskRequest) GetSyncPolicyId() int32 {
+	if x != nil {
+		return x.SyncPolicyId
+	}
+	return 0
+}
+
+func (x *GetSyncTaskRequest) GetSyncTaskId() int32 {
+	if x != nil {
+		return x.SyncTaskId
+	}
+	return 0
+}
+
+type GetSyncTaskResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SyncTask      *SyncTask              `protobuf:"bytes,1,opt,name=sync_task,json=syncTask,proto3" json:"sync_task,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSyncTaskResponse) Reset() {
+	*x = GetSyncTaskResponse{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSyncTaskResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSyncTaskResponse) ProtoMessage() {}
+
+func (x *GetSyncTaskResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSyncTaskResponse.ProtoReflect.Descriptor instead.
+func (*GetSyncTaskResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetSyncTaskResponse) GetSyncTask() *SyncTask {
+	if x != nil {
+		return x.SyncTask
+	}
+	return nil
+}
+
+type UpdateSyncPolicySwitchRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SyncPolicyId  int32                  `protobuf:"varint,1,opt,name=sync_policy_id,json=syncPolicyId,proto3" json:"sync_policy_id,omitempty"`
+	IsDisabled    bool                   `protobuf:"varint,2,opt,name=is_disabled,json=isDisabled,proto3" json:"is_disabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSyncPolicySwitchRequest) Reset() {
+	*x = UpdateSyncPolicySwitchRequest{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSyncPolicySwitchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSyncPolicySwitchRequest) ProtoMessage() {}
+
+func (x *UpdateSyncPolicySwitchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSyncPolicySwitchRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSyncPolicySwitchRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *UpdateSyncPolicySwitchRequest) GetSyncPolicyId() int32 {
+	if x != nil {
+		return x.SyncPolicyId
+	}
+	return 0
+}
+
+func (x *UpdateSyncPolicySwitchRequest) GetIsDisabled() bool {
+	if x != nil {
+		return x.IsDisabled
+	}
+	return false
+}
+
+type UpdateSyncPolicySwitchResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SyncPolicy    *SyncPolicyItem        `protobuf:"bytes,1,opt,name=sync_policy,json=syncPolicy,proto3" json:"sync_policy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSyncPolicySwitchResponse) Reset() {
+	*x = UpdateSyncPolicySwitchResponse{}
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSyncPolicySwitchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSyncPolicySwitchResponse) ProtoMessage() {}
+
+func (x *UpdateSyncPolicySwitchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_sync_policy_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSyncPolicySwitchResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSyncPolicySwitchResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_sync_policy_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *UpdateSyncPolicySwitchResponse) GetSyncPolicy() *SyncPolicyItem {
+	if x != nil {
+		return x.SyncPolicy
+	}
+	return nil
+}
+
 var File_v1alpha1_sync_policy_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\n" +
-	"\x1av1alpha1/sync_policy.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x14v1alpha1/utils.proto\x1a\x17v1alpha1/registry.proto\"\xd5\x02\n" +
+	"\x1av1alpha1/sync_policy.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x14v1alpha1/utils.proto\x1a\x17v1alpha1/registry.proto\"\xa3\x02\n" +
 	"\x0ePullBasePolicy\x12,\n" +
 	"\x12source_registry_id\x18\x01 \x01(\rR\x10sourceRegistryId\x12#\n" +
 	"\rresource_name\x18\x02 \x01(\tR\fresourceName\x12G\n" +
-	"\x0eresource_types\x18\x03 \x03(\x0e2 .matrixhub.v1alpha1.ResourceTypeR\rresourceTypes\x120\n" +
-	"\x14target_resource_name\x18\x04 \x01(\tR\x12targetResourceName\x12E\n" +
-	"\x0fsource_registry\x18\x05 \x01(\v2\x1c.matrixhub.v1alpha1.RegistryR\x0esourceRegistry\x12.\n" +
-	"\x13target_project_name\x18\x06 \x01(\tR\x11targetProjectName\"\xd5\x02\n" +
+	"\x0eresource_types\x18\x03 \x03(\x0e2 .matrixhub.v1alpha1.ResourceTypeR\rresourceTypes\x12E\n" +
+	"\x0fsource_registry\x18\x04 \x01(\v2\x1c.matrixhub.v1alpha1.RegistryR\x0esourceRegistry\x12.\n" +
+	"\x13target_project_name\x18\x05 \x01(\tR\x11targetProjectName\"\xa3\x02\n" +
 	"\x0ePushBasePolicy\x12#\n" +
 	"\rresource_name\x18\x01 \x01(\tR\fresourceName\x12G\n" +
 	"\x0eresource_types\x18\x02 \x03(\x0e2 .matrixhub.v1alpha1.ResourceTypeR\rresourceTypes\x12,\n" +
-	"\x12target_registry_id\x18\x03 \x01(\rR\x10targetRegistryId\x120\n" +
-	"\x14target_resource_name\x18\x04 \x01(\tR\x12targetResourceName\x12E\n" +
-	"\x0ftarget_registry\x18\x05 \x01(\v2\x1c.matrixhub.v1alpha1.RegistryR\x0etargetRegistry\x12.\n" +
-	"\x13target_project_name\x18\x06 \x01(\tR\x11targetProjectName\"\xc8\x04\n" +
+	"\x12target_registry_id\x18\x03 \x01(\rR\x10targetRegistryId\x12E\n" +
+	"\x0ftarget_registry\x18\x04 \x01(\v2\x1c.matrixhub.v1alpha1.RegistryR\x0etargetRegistry\x12.\n" +
+	"\x13target_project_name\x18\x05 \x01(\tR\x11targetProjectName\"\xc8\x04\n" +
 	"\x0eSyncPolicyItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -2180,12 +2361,12 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x10successful_items\x18\b \x01(\x03R\x0fsuccessfulItems\x12#\n" +
 	"\rstopped_items\x18\t \x01(\x03R\fstoppedItems\x12!\n" +
 	"\ffailed_items\x18\n" +
-	" \x01(\x03R\vfailedItems\"\x85\x01\n" +
+	" \x01(\x03R\vfailedItems\"\xa9\x01\n" +
 	"\x14ListSyncTasksRequest\x12$\n" +
 	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x16\n" +
-	"\x06search\x18\x04 \x01(\tR\x06search\"\x94\x01\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12:\n" +
+	"\x06status\x18\x04 \x01(\x0e2\".matrixhub.v1alpha1.SyncTaskStatusR\x06status\"\x94\x01\n" +
 	"\x15ListSyncTasksResponse\x12;\n" +
 	"\n" +
 	"sync_tasks\x18\x01 \x03(\v2\x1c.matrixhub.v1alpha1.SyncTaskR\tsyncTasks\x12>\n" +
@@ -2197,7 +2378,7 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
 	"syncTaskId\"Q\n" +
 	"\x14StopSyncTaskResponse\x129\n" +
-	"\tsync_task\x18\x01 \x01(\v2\x1c.matrixhub.v1alpha1.SyncTaskR\bsyncTask\"\xdd\x02\n" +
+	"\tsync_task\x18\x01 \x01(\v2\x1c.matrixhub.v1alpha1.SyncTaskR\bsyncTask\"\x8a\x03\n" +
 	"\aSyncJob\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12 \n" +
 	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
@@ -2207,7 +2388,8 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x14target_resource_name\x18\x05 \x01(\tR\x12targetResourceName\x12\x16\n" +
 	"\x06action\x18\x06 \x01(\tR\x06action\x129\n" +
 	"\x06status\x18\a \x01(\x0e2!.matrixhub.v1alpha1.SyncJobStatusR\x06status\x12/\n" +
-	"\x13completed_timestamp\x18\b \x01(\x03R\x12completedTimestamp\"\x90\x02\n" +
+	"\x13completed_timestamp\x18\b \x01(\x03R\x12completedTimestamp\x12+\n" +
+	"\x11created_timestamp\x18\t \x01(\x03R\x10createdTimestamp\"\x90\x02\n" +
 	"\x13ListSyncJobsRequest\x12$\n" +
 	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12 \n" +
 	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
@@ -2227,7 +2409,20 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"syncTaskId\x12\x1e\n" +
 	"\vsync_job_id\x18\x03 \x01(\x05R\tsyncJobId\")\n" +
 	"\x15GetSyncJobLogResponse\x12\x10\n" +
-	"\x03log\x18\x01 \x01(\tR\x03log*r\n" +
+	"\x03log\x18\x01 \x01(\tR\x03log\"\\\n" +
+	"\x12GetSyncTaskRequest\x12$\n" +
+	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12 \n" +
+	"\fsync_task_id\x18\x02 \x01(\x05R\n" +
+	"syncTaskId\"P\n" +
+	"\x13GetSyncTaskResponse\x129\n" +
+	"\tsync_task\x18\x01 \x01(\v2\x1c.matrixhub.v1alpha1.SyncTaskR\bsyncTask\"f\n" +
+	"\x1dUpdateSyncPolicySwitchRequest\x12$\n" +
+	"\x0esync_policy_id\x18\x01 \x01(\x05R\fsyncPolicyId\x12\x1f\n" +
+	"\vis_disabled\x18\x02 \x01(\bR\n" +
+	"isDisabled\"e\n" +
+	"\x1eUpdateSyncPolicySwitchResponse\x12C\n" +
+	"\vsync_policy\x18\x01 \x01(\v2\".matrixhub.v1alpha1.SyncPolicyItemR\n" +
+	"syncPolicy*r\n" +
 	"\x0eSyncPolicyType\x12 \n" +
 	"\x1cSYNC_POLICY_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSYNC_POLICY_TYPE_PULL_BASE\x10\x01\x12\x1e\n" +
@@ -2251,16 +2446,18 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x17SYNC_JOB_STATUS_RUNNING\x10\x01\x12\x1d\n" +
 	"\x19SYNC_JOB_STATUS_SUCCEEDED\x10\x02\x12\x1a\n" +
 	"\x16SYNC_JOB_STATUS_FAILED\x10\x03\x12\x1b\n" +
-	"\x17SYNC_JOB_STATUS_STOPPED\x10\x042\xc2\r\n" +
+	"\x17SYNC_JOB_STATUS_STOPPED\x10\x042\xb5\x10\n" +
 	"\n" +
 	"SyncPolicy\x12\x92\x01\n" +
 	"\x10ListSyncPolicies\x12+.matrixhub.v1alpha1.ListSyncPoliciesRequest\x1a,.matrixhub.v1alpha1.ListSyncPoliciesResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1alpha1/sync-policies\x12\x9a\x01\n" +
 	"\rGetSyncPolicy\x12(.matrixhub.v1alpha1.GetSyncPolicyRequest\x1a).matrixhub.v1alpha1.GetSyncPolicyResponse\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1alpha1/sync-policies/{sync_policy_id}\x12\x95\x01\n" +
 	"\x10CreateSyncPolicy\x12+.matrixhub.v1alpha1.CreateSyncPolicyRequest\x1a,.matrixhub.v1alpha1.CreateSyncPolicyResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1alpha1/sync-policies\x12\xa6\x01\n" +
-	"\x10UpdateSyncPolicy\x12+.matrixhub.v1alpha1.UpdateSyncPolicyRequest\x1a,.matrixhub.v1alpha1.UpdateSyncPolicyResponse\"7\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1alpha1/sync-policies/{sync_policy_id}\x12\xa3\x01\n" +
+	"\x10UpdateSyncPolicy\x12+.matrixhub.v1alpha1.UpdateSyncPolicyRequest\x1a,.matrixhub.v1alpha1.UpdateSyncPolicyResponse\"7\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1alpha1/sync-policies/{sync_policy_id}\x12\xbf\x01\n" +
+	"\x16UpdateSyncPolicySwitch\x121.matrixhub.v1alpha1.UpdateSyncPolicySwitchRequest\x1a2.matrixhub.v1alpha1.UpdateSyncPolicySwitchResponse\">\x82\xd3\xe4\x93\x028:\x01*\x1a3/api/v1alpha1/sync-policies/{sync_policy_id}/switch\x12\xa3\x01\n" +
 	"\x10DeleteSyncPolicy\x12+.matrixhub.v1alpha1.DeleteSyncPolicyRequest\x1a,.matrixhub.v1alpha1.DeleteSyncPolicyResponse\"4\x82\xd3\xe4\x93\x02.*,/api/v1alpha1/sync-policies/{sync_policy_id}\x12\xa8\x01\n" +
 	"\x0eCreateSyncTask\x12).matrixhub.v1alpha1.CreateSyncTaskRequest\x1a*.matrixhub.v1alpha1.CreateSyncTaskResponse\"?\x82\xd3\xe4\x93\x029\"7/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks\x12\xa5\x01\n" +
-	"\rListSyncTasks\x12(.matrixhub.v1alpha1.ListSyncTasksRequest\x1a).matrixhub.v1alpha1.ListSyncTasksResponse\"?\x82\xd3\xe4\x93\x029\x127/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks\x12\xb6\x01\n" +
+	"\rListSyncTasks\x12(.matrixhub.v1alpha1.ListSyncTasksRequest\x1a).matrixhub.v1alpha1.ListSyncTasksResponse\"?\x82\xd3\xe4\x93\x029\x127/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks\x12\xae\x01\n" +
+	"\vGetSyncTask\x12&.matrixhub.v1alpha1.GetSyncTaskRequest\x1a'.matrixhub.v1alpha1.GetSyncTaskResponse\"N\x82\xd3\xe4\x93\x02H\x12F/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}\x12\xb6\x01\n" +
 	"\fStopSyncTask\x12'.matrixhub.v1alpha1.StopSyncTaskRequest\x1a(.matrixhub.v1alpha1.StopSyncTaskResponse\"S\x82\xd3\xe4\x93\x02M\"K/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/stop\x12\xbb\x01\n" +
 	"\fListSyncJobs\x12'.matrixhub.v1alpha1.ListSyncJobsRequest\x1a(.matrixhub.v1alpha1.ListSyncJobsResponse\"X\x82\xd3\xe4\x93\x02R\x12P/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs\x12\xd0\x01\n" +
 	"\rGetSyncJobLog\x12(.matrixhub.v1alpha1.GetSyncJobLogRequest\x1a).matrixhub.v1alpha1.GetSyncJobLogResponse\"j\x82\xd3\xe4\x93\x02d\x12b/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}/sync-jobs/{sync_job_id}/logB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
@@ -2278,47 +2475,51 @@ func file_v1alpha1_sync_policy_proto_rawDescGZIP() []byte {
 }
 
 var file_v1alpha1_sync_policy_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_v1alpha1_sync_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_v1alpha1_sync_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_v1alpha1_sync_policy_proto_goTypes = []any{
-	(SyncPolicyType)(0),              // 0: matrixhub.v1alpha1.SyncPolicyType
-	(ResourceType)(0),                // 1: matrixhub.v1alpha1.ResourceType
-	(TriggerType)(0),                 // 2: matrixhub.v1alpha1.TriggerType
-	(SyncTaskStatus)(0),              // 3: matrixhub.v1alpha1.SyncTaskStatus
-	(SyncJobStatus)(0),               // 4: matrixhub.v1alpha1.SyncJobStatus
-	(*PullBasePolicy)(nil),           // 5: matrixhub.v1alpha1.PullBasePolicy
-	(*PushBasePolicy)(nil),           // 6: matrixhub.v1alpha1.PushBasePolicy
-	(*SyncPolicyItem)(nil),           // 7: matrixhub.v1alpha1.SyncPolicyItem
-	(*CreateSyncPolicyRequest)(nil),  // 8: matrixhub.v1alpha1.CreateSyncPolicyRequest
-	(*TriggerTypeSchedule)(nil),      // 9: matrixhub.v1alpha1.TriggerTypeSchedule
-	(*CreateSyncPolicyResponse)(nil), // 10: matrixhub.v1alpha1.CreateSyncPolicyResponse
-	(*UpdateSyncPolicyRequest)(nil),  // 11: matrixhub.v1alpha1.UpdateSyncPolicyRequest
-	(*UpdateSyncPolicyResponse)(nil), // 12: matrixhub.v1alpha1.UpdateSyncPolicyResponse
-	(*DeleteSyncPolicyRequest)(nil),  // 13: matrixhub.v1alpha1.DeleteSyncPolicyRequest
-	(*DeleteSyncPolicyResponse)(nil), // 14: matrixhub.v1alpha1.DeleteSyncPolicyResponse
-	(*ListSyncPoliciesRequest)(nil),  // 15: matrixhub.v1alpha1.ListSyncPoliciesRequest
-	(*ListSyncPoliciesResponse)(nil), // 16: matrixhub.v1alpha1.ListSyncPoliciesResponse
-	(*GetSyncPolicyRequest)(nil),     // 17: matrixhub.v1alpha1.GetSyncPolicyRequest
-	(*GetSyncPolicyResponse)(nil),    // 18: matrixhub.v1alpha1.GetSyncPolicyResponse
-	(*CreateSyncTaskRequest)(nil),    // 19: matrixhub.v1alpha1.CreateSyncTaskRequest
-	(*CreateSyncTaskResponse)(nil),   // 20: matrixhub.v1alpha1.CreateSyncTaskResponse
-	(*SyncTask)(nil),                 // 21: matrixhub.v1alpha1.SyncTask
-	(*ListSyncTasksRequest)(nil),     // 22: matrixhub.v1alpha1.ListSyncTasksRequest
-	(*ListSyncTasksResponse)(nil),    // 23: matrixhub.v1alpha1.ListSyncTasksResponse
-	(*StopSyncTaskRequest)(nil),      // 24: matrixhub.v1alpha1.StopSyncTaskRequest
-	(*StopSyncTaskResponse)(nil),     // 25: matrixhub.v1alpha1.StopSyncTaskResponse
-	(*SyncJob)(nil),                  // 26: matrixhub.v1alpha1.SyncJob
-	(*ListSyncJobsRequest)(nil),      // 27: matrixhub.v1alpha1.ListSyncJobsRequest
-	(*ListSyncJobsResponse)(nil),     // 28: matrixhub.v1alpha1.ListSyncJobsResponse
-	(*GetSyncJobLogRequest)(nil),     // 29: matrixhub.v1alpha1.GetSyncJobLogRequest
-	(*GetSyncJobLogResponse)(nil),    // 30: matrixhub.v1alpha1.GetSyncJobLogResponse
-	(*Registry)(nil),                 // 31: matrixhub.v1alpha1.Registry
-	(*Pagination)(nil),               // 32: matrixhub.v1alpha1.Pagination
+	(SyncPolicyType)(0),                    // 0: matrixhub.v1alpha1.SyncPolicyType
+	(ResourceType)(0),                      // 1: matrixhub.v1alpha1.ResourceType
+	(TriggerType)(0),                       // 2: matrixhub.v1alpha1.TriggerType
+	(SyncTaskStatus)(0),                    // 3: matrixhub.v1alpha1.SyncTaskStatus
+	(SyncJobStatus)(0),                     // 4: matrixhub.v1alpha1.SyncJobStatus
+	(*PullBasePolicy)(nil),                 // 5: matrixhub.v1alpha1.PullBasePolicy
+	(*PushBasePolicy)(nil),                 // 6: matrixhub.v1alpha1.PushBasePolicy
+	(*SyncPolicyItem)(nil),                 // 7: matrixhub.v1alpha1.SyncPolicyItem
+	(*CreateSyncPolicyRequest)(nil),        // 8: matrixhub.v1alpha1.CreateSyncPolicyRequest
+	(*TriggerTypeSchedule)(nil),            // 9: matrixhub.v1alpha1.TriggerTypeSchedule
+	(*CreateSyncPolicyResponse)(nil),       // 10: matrixhub.v1alpha1.CreateSyncPolicyResponse
+	(*UpdateSyncPolicyRequest)(nil),        // 11: matrixhub.v1alpha1.UpdateSyncPolicyRequest
+	(*UpdateSyncPolicyResponse)(nil),       // 12: matrixhub.v1alpha1.UpdateSyncPolicyResponse
+	(*DeleteSyncPolicyRequest)(nil),        // 13: matrixhub.v1alpha1.DeleteSyncPolicyRequest
+	(*DeleteSyncPolicyResponse)(nil),       // 14: matrixhub.v1alpha1.DeleteSyncPolicyResponse
+	(*ListSyncPoliciesRequest)(nil),        // 15: matrixhub.v1alpha1.ListSyncPoliciesRequest
+	(*ListSyncPoliciesResponse)(nil),       // 16: matrixhub.v1alpha1.ListSyncPoliciesResponse
+	(*GetSyncPolicyRequest)(nil),           // 17: matrixhub.v1alpha1.GetSyncPolicyRequest
+	(*GetSyncPolicyResponse)(nil),          // 18: matrixhub.v1alpha1.GetSyncPolicyResponse
+	(*CreateSyncTaskRequest)(nil),          // 19: matrixhub.v1alpha1.CreateSyncTaskRequest
+	(*CreateSyncTaskResponse)(nil),         // 20: matrixhub.v1alpha1.CreateSyncTaskResponse
+	(*SyncTask)(nil),                       // 21: matrixhub.v1alpha1.SyncTask
+	(*ListSyncTasksRequest)(nil),           // 22: matrixhub.v1alpha1.ListSyncTasksRequest
+	(*ListSyncTasksResponse)(nil),          // 23: matrixhub.v1alpha1.ListSyncTasksResponse
+	(*StopSyncTaskRequest)(nil),            // 24: matrixhub.v1alpha1.StopSyncTaskRequest
+	(*StopSyncTaskResponse)(nil),           // 25: matrixhub.v1alpha1.StopSyncTaskResponse
+	(*SyncJob)(nil),                        // 26: matrixhub.v1alpha1.SyncJob
+	(*ListSyncJobsRequest)(nil),            // 27: matrixhub.v1alpha1.ListSyncJobsRequest
+	(*ListSyncJobsResponse)(nil),           // 28: matrixhub.v1alpha1.ListSyncJobsResponse
+	(*GetSyncJobLogRequest)(nil),           // 29: matrixhub.v1alpha1.GetSyncJobLogRequest
+	(*GetSyncJobLogResponse)(nil),          // 30: matrixhub.v1alpha1.GetSyncJobLogResponse
+	(*GetSyncTaskRequest)(nil),             // 31: matrixhub.v1alpha1.GetSyncTaskRequest
+	(*GetSyncTaskResponse)(nil),            // 32: matrixhub.v1alpha1.GetSyncTaskResponse
+	(*UpdateSyncPolicySwitchRequest)(nil),  // 33: matrixhub.v1alpha1.UpdateSyncPolicySwitchRequest
+	(*UpdateSyncPolicySwitchResponse)(nil), // 34: matrixhub.v1alpha1.UpdateSyncPolicySwitchResponse
+	(*Registry)(nil),                       // 35: matrixhub.v1alpha1.Registry
+	(*Pagination)(nil),                     // 36: matrixhub.v1alpha1.Pagination
 }
 var file_v1alpha1_sync_policy_proto_depIdxs = []int32{
 	1,  // 0: matrixhub.v1alpha1.PullBasePolicy.resource_types:type_name -> matrixhub.v1alpha1.ResourceType
-	31, // 1: matrixhub.v1alpha1.PullBasePolicy.source_registry:type_name -> matrixhub.v1alpha1.Registry
+	35, // 1: matrixhub.v1alpha1.PullBasePolicy.source_registry:type_name -> matrixhub.v1alpha1.Registry
 	1,  // 2: matrixhub.v1alpha1.PushBasePolicy.resource_types:type_name -> matrixhub.v1alpha1.ResourceType
-	31, // 3: matrixhub.v1alpha1.PushBasePolicy.target_registry:type_name -> matrixhub.v1alpha1.Registry
+	35, // 3: matrixhub.v1alpha1.PushBasePolicy.target_registry:type_name -> matrixhub.v1alpha1.Registry
 	0,  // 4: matrixhub.v1alpha1.SyncPolicyItem.policy_type:type_name -> matrixhub.v1alpha1.SyncPolicyType
 	2,  // 5: matrixhub.v1alpha1.SyncPolicyItem.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
 	5,  // 6: matrixhub.v1alpha1.SyncPolicyItem.pull_base_policy:type_name -> matrixhub.v1alpha1.PullBasePolicy
@@ -2337,44 +2538,51 @@ var file_v1alpha1_sync_policy_proto_depIdxs = []int32{
 	7,  // 19: matrixhub.v1alpha1.UpdateSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
 	7,  // 20: matrixhub.v1alpha1.DeleteSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
 	7,  // 21: matrixhub.v1alpha1.ListSyncPoliciesResponse.sync_policies:type_name -> matrixhub.v1alpha1.SyncPolicyItem
-	32, // 22: matrixhub.v1alpha1.ListSyncPoliciesResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	36, // 22: matrixhub.v1alpha1.ListSyncPoliciesResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
 	7,  // 23: matrixhub.v1alpha1.GetSyncPolicyResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
 	2,  // 24: matrixhub.v1alpha1.SyncTask.trigger_type:type_name -> matrixhub.v1alpha1.TriggerType
 	3,  // 25: matrixhub.v1alpha1.SyncTask.status:type_name -> matrixhub.v1alpha1.SyncTaskStatus
-	21, // 26: matrixhub.v1alpha1.ListSyncTasksResponse.sync_tasks:type_name -> matrixhub.v1alpha1.SyncTask
-	32, // 27: matrixhub.v1alpha1.ListSyncTasksResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	21, // 28: matrixhub.v1alpha1.StopSyncTaskResponse.sync_task:type_name -> matrixhub.v1alpha1.SyncTask
-	1,  // 29: matrixhub.v1alpha1.SyncJob.resource_type:type_name -> matrixhub.v1alpha1.ResourceType
-	4,  // 30: matrixhub.v1alpha1.SyncJob.status:type_name -> matrixhub.v1alpha1.SyncJobStatus
-	4,  // 31: matrixhub.v1alpha1.ListSyncJobsRequest.status:type_name -> matrixhub.v1alpha1.SyncJobStatus
-	1,  // 32: matrixhub.v1alpha1.ListSyncJobsRequest.resource_type:type_name -> matrixhub.v1alpha1.ResourceType
-	26, // 33: matrixhub.v1alpha1.ListSyncJobsResponse.sync_jobs:type_name -> matrixhub.v1alpha1.SyncJob
-	32, // 34: matrixhub.v1alpha1.ListSyncJobsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	15, // 35: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:input_type -> matrixhub.v1alpha1.ListSyncPoliciesRequest
-	17, // 36: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:input_type -> matrixhub.v1alpha1.GetSyncPolicyRequest
-	8,  // 37: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:input_type -> matrixhub.v1alpha1.CreateSyncPolicyRequest
-	11, // 38: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:input_type -> matrixhub.v1alpha1.UpdateSyncPolicyRequest
-	13, // 39: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:input_type -> matrixhub.v1alpha1.DeleteSyncPolicyRequest
-	19, // 40: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:input_type -> matrixhub.v1alpha1.CreateSyncTaskRequest
-	22, // 41: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:input_type -> matrixhub.v1alpha1.ListSyncTasksRequest
-	24, // 42: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:input_type -> matrixhub.v1alpha1.StopSyncTaskRequest
-	27, // 43: matrixhub.v1alpha1.SyncPolicy.ListSyncJobs:input_type -> matrixhub.v1alpha1.ListSyncJobsRequest
-	29, // 44: matrixhub.v1alpha1.SyncPolicy.GetSyncJobLog:input_type -> matrixhub.v1alpha1.GetSyncJobLogRequest
-	16, // 45: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:output_type -> matrixhub.v1alpha1.ListSyncPoliciesResponse
-	18, // 46: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:output_type -> matrixhub.v1alpha1.GetSyncPolicyResponse
-	10, // 47: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:output_type -> matrixhub.v1alpha1.CreateSyncPolicyResponse
-	12, // 48: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:output_type -> matrixhub.v1alpha1.UpdateSyncPolicyResponse
-	14, // 49: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:output_type -> matrixhub.v1alpha1.DeleteSyncPolicyResponse
-	20, // 50: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:output_type -> matrixhub.v1alpha1.CreateSyncTaskResponse
-	23, // 51: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:output_type -> matrixhub.v1alpha1.ListSyncTasksResponse
-	25, // 52: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:output_type -> matrixhub.v1alpha1.StopSyncTaskResponse
-	28, // 53: matrixhub.v1alpha1.SyncPolicy.ListSyncJobs:output_type -> matrixhub.v1alpha1.ListSyncJobsResponse
-	30, // 54: matrixhub.v1alpha1.SyncPolicy.GetSyncJobLog:output_type -> matrixhub.v1alpha1.GetSyncJobLogResponse
-	45, // [45:55] is the sub-list for method output_type
-	35, // [35:45] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	3,  // 26: matrixhub.v1alpha1.ListSyncTasksRequest.status:type_name -> matrixhub.v1alpha1.SyncTaskStatus
+	21, // 27: matrixhub.v1alpha1.ListSyncTasksResponse.sync_tasks:type_name -> matrixhub.v1alpha1.SyncTask
+	36, // 28: matrixhub.v1alpha1.ListSyncTasksResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	21, // 29: matrixhub.v1alpha1.StopSyncTaskResponse.sync_task:type_name -> matrixhub.v1alpha1.SyncTask
+	1,  // 30: matrixhub.v1alpha1.SyncJob.resource_type:type_name -> matrixhub.v1alpha1.ResourceType
+	4,  // 31: matrixhub.v1alpha1.SyncJob.status:type_name -> matrixhub.v1alpha1.SyncJobStatus
+	4,  // 32: matrixhub.v1alpha1.ListSyncJobsRequest.status:type_name -> matrixhub.v1alpha1.SyncJobStatus
+	1,  // 33: matrixhub.v1alpha1.ListSyncJobsRequest.resource_type:type_name -> matrixhub.v1alpha1.ResourceType
+	26, // 34: matrixhub.v1alpha1.ListSyncJobsResponse.sync_jobs:type_name -> matrixhub.v1alpha1.SyncJob
+	36, // 35: matrixhub.v1alpha1.ListSyncJobsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	21, // 36: matrixhub.v1alpha1.GetSyncTaskResponse.sync_task:type_name -> matrixhub.v1alpha1.SyncTask
+	7,  // 37: matrixhub.v1alpha1.UpdateSyncPolicySwitchResponse.sync_policy:type_name -> matrixhub.v1alpha1.SyncPolicyItem
+	15, // 38: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:input_type -> matrixhub.v1alpha1.ListSyncPoliciesRequest
+	17, // 39: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:input_type -> matrixhub.v1alpha1.GetSyncPolicyRequest
+	8,  // 40: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:input_type -> matrixhub.v1alpha1.CreateSyncPolicyRequest
+	11, // 41: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:input_type -> matrixhub.v1alpha1.UpdateSyncPolicyRequest
+	33, // 42: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicySwitch:input_type -> matrixhub.v1alpha1.UpdateSyncPolicySwitchRequest
+	13, // 43: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:input_type -> matrixhub.v1alpha1.DeleteSyncPolicyRequest
+	19, // 44: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:input_type -> matrixhub.v1alpha1.CreateSyncTaskRequest
+	22, // 45: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:input_type -> matrixhub.v1alpha1.ListSyncTasksRequest
+	31, // 46: matrixhub.v1alpha1.SyncPolicy.GetSyncTask:input_type -> matrixhub.v1alpha1.GetSyncTaskRequest
+	24, // 47: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:input_type -> matrixhub.v1alpha1.StopSyncTaskRequest
+	27, // 48: matrixhub.v1alpha1.SyncPolicy.ListSyncJobs:input_type -> matrixhub.v1alpha1.ListSyncJobsRequest
+	29, // 49: matrixhub.v1alpha1.SyncPolicy.GetSyncJobLog:input_type -> matrixhub.v1alpha1.GetSyncJobLogRequest
+	16, // 50: matrixhub.v1alpha1.SyncPolicy.ListSyncPolicies:output_type -> matrixhub.v1alpha1.ListSyncPoliciesResponse
+	18, // 51: matrixhub.v1alpha1.SyncPolicy.GetSyncPolicy:output_type -> matrixhub.v1alpha1.GetSyncPolicyResponse
+	10, // 52: matrixhub.v1alpha1.SyncPolicy.CreateSyncPolicy:output_type -> matrixhub.v1alpha1.CreateSyncPolicyResponse
+	12, // 53: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicy:output_type -> matrixhub.v1alpha1.UpdateSyncPolicyResponse
+	34, // 54: matrixhub.v1alpha1.SyncPolicy.UpdateSyncPolicySwitch:output_type -> matrixhub.v1alpha1.UpdateSyncPolicySwitchResponse
+	14, // 55: matrixhub.v1alpha1.SyncPolicy.DeleteSyncPolicy:output_type -> matrixhub.v1alpha1.DeleteSyncPolicyResponse
+	20, // 56: matrixhub.v1alpha1.SyncPolicy.CreateSyncTask:output_type -> matrixhub.v1alpha1.CreateSyncTaskResponse
+	23, // 57: matrixhub.v1alpha1.SyncPolicy.ListSyncTasks:output_type -> matrixhub.v1alpha1.ListSyncTasksResponse
+	32, // 58: matrixhub.v1alpha1.SyncPolicy.GetSyncTask:output_type -> matrixhub.v1alpha1.GetSyncTaskResponse
+	25, // 59: matrixhub.v1alpha1.SyncPolicy.StopSyncTask:output_type -> matrixhub.v1alpha1.StopSyncTaskResponse
+	28, // 60: matrixhub.v1alpha1.SyncPolicy.ListSyncJobs:output_type -> matrixhub.v1alpha1.ListSyncJobsResponse
+	30, // 61: matrixhub.v1alpha1.SyncPolicy.GetSyncJobLog:output_type -> matrixhub.v1alpha1.GetSyncJobLogResponse
+	50, // [50:62] is the sub-list for method output_type
+	38, // [38:50] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_sync_policy_proto_init() }
@@ -2402,7 +2610,7 @@ func file_v1alpha1_sync_policy_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_sync_policy_proto_rawDesc), len(file_v1alpha1_sync_policy_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   26,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

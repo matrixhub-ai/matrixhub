@@ -1,0 +1,39 @@
+services:
+  mysql:
+    image: docker.m.daocloud.io/library/mysql:8.4
+    container_name: matrixhub-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: matrixhub
+      MYSQL_USER: matrixhub
+      MYSQL_PASSWORD: changeme
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  matrixhub:
+    image: ghcr.m.daocloud.io/matrixhub-ai/matrixhub:v0.0.2-rc.2
+    container_name: matrixhub-apiserver
+    working_dir: /workspace
+    command:
+      - /usr/local/bin/matrixhub
+      - apiserver
+      - -c
+      - /etc/matrixhub/config.yaml
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data/models:/data/
+      - ./config.yaml:/etc/matrixhub/config.yaml:ro
+    environment:
+      - MATRIXHUB_DATABASE_DSN=matrixhub:changeme@tcp(mysql:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped

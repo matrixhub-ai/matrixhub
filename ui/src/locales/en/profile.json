@@ -2,6 +2,32 @@
   "personalCenter": "Personal Center",
   "securitySetting": "Security Settings",
   "accessToken": "Access Token",
+  "sshKey": {
+    "publicKey": "SSH Public Key",
+    "name": "SSH Public Key Name",
+    "statusLabel": "Status",
+    "expireAt": "Expires At",
+    "importedAt": "Imported At",
+    "emptyTitle": "No SSH public keys",
+    "create": {
+      "button": "Import SSH Public Key",
+      "title": "Import SSH Public Key",
+      "name": "SSH Public Key Name",
+      "publicKey": "Import Public Key",
+      "success": "SSH public key imported successfully"
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete",
+      "confirm": "Are you sure you want to delete SSH public key {{name}}? After deletion, this key becomes invalid immediately.",
+      "success": "SSH public key deleted successfully"
+    },
+    "status": {
+      "SSH_KEY_STATUS_VALID": "Valid",
+      "SSH_KEY_STATUS_EXPIRED": "Expired",
+      "SSH_KEY_STATUS_UNKNOWN": "Unknown"
+    }
+  },
   "password": "Password",
   "changePassword": "Change Password",
   "editPassword": "Edit Password",

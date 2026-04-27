@@ -75,6 +75,7 @@
     "isOverwriteHint": "If a resource with the same name already exists, controls whether the target resource should be overwritten."
   },
   "validation": {
+    "resourceNameRequired": "Resource name is required",
     "resourceTypesRequired": "At least one resource type is required",
     "sourceRegistryRequired": "Source registry is required",
     "targetRegistryRequired": "Target registry is required"
@@ -84,6 +85,8 @@
     "createError": "Failed to create sync rule",
     "updateSuccess": "Sync rule updated successfully",
     "updateError": "Failed to update sync rule",
+    "switchSuccess": "Sync rule status updated successfully",
+    "switchError": "Failed to update sync rule status",
     "deleteSuccess": "Sync rule deleted successfully",
     "deleteError": "Failed to delete sync rule",
     "syncSuccess": "Sync task started successfully",

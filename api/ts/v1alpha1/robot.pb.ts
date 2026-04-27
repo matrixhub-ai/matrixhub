@@ -27,7 +27,7 @@ export type CreateRobotAccountRequest = {
   name?: string
   description?: string
   expireDays?: number
-  systemPermissions?: string[]
+  platformPermissions?: string[]
   projectPermissions?: string[]
   projects?: string[]
   projectScope?: RobotAccountProjectScope
@@ -44,23 +44,8 @@ export type ListRobotAccountsRequest = {
 }
 
 export type ListRobotAccountsResponse = {
-  items?: RobotAccount[]
+  items?: GetRobotAccountResponse[]
   pagination?: MatrixhubV1alpha1Utils.Pagination
-}
-
-export type RobotAccount = {
-  id?: number
-  name?: string
-  description?: string
-  status?: RobotAccountStatus
-  systemPermissions?: string[]
-  projectPermissions?: string[]
-  projects?: string[]
-  createdAt?: string
-  expireStatus?: RobotAccountExpireStatus
-  remainPeriod?: string
-  expireDays?: number
-  projectScope?: RobotAccountProjectScope
 }
 
 export type GetRobotAccountRequest = {
@@ -72,7 +57,7 @@ export type GetRobotAccountResponse = {
   name?: string
   description?: string
   status?: RobotAccountStatus
-  systemPermissions?: string[]
+  platformPermissions?: string[]
   projectPermissions?: string[]
   projects?: string[]
   createdAt?: string
@@ -93,7 +78,7 @@ export type UpdateRobotAccountRequest = {
   id?: number
   description?: string
   status?: RobotAccountStatus
-  systemPermissions?: string[]
+  platformPermissions?: string[]
   projectPermissions?: string[]
   projects?: string[]
   projectScope?: RobotAccountProjectScope

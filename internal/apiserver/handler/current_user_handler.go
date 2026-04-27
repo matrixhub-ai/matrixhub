@@ -36,21 +36,77 @@ import (
 type CurrentUserHandler struct {
 	userRepo        user.IUserRepo
 	accessTokenRepo user.IAccessTokenRepo
+	sshKeyRepo      user.ISSHKeyRepo
 }
 
 func (cu *CurrentUserHandler) CreateSSHKey(ctx context.Context, request *v1alpha1.CreateSSHKeyRequest) (*v1alpha1.CreateSSHKeyResponse, error) {
-	// TODO implement me
-	panic("implement me")
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	expireAt, err := cu.parseExpireAt(request.GetExpireAt())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	fp, err := utils.ParseFingerprint(request.GetPublicKey())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	sk := user.SSHKey{
+		Name:        request.GetName(),
+		UserId:      user.GetCurrentUserId(ctx),
+		PublicKey:   request.GetPublicKey(),
+		Fingerprint: fp,
+		ExpireAt:    expireAt,
+	}
+	err = cu.sshKeyRepo.CreateSSHKey(ctx, sk)
+	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, status.Error(codes.AlreadyExists, "ssh key already exists")
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &v1alpha1.CreateSSHKeyResponse{}, nil
 }
 
 func (cu *CurrentUserHandler) DeleteSSHKey(ctx context.Context, request *v1alpha1.DeleteSSHKeyRequest) (*v1alpha1.DeleteSSHKeyResponse, error) {
-	// TODO implement me
-	panic("implement me")
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	if err := cu.sshKeyRepo.DeleteSSHKey(ctx, user.GetCurrentUserId(ctx), int(request.GetId())); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &v1alpha1.DeleteSSHKeyResponse{}, nil
 }
 
 func (cu *CurrentUserHandler) ListSSHKeys(ctx context.Context, request *v1alpha1.ListSSHKeysRequest) (*v1alpha1.ListSSHKeysResponse, error) {
-	// TODO implement me
-	panic("implement me")
+	sks, err := cu.sshKeyRepo.ListSSHKeys(ctx, user.GetCurrentUserId(ctx))
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &v1alpha1.ListSSHKeysResponse{
+		Items: lo.Map(sks, func(item *user.SSHKey, index int) *v1alpha1.SSHKey {
+			expireAt := ""
+			if item.ExpireAt != nil {
+				expireAt = strconv.Itoa(int(item.ExpireAt.Unix()))
+			}
+			status := v1alpha1.SSHKeyStatus_SSH_KEY_STATUS_UNKNOWN
+			if item.ExpireAt == nil || item.ExpireAt.After(time.Now()) {
+				status = v1alpha1.SSHKeyStatus_SSH_KEY_STATUS_VALID
+			} else if time.Now().After(*item.ExpireAt) {
+				status = v1alpha1.SSHKeyStatus_SSH_KEY_STATUS_EXPIRED
+			}
+			return &v1alpha1.SSHKey{
+				Id:        uint32(item.Id),
+				Name:      item.Name,
+				Status:    status,
+				CreatedAt: strconv.Itoa(int(item.CreatedAt.Unix())),
+				ExpireAt:  expireAt,
+			}
+		}),
+	}, nil
 }
 
 func (cu *CurrentUserHandler) GetCurrentUser(ctx context.Context, request *v1alpha1.GetCurrentUserRequest) (*v1alpha1.GetCurrentUserResponse, error) {
@@ -120,18 +176,13 @@ func (cu *CurrentUserHandler) CreateAccessToken(ctx context.Context, request *v1
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	var expireAt *time.Time
-	if request.GetExpireAt() != "" {
-		expire, err := strconv.Atoi(request.GetExpireAt())
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		expTime := time.Unix(int64(expire), 0)
-		expireAt = &expTime
+	expireAt, err := cu.parseExpireAt(request.GetExpireAt())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	for attempt := 1; attempt <= utils.MaxTokenRetries; attempt++ {
-		raw, hash, err := utils.GenerateToken()
+		raw, hash, err := utils.GenerateUserToken()
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
@@ -194,10 +245,23 @@ func (cu *CurrentUserHandler) RegisterToServer(options *ServerOptions) {
 	}
 }
 
-func NewCurrentUserHandler(userRepo user.IUserRepo, akRepo user.IAccessTokenRepo) IHandler {
+func NewCurrentUserHandler(userRepo user.IUserRepo, akRepo user.IAccessTokenRepo, skRepo user.ISSHKeyRepo) IHandler {
 	handler := &CurrentUserHandler{
 		userRepo:        userRepo,
 		accessTokenRepo: akRepo,
+		sshKeyRepo:      skRepo,
 	}
 	return handler
+}
+
+func (cu *CurrentUserHandler) parseExpireAt(expireAt string) (*time.Time, error) {
+	if expireAt == "" {
+		return nil, nil
+	}
+	expire, err := strconv.Atoi(expireAt)
+	if err != nil {
+		return nil, err
+	}
+	expTime := time.Unix(int64(expire), 0)
+	return &expTime, nil
 }

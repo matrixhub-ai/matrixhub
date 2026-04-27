@@ -246,7 +246,7 @@
         "status": {
           "$ref": "#/definitions/v1alpha1RobotAccountStatus"
         },
-        "systemPermissions": {
+        "platformPermissions": {
           "type": "array",
           "items": {
             "type": "string"
@@ -314,7 +314,7 @@
           "type": "integer",
           "format": "int32"
         },
-        "systemPermissions": {
+        "platformPermissions": {
           "type": "array",
           "items": {
             "type": "string"
@@ -364,7 +364,7 @@
         "status": {
           "$ref": "#/definitions/v1alpha1RobotAccountStatus"
         },
-        "systemPermissions": {
+        "platformPermissions": {
           "type": "array",
           "items": {
             "type": "string"
@@ -407,7 +407,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v1alpha1RobotAccount"
+            "$ref": "#/definitions/v1alpha1GetRobotAccountResponse"
           }
         },
         "pagination": {
@@ -446,58 +446,6 @@
       "properties": {
         "token": {
           "type": "string"
-        }
-      }
-    },
-    "v1alpha1RobotAccount": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "status": {
-          "$ref": "#/definitions/v1alpha1RobotAccountStatus"
-        },
-        "systemPermissions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "projectPermissions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "projects": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "expireStatus": {
-          "$ref": "#/definitions/v1alpha1RobotAccountExpireStatus"
-        },
-        "remainPeriod": {
-          "type": "string"
-        },
-        "expireDays": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "projectScope": {
-          "$ref": "#/definitions/v1alpha1RobotAccountProjectScope"
         }
       }
     },

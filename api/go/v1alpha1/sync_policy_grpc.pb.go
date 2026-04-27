@@ -19,16 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SyncPolicy_ListSyncPolicies_FullMethodName = "/matrixhub.v1alpha1.SyncPolicy/ListSyncPolicies"
-	SyncPolicy_GetSyncPolicy_FullMethodName    = "/matrixhub.v1alpha1.SyncPolicy/GetSyncPolicy"
-	SyncPolicy_CreateSyncPolicy_FullMethodName = "/matrixhub.v1alpha1.SyncPolicy/CreateSyncPolicy"
-	SyncPolicy_UpdateSyncPolicy_FullMethodName = "/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicy"
-	SyncPolicy_DeleteSyncPolicy_FullMethodName = "/matrixhub.v1alpha1.SyncPolicy/DeleteSyncPolicy"
-	SyncPolicy_CreateSyncTask_FullMethodName   = "/matrixhub.v1alpha1.SyncPolicy/CreateSyncTask"
-	SyncPolicy_ListSyncTasks_FullMethodName    = "/matrixhub.v1alpha1.SyncPolicy/ListSyncTasks"
-	SyncPolicy_StopSyncTask_FullMethodName     = "/matrixhub.v1alpha1.SyncPolicy/StopSyncTask"
-	SyncPolicy_ListSyncJobs_FullMethodName     = "/matrixhub.v1alpha1.SyncPolicy/ListSyncJobs"
-	SyncPolicy_GetSyncJobLog_FullMethodName    = "/matrixhub.v1alpha1.SyncPolicy/GetSyncJobLog"
+	SyncPolicy_ListSyncPolicies_FullMethodName       = "/matrixhub.v1alpha1.SyncPolicy/ListSyncPolicies"
+	SyncPolicy_GetSyncPolicy_FullMethodName          = "/matrixhub.v1alpha1.SyncPolicy/GetSyncPolicy"
+	SyncPolicy_CreateSyncPolicy_FullMethodName       = "/matrixhub.v1alpha1.SyncPolicy/CreateSyncPolicy"
+	SyncPolicy_UpdateSyncPolicy_FullMethodName       = "/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicy"
+	SyncPolicy_UpdateSyncPolicySwitch_FullMethodName = "/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicySwitch"
+	SyncPolicy_DeleteSyncPolicy_FullMethodName       = "/matrixhub.v1alpha1.SyncPolicy/DeleteSyncPolicy"
+	SyncPolicy_CreateSyncTask_FullMethodName         = "/matrixhub.v1alpha1.SyncPolicy/CreateSyncTask"
+	SyncPolicy_ListSyncTasks_FullMethodName          = "/matrixhub.v1alpha1.SyncPolicy/ListSyncTasks"
+	SyncPolicy_GetSyncTask_FullMethodName            = "/matrixhub.v1alpha1.SyncPolicy/GetSyncTask"
+	SyncPolicy_StopSyncTask_FullMethodName           = "/matrixhub.v1alpha1.SyncPolicy/StopSyncTask"
+	SyncPolicy_ListSyncJobs_FullMethodName           = "/matrixhub.v1alpha1.SyncPolicy/ListSyncJobs"
+	SyncPolicy_GetSyncJobLog_FullMethodName          = "/matrixhub.v1alpha1.SyncPolicy/GetSyncJobLog"
 )
 
 // SyncPolicyClient is the client API for SyncPolicy service.
@@ -43,12 +45,15 @@ type SyncPolicyClient interface {
 	CreateSyncPolicy(ctx context.Context, in *CreateSyncPolicyRequest, opts ...grpc.CallOption) (*CreateSyncPolicyResponse, error)
 	// UpdateSyncPolicy updates a sync policy.
 	UpdateSyncPolicy(ctx context.Context, in *UpdateSyncPolicyRequest, opts ...grpc.CallOption) (*UpdateSyncPolicyResponse, error)
+	UpdateSyncPolicySwitch(ctx context.Context, in *UpdateSyncPolicySwitchRequest, opts ...grpc.CallOption) (*UpdateSyncPolicySwitchResponse, error)
 	// DeleteSyncPolicy deletes a sync policy.
 	DeleteSyncPolicy(ctx context.Context, in *DeleteSyncPolicyRequest, opts ...grpc.CallOption) (*DeleteSyncPolicyResponse, error)
 	// CreateSyncTask creates a new sync task.
 	CreateSyncTask(ctx context.Context, in *CreateSyncTaskRequest, opts ...grpc.CallOption) (*CreateSyncTaskResponse, error)
 	// ListSyncTasks lists all sync tasks.
 	ListSyncTasks(ctx context.Context, in *ListSyncTasksRequest, opts ...grpc.CallOption) (*ListSyncTasksResponse, error)
+	// GetSyncTask gets a sync task by id.
+	GetSyncTask(ctx context.Context, in *GetSyncTaskRequest, opts ...grpc.CallOption) (*GetSyncTaskResponse, error)
 	// StopSyncTask stops a sync task.
 	StopSyncTask(ctx context.Context, in *StopSyncTaskRequest, opts ...grpc.CallOption) (*StopSyncTaskResponse, error)
 	// ListSyncJobs lists all sync jobs.
@@ -105,6 +110,16 @@ func (c *syncPolicyClient) UpdateSyncPolicy(ctx context.Context, in *UpdateSyncP
 	return out, nil
 }
 
+func (c *syncPolicyClient) UpdateSyncPolicySwitch(ctx context.Context, in *UpdateSyncPolicySwitchRequest, opts ...grpc.CallOption) (*UpdateSyncPolicySwitchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSyncPolicySwitchResponse)
+	err := c.cc.Invoke(ctx, SyncPolicy_UpdateSyncPolicySwitch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *syncPolicyClient) DeleteSyncPolicy(ctx context.Context, in *DeleteSyncPolicyRequest, opts ...grpc.CallOption) (*DeleteSyncPolicyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteSyncPolicyResponse)
@@ -129,6 +144,16 @@ func (c *syncPolicyClient) ListSyncTasks(ctx context.Context, in *ListSyncTasksR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListSyncTasksResponse)
 	err := c.cc.Invoke(ctx, SyncPolicy_ListSyncTasks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *syncPolicyClient) GetSyncTask(ctx context.Context, in *GetSyncTaskRequest, opts ...grpc.CallOption) (*GetSyncTaskResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSyncTaskResponse)
+	err := c.cc.Invoke(ctx, SyncPolicy_GetSyncTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -177,12 +202,15 @@ type SyncPolicyServer interface {
 	CreateSyncPolicy(context.Context, *CreateSyncPolicyRequest) (*CreateSyncPolicyResponse, error)
 	// UpdateSyncPolicy updates a sync policy.
 	UpdateSyncPolicy(context.Context, *UpdateSyncPolicyRequest) (*UpdateSyncPolicyResponse, error)
+	UpdateSyncPolicySwitch(context.Context, *UpdateSyncPolicySwitchRequest) (*UpdateSyncPolicySwitchResponse, error)
 	// DeleteSyncPolicy deletes a sync policy.
 	DeleteSyncPolicy(context.Context, *DeleteSyncPolicyRequest) (*DeleteSyncPolicyResponse, error)
 	// CreateSyncTask creates a new sync task.
 	CreateSyncTask(context.Context, *CreateSyncTaskRequest) (*CreateSyncTaskResponse, error)
 	// ListSyncTasks lists all sync tasks.
 	ListSyncTasks(context.Context, *ListSyncTasksRequest) (*ListSyncTasksResponse, error)
+	// GetSyncTask gets a sync task by id.
+	GetSyncTask(context.Context, *GetSyncTaskRequest) (*GetSyncTaskResponse, error)
 	// StopSyncTask stops a sync task.
 	StopSyncTask(context.Context, *StopSyncTaskRequest) (*StopSyncTaskResponse, error)
 	// ListSyncJobs lists all sync jobs.
@@ -210,6 +238,9 @@ func (UnimplementedSyncPolicyServer) CreateSyncPolicy(context.Context, *CreateSy
 func (UnimplementedSyncPolicyServer) UpdateSyncPolicy(context.Context, *UpdateSyncPolicyRequest) (*UpdateSyncPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSyncPolicy not implemented")
 }
+func (UnimplementedSyncPolicyServer) UpdateSyncPolicySwitch(context.Context, *UpdateSyncPolicySwitchRequest) (*UpdateSyncPolicySwitchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSyncPolicySwitch not implemented")
+}
 func (UnimplementedSyncPolicyServer) DeleteSyncPolicy(context.Context, *DeleteSyncPolicyRequest) (*DeleteSyncPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteSyncPolicy not implemented")
 }
@@ -218,6 +249,9 @@ func (UnimplementedSyncPolicyServer) CreateSyncTask(context.Context, *CreateSync
 }
 func (UnimplementedSyncPolicyServer) ListSyncTasks(context.Context, *ListSyncTasksRequest) (*ListSyncTasksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSyncTasks not implemented")
+}
+func (UnimplementedSyncPolicyServer) GetSyncTask(context.Context, *GetSyncTaskRequest) (*GetSyncTaskResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSyncTask not implemented")
 }
 func (UnimplementedSyncPolicyServer) StopSyncTask(context.Context, *StopSyncTaskRequest) (*StopSyncTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method StopSyncTask not implemented")
@@ -320,6 +354,24 @@ func _SyncPolicy_UpdateSyncPolicy_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SyncPolicy_UpdateSyncPolicySwitch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSyncPolicySwitchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SyncPolicyServer).UpdateSyncPolicySwitch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SyncPolicy_UpdateSyncPolicySwitch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SyncPolicyServer).UpdateSyncPolicySwitch(ctx, req.(*UpdateSyncPolicySwitchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SyncPolicy_DeleteSyncPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteSyncPolicyRequest)
 	if err := dec(in); err != nil {
@@ -370,6 +422,24 @@ func _SyncPolicy_ListSyncTasks_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SyncPolicyServer).ListSyncTasks(ctx, req.(*ListSyncTasksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SyncPolicy_GetSyncTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSyncTaskRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SyncPolicyServer).GetSyncTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SyncPolicy_GetSyncTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SyncPolicyServer).GetSyncTask(ctx, req.(*GetSyncTaskRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -452,6 +522,10 @@ var SyncPolicy_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SyncPolicy_UpdateSyncPolicy_Handler,
 		},
 		{
+			MethodName: "UpdateSyncPolicySwitch",
+			Handler:    _SyncPolicy_UpdateSyncPolicySwitch_Handler,
+		},
+		{
 			MethodName: "DeleteSyncPolicy",
 			Handler:    _SyncPolicy_DeleteSyncPolicy_Handler,
 		},
@@ -462,6 +536,10 @@ var SyncPolicy_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSyncTasks",
 			Handler:    _SyncPolicy_ListSyncTasks_Handler,
+		},
+		{
+			MethodName: "GetSyncTask",
+			Handler:    _SyncPolicy_GetSyncTask_Handler,
 		},
 		{
 			MethodName: "StopSyncTask",

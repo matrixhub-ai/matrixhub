@@ -17,9 +17,7 @@ package handler
 import (
 	"context"
 
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
@@ -36,24 +34,17 @@ func (l *LoginHandler) Login(ctx context.Context, request *v1alpha1.LoginRequest
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	cookie, err := l.userService.LoginUser(ctx, request.Username, request.Password, request.RememberMe)
+	err := l.userService.LoginUser(ctx, request.Username, request.Password, request.RememberMe)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
-	}
-
-	if err = grpc.SetHeader(ctx, metadata.Pairs("set-cookie", cookie.String())); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &v1alpha1.LoginResponse{}, nil
 }
 
 func (l *LoginHandler) Logout(ctx context.Context, _ *v1alpha1.LogoutRequest) (*v1alpha1.LogoutResponse, error) {
-	cookie, err := l.userService.LogoutUser(ctx)
+	err := l.userService.LogoutUser(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	if err = grpc.SetHeader(ctx, metadata.Pairs("set-cookie", cookie.String())); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &v1alpha1.LogoutResponse{}, nil

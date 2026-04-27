@@ -17,5 +17,13 @@ database:
 apiServer:
   port: 3001
 
+jobServer:
+  enabled: true
+  shutdownGrace: 30s
+  syncPolicy:
+    pollInterval: 30s
+    maxConcurrent: 5
+    taskMaxDuration: 2h
+
 ui:
   staticDir: /app

@@ -16,12 +16,9 @@ package repo
 
 import (
 	"context"
-	"strings"
-	"time"
 
 	"gorm.io/gorm"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 )
 
@@ -82,81 +79,31 @@ func (r *syncPolicyDB) ListSyncPolicies(ctx context.Context, page, pageSize int,
 	return policies, total, nil
 }
 
-// GenerateSyncTaskAndSyncJobs generates a sync task and associated jobs from a policy
-func (r *syncPolicyDB) GenerateSyncTaskAndSyncJobs(ctx context.Context, policy *syncpolicy.SyncPolicy) (*syncpolicy.SyncTask, []*syncjob.SyncJob, error) {
-	// Create the sync task
-	task := &syncpolicy.SyncTask{
-		SyncPolicyID:       policy.ID,
-		TriggerType:        policy.TriggerType,
-		Status:             syncpolicy.SyncTaskStatusRunning,
-		StartedTimestamp:   time.Now().Unix(),
-		CompletedTimestamp: 0,
-		TotalItems:         0,
-		SuccessfulItems:    0,
-		CompletePercents:   0,
-	}
-
-	// Parse resource types
-	resourceTypes := parseResourceTypes(policy.ResourceTypes)
-	task.TotalItems = len(resourceTypes)
-
-	// Create sync jobs based on resource types
-	var jobs []*syncjob.SyncJob
-
-	// Parse remote project and resource name from policy.ResourceName
-	// e.g., "HuggingFaceTB/test/SmolLM2-135M-Instruct" -> project="HuggingFaceTB", resource="test/SmolLM2-135M-Instruct"
-	remoteProjectName, remoteResourceName := parseRemoteResourceName(policy.TargetResourceName)
-
-	for _, resourceType := range resourceTypes {
-		job := &syncjob.SyncJob{
-			RemoteRegistryID:   policy.SourceRegistryID,
-			RemoteProjectName:  remoteProjectName,
-			RemoteResourceName: remoteResourceName,
-			ProjectName:        policy.TargetProjectName,
-			ResourceName:       policy.ResourceName,
-			ResourceType:       resourceType,
-			SyncType:           "pull",
-			CompletePercents:   0,
-		}
-		jobs = append(jobs, job)
-	}
-
-	return task, jobs, nil
+// SelectDuePolicies returns policies that are due (enabled, next_run_at in (0, now]).
+func (r *syncPolicyDB) SelectDuePolicies(ctx context.Context, nowMs int64, limit int) ([]*syncpolicy.SyncPolicy, error) {
+	var rows []*syncpolicy.SyncPolicy
+	err := r.db.WithContext(ctx).
+		Where("is_disabled = 0 AND next_run_at > 0 AND next_run_at <= ?", nowMs).
+		Order("next_run_at ASC").
+		Limit(limit).
+		Find(&rows).Error
+	return rows, err
 }
 
-// parseResourceTypes parses comma-separated resource types
-func parseResourceTypes(resourceTypes string) []string {
-	if resourceTypes == "" {
-		return []string{"model"} // default to model
+// AdvanceNextRunAtCAS atomically claims a due slot by advancing next_run_at from snapshotMs.
+func (r *syncPolicyDB) AdvanceNextRunAtCAS(
+	ctx context.Context, policyID int, snapshotMs, nextNextMs, nowMs int64,
+) (bool, error) {
+	res := r.db.WithContext(ctx).Exec(`
+		UPDATE sync_policies
+		   SET next_run_at = ?, last_run_at = ?
+		 WHERE id = ? AND next_run_at = ?`,
+		nextNextMs, nowMs, policyID, snapshotMs,
+	)
+	if res.Error != nil {
+		return false, res.Error
 	}
-
-	var result []string
-	types := strings.Split(resourceTypes, ",")
-	for _, t := range types {
-		t = strings.TrimSpace(strings.ToLower(t))
-		if t == "all" {
-			return []string{"model", "dataset"}
-		}
-		if t == "model" || t == "dataset" {
-			result = append(result, t)
-		}
-	}
-
-	if len(result) == 0 {
-		return []string{"model"}
-	}
-
-	return result
-}
-
-// parseRemoteResourceName parses a full resource path into project and resource names
-// e.g., "HuggingFaceTB/test/SmolLM2-135M-Instruct" -> project="HuggingFaceTB", resource="test/SmolLM2-135M-Instruct"
-func parseRemoteResourceName(fullPath string) (string, string) {
-	parts := strings.SplitN(fullPath, "/", 2)
-	if len(parts) >= 2 {
-		return parts[0], parts[1]
-	}
-	return fullPath, ""
+	return res.RowsAffected == 1, nil
 }
 
 // Ensure syncPolicyDB implements ISyncPolicyRepo

@@ -68,16 +68,7 @@ func (m *CreateRobotAccountRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetDescription()) < 1 {
-		err := CreateRobotAccountRequestValidationError{
-			field:  "Description",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Description
 
 	// no validation rules for ExpireDays
 
@@ -539,123 +530,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListRobotAccountsResponseValidationError{}
-
-// Validate checks the field values on RobotAccount with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *RobotAccount) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on RobotAccount with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in RobotAccountMultiError, or
-// nil if none found.
-func (m *RobotAccount) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *RobotAccount) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Id
-
-	// no validation rules for Name
-
-	// no validation rules for Description
-
-	// no validation rules for Status
-
-	// no validation rules for CreatedAt
-
-	// no validation rules for ExpireStatus
-
-	// no validation rules for RemainPeriod
-
-	// no validation rules for ExpireDays
-
-	// no validation rules for ProjectScope
-
-	if len(errors) > 0 {
-		return RobotAccountMultiError(errors)
-	}
-
-	return nil
-}
-
-// RobotAccountMultiError is an error wrapping multiple validation errors
-// returned by RobotAccount.ValidateAll() if the designated constraints aren't met.
-type RobotAccountMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m RobotAccountMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m RobotAccountMultiError) AllErrors() []error { return m }
-
-// RobotAccountValidationError is the validation error returned by
-// RobotAccount.Validate if the designated constraints aren't met.
-type RobotAccountValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e RobotAccountValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e RobotAccountValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e RobotAccountValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e RobotAccountValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e RobotAccountValidationError) ErrorName() string { return "RobotAccountValidationError" }
-
-// Error satisfies the builtin error interface
-func (e RobotAccountValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sRobotAccount.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = RobotAccountValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = RobotAccountValidationError{}
 
 // Validate checks the field values on GetRobotAccountRequest with the rules
 // defined in the proto definition for this message. If any rules are

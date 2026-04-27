@@ -18,6 +18,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { profileKeys } from '@/features/profile/profile.query'
+import { formatExpiredAt } from '@/features/profile/profile.utils.ts'
 import { DataTable } from '@/shared/components/DataTable'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { formatDateTime } from '@/shared/utils/date'
@@ -113,14 +114,6 @@ export function AccessTokenTable({ tokens }: AccessTokenTableProps) {
     setDeletingToken(null)
   }
 
-  const formatExpiredAt = (expiredAt: string | undefined) => {
-    if (!expiredAt) {
-      return t('profile.tokenPermanent')
-    }
-
-    return formatDateTime(expiredAt)
-  }
-
   const columns: MRT_ColumnDef<AccessToken>[] = [
     {
       accessorKey: 'name',
@@ -134,7 +127,7 @@ export function AccessTokenTable({ tokens }: AccessTokenTableProps) {
     {
       accessorKey: 'expiredAt',
       header: t('profile.tokenExpiredAt'),
-      Cell: ({ row }) => formatExpiredAt(row.original.expiredAt),
+      Cell: ({ row }) => formatExpiredAt(row.original.expiredAt, t),
     },
     {
       accessorKey: 'createdAt',

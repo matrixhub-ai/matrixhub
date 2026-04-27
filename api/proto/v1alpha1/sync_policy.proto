@@ -35,6 +35,12 @@ service SyncPolicy {
       body: "*"
     };
   }
+  rpc UpdateSyncPolicySwitch(UpdateSyncPolicySwitchRequest) returns (UpdateSyncPolicySwitchResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/sync-policies/{sync_policy_id}/switch"
+      body: "*"
+    };
+  }
   // DeleteSyncPolicy deletes a sync policy.
   rpc DeleteSyncPolicy(DeleteSyncPolicyRequest) returns (DeleteSyncPolicyResponse) {
     option (google.api.http) = {
@@ -51,6 +57,12 @@ service SyncPolicy {
   rpc ListSyncTasks(ListSyncTasksRequest) returns (ListSyncTasksResponse) {
     option (google.api.http) = {
       get: "/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks"
+    };
+  }
+    // GetSyncTask gets a sync task by id.
+  rpc GetSyncTask(GetSyncTaskRequest) returns (GetSyncTaskResponse) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/sync-policies/{sync_policy_id}/sync-tasks/{sync_task_id}"
     };
   }
   // StopSyncTask stops a sync task.
@@ -89,20 +101,17 @@ message PullBasePolicy {
   uint32 source_registry_id = 1;
   string resource_name = 2;
   repeated ResourceType resource_types = 3;
-  string target_resource_name = 4;
   // post or put do not require this field.
-  Registry source_registry = 5;
-  string target_project_name = 6;
+  Registry source_registry = 4;
+  string target_project_name = 5;
 }
 
 message PushBasePolicy {
   string resource_name = 1;
   repeated ResourceType resource_types = 2;
   uint32 target_registry_id = 3;
-  string target_resource_name = 4;
-  // post or put do not require this field.
-  Registry target_registry = 5;
-  string target_project_name = 6;
+  Registry target_registry = 4;
+  string target_project_name = 5;
 }
 
 enum TriggerType {
@@ -238,7 +247,7 @@ message ListSyncTasksRequest {
   int32 sync_policy_id = 1;
   int32 page = 2;
   int32 page_size = 3;
-  string search = 4;
+  SyncTaskStatus status = 4;
 }
 
 
@@ -266,6 +275,7 @@ message SyncJob {
   string action = 6;
   SyncJobStatus status = 7;
   int64 completed_timestamp = 8;
+  int64 created_timestamp = 9;
 }
 
 enum SyncJobStatus {
@@ -298,4 +308,23 @@ message GetSyncJobLogRequest {
 
 message GetSyncJobLogResponse {
   string log = 1;
+}
+
+
+message GetSyncTaskRequest {
+  int32 sync_policy_id = 1;
+  int32 sync_task_id = 2;
+}
+
+message GetSyncTaskResponse {
+  SyncTask sync_task = 1;
+}
+
+message UpdateSyncPolicySwitchRequest {
+  int32 sync_policy_id = 1;
+  bool is_disabled = 2;
+}
+
+message UpdateSyncPolicySwitchResponse {
+  SyncPolicyItem sync_policy = 1;
 }

@@ -1,10 +1,14 @@
 [build]
-  command = "npm run build"
+  command = "npm ci && npm run build"
   publish = "build"
   base = "website"
+  [build.environment]
+    NODE_VERSION = "20"
 
 [context.deploy-preview]
-  command = "npm run build"
+  command = "npm ci && npm run build"
+  [context.deploy-preview.environment]
+    NODE_VERSION = "20"
   
 [[headers]]
   for = "/*"

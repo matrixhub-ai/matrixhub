@@ -15,24 +15,27 @@
 package utils
 
 import (
+	"fmt"
+	"strings"
 	"time"
-
-	"gopkg.in/yaml.v3"
 )
 
-type Duration struct {
-	time.Duration
-}
+func FormatDuration(d time.Duration) string {
+	totalSeconds := int(d.Seconds())
+	days := totalSeconds / 86400
+	hours := (totalSeconds % 86400) / 3600
+	minutes := (totalSeconds % 3600) / 60
 
-func (d *Duration) UnmarshalYAML(value *yaml.Node) error {
-	if value.Value == "" {
-		d.Duration = 0
-		return nil
+	var res string
+	if days > 0 {
+		res += fmt.Sprintf("%dd ", days)
 	}
-	dur, err := time.ParseDuration(value.Value)
-	if err != nil {
-		return err
+	if hours > 0 {
+		res += fmt.Sprintf("%dh ", hours)
 	}
-	d.Duration = dur
-	return nil
+	if minutes > 0 {
+		res += fmt.Sprintf("%dm", minutes)
+	}
+
+	return strings.TrimSpace(res)
 }

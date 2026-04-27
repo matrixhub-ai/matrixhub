@@ -1,13 +1,24 @@
+import {
+  type PolymorphicFactory,
+  polymorphicFactory,
+  useProps,
+} from '@mantine/core'
+
 import PytorchIcon from '@/assets/svgs/pytorch.svg?react'
-import { BaseBadge } from '@/shared/components/badges/BaseBadge'
+import { BaseBadge, type BaseBadgeProps } from '@/shared/components/badges/BaseBadge'
 
-import type { ComponentProps, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-type BaseBadgeProps = ComponentProps<typeof BaseBadge>
-
-interface LibraryBadgeProps extends Omit<BaseBadgeProps, 'icon' | 'label'> {
+export interface LibraryBadgeProps extends Omit<BaseBadgeProps, 'icon' | 'label'> {
   library: string
 }
+
+export type LibraryBadgeFactory = PolymorphicFactory<{
+  props: LibraryBadgeProps
+  defaultComponent: 'div'
+  defaultRef: HTMLDivElement
+  stylesNames: 'root' | 'label'
+}>
 
 const LIBRARY_ICON_ENTRIES = [
   {
@@ -22,15 +33,20 @@ function resolveLibraryIcon(library: string): ReactNode {
   return matched?.icon ?? null
 }
 
-export function LibraryBadge({
-  library,
-  ...badgeProps
-}: LibraryBadgeProps) {
+export const LibraryBadge = polymorphicFactory<LibraryBadgeFactory>((_props, ref) => {
+  const {
+    library,
+    ...badgeProps
+  } = useProps('LibraryBadge', {}, _props)
+
   return (
     <BaseBadge
+      ref={ref}
       icon={resolveLibraryIcon(library)}
       label={library}
       {...badgeProps}
     />
   )
-}
+})
+
+LibraryBadge.displayName = 'LibraryBadge'

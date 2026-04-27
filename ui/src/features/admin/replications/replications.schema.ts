@@ -57,7 +57,9 @@ function replicationFormBaseSchema() {
     bandwidth: z.string().trim().optional(),
     bandwidthUnit: z.enum(replicationBandwidthUnitValues),
     isOverwrite: z.boolean(),
-    resourceName: z.string().trim().optional(),
+    // Phase 1 backend contract only requires resourceName to be present.
+    // Keep validation limited to "required" for now and defer pattern checks.
+    resourceName: z.string().trim().min(1, t('routes.admin.replications.validation.resourceNameRequired')),
     resourceTypes: z.array(z.enum(replicationResourceTypeValues)),
     sourceRegistryId: z.number(),
     targetProjectName: z.string().trim().optional(),
@@ -75,7 +77,10 @@ export function createReplicationFormSchema() {
       })
     }
 
-    if (!data.sourceRegistryId || data.sourceRegistryId < 1) {
+    if (
+      data.policyType === SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE
+      && (!data.sourceRegistryId || data.sourceRegistryId < 1)
+    ) {
       ctx.addIssue({
         code: 'custom',
         message: t('routes.admin.replications.validation.sourceRegistryRequired'),

@@ -1,0 +1,24 @@
+debug: true
+migrationPath: /etc/matrixhub/migrations
+log:
+  level: debug
+dataDir: /data
+database:
+  driver: mysql
+  accessType: readwrite
+  maxOpenConns: 100
+  maxIdleConns: 10
+  connMaxLifetimeSeconds: 3600
+  connMaxIdleSeconds: 1800
+  migrate: true
+apiServer:
+  port: 3001
+jobServer:
+  enabled: true
+  shutdownGrace: 30s
+  syncPolicy:
+    pollInterval: 30s
+    maxConcurrent: 5
+    taskMaxDuration: 2h
+ui:
+  staticDir: /app

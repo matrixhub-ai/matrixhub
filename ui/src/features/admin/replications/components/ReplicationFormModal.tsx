@@ -321,13 +321,13 @@ export function ReplicationFormModal({
             <RadioGroup
               label={t('routes.admin.replications.form.syncRule')}
               withAsterisk
-              value={String(field.state.value)}
+              value={field.state.value}
               onChange={value => field.handleChange(value as ReplicationFormValues['policyType'])}
               onBlur={field.handleBlur}
             >
               <Group mt="xs">
                 <Radio
-                  value={String(SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE)}
+                  value={SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE}
                   label={(
                     <FieldHintLabel
                       label={t('routes.admin.replications.form.pull')}
@@ -338,7 +338,7 @@ export function ReplicationFormModal({
                   disabled={mode === 'edit'}
                 />
                 <Radio
-                  value={String(SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE)}
+                  value={SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE}
                   label={(
                     <FieldHintLabel
                       label={t('routes.admin.replications.form.push')}
@@ -346,7 +346,7 @@ export function ReplicationFormModal({
                       tooltipProps={{ w: 280 }}
                     />
                   )}
-                  disabled
+                  disabled={mode === 'edit'}
                 />
               </Group>
             </RadioGroup>
@@ -392,6 +392,7 @@ export function ReplicationFormModal({
               {field => (
                 <TextInput
                   {...inlineFieldProps}
+                  withAsterisk
                   aria-label={t('routes.admin.replications.form.resourceName')}
                   leftSection={renderInlineFieldSection(
                     t('routes.admin.replications.form.resourceName'),
@@ -400,6 +401,7 @@ export function ReplicationFormModal({
                   value={field.state.value}
                   onChange={event => field.handleChange(event.currentTarget.value)}
                   onBlur={field.handleBlur}
+                  error={fieldError(field)}
                 />
               )}
             </form.Field>
@@ -428,6 +430,7 @@ export function ReplicationFormModal({
             {field => (
               <Select
                 label={t('routes.admin.replications.form.targetRegistry')}
+                withAsterisk
                 data={registryOptions}
                 value={field.state.value ? String(field.state.value) : null}
                 onChange={value => field.handleChange(value ? Number(value) : 0)}
