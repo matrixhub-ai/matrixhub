@@ -240,8 +240,8 @@ github.com/leonelquinteros/gotext v1.5.0 h1:ODY7LzLpZWWSJdAHnzhreOr6cwLXTAmc914F
 github.com/leonelquinteros/gotext v1.5.0/go.mod h1:OCiUVHuhP9LGFBQ1oAmdtNCHJCiHiQA8lf4nAifHkr0=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
-github.com/matrixhub-ai/hfd v0.0.0-20260425044102-25548b37e551 h1:da1/blok4w/UQO0NjmKGfbdGAZ9uIf18lus4E6XA2nw=
-github.com/matrixhub-ai/hfd v0.0.0-20260425044102-25548b37e551/go.mod h1:5YrvRQ5vOPOwHxuFST4Ljn6rifIjCJs4eiK4pGSZzec=
+github.com/matrixhub-ai/hfd v0.0.0-20260425142707-9b22ab513d89 h1:396dWEsj0IHBtHZQtra1oN+kzH2pIXCQdwEWNYx19Tw=
+github.com/matrixhub-ai/hfd v0.0.0-20260425142707-9b22ab513d89/go.mod h1:3jgR4FcT/J4kro8vVkn+b9HEGExDvp/mNyDyDicpsGQ=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
@@ -343,8 +343,8 @@ github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.3.1 h1:waO7eEiFDwidsBN6agj1vJQ4AG7lh2yqXyOXqhgQuyY=
 github.com/ugorji/go/codec v1.3.1/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2Wjqmfxj4=
-github.com/wzshiming/dl v0.0.0-20260424094913-9dbc744ddb5d h1:zgPi9dqnOAjQIIUqC9txuYY9QRnSPIrgwYWQ8vFEVX8=
-github.com/wzshiming/dl v0.0.0-20260424094913-9dbc744ddb5d/go.mod h1:jO3MKwJvcFUxlK9Pd8HpQ0YToDWTB61nvklu/NuYPqw=
+github.com/wzshiming/dl v0.0.0-20260425142301-7b7828195ce1 h1:tszFXw9GQU2w6y3IotVF/+ZnSktfndf/pvlEMgY+dRI=
+github.com/wzshiming/dl v0.0.0-20260425142301-7b7828195ce1/go.mod h1:jO3MKwJvcFUxlK9Pd8HpQ0YToDWTB61nvklu/NuYPqw=
 github.com/wzshiming/httpseek v0.6.0 h1:RWisrPz5mef1rIp//WXRMlq4m1RN11G9D6YdgtXrkhM=
 github.com/wzshiming/httpseek v0.6.0/go.mod h1:YoZhlLIwNjTBDXIT8NpK5zRjOgZouRXPaBfjVXdqMMs=
 github.com/wzshiming/ioswmr v0.2.0 h1:PWPtSII1hLz/XIhTxUaEQFe8Vwyb/BXXMg5fUKOpnyw=
