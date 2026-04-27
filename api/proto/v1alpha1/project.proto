@@ -67,7 +67,7 @@ service Projects {
 message CreateProjectRequest {
   string name = 1 [(validate.rules).string = {
     min_len: 2,
-    pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$"
+    pattern: "^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$"
   }];
   ProjectType type = 2 [(validate.rules).enum = {
     defined_only: true,

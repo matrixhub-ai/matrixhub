@@ -17,6 +17,7 @@ package project_test
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	v1alpha1project "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/project"
 	v1alpha1user "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/user"
@@ -71,6 +72,9 @@ var _ = Describe("Project", Label("project"), func() {
 				tools.GenerateTestProjectName("1test2"),
 				tools.GenerateTestProjectName("test"),
 				tools.GenerateTestProjectName("12"),
+				tools.GenerateTestProjectName("Test"),
+				tools.GenerateTestProjectName("MyProject"),
+				tools.GenerateTestProjectName("ABC-123"),
 			}
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
@@ -93,7 +97,9 @@ var _ = Describe("Project", Label("project"), func() {
 				"test*123", // contains special char
 				"test~01",  // contains special char
 				"1test-",   // ends with hyphen
-				"Test",     // uppercase not allowed
+				"aa",       // fewer than 2 distinct characters
+				"11",       // fewer than 2 distinct characters
+				"AAAA",     // fewer than 2 distinct characters
 			}
 
 			for _, name := range invalidNames {
@@ -163,6 +169,30 @@ var _ = Describe("Project", Label("project"), func() {
 			Expect(err).To(HaveOccurred(), "duplicate project should fail")
 
 			GinkgoWriter.Printf("Duplicate project error: %v\n", err)
+		})
+
+		It("should treat project names as case-sensitive", Label("L00046"), func() {
+			lowerName := tools.GenerateTestProjectName("case-sensitive")
+			upperName := strings.ToUpper(lowerName[:1]) + lowerName[1:]
+			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
+
+			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
+				Name:  lowerName,
+				Type_: &projectType,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			defer func() {
+				_, _, _ = projectsApi.ProjectsDeleteProject(ctx, lowerName)
+			}()
+
+			_, _, err = projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
+				Name:  upperName,
+				Type_: &projectType,
+			})
+			Expect(err).NotTo(HaveOccurred(), "name differing only in case should be a distinct project")
+			defer func() {
+				_, _, _ = projectsApi.ProjectsDeleteProject(ctx, upperName)
+			}()
 		})
 
 		It("should fail to create project with unspecified type", Label("L00045"), func() {

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `registries`
 CREATE TABLE IF NOT EXISTS `projects`
 (
     `id`           int       NOT NULL AUTO_INCREMENT,
-    `name`         varchar(64)        DEFAULT "",
+    `name`         varchar(64) COLLATE utf8mb4_bin DEFAULT "",
     `type`         tinyint   NOT NULL DEFAULT 0,
     `registry_id`  int                DEFAULT NULL,
     `organization` varchar(64)        DEFAULT "",
