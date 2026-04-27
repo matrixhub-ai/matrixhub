@@ -13,6 +13,7 @@ import {
   Link,
   linkOptions,
   Outlet,
+  redirect,
   useMatchRoute,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -22,7 +23,6 @@ import { queryClient } from '@/queryClient'
 import { Route as AdminRegistriesRoute, Icon as AdminRegistriesIcon } from '@/routes/(auth)/admin/registries'
 import { Route as AdminReplicationsRoute, Icon as AdminReplicationsIcon } from '@/routes/(auth)/admin/replications'
 import { Route as AdminUsersRoute, Icon as AdminUsersIcon } from '@/routes/(auth)/admin/users'
-import { forbiddenError } from '@/utils/routerAccess'
 import { setAdminContentViewport } from '@/utils/setContentViewport'
 
 export const Route = createFileRoute('/(auth)/admin')({
@@ -30,7 +30,9 @@ export const Route = createFileRoute('/(auth)/admin')({
     const user = await queryClient.ensureQueryData(currentUserQueryOptions())
 
     if (!user.isAdmin) {
-      throw forbiddenError()
+      throw redirect({
+        to: '/',
+      })
     }
   },
   component: AdminLayout,
