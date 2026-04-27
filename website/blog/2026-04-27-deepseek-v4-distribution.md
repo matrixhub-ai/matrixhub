@@ -127,12 +127,12 @@ Change the password immediately.
 
 ![](https://oss-liuchengtu.hudunsoft.com/userimg/58/58d44ab77e61593b9793b655b92b9f39.png)
 
-### Step 3: Create a remote repository to proxy Hugging Face
+### Step 3: Create a remote registry to proxy Hugging Face
 
 Key configuration:
 
 ```text
-Remote URL: https://huggingface.co
+Remote URL: https://hf-mirror.com ( or https://huggingface.co )
 Type: HuggingFace
 Recommended name: huggingface
 ```
@@ -158,7 +158,7 @@ User -> Proxy Project -> Remote Repo (HF) -> Cache
 
 When creating the project:
 
-- Select the `huggingface` remote repository
+- Select the `huggingface` remote registry
 - Specify the model organization: `deepseek-ai`
 
 ![](https://oss-liuchengtu.hudunsoft.com/userimg/fb/fbc507c9cab0e4f52bbd9a539b815a7e.png)

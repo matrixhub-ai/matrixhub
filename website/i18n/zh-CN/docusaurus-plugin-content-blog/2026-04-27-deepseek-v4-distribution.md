@@ -126,12 +126,12 @@ curl http://127.0.0.1:3001
 
 ![](https://oss-liuchengtu.hudunsoft.com/userimg/43/4372c3f19c4ea9f41d67b9c8ed016fe2.png)
 
-### Step 3：创建远程仓库 Remote
+### Step 3：创建远程仓库
 
 关键配置：
 
 ```text
-Remote URL: https://huggingface.co
+Remote URL: https://hf-mirror.com ( 或 https://huggingface.co )
 Type: HuggingFace
 推荐名称：huggingface
 ```
