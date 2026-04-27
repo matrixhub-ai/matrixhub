@@ -152,6 +152,18 @@ global:
       tag: "latest"
       pullPolicy: IfNotPresent
 
+# -- jobserver configuration (optional). If not set, jobserver is disabled.
+jobServer:
+  # -- enable jobserver background pollers
+  enabled: true
+  # -- graceful shutdown wait time
+  shutdownGrace: 30s
+  # -- sync policy processor configuration
+  syncPolicy:
+    pollInterval: 30s
+    maxConcurrent: 5
+    taskMaxDuration: 2h
+
 # -- node configuration
 nodeSelector: {}
 

@@ -19,4 +19,5 @@ type V1alpha1CreateSyncPolicyRequest struct {
 	// The bandwidth to use for the sync policy.
 	Bandwidth string `json:"bandwidth,omitempty"`
 	IsOverwrite bool `json:"isOverwrite,omitempty"`
+	TriggerTypeSchedule *V1alpha1TriggerTypeSchedule `json:"triggerTypeSchedule,omitempty"`
 }

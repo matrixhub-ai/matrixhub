@@ -21,6 +21,7 @@ import (
 	"gorm.io/datatypes"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
 
 type ProjectScope string
@@ -42,9 +43,9 @@ type Robot struct {
 	Duration            int
 	TokenHash           string
 	ProjectScope        ProjectScope
-	Projects            []*project.Project          `gorm:"many2many:robots_projects"`
-	PlatformPermissions datatypes.JSONSlice[string] `gorm:"type:json"`
-	ProjectPermissions  datatypes.JSONSlice[string] `gorm:"type:json"`
+	Projects            []*project.Project                   `gorm:"many2many:robots_projects"`
+	PlatformPermissions datatypes.JSONSlice[role.Permission] `gorm:"type:json"`
+	ProjectPermissions  datatypes.JSONSlice[role.Permission] `gorm:"type:json"`
 	CreateBy            int
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
@@ -52,6 +53,10 @@ type Robot struct {
 
 func (Robot) TableName() string {
 	return "robots"
+}
+
+func (r Robot) CheckTokenHash(hash string) bool {
+	return r.TokenHash == hash
 }
 
 type RobotPoject struct {

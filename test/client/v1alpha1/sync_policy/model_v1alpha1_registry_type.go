@@ -15,4 +15,5 @@ type V1alpha1RegistryType string
 const (
 	UNSPECIFIED_V1alpha1RegistryType V1alpha1RegistryType = "REGISTRY_TYPE_UNSPECIFIED"
 	HUGGINGFACE_V1alpha1RegistryType V1alpha1RegistryType = "REGISTRY_TYPE_HUGGINGFACE"
+	MATRIXHUB_V1alpha1RegistryType V1alpha1RegistryType = "REGISTRY_TYPE_MATRIXHUB"
 )

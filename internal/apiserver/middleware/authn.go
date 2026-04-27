@@ -22,6 +22,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware/authenticator"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
@@ -30,17 +32,18 @@ var publicMethods = map[string]bool{
 	"/matrixhub.v1alpha1.Login/Login": true,
 }
 
-func AuthInterceptor(sessionRepo user.ISessionRepo) grpc.UnaryServerInterceptor {
+func AuthInterceptor(sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if publicMethods[info.FullMethod] {
 			return handler(ctx, req)
 		}
 
-		auth := authenticator.NewWebAuthenticator(sessionRepo)
-		succeeded, identity, err := auth.Authenticate(ctx, nil)
-		if err != nil {
+		authn := authenticator.NewWebAuthenticator(sessionRepo, robotRepo)
+		succeeded, identity, err := authn.Authenticate(ctx, nil)
+		if err != nil || identity == nil {
 			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 		}
+		ctx = auth.WithIdentity(ctx, identity)
 
 		if renewer, ok := succeeded.(authenticator.SessionRenewer); ok {
 			defer func() {
@@ -49,8 +52,6 @@ func AuthInterceptor(sessionRepo user.ISessionRepo) grpc.UnaryServerInterceptor 
 				}
 			}()
 		}
-
-		ctx = context.WithValue(ctx, user.IdentityKey{}, identity)
 
 		return handler(ctx, req)
 	}

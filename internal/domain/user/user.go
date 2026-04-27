@@ -21,12 +21,6 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/crypto"
 )
 
-type IdentityKey struct{}
-type Identity struct {
-	UserId   int
-	Username string
-}
-
 type User struct {
 	ID        int `gorm:"primary_key"`
 	Username  string

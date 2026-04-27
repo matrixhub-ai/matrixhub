@@ -15,13 +15,13 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware/authenticator"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
@@ -31,19 +31,17 @@ func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRe
 			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo)
 			_, identity, err := auth.Authenticate(r.Context(), r)
 			if err == nil {
-				r = setUserInfo(r, identity.UserId)
+				r = setUserInfo(r, identity)
 			}
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func setUserInfo(r *http.Request, userId int) *http.Request {
+func setUserInfo(r *http.Request, identity auth.Identity) *http.Request {
 	r = r.WithContext(authenticate.WithContext(r.Context(), authenticate.UserInfo{
-		User: strconv.Itoa(userId),
+		User: strconv.Itoa(identity.GetID()),
 	}))
-	r = r.WithContext(context.WithValue(r.Context(), user.IdentityKey{}, &user.Identity{
-		UserId: userId,
-	}))
+	r = r.WithContext(auth.WithIdentity(r.Context(), identity))
 	return r
 }

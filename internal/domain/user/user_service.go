@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 )
 
 var (
@@ -92,17 +94,17 @@ func NewUserService(session ISessionRepo, user IUserRepo) IUserService {
 
 // GetCurrentUsername get current username from context
 func GetCurrentUsername(ctx context.Context) string {
-	val, ok := ctx.Value(IdentityKey{}).(*Identity)
+	val, ok := auth.IdentityFromContext(ctx)
 	if !ok {
 		return ""
 	}
-	return val.Username
+	return val.GetName()
 }
 
 func GetCurrentUserId(ctx context.Context) int {
-	val, ok := ctx.Value(IdentityKey{}).(*Identity)
+	val, ok := auth.IdentityFromContext(ctx)
 	if !ok {
 		return 0
 	}
-	return val.UserId
+	return val.GetID()
 }

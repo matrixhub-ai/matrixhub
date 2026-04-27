@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/samber/lo"
 )
 
 // RoleType represents role type
@@ -95,6 +97,18 @@ func MatchPermissions(userPerms []Permission, required Permission) bool {
 	return false
 }
 
+func PermissionsToStrings(permissions []Permission) []string {
+	return lo.Map(permissions, func(item Permission, _ int) string {
+		return item.String()
+	})
+}
+
+func StringsToPermissions(permissions []string) []Permission {
+	return lo.Map(permissions, func(item string, _ int) Permission {
+		return Permission(item)
+	})
+}
+
 // PermissionList is a slice of permissions that can be stored as JSON in database
 type PermissionList []Permission
 
@@ -136,11 +150,11 @@ type PermissionCategories struct {
 
 type PermissionCategoriesList []PermissionCategories
 
-func (p PermissionCategoriesList) CheckPermissions(permissions []string) error {
-	permissionMap := make(map[string]bool)
+func (p PermissionCategoriesList) CheckPermissions(permissions []Permission) error {
+	permissionMap := make(map[Permission]bool)
 	for _, ps := range p {
 		for _, permission := range ps.Permissions {
-			permissionMap[permission.String()] = true
+			permissionMap[permission] = true
 		}
 	}
 

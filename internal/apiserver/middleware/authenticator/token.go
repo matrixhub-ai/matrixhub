@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
@@ -35,7 +36,7 @@ func NewTokenAuthenticator(tokenRepo user.IAccessTokenRepo) *TokenAuthenticator 
 	return &TokenAuthenticator{tokenRepo: tokenRepo}
 }
 
-func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (*user.Identity, error) {
+func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
 	token := extractTokenCredential(r)
 	if token == "" {
 		return nil, nil
@@ -45,9 +46,7 @@ func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) 
 		return nil, err
 	}
 	if ak != nil && ak.IsValid(time.Now()) {
-		return &user.Identity{
-			UserId: ak.UserId,
-		}, nil
+		return user.NewUserIdentity(ak.UserId, ""), nil
 	}
 
 	return nil, errors.New("invalid token")

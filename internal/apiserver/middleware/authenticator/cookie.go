@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
@@ -36,7 +37,7 @@ func NewCookieAuthenticator(sessionRepo user.ISessionRepo) HTTPAuthenticator {
 }
 
 // Authenticate extract cookie from context or from http.Request
-func (a *CookieAuthenticator) Authenticate(ctx context.Context, r *http.Request) (*user.Identity, error) {
+func (a *CookieAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
 	token := utils.GetCookieFromContext(ctx)
 	manager := a.sessionRepo.Manager()
 	ctx, err := manager.Load(ctx, token)
@@ -61,10 +62,10 @@ func (a *CookieAuthenticator) Authenticate(ctx context.Context, r *http.Request)
 		_ = manager.Destroy(ctx)
 		return nil, errors.New("session expired: idle timeout")
 	}
-	return &user.Identity{
-		UserId:   manager.GetInt(ctx, user.UserIdCtxKey),
-		Username: manager.GetString(ctx, user.UsernameCtxKey),
-	}, nil
+	return user.NewUserIdentity(
+		manager.GetInt(ctx, user.UserIdCtxKey),
+		manager.GetString(ctx, user.UsernameCtxKey),
+	), nil
 }
 
 func (a *CookieAuthenticator) Renew(ctx context.Context) error {

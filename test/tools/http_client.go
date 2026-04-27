@@ -24,6 +24,8 @@ import (
 	v1alpha1current_user "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/current_user"
 	v1alpha1model "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/model"
 	v1alpha1project "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/project"
+	v1alpha1registry "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/registry"
+	v1alpha1sync_policy "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/sync_policy"
 	v1alpha1user "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/user"
 )
 
@@ -36,6 +38,8 @@ var (
 	v1alpha1UsersApi       *v1alpha1user.UsersApiService
 	v1alpha1CurrentUserApi *v1alpha1current_user.CurrentUserApiService
 	v1alpha1ModelsApi      *v1alpha1model.ModelsApiService
+	v1alpha1RegistriesApi  *v1alpha1registry.RegistriesApiService
+	v1alpha1SyncPolicyApi  *v1alpha1sync_policy.SyncPolicyApiService
 )
 
 // InitHTTPClients initializes HTTP API clients with admin authentication
@@ -98,6 +102,22 @@ func InitHTTPClients() error {
 		}
 		v1alpha1ModelsApi = v1alpha1model.NewAPIClient(modelCfg).ModelsApi
 
+		// Initialize Registry API client
+		registryCfg := &v1alpha1registry.Configuration{
+			BasePath:      baseURL,
+			DefaultHeader: defaultHeaders,
+			HTTPClient:    httpClient,
+		}
+		v1alpha1RegistriesApi = v1alpha1registry.NewAPIClient(registryCfg).RegistriesApi
+
+		// Initialize SyncPolicy API client
+		syncPolicyCfg := &v1alpha1sync_policy.Configuration{
+			BasePath:      baseURL,
+			DefaultHeader: defaultHeaders,
+			HTTPClient:    httpClient,
+		}
+		v1alpha1SyncPolicyApi = v1alpha1sync_policy.NewAPIClient(syncPolicyCfg).SyncPolicyApi
+
 		log.Println("HTTP clients initialized successfully")
 	})
 
@@ -146,6 +166,28 @@ func GetV1alpha1ModelsApi() *v1alpha1model.ModelsApiService {
 		}
 	}
 	return v1alpha1ModelsApi
+}
+
+// GetV1alpha1RegistriesApi returns the Registries HTTP API client.
+func GetV1alpha1RegistriesApi() *v1alpha1registry.RegistriesApiService {
+	if v1alpha1RegistriesApi == nil {
+		err := InitHTTPClients()
+		if err != nil {
+			panic(err)
+		}
+	}
+	return v1alpha1RegistriesApi
+}
+
+// GetV1alpha1SyncPolicyApi returns the SyncPolicy HTTP API client.
+func GetV1alpha1SyncPolicyApi() *v1alpha1sync_policy.SyncPolicyApiService {
+	if v1alpha1SyncPolicyApi == nil {
+		err := InitHTTPClients()
+		if err != nil {
+			panic(err)
+		}
+	}
+	return v1alpha1SyncPolicyApi
 }
 
 // CreateModelClientWithCookie creates a new Model API client with a specific cookie

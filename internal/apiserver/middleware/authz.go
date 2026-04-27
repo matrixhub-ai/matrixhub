@@ -21,8 +21,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
 // methodPermissions maps GRPC methods to required permissions
@@ -71,9 +71,7 @@ func AuthzInterceptor(verifyFunc func(ctx context.Context, perm role.Permission)
 			return handler(ctx, req)
 		}
 
-		// Check if user is authenticated
-		userID := user.GetCurrentUserId(ctx)
-		if userID == 0 {
+		if _, ok = auth.IdentityFromContext(ctx); !ok {
 			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 		}
 

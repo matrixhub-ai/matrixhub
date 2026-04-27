@@ -16,5 +16,4 @@ const (
 	UNSPECIFIED_V1alpha1ResourceType V1alpha1ResourceType = "RESOURCE_TYPE_UNSPECIFIED"
 	MODEL_V1alpha1ResourceType V1alpha1ResourceType = "RESOURCE_TYPE_MODEL"
 	DATASET_V1alpha1ResourceType V1alpha1ResourceType = "RESOURCE_TYPE_DATASET"
-	ALL_V1alpha1ResourceType V1alpha1ResourceType = "RESOURCE_TYPE_ALL"
 )

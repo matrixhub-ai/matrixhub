@@ -126,7 +126,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 	}
 	unaryMiddleware := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(),
-		middleware.AuthInterceptor(server.repos.Session),
+		middleware.AuthInterceptor(server.repos.Session, server.repos.Robot),
 		middleware.AuthzInterceptor(server.services.Authz.VerifyPlatformPermission),
 	}
 
@@ -379,7 +379,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 	)
 
 	// init permission service
-	authzService := authz.NewAuthzService(repos.Authz, repos.Project)
+	authzService := authz.NewAuthzService(repos.Authz, repos.Project, repos.Robot)
 
 	// init domain services, add if needed
 	modelService := model.NewModelService(
@@ -413,7 +413,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		jobGenerator,
 	)
 
-	if server.config.JobServer.Enabled {
+	if server.config.JobServer != nil && server.config.JobServer.Enabled {
 		jc := *server.config.JobServer
 		server.jobServer = jobserver.New(&jc, syncPolicyService)
 	}

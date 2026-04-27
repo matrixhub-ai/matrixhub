@@ -17,7 +17,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.6
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6
-	github.com/matrixhub-ai/hfd v0.0.0-20260425044102-25548b37e551
+	github.com/matrixhub-ai/hfd v0.0.0-20260427033043-b6abd0ecfc08
 	github.com/onsi/ginkgo/v2 v2.22.1
 	github.com/onsi/gomega v1.36.2
 	github.com/pkg/errors v0.9.1
@@ -125,7 +125,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
-	github.com/wzshiming/dl v0.0.0-20260424094913-9dbc744ddb5d // indirect
+	github.com/wzshiming/dl v0.0.0-20260425142301-7b7828195ce1 // indirect
 	github.com/wzshiming/httpseek v0.6.0 // indirect
 	github.com/wzshiming/ioswmr v0.2.0 // indirect
 	github.com/wzshiming/xet v0.0.0-20260424050041-255461d9459a // indirect

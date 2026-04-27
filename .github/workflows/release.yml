@@ -72,6 +72,7 @@ jobs:
 
   release-changelog:
     needs: [build-and-push-image, release-chart, get-tag]
+    if: needs.get-tag.outputs.is-official-release == 'true'
     uses: ./.github/workflows/call-release-changelog.yaml
     with:
       dest_tag: ${{ needs.get-tag.outputs.tag }}

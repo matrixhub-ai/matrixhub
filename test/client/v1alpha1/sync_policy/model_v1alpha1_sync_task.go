@@ -18,4 +18,6 @@ type V1alpha1SyncTask struct {
 	CompletedTimestamp string `json:"completedTimestamp,omitempty"`
 	TotalItems string `json:"totalItems,omitempty"`
 	SuccessfulItems string `json:"successfulItems,omitempty"`
+	StoppedItems string `json:"stoppedItems,omitempty"`
+	FailedItems string `json:"failedItems,omitempty"`
 }

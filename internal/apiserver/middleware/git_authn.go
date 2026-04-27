@@ -27,7 +27,7 @@ func GitAuthnMiddleware(akRepo user.IAccessTokenRepo) func(http.Handler) http.Ha
 			auth := authenticator.NewGitAuthenticator(akRepo)
 			_, identity, err := auth.Authenticate(r.Context(), r)
 			if err == nil {
-				r = setUserInfo(r, identity.UserId)
+				r = setUserInfo(r, identity)
 			}
 			next.ServeHTTP(w, r)
 		})

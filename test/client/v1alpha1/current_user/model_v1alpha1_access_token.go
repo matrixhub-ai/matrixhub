@@ -10,9 +10,9 @@
 package v1alpha1
 
 type V1alpha1AccessToken struct {
-	Id        int64                      `json:"id,omitempty"`
-	Name      string                     `json:"name,omitempty"`
-	Status    *V1alpha1AccessTokenStatus `json:"status,omitempty"`
-	CreatedAt string                     `json:"createdAt,omitempty"`
-	ExpiredAt string                     `json:"expiredAt,omitempty"`
+	Id int64 `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+	Status *V1alpha1AccessTokenStatus `json:"status,omitempty"`
+	CreatedAt string `json:"createdAt,omitempty"`
+	ExpiredAt string `json:"expiredAt,omitempty"`
 }

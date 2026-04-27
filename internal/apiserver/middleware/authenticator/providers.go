@@ -14,11 +14,15 @@
 
 package authenticator
 
-import "github.com/matrixhub-ai/matrixhub/internal/domain/user"
+import (
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
+)
 
-func NewWebAuthenticator(sessionRepo user.ISessionRepo) *MultiAuthenticator {
+func NewWebAuthenticator(sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewCookieAuthenticator(sessionRepo),
+		NewRobotAuthenticator(robotRepo),
 	)
 }
 

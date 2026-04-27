@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 )
 
 type AuthMethod string
@@ -37,7 +37,7 @@ type HTTPAuthenticator interface {
 	//   (nil, nil)      — this method does not apply to this request; skip and try the next one
 	//   (nil, err)      — credentials were present but invalid; reject immediately, do not try further
 	//   (identity, nil) — authentication succeeded
-	Authenticate(ctx context.Context, r *http.Request) (*user.Identity, error)
+	Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error)
 }
 
 type SessionRenewer interface {

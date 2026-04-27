@@ -40,7 +40,7 @@ type Config struct {
 	Database db.Config     `yaml:"database" validate:"required"`
 	Session  SessionConfig `yaml:"session"`
 
-	// JobServer runs delayed sync (and future kinds). If nil, DefaultConfig() is applied after load.
+	// JobServer runs delayed sync (and future kinds). If nil, jobserver is disabled.
 	JobServer *JobServerConfig `yaml:"jobServer"`
 }
 
@@ -56,19 +56,6 @@ type SyncPolicyConfig struct {
 	PollInterval    time.Duration `yaml:"pollInterval"`
 	MaxConcurrent   int           `yaml:"maxConcurrent"`
 	TaskMaxDuration time.Duration `yaml:"taskMaxDuration"`
-}
-
-// DefaultJobServerConfig returns production-minded defaults (enabled).
-func DefaultJobServerConfig() *JobServerConfig {
-	return &JobServerConfig{
-		Enabled:       true,
-		ShutdownGrace: 30 * time.Second,
-		SyncPolicy: SyncPolicyConfig{
-			PollInterval:    10 * time.Second,
-			MaxConcurrent:   5,
-			TaskMaxDuration: 2 * time.Hour,
-		},
-	}
 }
 
 type APIServerConfig struct {
@@ -184,10 +171,6 @@ func Init(configPath, sqlPath string) (*Config, error) {
 		cfg.Database.SQLPath = filepath.Join(cfg.MigrationPath, sqlPath)
 	}
 	cfg.Database.Debug = cfg.Debug
-
-	if cfg.JobServer == nil {
-		cfg.JobServer = DefaultJobServerConfig()
-	}
 
 	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("config invalid: %v", err)

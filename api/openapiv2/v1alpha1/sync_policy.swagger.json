@@ -281,7 +281,8 @@
               "SYNC_TASK_STATUS_RUNNING",
               "SYNC_TASK_STATUS_SUCCEEDED",
               "SYNC_TASK_STATUS_FAILED",
-              "SYNC_TASK_STATUS_STOPPED"
+              "SYNC_TASK_STATUS_STOPPED",
+              "SYNC_TASK_STATUS_PENDING"
             ],
             "default": "SYNC_TASK_STATUS_UNSPECIFIED"
           }
@@ -1039,7 +1040,8 @@
         "SYNC_TASK_STATUS_RUNNING",
         "SYNC_TASK_STATUS_SUCCEEDED",
         "SYNC_TASK_STATUS_FAILED",
-        "SYNC_TASK_STATUS_STOPPED"
+        "SYNC_TASK_STATUS_STOPPED",
+        "SYNC_TASK_STATUS_PENDING"
       ],
       "default": "SYNC_TASK_STATUS_UNSPECIFIED"
     },

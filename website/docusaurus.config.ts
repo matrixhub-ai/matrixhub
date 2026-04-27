@@ -23,6 +23,14 @@ const config: Config = {
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'zh-CN'],
+    localeConfigs: {
+      en: {
+        label: 'English',
+      },
+      'zh-CN': {
+        label: '简体中文',
+      },
+    },
   },
 
 
@@ -53,15 +61,19 @@ const config: Config = {
       title: 'MatrixHub',
       logo: {
         alt: 'MatrixHub Logo',
-        src: 'img/matrixhub-logo.png',
+        src: 'img/matrixhub-icon-colorlight.png',
         style: { height: '32px', width: '32px', borderRadius: '6px' },
       },
       hideOnScroll: false,
       items: [
         {
-          to: 'docs/intro',
+          to: '/docs/intro',
           label: 'Documentation',
           position: 'left',
+        },
+        {
+          type: 'localeDropdown',
+          position: 'right',
         },
         {
           href: 'https://github.com/matrixhub-ai/matrixhub',
@@ -70,7 +82,7 @@ const config: Config = {
           className: 'navbar-github-link',
         },
         {
-          href: 'https://github.com/matrixhub-ai/matrixhub',
+          to: '/docs/getting-started/quickstart',
           label: 'Get Started',
           position: 'right',
           className: 'navbar-get-started-button',
@@ -94,7 +106,7 @@ const config: Config = {
         {
           title: 'Resources',
           items: [
-            { label: 'Documentation', href: 'https://github.com/matrixhub-ai/matrixhub' },
+            { label: 'Documentation', to: '/docs/intro' },
             { label: 'API Reference', href: '#' },
             { label: 'Community', href: '#' },
           ],
