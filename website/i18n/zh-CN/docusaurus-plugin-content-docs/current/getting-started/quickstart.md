@@ -119,7 +119,7 @@ curl http://127.0.0.1:3001
 - 密码：`changeme`
 
 👉 **建议立即修改密码**
-![](../images/login.png)
+![](./images/login.png)
 
 ## 🌐 Step 3：创建远程仓库 Remote（代理 Hugging Face）
 
