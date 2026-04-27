@@ -56,6 +56,9 @@ func (h *ProjectHandler) CreateProject(ctx context.Context, req *projectv1alpha1
 	if err := req.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	if !hasAtLeastTwoDistinctChars(req.GetName()) {
+		return nil, status.Error(codes.InvalidArgument, "project name must contain at least 2 distinct characters")
+	}
 
 	existingProject, err := h.projectRepo.GetProjectByName(ctx, req.GetName())
 	if err == nil && existingProject != nil {
@@ -389,4 +392,17 @@ func convertDomainRoleToProto(r role.RoleType) projectv1alpha1.ProjectRoleType {
 	default:
 		return projectv1alpha1.ProjectRoleType_ROLE_TYPE_PROJECT_VIEWER
 	}
+}
+
+func hasAtLeastTwoDistinctChars(s string) bool {
+	if len(s) < 2 {
+		return false
+	}
+	first := s[0]
+	for i := 1; i < len(s); i++ {
+		if s[i] != first {
+			return true
+		}
+	}
+	return false
 }
