@@ -60,5 +60,5 @@ Replicate models across global data centers with automatic resumption on network
 
 MatrixHub is easy to deploy using **Docker Compose** or **Kubernetes**. The entire infrastructure is open source and free for the community.
 
-👉 **Ready to get started?** Jump to [Quick Start](./getting-started/quickstart.md) to have MatrixHub running in 5 minutes!
+👉 **Ready to get started?** Head over to the [Blog](/blog) to read the DeepSeek v4 walkthrough and usage examples.
 

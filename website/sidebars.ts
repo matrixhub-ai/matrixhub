@@ -17,14 +17,6 @@ const sidebars: SidebarsConfig = {
     'intro',
     {
       type: 'category',
-      label: 'Getting Started',
-      items: [
-        'getting-started/quickstart',
-      ],
-
-    },
-    {
-      type: 'category',
       label: 'Operations',
       items: [
         {
@@ -82,6 +74,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
   ],
+
 };
 
 export default sidebars;

@@ -68,5 +68,4 @@ MatrixHub 简化了从公共模型仓库到生产级基础设施的过渡：
 
 MatrixHub 可通过 **Docker Compose** 或 **Kubernetes** 轻松部署。整个基础设施开源且免费。
 
-👉 **准备开始？** 跳转到[快速开始](./getting-started/quickstart)让 MatrixHub 在 5 分钟内运行起来！
-
+👉 **准备开始？** 前往 [博客](/blog) 查看 DeepSeek v4 相关文章和使用示例。

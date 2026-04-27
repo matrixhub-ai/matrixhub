@@ -41,8 +41,12 @@ const config: Config = {
         docs: {
           path: './docs',
           routeBasePath: 'docs',
+          sidebarPath: './sidebars.ts',
         },
-        blog: false,
+        blog: {
+          routeBasePath: 'blog',
+          showReadingTime: true,
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -72,6 +76,11 @@ const config: Config = {
           position: 'left',
         },
         {
+          to: '/blog',
+          label: 'Blog',
+          position: 'left',
+        },
+        {
           type: 'localeDropdown',
           position: 'right',
         },
@@ -82,7 +91,7 @@ const config: Config = {
           className: 'navbar-github-link',
         },
         {
-          to: '/docs/getting-started/quickstart',
+          to: '/docs/intro',
           label: 'Get Started',
           position: 'right',
           className: 'navbar-get-started-button',
