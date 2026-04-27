@@ -1,0 +1,22 @@
+{
+  "title": {
+    "message": "MatrixHub",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "MatrixHub 标志",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Documentation": {
+    "message": "文档",
+    "description": "Navbar item with label Documentation"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  },
+  "item.label.Get Started": {
+    "message": "快速开始",
+    "description": "Navbar item with label Get Started"
+  }
+}
