@@ -13,7 +13,68 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
  Create as many sidebars as you want.
  */
 const sidebars: SidebarsConfig = {
-  tutorialSidebar: ['intro'],
+  tutorialSidebar: [
+    'intro',
+    {
+      type: 'category',
+      label: 'Operations',
+      items: [
+        {
+
+          type: 'category',
+          label: 'Model Repository',
+          items: [
+            'operations/model-repo/upload-download',
+            'operations/model-repo/project-setting',
+          ],
+        },
+
+        {
+          type: 'category',
+          label: 'Project Management',
+          items: [
+            'operations/project-management/create-delete',
+            'operations/project-management/members',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Profile',
+          items: [
+            'operations/profile/access-token',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Platform Settings',
+          items: [
+            {
+              type: 'category',
+              label: 'User Management',
+              items: [
+                'operations/platform-settings/user-management',
+              ],
+            },
+            {
+              type: 'category',
+              label: 'Repository Management',
+              items: [
+                'operations/platform-settings/repository-management',
+              ],
+            },
+            {
+              type: 'category',
+              label: 'Remote Sync',
+              items: [
+                'operations/platform-settings/remote-sync',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+
 };
 
 export default sidebars;
