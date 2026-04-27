@@ -60,7 +60,7 @@ const config: Config = {
       title: 'MatrixHub',
       logo: {
         alt: 'MatrixHub Logo',
-        src: 'img/matrixhub-logo.png',
+        src: 'img/matrixhub-icon-colorlight.png',
         style: { height: '32px', width: '32px', borderRadius: '6px' },
       },
       hideOnScroll: false,
