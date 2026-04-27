@@ -16,9 +16,12 @@ package syncpolicy
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 )
 
@@ -29,36 +32,91 @@ type SyncJobGenerator interface {
 	Generate(ctx context.Context, policy *SyncPolicy) (*SyncTask, []*syncjob.SyncJob, error)
 }
 
-type syncJobGenerator struct{}
+type syncJobGenerator struct {
+	registryRepo registry.IRegistryRepo
+	discoveries  map[string]registrydiscovery.Discovery
+}
 
 // NewSyncJobGenerator creates a new SyncJobGenerator instance.
-func NewSyncJobGenerator() SyncJobGenerator {
-	return &syncJobGenerator{}
+func NewSyncJobGenerator(registryRepo registry.IRegistryRepo, discoveries map[string]registrydiscovery.Discovery) SyncJobGenerator {
+	return &syncJobGenerator{
+		registryRepo: registryRepo,
+		discoveries:  discoveries,
+	}
 }
 
 func (g *syncJobGenerator) Generate(ctx context.Context, policy *SyncPolicy) (*SyncTask, []*syncjob.SyncJob, error) {
-	resourceTypes := g.parseResourceTypes(policy.ResourceTypes)
+	task := g.buildTask(policy)
 
-	task := &SyncTask{
+	var jobs []*syncjob.SyncJob
+	var err error
+
+	if policy.IsPullBase() && policy.HasWildcardResourceName() {
+		jobs, err = g.buildJobsFromDiscovery(ctx, policy)
+	} else {
+		jobs = g.buildJobsFromStatic(policy)
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	task.TotalItems = len(jobs)
+	return task, jobs, nil
+}
+
+func (g *syncJobGenerator) buildTask(policy *SyncPolicy) *SyncTask {
+	return &SyncTask{
 		SyncPolicyID:       policy.ID,
 		TriggerType:        policy.TriggerType,
 		Status:             SyncTaskStatusRunning,
 		StartedTimestamp:   time.Now().Unix(),
 		CompletedTimestamp: 0,
-		TotalItems:         len(resourceTypes),
 		SuccessfulItems:    0,
 		StoppedItems:       0,
 		FailedItems:        0,
 		CompletePercents:   0,
 	}
+}
 
+func (g *syncJobGenerator) buildJobsFromStatic(policy *SyncPolicy) []*syncjob.SyncJob {
+	resourceTypes := g.parseResourceTypes(policy.ResourceTypes)
 	var jobs []*syncjob.SyncJob
-	for _, resourceType := range resourceTypes {
-		job := g.buildJob(policy, resourceType)
-		jobs = append(jobs, job)
+	for _, rt := range resourceTypes {
+		jobs = append(jobs, g.buildJob(policy, rt))
+	}
+	return jobs
+}
+
+func (g *syncJobGenerator) buildJobsFromDiscovery(ctx context.Context, policy *SyncPolicy) ([]*syncjob.SyncJob, error) {
+	reg, err := g.registryRepo.GetRegistry(ctx, policy.RegistryID)
+	if err != nil {
+		return nil, fmt.Errorf("get registry(id=%d): %w", policy.RegistryID, err)
 	}
 
-	return task, jobs, nil
+	providerKey := registrydiscovery.KeyFromRegistryType(reg.Type)
+	disc, ok := g.discoveries[providerKey]
+	if !ok {
+		return nil, fmt.Errorf("no discovery for registry type: %s (key=%s)", reg.Type, providerKey)
+	}
+
+	resourceTypes := g.parseResourceTypes(policy.ResourceTypes)
+	var allRepos []registrydiscovery.RemoteRepository
+	for _, rt := range resourceTypes {
+		repos, err := disc.ListRepositories(ctx, reg, registrydiscovery.Filter{
+			Namespace:    policy.RemoteProjectName,
+			ResourceType: rt,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("list repositories (type=%s): %w", rt, err)
+		}
+		allRepos = append(allRepos, repos...)
+	}
+
+	var jobs []*syncjob.SyncJob
+	for _, repo := range allRepos {
+		jobs = append(jobs, g.buildJobFromRepo(policy, repo))
+	}
+	return jobs, nil
 }
 
 func (g *syncJobGenerator) buildJob(policy *SyncPolicy, resourceType string) *syncjob.SyncJob {
@@ -79,6 +137,27 @@ func (g *syncJobGenerator) buildJob(policy *SyncPolicy, resourceType string) *sy
 		ProjectName:        policy.LocalProjectName,
 		ResourceName:       resourceName,
 		ResourceType:       resourceType,
+		Status:             syncjob.SyncJobStatusRunning,
+		CompletePercents:   0,
+	}
+
+	if policy.IsPullBase() {
+		job.SyncType = "pull"
+	} else {
+		job.SyncType = "push"
+	}
+
+	return job
+}
+
+func (g *syncJobGenerator) buildJobFromRepo(policy *SyncPolicy, repo registrydiscovery.RemoteRepository) *syncjob.SyncJob {
+	job := &syncjob.SyncJob{
+		RemoteRegistryID:   policy.RegistryID,
+		RemoteProjectName:  repo.Namespace,
+		RemoteResourceName: repo.Name,
+		ProjectName:        policy.LocalProjectName,
+		ResourceName:       repo.Name,
+		ResourceType:       repo.ResourceType,
 		Status:             syncjob.SyncJobStatusRunning,
 		CompletePercents:   0,
 	}

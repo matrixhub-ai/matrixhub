@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package job
+package logstore
 
-// DueJob is one execution unit after a successful claim (CAS advance).
-type DueJob struct {
-	ID          int // primary object ID (policy / task / job)
-	PolicyID    int // optional parent policy ID
-	TriggerType int
-	FireAtMs    int64
+import "io"
+
+// LogStore persists and retrieves per-job execution logs.
+type LogStore interface {
+	Writer(jobID int) (io.WriteCloser, error)
+	Reader(jobID int) (io.ReadCloser, error)
 }

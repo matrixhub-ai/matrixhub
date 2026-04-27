@@ -488,6 +488,12 @@ func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepo
 	return g.mirror.Sync(ctx, gitPath, repoName, mirror.WithSyncMirrorSourceURL(sourceURL))
 }
 
+// PushToRemote pushes the local repository to the remote registry.
+// TODO: implement actual push logic; currently returns a placeholder error.
+func (g *gitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitRepository) error {
+	return fmt.Errorf("push base sync is not yet implemented")
+}
+
 // ExtractMetadata reads raw metadata-related files from a Git repository.
 func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name string) (*git.RepoMetadataFiles, error) {
 	metadata := &git.RepoMetadataFiles{}

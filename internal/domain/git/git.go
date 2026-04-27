@@ -100,6 +100,12 @@ type RepoMetadataFiles struct {
 	Size                 int64
 }
 
+// BasicCredential holds username/password for remote git authentication.
+type BasicCredential struct {
+	Username string
+	Password string
+}
+
 type GitRepository struct {
 	RemoteRegistryURL  string
 	RemoteProjectName  string
@@ -107,6 +113,7 @@ type GitRepository struct {
 	ProjectName        string
 	ResourceName       string
 	ResourceType       string
+	Credential         *BasicCredential // optional; used for push auth
 }
 
 // IGitRepo defines the repository interface for Git operations on models.
@@ -146,6 +153,8 @@ type IGitRepo interface {
 	CloneFromRemote(ctx context.Context, gitRepository *GitRepository) error
 
 	PullFromRemote(ctx context.Context, gitRepository *GitRepository) error
+
+	PushToRemote(ctx context.Context, gitRepository *GitRepository) error
 
 	// ExtractMetadata reads metadata-related raw files from a Git repository.
 	// repoType: "models" or "datasets"

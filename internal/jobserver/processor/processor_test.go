@@ -37,6 +37,7 @@ func TestProcessor_ExecuteOnFirstPoll(t *testing.T) {
 		pollCalls++
 		if pollCalls == 1 {
 			return []job.DueJob{{
+				ID:          99,
 				PolicyID:    99,
 				TriggerType: 1,
 				FireAtMs:    nowMs,

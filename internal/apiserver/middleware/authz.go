@@ -43,14 +43,18 @@ var methodPermissions = map[string]role.Permission{
 	"/matrixhub.v1alpha1.Registries/DeleteRegistry": role.RegistryDelete,
 
 	// Sync policy management
-	"/matrixhub.v1alpha1.SyncPolicy/ListSyncPolicies": role.SyncGet,
-	"/matrixhub.v1alpha1.SyncPolicy/GetSyncPolicy":    role.SyncGet,
-	"/matrixhub.v1alpha1.SyncPolicy/ListSyncTasks":    role.SyncGet,
-	"/matrixhub.v1alpha1.SyncPolicy/CreateSyncPolicy": role.SyncCreate,
-	"/matrixhub.v1alpha1.SyncPolicy/CreateSyncTask":   role.SyncCreate,
-	"/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicy": role.SyncUpdate,
-	"/matrixhub.v1alpha1.SyncPolicy/StopSyncTask":     role.SyncUpdate,
-	"/matrixhub.v1alpha1.SyncPolicy/DeleteSyncPolicy": role.SyncDelete,
+	"/matrixhub.v1alpha1.SyncPolicy/ListSyncPolicies":       role.SyncGet,
+	"/matrixhub.v1alpha1.SyncPolicy/GetSyncPolicy":          role.SyncGet,
+	"/matrixhub.v1alpha1.SyncPolicy/ListSyncTasks":          role.SyncGet,
+	"/matrixhub.v1alpha1.SyncPolicy/GetSyncTask":            role.SyncGet,
+	"/matrixhub.v1alpha1.SyncPolicy/CreateSyncPolicy":       role.SyncCreate,
+	"/matrixhub.v1alpha1.SyncPolicy/CreateSyncTask":         role.SyncCreate,
+	"/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicy":       role.SyncUpdate,
+	"/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicySwitch": role.SyncUpdate,
+	"/matrixhub.v1alpha1.SyncPolicy/StopSyncTask":           role.SyncUpdate,
+	"/matrixhub.v1alpha1.SyncPolicy/DeleteSyncPolicy":       role.SyncDelete,
+	"/matrixhub.v1alpha1.SyncPolicy/ListSyncJobs":           role.SyncGet,
+	"/matrixhub.v1alpha1.SyncPolicy/GetSyncJobLog":          role.SyncGet,
 
 	// Robot management
 	"/matrixhub.v1alpha1.Robots/CreateRobotAccount":       role.RobotCreate,

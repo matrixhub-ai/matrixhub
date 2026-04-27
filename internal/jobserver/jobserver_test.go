@@ -17,13 +17,16 @@ package jobserver
 import (
 	"context"
 	"errors"
+	"io"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
+	"github.com/matrixhub-ai/matrixhub/internal/jobserver/canceller"
 )
 
 // fakeSyncPolicyService implements syncpolicy.ISyncPolicyService with only ClaimDueSyncPolicies /
@@ -47,10 +50,6 @@ func (f *fakeSyncPolicyService) UpdateSyncTask(ctx context.Context, param *syncp
 
 func (f *fakeSyncPolicyService) ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status syncpolicy.SyncTaskStatus) ([]*syncpolicy.SyncTask, int64, error) {
 	return nil, 0, errors.New("not used")
-}
-
-func (f *fakeSyncPolicyService) CreateExcecuteSyncTaskAndSyncJobs(ctx context.Context, policy *syncpolicy.SyncPolicy) (*syncpolicy.SyncTask, error) {
-	return nil, errors.New("not used")
 }
 
 func (f *fakeSyncPolicyService) ClaimDueSyncPolicies(ctx context.Context, nowMs int64) ([]job.DueJob, error) {
@@ -106,6 +105,50 @@ func (f *fakeSyncPolicyService) CreateSyncTask(context.Context, *syncpolicy.Sync
 func (f *fakeSyncPolicyService) CreateSyncTaskAndSyncJobs(context.Context, *syncpolicy.SyncPolicy) error {
 	return errors.New("not used")
 }
+func (f *fakeSyncPolicyService) CreateSyncTaskAsync(context.Context, *syncpolicy.SyncPolicy) (*syncpolicy.SyncTask, error) {
+	return nil, errors.New("not used")
+}
+func (f *fakeSyncPolicyService) ClaimPendingSyncTasks(context.Context, int64) ([]job.DueJob, error) {
+	return nil, nil
+}
+func (f *fakeSyncPolicyService) ExecuteSyncTask(context.Context, int) error {
+	return errors.New("not used")
+}
+func (f *fakeSyncPolicyService) ReportTaskStatus(context.Context, int) error {
+	return errors.New("not used")
+}
+
+// fakeSyncJobService implements syncjob.ISyncJobService for jobserver tests.
+type fakeSyncJobService struct{}
+
+func (f *fakeSyncJobService) GetSyncJob(context.Context, int) (*syncjob.SyncJob, error) {
+	return nil, errors.New("not used")
+}
+func (f *fakeSyncJobService) CreateSyncJob(context.Context, *syncjob.SyncJob) error {
+	return errors.New("not used")
+}
+func (f *fakeSyncJobService) UpdateSyncJob(context.Context, *syncjob.SyncJob) error {
+	return errors.New("not used")
+}
+func (f *fakeSyncJobService) ExecuteSyncJob(context.Context, *syncjob.SyncJob) error {
+	return errors.New("not used")
+}
+func (f *fakeSyncJobService) ListSyncJobsByTaskID(context.Context, int, int, int, syncjob.SyncJobStatus, string) ([]*syncjob.SyncJob, int64, error) {
+	return nil, 0, errors.New("not used")
+}
+func (f *fakeSyncJobService) ClaimPendingSyncJobs(context.Context, int64) ([]job.DueJob, error) {
+	return nil, nil
+}
+func (f *fakeSyncJobService) ExecuteSyncJobWithLog(context.Context, int) error {
+	return errors.New("not used")
+}
+func (f *fakeSyncJobService) SetOnJobDone(fn func(ctx context.Context, taskID int) error) {}
+
+// fakeLogStore implements logstore.LogStore for jobserver tests.
+type fakeLogStore struct{}
+
+func (f *fakeLogStore) Writer(int) (io.WriteCloser, error) { return nil, errors.New("not used") }
+func (f *fakeLogStore) Reader(int) (io.ReadCloser, error) { return nil, errors.New("not used") }
 
 func TestJobServer_RunInvokesExecuteForClaimedJob(t *testing.T) {
 	fake := &fakeSyncPolicyService{}
@@ -118,7 +161,7 @@ func TestJobServer_RunInvokesExecuteForClaimedJob(t *testing.T) {
 			TaskMaxDuration: time.Hour,
 		},
 	}
-	js := New(cfg, fake)
+	js := New(cfg, fake, &fakeSyncJobService{}, &fakeLogStore{}, canceller.NewMemCanceller())
 	ctx, cancel := context.WithCancel(context.Background())
 	go js.Run(ctx)
 	time.Sleep(350 * time.Millisecond)
