@@ -56,11 +56,29 @@ http://127.0.0.1:3001
 
 ### Helm (Kubernetes) Deployment
 
-Install MatrixHub using the built-in Helm chart:
+MatrixHub provides two Helm installation methods — from a local chart or from the OCI registry.
+
+#### Option A: Install from Local Chart
 
 ```bash
 helm install matrixhub ./deploy/charts/matrixhub
 ```
+
+#### Option B: Install from OCI Registry
+
+Charts are published to GitHub Container Registry (`ghcr.io`) as OCI artifacts:
+
+```bash
+helm install matrixhub oci://ghcr.io/matrixhub-ai/charts/matrixhub
+```
+
+To install a specific version:
+
+```bash
+helm install matrixhub oci://ghcr.io/matrixhub-ai/charts/matrixhub --version <chart-version>
+```
+
+#### Expose the Service
 
 Expose it locally (default `ClusterIP`) via port-forward:
 
@@ -72,7 +90,39 @@ Or expose it via `NodePort`:
 
 ```bash
 helm install matrixhub ./deploy/charts/matrixhub --set apiserver.service.type=NodePort
+# or with OCI:
+helm install matrixhub oci://ghcr.io/matrixhub-ai/charts/matrixhub --set apiserver.service.type=NodePort
 ```
+
+#### Persistent Storage (PVC)
+
+MatrixHub uses PersistentVolumeClaims to persist data. Currently only PVC is supported as the storage backend; S3-compatible storage will be supported in a future release.
+
+By default, the chart creates the following PVCs:
+
+| PVC | Mount Path | Default Size | Purpose |
+|-----|-----------|--------------|---------|
+| `<release>-apiserver-data` | `/data/matrixhub` | `50Gi` | Model artifacts & cache |
+| `<release>-mysql-pv-claim` | `/var/lib/mysql` | `8Gi` | Built-in MySQL data (only when `global.storage.apiserver.builtIn=true`, which is the default) |
+
+**Customize storage class and size:**
+
+```bash
+helm install matrixhub ./deploy/charts/matrixhub \
+  --set apiserver.storage.pvc.storageClass=standard \
+  --set apiserver.storage.pvc.size=100Gi \
+  --set mysql.persistence.storageClass=standard \
+  --set mysql.persistence.size=20Gi
+```
+
+**Use an existing PVC:**
+
+```bash
+helm install matrixhub ./deploy/charts/matrixhub \
+  --set apiserver.storage.pvc.existingClaim=my-existing-pvc
+```
+
+> **Note:** If your cluster has a default `StorageClass` that supports dynamic provisioning, PVCs are created automatically. Otherwise, you must manually create a `PersistentVolume` or provide an existing claim.
 
 ## 📚 Docs
 
