@@ -1,4 +1,5 @@
 ---
+slug: /deepseek-v4-distribution
 title: DeepSeek v4 跑不起来？99% 的人都卡在分发
 description: 为什么企业环境里的 DeepSeek 落地经常卡在分发层，以及 MatrixHub 能解决什么问题。
 ---
