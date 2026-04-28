@@ -18,5 +18,9 @@
   "sidebar.tutorialSidebar.category.Profile": {
     "message": "个人信息",
     "description": "The label for category 'Profile' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Platform Settings": {
+    "message": "平台设置",
+    "description": "The label for category 'Platform Settings' in sidebar 'tutorialSidebar'"
   }
 }

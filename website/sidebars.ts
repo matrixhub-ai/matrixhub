@@ -42,6 +42,15 @@ const sidebars: SidebarsConfig = {
             'operations/profile/access-token',
           ],
         },
+        {
+          type: 'category',
+          label: 'Platform Settings',
+          items: [
+            'operations/platform-settings/remote-sync',
+            'operations/platform-settings/repository-management',
+            'operations/platform-settings/user-management',
+          ],
+        },
       ],
     },
   ],
