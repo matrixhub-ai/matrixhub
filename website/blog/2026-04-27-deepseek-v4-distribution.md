@@ -125,7 +125,7 @@ curl http://127.0.0.1:3001
 
 Change the password immediately.
 
-![](https://oss-liuchengtu.hudunsoft.com/userimg/58/58d44ab77e61593b9793b655b92b9f39.png)
+![login](./images/login.png)
 
 ### Step 3: Create a remote registry to proxy Hugging Face
 
@@ -143,10 +143,10 @@ How it works:
 Request -> MatrixHub -> Hugging Face -> Response
 ```
 
-![](https://oss-liuchengtu.hudunsoft.com/userimg/08/083c2bd16b57cdad8ba10ffe9fcaa302.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/a2/a2c114cb542e536c6c80c4a48c1ae23b.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/29/2991b71a6df3a1e47c3009d2b713ff5d.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/0a/0a31ca035d8baf8808a802b5b4fddeb1.png)
+![](./images/registry1.PNG)
+![](./images/registry2.PNG)
+![](./images/registry3.PNG)
+![](./images/registry4.PNG)
 
 ### Step 4: Create a proxy project
 
@@ -161,10 +161,10 @@ When creating the project:
 - Select the `huggingface` remote registry
 - Specify the model organization: `deepseek-ai`
 
-![](https://oss-liuchengtu.hudunsoft.com/userimg/fb/fbc507c9cab0e4f52bbd9a539b815a7e.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/1c/1cdcd97d9c91ffcec222f897bd828acb.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/58/584a4c545d5ff3541d24397f638cb382.png)
-![](https://oss-liuchengtu.hudunsoft.com/userimg/28/28d5122a23f3da0b8ff97c5303c7761a.png)
+![](./images/project1.PNG)
+![](./images/project2.png)
+![](./images/project3.png)
+![](./images/project4.png)
 
 ### Step 5: Client integration
 
@@ -184,6 +184,12 @@ What this does:
 ```bash
 hf download deepseek-ai/DeepSeek-V4-Pro
 ```
+![](./images/download1.png)
+
+You can see 'DeepSeek-V4-Pro' model under 'deepseek-ai' Project in UI
+
+![](./images/download.png)
+
 
 ## Verify cache effectiveness
 
