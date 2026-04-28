@@ -3,8 +3,12 @@
     "message": "当前版本",
     "description": "The label for version current"
   },
-  "sidebar.defaultSidebar.category.Getting Started": {
-    "message": "快速开始",
-    "description": "The label for category 'Getting Started' in sidebar 'defaultSidebar'"
+  "sidebar.tutorialSidebar.category.Operations": {
+    "message": "操作指南",
+    "description": "The label for category 'Operations' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Model Repository": {
+    "message": "模型仓库",
+    "description": "The label for category 'Model Repository' in sidebar 'tutorialSidebar'"
   }
 }
