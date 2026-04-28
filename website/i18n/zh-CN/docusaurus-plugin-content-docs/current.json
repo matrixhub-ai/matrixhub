@@ -7,8 +7,16 @@
     "message": "操作指南",
     "description": "The label for category 'Operations' in sidebar 'tutorialSidebar'"
   },
+  "sidebar.tutorialSidebar.category.Project Management": {
+    "message": "项目管理",
+    "description": "The label for category 'Project Management' in sidebar 'tutorialSidebar'"
+  },
   "sidebar.tutorialSidebar.category.Model Repository": {
     "message": "模型仓库",
     "description": "The label for category 'Model Repository' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Profile": {
+    "message": "个人信息",
+    "description": "The label for category 'Profile' in sidebar 'tutorialSidebar'"
   }
 }

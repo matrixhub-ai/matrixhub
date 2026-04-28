@@ -21,10 +21,25 @@ const sidebars: SidebarsConfig = {
       items: [
         {
           type: 'category',
+          label: 'Project Management',
+          items: [
+            'operations/project-management/create-delete',
+            'operations/project-management/members',
+          ],
+        },
+        {
+          type: 'category',
           label: 'Model Repository',
           items: [
             'operations/model-repo/upload-download',
             'operations/model-repo/project-setting',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Profile',
+          items: [
+            'operations/profile/access-token',
           ],
         },
       ],
