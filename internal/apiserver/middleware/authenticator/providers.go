@@ -27,15 +27,17 @@ func NewWebAuthenticator(sessionRepo user.ISessionRepo, tokenRepo user.IAccessTo
 	)
 }
 
-func NewHfCLIAuthenticator(tokenRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo) *MultiAuthenticator {
+func NewHfCLIAuthenticator(tokenRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewTokenAuthenticator(tokenRepo),
 		NewCookieAuthenticator(sessionRepo),
+		NewRobotTokenAuthenticator(robotRepo),
 	)
 }
 
-func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo) *MultiAuthenticator {
+func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewTokenAuthenticator(tokenRepo),
+		NewRobotTokenAuthenticator(robotRepo),
 	)
 }

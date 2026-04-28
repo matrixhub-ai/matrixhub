@@ -12,28 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package robot
+package utils
 
-type Identity struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+import "strings"
+
+var repoTypePrefixes = []struct {
+	prefix   string
+	repoType string
+}{
+	{"datasets/", "datasets"},
+	{"spaces/", "spaces"},
 }
 
-func (i Identity) GetID() int {
-	return i.ID
-}
-
-func (i Identity) TypeName() string {
-	return "robot"
-}
-
-func (i Identity) GetName() string {
-	return i.Name
-}
-
-func NewRobotIdentity(id int, name string) *Identity {
-	return &Identity{
-		ID:   id,
-		Name: name,
+func ParseFromRepoName(repoName string) (repoType, project, name string, ok bool) {
+	repoType = "models"
+	namespacedName := repoName
+	for _, p := range repoTypePrefixes {
+		if strings.HasPrefix(repoName, p.prefix) {
+			repoType = p.repoType
+			namespacedName = strings.TrimPrefix(repoName, p.prefix)
+			break
+		}
 	}
+
+	project, name, ok = strings.Cut(namespacedName, "/")
+	name = strings.TrimSuffix(name, ".git")
+	return
 }

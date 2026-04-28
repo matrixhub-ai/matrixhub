@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -56,6 +57,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 	"github.com/matrixhub-ai/matrixhub/internal/jobserver"
 	"github.com/matrixhub-ai/matrixhub/internal/jobserver/canceller"
 	"github.com/matrixhub-ai/matrixhub/internal/jobserver/logstore"
@@ -119,18 +121,19 @@ func NewAPIServer(config *config.Config) *APIServer {
 		port:       config.APIServer.Port,
 	}
 
-	server.initGitAuth()
-	server.initGitHooks()
+	server.initMirrorHooks()
 	server.initGitStorage()
-	server.initSSHBackend()
 	server.initHandlersServicesRepos()
+	server.initGitHooks()
+	server.initGitAuth()
+	server.initSSHBackend()
 
 	// Register authn + authz middleware (must be after initHandlersServicesRepos)
 	streamMiddleware := []grpc.StreamServerInterceptor{
 		grpc_recovery.StreamServerInterceptor(),
 	}
 	unaryMiddleware := []grpc.UnaryServerInterceptor{
-		grpc_recovery.UnaryServerInterceptor(),
+		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(middleware.RecoveryFunc)),
 		middleware.AuthInterceptor(server.repos.Session, server.repos.AccessToken, server.repos.Robot),
 		middleware.AuthzInterceptor(server.services.Authz.VerifyPlatformPermission),
 	}
@@ -162,20 +165,32 @@ type gitHooks struct {
 }
 
 func (server *APIServer) initGitHooks() {
-	permissionHookFunc := func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (bool, error) {
-		// userInfo, _ := authenticate.GetUserInfo(ctx)
-		return true, nil // or return false, nil to deny, or return an error to indicate an error
-	}
+	permissionHookFunc := middleware.NewRepoEnforcer(server.services.Authz)
 
 	preReceiveHookFunc := func(ctx context.Context, repoName string, updates []receive.RefUpdate) (bool, error) {
-		// userInfo, _ := authenticate.GetUserInfo(ctx)
-		return true, nil // or return false, nil to deny, or return an error to indicate an error
+		repoType, project, name, ok := utils.ParseFromRepoName(repoName)
+		if !ok {
+			return false, nil
+		}
+		if repoType == "models" {
+			_, err := server.services.Model.EnsureModel(ctx, project, name)
+			return err == nil, err
+		}
+
+		return false, nil
 	}
 
 	postReceiveHookFunc := func(ctx context.Context, repoName string, updates []receive.RefUpdate) error {
 		return nil
 	}
 
+	server.gitHooks.permissionHookFunc = permissionHookFunc
+	server.gitHooks.preReceiveHookFunc = preReceiveHookFunc
+	server.gitHooks.postReceiveHookFunc = postReceiveHookFunc
+
+}
+
+func (server *APIServer) initMirrorHooks() {
 	mirrorSourceFunc := func(ctx context.Context, repoName string) (string, bool, error) {
 		// return baseURL + "/" + repoName, true, nil
 		return "", false, nil
@@ -190,10 +205,6 @@ func (server *APIServer) initGitHooks() {
 		}
 		return filteredRefs, nil
 	}
-
-	server.gitHooks.permissionHookFunc = permissionHookFunc
-	server.gitHooks.preReceiveHookFunc = preReceiveHookFunc
-	server.gitHooks.postReceiveHookFunc = postReceiveHookFunc
 	server.gitHooks.mirrorSourceFunc = mirrorSourceFunc
 	server.gitHooks.mirrorRefFilterFunc = mirrorRefFilterFunc
 }
@@ -206,24 +217,9 @@ type gitAuth struct {
 }
 
 func (server *APIServer) initGitAuth() {
-	// TODO: implement real validators that validate the credentials and return the corresponding user info.
-	// For now, we just return true for all validators to allow all requests to pass through.
-	// This is not secure and should be replaced with real implementations.
-
-	basicAuthValidator := authenticate.BasicAuthValidatorFunc(func(ctx context.Context, username, password string) (user string, next, ok bool, err error) {
-		// validate username and password, return true if valid, false if invalid, or an error if there's an error during validation
-		return "", true, true, nil
-	})
-
-	publicKeyValidator := authenticate.PublicKeyValidatorFunc(func(ctx context.Context, username string, keyType string, marshaledKey []byte) (user string, next, ok bool, err error) {
-		// validate the public key for the given username, return true if valid, false if invalid, or an error if there's an error during validation
-		return "", true, true, nil
-	})
-
-	tokenValidator := authenticate.TokenValidatorFunc(func(ctx context.Context, token string) (user string, next, ok bool, err error) {
-		// validate the token, return true if valid, false if invalid, or an error if there's an error during validation
-		return "", false, true, nil
-	})
+	basicAuthValidator := middleware.GitBasicAuthAuthn(server.repos.AccessToken, server.repos.Robot)
+	publicKeyValidator := middleware.GitPublicKeyAuthn(server.repos.SSHKey, server.repos.User)
+	tokenValidator := middleware.GitHTTPAuthn(server.repos.AccessToken, server.repos.Robot)
 
 	// TODO: Use a proper secret management solution to manage the token signing secret.
 	// Generating and validating temporary tokens.
@@ -292,11 +288,19 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhf.WithPostReceiveHookFunc(postReceiveHookFunc),
 		backendhf.WithLFSStorage(lfsStorage),
 		backendhf.WithMiddlewares(
-			middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session),
-			middleware.HFAuthzMiddleware(server.services.Authz),
+			middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session, server.repos.Robot),
 		),
 		backendhf.WithServices(server.services.Model, server.repos.Git, server.services.Authz),
 	)
+
+	gitAuthn := func() mux.MiddlewareFunc {
+		return func(next http.Handler) http.Handler {
+			next = authenticate.BasicAuthHandler(basicAuthValidator, next)
+			next = authenticate.TokenValidatorHandler(tokenValidator, next)
+			next = authenticate.AnonymousAuthenticateHandler(next)
+			return next
+		}
+	}
 
 	handler = backendlfs.NewHandler(
 		backendlfs.WithStorage(storage),
@@ -305,10 +309,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendlfs.WithPermissionHookFunc(permissionHookFunc),
 		backendlfs.WithLFSStorage(lfsStorage),
 		backendlfs.WithMirror(sharedMirror),
-		backendlfs.WithMiddlewares(
-			middleware.GitAuthnMiddleware(server.repos.AccessToken),
-			middleware.GitAuthzMiddleware(server.services.Authz),
-		),
+		backendlfs.WithMiddlewares(gitAuthn()),
 	)
 
 	handler = backendhttp.NewHandler(
@@ -318,16 +319,11 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhttp.WithPermissionHookFunc(permissionHookFunc),
 		backendhttp.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendhttp.WithPostReceiveHookFunc(postReceiveHookFunc),
-		backendhttp.WithMiddlewares(
-			middleware.GitAuthnMiddleware(server.repos.AccessToken),
-			middleware.GitAuthzMiddleware(server.services.Authz),
-		),
+		backendhttp.WithMiddlewares(gitAuthn()),
+		backendhttp.WithServices(server.services.Model, server.repos.Git, server.services.Authz),
 	)
 
-	handler = authenticate.AnonymousAuthenticateHandler(handler)
-	handler = authenticate.TokenValidatorHandler(tokenValidator, handler)
 	handler = authenticate.TokenSignValidatorHandler(tokenSignValidator, handler)
-	handler = authenticate.BasicAuthHandler(basicAuthValidator, handler)
 
 	return handler
 }
@@ -401,7 +397,10 @@ func (server *APIServer) initHandlersServicesRepos() {
 	)
 	userService := user.NewUserService(repos.Session, repos.User)
 
-	logDir := server.config.JobServer.LogDir
+	logDir := ""
+	if server.config.JobServer != nil {
+		logDir = server.config.JobServer.LogDir
+	}
 	if logDir == "" {
 		logDir = filepath.Join(server.config.DataDir, "logs", "jobs")
 	}

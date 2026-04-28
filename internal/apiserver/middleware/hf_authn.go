@@ -16,19 +16,20 @@ package middleware
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware/authenticator"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 )
 
-func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo) func(http.Handler) http.Handler {
+func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo)
+			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo, robotRepo)
 			_, identity, err := auth.Authenticate(r.Context(), r)
 			if err == nil {
 				r = setUserInfo(r, identity)
@@ -39,8 +40,12 @@ func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRe
 }
 
 func setUserInfo(r *http.Request, identity auth.Identity) *http.Request {
+	id, err := authcodec.Marshal(identity)
+	if err != nil {
+		return r
+	}
 	r = r.WithContext(authenticate.WithContext(r.Context(), authenticate.UserInfo{
-		User: strconv.Itoa(identity.GetID()),
+		User: id,
 	}))
 	r = r.WithContext(auth.WithIdentity(r.Context(), identity))
 	return r

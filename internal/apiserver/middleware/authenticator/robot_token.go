@@ -16,7 +16,7 @@ package authenticator
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -25,31 +25,30 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
-type RobotAuthenticator struct {
+type RobotTokenAuthenticator struct {
 	robotRepo robot.IRobotRepo
 }
 
-func NewRobotAuthenticator(robotRepo robot.IRobotRepo) *RobotAuthenticator {
-	return &RobotAuthenticator{robotRepo: robotRepo}
+func NewRobotTokenAuthenticator(robotRepo robot.IRobotRepo) *RobotTokenAuthenticator {
+	return &RobotTokenAuthenticator{robotRepo: robotRepo}
 }
 
-func (a *RobotAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
-	username, secret, err := utils.ParseBasicAuthFromGRPCContext(ctx)
-	if err != nil {
+func (a *RobotTokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
+	token := extractTokenCredential(ctx, r)
+	return a.AuthenticateToken(ctx, "", token)
+}
+
+func (a *RobotTokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, error) {
+	if token == "" || !strings.HasPrefix(token, utils.RobotTokenPrefix) {
 		return nil, nil
 	}
-	if !strings.HasPrefix(username, robot.RobotPrefix) {
-		return nil, nil
-	}
-	rb, err := a.robotRepo.GetRobotByName(ctx, username)
+
+	rb, err := a.robotRepo.GetRobotByTokenHash(ctx, utils.Sha256Hex(token))
 	if err != nil {
-		return nil, fmt.Errorf("robot account not found: %w", err)
+		return nil, err
 	}
-	if !rb.Enabled {
-		return nil, fmt.Errorf("robot account is disabled: %s", username)
-	}
-	if !rb.CheckTokenHash(utils.Sha256Hex(secret)) {
-		return nil, fmt.Errorf("invalid robot secret: %w", err)
+	if rb == nil || !rb.Enabled {
+		return nil, errors.New("robot is invalid")
 	}
 
 	return robot.NewRobotIdentity(rb.ID, rb.Name), nil

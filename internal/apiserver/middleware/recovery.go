@@ -12,28 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package robot
+package middleware
 
-type Identity struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
+import (
+	"fmt"
+	"runtime/debug"
 
-func (i Identity) GetID() int {
-	return i.ID
-}
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
 
-func (i Identity) TypeName() string {
-	return "robot"
-}
-
-func (i Identity) GetName() string {
-	return i.Name
-}
-
-func NewRobotIdentity(id int, name string) *Identity {
-	return &Identity{
-		ID:   id,
-		Name: name,
-	}
+var RecoveryFunc = func(p any) error {
+	fmt.Printf("panic: %v\n%s\n", p, debug.Stack())
+	return status.Errorf(codes.Internal, "internal server error")
 }

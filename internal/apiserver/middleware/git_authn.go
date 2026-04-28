@@ -15,21 +15,62 @@
 package middleware
 
 import (
-	"net/http"
+	"context"
+	"crypto/sha256"
+	"encoding/base64"
+
+	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware/authenticator"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 )
 
-func GitAuthnMiddleware(akRepo user.IAccessTokenRepo) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			auth := authenticator.NewGitAuthenticator(akRepo)
-			_, identity, err := auth.Authenticate(r.Context(), r)
-			if err == nil {
-				r = setUserInfo(r, identity)
-			}
-			next.ServeHTTP(w, r)
-		})
+func GitHTTPAuthn(akRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) authenticate.TokenValidatorFunc {
+	return func(ctx context.Context, token string) (user string, next, ok bool, err error) {
+		auth := authenticator.NewGitAuthenticator(akRepo, robotRepo)
+		_, identity, err := auth.AuthenticateToken(ctx, "", token)
+		if err != nil {
+			return "", false, false, err
+		}
+		id, err := authcodec.Marshal(identity)
+		if err != nil {
+			return "", false, false, err
+		}
+		return id, true, true, nil
+	}
+}
+
+func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) authenticate.BasicAuthValidatorFunc {
+	return func(ctx context.Context, username, password string) (user string, next, ok bool, err error) {
+		auth := authenticator.NewGitAuthenticator(akRepo, robotRepo)
+		_, identity, err := auth.AuthenticateToken(ctx, username, password)
+		if err != nil {
+			return "", false, false, err
+		}
+		id, err := authcodec.Marshal(identity)
+		if err != nil {
+			return "", false, false, err
+		}
+		return id, true, true, nil
+	}
+}
+
+func GitPublicKeyAuthn(sshKeyRepo user.ISSHKeyRepo, userRepo user.IUserRepo) authenticate.PublicKeyValidatorFunc {
+	return func(ctx context.Context, username string, keyType string, marshaledKey []byte) (user string, next, ok bool, err error) {
+		auth := authenticator.NewSSHKeyAuthenticator(sshKeyRepo, userRepo)
+		sha256sum := sha256.Sum256(marshaledKey)
+		hash := base64.RawStdEncoding.EncodeToString(sha256sum[:])
+		fg := "SHA256:" + hash
+		identity, err := auth.Authenticate(ctx, fg)
+		if err != nil || identity == nil || identity.GetID() == 0 {
+			return "", false, false, err
+		}
+		id, err := authcodec.Marshal(identity)
+		if err != nil {
+			return "", false, false, err
+		}
+		return id, true, true, nil
 	}
 }

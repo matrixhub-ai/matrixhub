@@ -15,8 +15,8 @@
 package user
 
 type Identity struct {
-	ID       int
-	Username string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 func (i Identity) GetID() int {
@@ -24,12 +24,16 @@ func (i Identity) GetID() int {
 }
 
 func (i Identity) GetName() string {
-	return i.Username
+	return i.Name
+}
+
+func (i Identity) TypeName() string {
+	return "user"
 }
 
 func NewUserIdentity(id int, name string) *Identity {
 	return &Identity{
-		ID:       id,
-		Username: name,
+		ID:   id,
+		Name: name,
 	}
 }
