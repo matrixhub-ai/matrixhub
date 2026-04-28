@@ -109,7 +109,7 @@ func (r *ProjectDBRepo) GetProjectIDByName(ctx context.Context, name string) (in
 	return p.ID, nil
 }
 
-func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectType project.ProjectType, managedOnly bool, page, pageSize int) ([]*project.Project, int64, error) {
+func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectType project.ProjectType, managedOnly bool, hasPlatformProjectGet bool, page, pageSize int) ([]*project.Project, int64, error) {
 	var projects []*project.Project
 	var total int64
 
@@ -122,20 +122,32 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 		query = query.Where("type = ?", projectType)
 	}
 
-	userID := user.GetCurrentUserId(ctx)
-	if managedOnly {
-		// Only return projects where the current user has access
-		query = query.Where("EXISTS (SELECT 1 FROM members_roles_projects WHERE project_id = projects.id AND member_id = ? AND member_type = ?)", userID, project.MemberTypeUser)
-	} else {
-		// Return projects where user has access OR public projects
-		query = query.Where("type = ? OR EXISTS (SELECT 1 FROM members_roles_projects WHERE project_id = projects.id AND member_id = ? AND member_type = ?)", project.ProjectTypePublic, userID, project.MemberTypeUser)
+	if !hasPlatformProjectGet {
+		userID := user.GetCurrentUserId(ctx)
+
+		accessibleIDs, err := r.userProjectIDsWithPermission(ctx, userID, role.ProjectGet)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		if managedOnly {
+			if len(accessibleIDs) == 0 {
+				return []*project.Project{}, 0, nil
+			}
+			query = query.Where("projects.id IN ?", accessibleIDs)
+		} else {
+			if len(accessibleIDs) == 0 {
+				query = query.Where("type = ?", project.ProjectTypePublic)
+			} else {
+				query = query.Where("type = ? OR projects.id IN ?", project.ProjectTypePublic, accessibleIDs)
+			}
+		}
 	}
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// Use subquery to get model_count and dataset_count in one query
 	query = query.Select(`projects.*,
 		(SELECT COUNT(*) FROM models WHERE models.project_id = projects.id) as model_count,
 		(SELECT COUNT(*) FROM datasets WHERE datasets.project_id = projects.id) as dataset_count`)
@@ -152,6 +164,32 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 	}
 
 	return projects, total, nil
+}
+
+func (r *ProjectDBRepo) userProjectIDsWithPermission(ctx context.Context, userID int, perm role.Permission) ([]int, error) {
+	type binding struct {
+		ProjectID   int
+		Permissions role.PermissionList
+	}
+	var bindings []binding
+	err := r.db.WithContext(ctx).
+		Table("members_roles_projects AS mrp").
+		Select("mrp.project_id AS project_id, roles.permissions AS permissions").
+		Joins("INNER JOIN roles ON roles.id = mrp.role_id").
+		Where("mrp.member_id = ? AND mrp.member_type = ? AND mrp.project_id IS NOT NULL",
+			userID, project.MemberTypeUser).
+		Scan(&bindings).Error
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]int, 0, len(bindings))
+	for _, b := range bindings {
+		if role.MatchPermissions(b.Permissions, perm) {
+			ids = append(ids, b.ProjectID)
+		}
+	}
+	return ids, nil
 }
 
 func (r *ProjectDBRepo) UpdateProject(ctx context.Context, p *project.Project) error {
