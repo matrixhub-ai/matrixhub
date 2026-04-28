@@ -126,7 +126,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 	}
 	unaryMiddleware := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(),
-		middleware.AuthInterceptor(server.repos.Session, server.repos.Robot),
+		middleware.AuthInterceptor(server.repos.Session, server.repos.AccessToken, server.repos.Robot),
 		middleware.AuthzInterceptor(server.services.Authz.VerifyPlatformPermission),
 	}
 

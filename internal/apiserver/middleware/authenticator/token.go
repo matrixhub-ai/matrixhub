@@ -37,11 +37,14 @@ func NewTokenAuthenticator(tokenRepo user.IAccessTokenRepo) *TokenAuthenticator 
 }
 
 func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
-	token := extractTokenCredential(r)
-	if token == "" {
+	token := extractTokenCredential(ctx, r)
+	if token == "" || !strings.HasPrefix(token, utils.TokenPrefix) {
 		return nil, nil
 	}
-	ak, err := a.tokenRepo.GetByTokenHash(r.Context(), utils.Sha256Hex(token))
+	if r != nil {
+		ctx = r.Context()
+	}
+	ak, err := a.tokenRepo.GetByTokenHash(ctx, utils.Sha256Hex(token))
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +69,15 @@ func parseBearerToken(r *http.Request) (token string) {
 }
 
 // extractTokenCredential extracts a token from the request.
-func extractTokenCredential(r *http.Request) (token string) {
+func extractTokenCredential(ctx context.Context, r *http.Request) (token string) {
+	var err error
+	token, err = utils.ParseBearerTokenFromGRPCContext(ctx)
+	if err == nil && token != "" {
+		return token
+	}
+	if r == nil {
+		return
+	}
 	token = parseBearerToken(r)
 	if token != "" {
 		return

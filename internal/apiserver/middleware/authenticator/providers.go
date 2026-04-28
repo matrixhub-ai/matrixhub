@@ -19,9 +19,10 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
-func NewWebAuthenticator(sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
+func NewWebAuthenticator(sessionRepo user.ISessionRepo, tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewCookieAuthenticator(sessionRepo),
+		NewTokenAuthenticator(tokenRepo),
 		NewRobotAuthenticator(robotRepo),
 	)
 }

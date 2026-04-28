@@ -94,6 +94,23 @@ func ParseBearerToken(r *http.Request) (token string, ok bool) {
 	return strings.TrimSpace(bearer), true
 }
 
+func ParseBearerTokenFromGRPCContext(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", errors.New("missing metadata")
+	}
+
+	values := md.Get("authorization")
+	if len(values) == 0 {
+		return "", errors.New("missing authorization header")
+	}
+	bearer, found := strings.CutPrefix(values[0], "Bearer ")
+	if !found {
+		return "", errors.New("invalid authorization format, expected Bearer token")
+	}
+	return strings.TrimSpace(bearer), nil
+}
+
 // ParseBasicAuthFromGRPCContext extracts Basic Auth credentials from gRPC metadata.
 // gRPC Gateway converts HTTP Authorization header to metadata with key "authorization".
 // Returns (username, password, nil) on success.

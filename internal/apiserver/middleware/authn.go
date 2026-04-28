@@ -32,13 +32,13 @@ var publicMethods = map[string]bool{
 	"/matrixhub.v1alpha1.Login/Login": true,
 }
 
-func AuthInterceptor(sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) grpc.UnaryServerInterceptor {
+func AuthInterceptor(sessionRepo user.ISessionRepo, tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if publicMethods[info.FullMethod] {
 			return handler(ctx, req)
 		}
 
-		authn := authenticator.NewWebAuthenticator(sessionRepo, robotRepo)
+		authn := authenticator.NewWebAuthenticator(sessionRepo, tokenRepo, robotRepo)
 		succeeded, identity, err := authn.Authenticate(ctx, nil)
 		if err != nil || identity == nil {
 			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
