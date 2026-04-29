@@ -1,9 +1,11 @@
 import {
+  Anchor,
   Badge,
   Group,
   Text,
 } from '@mantine/core'
 import { SyncPolicyType } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
+import { Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -31,10 +33,31 @@ type ReplicationsTableProps = Omit<DataTableProps<SyncPolicyItem>, 'columns'>
 const EMPTY_VALUE = '-'
 
 function ReplicationNameCell({ row }: ReplicationCellProps) {
+  const name = row.original.name
+  const replicationId = row.original.id
+
+  if (replicationId == null) {
+    return (
+      <Text fw={500}>
+        {name ?? EMPTY_VALUE}
+      </Text>
+    )
+  }
+
   return (
-    <Text fw={500}>
-      {row.original.name ?? EMPTY_VALUE}
-    </Text>
+    <Anchor
+      fw={500}
+      underline="never"
+      renderRoot={props => (
+        <Link
+          {...props}
+          to="/admin/replications/$replicationId/executions"
+          params={{ replicationId: String(replicationId) }}
+        />
+      )}
+    >
+      {name ?? EMPTY_VALUE}
+    </Anchor>
   )
 }
 

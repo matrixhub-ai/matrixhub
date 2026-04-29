@@ -49,6 +49,9 @@ type JobServerConfig struct {
 	Enabled       bool             `yaml:"enabled"`
 	ShutdownGrace time.Duration    `yaml:"shutdownGrace"`
 	SyncPolicy    SyncPolicyConfig `yaml:"syncPolicy"`
+	SyncTask      SyncTaskConfig   `yaml:"syncTask"`
+	SyncJob       SyncJobConfig    `yaml:"syncJob"`
+	LogDir        string           `yaml:"logDir"`
 }
 
 // SyncPolicyConfig holds per-processor tuning for the sync-policy delayed-job poller.
@@ -56,6 +59,43 @@ type SyncPolicyConfig struct {
 	PollInterval    time.Duration `yaml:"pollInterval"`
 	MaxConcurrent   int           `yaml:"maxConcurrent"`
 	TaskMaxDuration time.Duration `yaml:"taskMaxDuration"`
+}
+
+// SyncTaskConfig holds tuning for the sync-task processor.
+type SyncTaskConfig struct {
+	PollInterval    time.Duration `yaml:"pollInterval"`
+	MaxConcurrent   int           `yaml:"maxConcurrent"`
+	TaskMaxDuration time.Duration `yaml:"taskMaxDuration"`
+}
+
+// SyncJobConfig holds tuning for the sync-job processor.
+type SyncJobConfig struct {
+	PollInterval    time.Duration `yaml:"pollInterval"`
+	MaxConcurrent   int           `yaml:"maxConcurrent"`
+	TaskMaxDuration time.Duration `yaml:"taskMaxDuration"`
+}
+
+// DefaultJobServerConfig returns production-minded defaults (enabled).
+func DefaultJobServerConfig() *JobServerConfig {
+	return &JobServerConfig{
+		Enabled:       true,
+		ShutdownGrace: 30 * time.Second,
+		SyncPolicy: SyncPolicyConfig{
+			PollInterval:    10 * time.Second,
+			MaxConcurrent:   5,
+			TaskMaxDuration: 2 * time.Hour,
+		},
+		SyncTask: SyncTaskConfig{
+			PollInterval:    5 * time.Second,
+			MaxConcurrent:   5,
+			TaskMaxDuration: 2 * time.Hour,
+		},
+		SyncJob: SyncJobConfig{
+			PollInterval:    3 * time.Second,
+			MaxConcurrent:   5,
+			TaskMaxDuration: 2 * time.Hour,
+		},
+	}
 }
 
 type APIServerConfig struct {

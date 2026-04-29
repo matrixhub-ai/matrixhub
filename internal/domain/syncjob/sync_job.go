@@ -29,6 +29,7 @@ const (
 	SyncJobStatusSucceeded
 	SyncJobStatusFailed
 	SyncJobStatusStopped
+	SyncJobStatusPending
 )
 
 func (s SyncJobStatus) Value() (driver.Value, error) {
@@ -86,4 +87,7 @@ type ISyncJobRepo interface {
 	UpdateSyncJob(ctx context.Context, syncJob *SyncJob) error
 	DeleteSyncJob(ctx context.Context, id int) error
 	ListSyncJobsByTaskID(ctx context.Context, taskID int, page, pageSize int, status SyncJobStatus, resourceType string) ([]*SyncJob, int64, error)
+
+	SelectPendingJobs(ctx context.Context, limit int) ([]*SyncJob, error)
+	UpdateJobStatusCAS(ctx context.Context, jobID int, fromStatus, toStatus SyncJobStatus) (bool, error)
 }

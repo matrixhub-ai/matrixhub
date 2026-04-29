@@ -23,6 +23,10 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 )
 
 // Handler handles HTTP requests for Git operations, including service discovery and upload/receive pack endpoints.
@@ -35,6 +39,9 @@ type Handler struct {
 	preReceiveHookFunc  receive.PreReceiveHookFunc
 	postReceiveHookFunc receive.PostReceiveHookFunc
 	mirror              *mirror.Mirror
+	modelService        model.IModelService
+	gitRepo             git.IGitRepo
+	authzService        authz.IAuthzService
 }
 
 // Option defines a functional option for configuring the Handler.
@@ -92,6 +99,15 @@ func WithMirror(m *mirror.Mirror) Option {
 	}
 }
 
+// WithServices sets the services for the router.
+func WithServices(model model.IModelService, git git.IGitRepo, authz authz.IAuthzService) Option {
+	return func(h *Handler) {
+		h.modelService = model
+		h.gitRepo = git
+		h.authzService = authz
+	}
+}
+
 // NewHandler creates a new Handler with the given repository directory.
 func NewHandler(opts ...Option) *Handler {
 	h := &Handler{
@@ -115,6 +131,7 @@ func (h *Handler) register() {
 	// Git protocol endpoints
 	h.registryGit(h.root)
 
+	h.root.Use(h.middlewares...)
 	h.root.NotFoundHandler = h.next
 }
 
@@ -138,6 +155,9 @@ func responseText(w http.ResponseWriter, text string, sc int) {
 		header.Set("X-Content-Type-Options", "nosniff")
 	}
 
+	if sc == http.StatusUnauthorized {
+		header.Set("WWW-Authenticate", `Basic realm="hfd"`)
+	}
 	if sc != 0 {
 		w.WriteHeader(sc)
 	}

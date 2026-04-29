@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@theme/Layout';
+import Translate, { translate } from '@docusaurus/Translate';
 import {
   Zap,
   Shield,
@@ -133,8 +134,8 @@ export default function Home(): React.ReactElement {
 
   return (
     <Layout
-      title="The Open Source Hub for AI Models"
-      description="World-class, self-hosted model repository designed for vLLM and SGLang. Secure your AI assets with RBAC, accelerate distribution with proxy caching."
+      title={translate({ id: 'homepage.title', message: 'The Open Source Hub for AI Models' })}
+      description={translate({ id: 'homepage.description', message: 'World-class, self-hosted model repository designed for vLLM and SGLang. Secure your AI assets with RBAC, accelerate distribution with proxy caching.' })}
     >
       <main className="bg-[#0d1117] text-slate-300 font-sans selection:bg-green-500/30 selection:text-green-200 w-full overflow-x-hidden">
 
@@ -156,14 +157,28 @@ export default function Home(): React.ReactElement {
               <div className="text-center lg:text-left">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-900/20 border border-green-800/50 text-green-400 text-xs font-semibold uppercase tracking-wider mb-6 animate-fade-in-up">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  Coming Soon
+                  <Translate id="homepage.hero.comingSoon">Coming Soon</Translate>
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                  The Open Source <br className="hidden sm:block" />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 animate-glow inline-block">Hub</span> for AI Models
+                  <Translate
+                    id="homepage.hero.title"
+                    values={{
+                      br: <br className="hidden sm:block" />,
+                      hub: <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 animate-glow inline-block">Hub</span>
+                    }}>
+                    {'The Open Source {br}{hub} for AI Models'}
+                  </Translate>
                 </h1>
                 <p className="text-base sm:text-lg text-slate-400 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                  MatrixHub is an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a drop-in private replacement for <span className="text-white">Hugging Face</span>, purpose-built to accelerate <span className="text-white">vLLM</span> and <span className="text-white">SGLang</span> workloads.
+                  <Translate 
+                    id="homepage.hero.subtitle"
+                    values={{
+                      hf: <span className="text-white">Hugging Face</span>,
+                      vllm: <span className="text-white">vLLM</span>,
+                      sglang: <span className="text-white">SGLang</span>
+                    }}>
+                    {'MatrixHub is an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a drop-in private replacement for {hf}, purpose-built to accelerate {vllm} and {sglang} workloads.'}
+                  </Translate>
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
@@ -171,13 +186,13 @@ export default function Home(): React.ReactElement {
                     href="/blog/deepseek-v4-distribution"
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-green-600 hover:bg-green-500 text-black rounded-lg font-bold text-base sm:text-lg transition-all shadow-[0_0_20px_rgba(22,163,74,0.4)] hover:shadow-[0_0_30px_rgba(22,163,74,0.6)] flex items-center justify-center gap-2 hover:text-black hover:no-underline hover:scale-105 transform"
                   >
-                    Quick Start <ArrowRight size={20} />
+                    <Translate id="homepage.hero.quickStart">Quick Start</Translate> <ArrowRight size={20} />
                   </a>
                   <a
                     href="https://github.com/matrixhub-ai/matrixhub"
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-[#161b22] hover:bg-[#21262d] text-white border border-slate-700 rounded-lg font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 hover:text-white hover:no-underline hover:border-slate-600"
                   >
-                    <Github size={20} /> View on GitHub
+                    <Github size={20} /> <Translate id="homepage.hero.github">View on GitHub</Translate>
                   </a>
                 </div>
               </div>
@@ -235,8 +250,8 @@ export default function Home(): React.ReactElement {
                        <Zap size={20} />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-400">Download Speed</div>
-                      <div className="text-lg font-bold text-white">25.8 GB/s <span className="text-xs font-normal text-green-500">Intranet</span></div>
+                      <div className="text-xs text-slate-400"><Translate id="homepage.hero.downloadSpeed">Download Speed</Translate></div>
+                      <div className="text-lg font-bold text-white">25.8 GB/s <span className="text-xs font-normal text-green-500"><Translate id="homepage.hero.intranet">Intranet</Translate></span></div>
                     </div>
                   </div>
                 </div>
@@ -250,10 +265,19 @@ export default function Home(): React.ReactElement {
           <section className="py-12 sm:py-16 border-y border-slate-800 bg-[#161b22]/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h2 className="text-xl sm:text-2xl font-medium text-slate-300 leading-relaxed">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 font-extrabold text-2xl sm:text-3xl">MatrixHub</span> is to <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 font-extrabold text-2xl sm:text-3xl">Hugging Face</span> what <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-extrabold text-2xl sm:text-3xl">Harbor</span> is to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 font-extrabold text-2xl sm:text-3xl">Docker Hub</span>.
+                  <Translate
+                    id="homepage.analogy.title"
+                    values={{
+                      matrixhub: <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 font-extrabold text-2xl sm:text-3xl">MatrixHub</span>,
+                      hf: <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 font-extrabold text-2xl sm:text-3xl">Hugging Face</span>,
+                      harbor: <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-extrabold text-2xl sm:text-3xl">Harbor</span>,
+                      docker: <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 font-extrabold text-2xl sm:text-3xl">Docker Hub</span>
+                    }}>
+                    {'{matrixhub} is to {hf} what {harbor} is to {docker}.'}
+                  </Translate>
                 </h2>
                <p className="mt-4 text-slate-400 text-sm sm:text-base">
-                 Stop relying on public internet for mission-critical AI. Control your assets, accelerate your pipelines.
+                 <Translate id="homepage.analogy.subtitle">Stop relying on public internet for mission-critical AI. Control your assets, accelerate your pipelines.</Translate>
                </p>
             </div>
           </section>
@@ -263,36 +287,36 @@ export default function Home(): React.ReactElement {
         <section id="features" className="py-16 sm:py-20 lg:py-24 bg-[#0d1117] relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <AnimatedSection className="text-center mb-12 sm:mb-16">
-              <h2 className="text-green-500 font-bold tracking-wider uppercase text-xs sm:text-sm mb-2">Core Features</h2>
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">Infrastructure designed for Scale</h3>
+              <h2 className="text-green-500 font-bold tracking-wider uppercase text-xs sm:text-sm mb-2"><Translate id="homepage.features.label">Core Features</Translate></h2>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4"><Translate id="homepage.features.title">Infrastructure designed for Scale</Translate></h3>
               <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
-                Built for the specific needs of SREs and Algorithm Engineers managing massive model weights.
+                <Translate id="homepage.features.subtitle">Built for the specific needs of SREs and Algorithm Engineers managing massive model weights.</Translate>
               </p>
             </AnimatedSection>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <FeatureCard
                 icon={<Network size={24} />}
-                title="Transparent HF Proxy"
-                desc="Drop-in replacement for Hugging Face. Point your HF_ENDPOINT to MatrixHub and keep all training/inference code unchanged."
+                title={translate({ id: 'homepage.features.1.title', message: 'Transparent HF Proxy' })}
+                desc={translate({ id: 'homepage.features.1.desc', message: 'Drop-in replacement for Hugging Face. Point your HF_ENDPOINT to MatrixHub and keep all training/inference code unchanged.' })}
                 index={0}
               />
               <FeatureCard
                 icon={<Zap size={24} />}
-                title="On-Demand Caching"
-                desc="Pull once, cache forever. Automatically localizes public models to slash redundant traffic and accelerate cluster-wide distribution."
+                title={translate({ id: 'homepage.features.2.title', message: 'On-Demand Caching' })}
+                desc={translate({ id: 'homepage.features.2.desc', message: 'Pull once, cache forever. Automatically localizes public models to slash redundant traffic and accelerate cluster-wide distribution.' })}
                 index={1}
               />
               <FeatureCard
                 icon={<Shield size={24} />}
-                title="RBAC & Audit Logs"
-                desc="Fine-grained permissions, project-based isolation, and comprehensive audit trails for every upload and download."
+                title={translate({ id: 'homepage.features.3.title', message: 'RBAC & Audit Logs' })}
+                desc={translate({ id: 'homepage.features.3.desc', message: 'Fine-grained permissions, project-based isolation, and comprehensive audit trails for every upload and download.' })}
                 index={2}
               />
               <FeatureCard
                 icon={<Database size={24} />}
-                title="Storage Agnostic"
-                desc="Compatible with local filesystems, NFS, and S3-compatible backends (MinIO, AWS). Scale to unlimited model capacity."
+                title={translate({ id: 'homepage.features.4.title', message: 'Storage Agnostic' })}
+                desc={translate({ id: 'homepage.features.4.desc', message: 'Compatible with local filesystems, NFS, and S3-compatible backends (MinIO, AWS). Scale to unlimited model capacity.' })}
                 index={3}
               />
             </div>
@@ -304,37 +328,37 @@ export default function Home(): React.ReactElement {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <AnimatedSection className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-12 gap-4">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Key Use Cases</h2>
-                <p className="text-slate-400 text-sm sm:text-base">How organizations use MatrixHub in production.</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2"><Translate id="homepage.usecases.title">Key Use Cases</Translate></h2>
+                <p className="text-slate-400 text-sm sm:text-base"><Translate id="homepage.usecases.subtitle">How organizations use MatrixHub in production.</Translate></p>
               </div>
               <a href="#" className="text-green-400 hover:text-green-300 font-medium flex items-center gap-1 hover:no-underline text-sm sm:text-base group">
-                View Architecture <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <Translate id="homepage.usecases.viewArch">View Architecture</Translate> <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </a>
             </AnimatedSection>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
               <UseCaseCard
                 icon={<Rocket size={20} />}
-                title="Zero-Wait Distribution"
-                desc="Eliminate bandwidth bottlenecks with a 'Pull-once, serve-all' cache. Achieve 10Gbps+ speeds across 100+ GPU nodes simultaneously."
+                title={translate({ id: 'homepage.usecases.1.title', message: 'Zero-Wait Distribution' })}
+                desc={translate({ id: 'homepage.usecases.1.desc', message: "Eliminate bandwidth bottlenecks with a 'Pull-once, serve-all' cache. Achieve 10Gbps+ speeds across 100+ GPU nodes simultaneously." })}
                 index={0}
               />
               <UseCaseCard
                 icon={<ShieldCheck size={20} />}
-                title="Air-Gapped Delivery"
-                desc="Securely ferry models into isolated networks with integrity protection, malware scanning, and comprehensive audit trails."
+                title={translate({ id: 'homepage.usecases.2.title', message: 'Air-Gapped Delivery' })}
+                desc={translate({ id: 'homepage.usecases.2.desc', message: 'Securely ferry models into isolated networks with integrity protection, malware scanning, and comprehensive audit trails.' })}
                 index={1}
               />
               <UseCaseCard
                 icon={<Tags size={20} />}
-                title="Private Registry"
-                desc="Centralize fine-tuned weights with tag locking and CI/CD integration. Guarantee consistency from development to production."
+                title={translate({ id: 'homepage.usecases.3.title', message: 'Private Registry' })}
+                desc={translate({ id: 'homepage.usecases.3.desc', message: 'Centralize fine-tuned weights with tag locking and CI/CD integration. Guarantee consistency from development to production.' })}
                 index={2}
               />
               <UseCaseCard
                 icon={<Globe size={20} />}
-                title="Global Multi-Region Sync"
-                desc="Automate asynchronous, resumable replication between data centers for high availability and low-latency local access."
+                title={translate({ id: 'homepage.usecases.4.title', message: 'Global Multi-Region Sync' })}
+                desc={translate({ id: 'homepage.usecases.4.desc', message: 'Automate asynchronous, resumable replication between data centers for high availability and low-latency local access.' })}
                 index={3}
               />
             </div>
@@ -345,7 +369,7 @@ export default function Home(): React.ReactElement {
         <section className="py-16 sm:py-20 border-t border-slate-800 bg-[#0d1117]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <AnimatedSection>
-              <p className="text-slate-500 mb-6 sm:mb-8 font-medium text-xs sm:text-sm tracking-wider">SEAMLESSLY INTEGRATED WITH</p>
+              <p className="text-slate-500 mb-6 sm:mb-8 font-medium text-xs sm:text-sm tracking-wider"><Translate id="homepage.techstack.label">SEAMLESSLY INTEGRATED WITH</Translate></p>
             </AnimatedSection>
             <div className="flex flex-wrap justify-center gap-6 sm:gap-8 lg:gap-12">
               <TechLogo logo={<img src="/img/integrations/vllm.png" alt="vLLM" className="w-12 h-12 sm:w-16 sm:h-16 rounded-full" />} name="vLLM" index={0} />
@@ -362,16 +386,16 @@ export default function Home(): React.ReactElement {
           <div className="absolute inset-0 bg-gradient-to-r from-green-900/0 via-green-900/20 to-green-900/0 animate-pulse"></div>
 
           <AnimatedSection className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6">Ready to take control of your AI Models?</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6"><Translate id="homepage.cta.title">Ready to take control of your AI Models?</Translate></h2>
             <p className="text-base sm:text-lg lg:text-xl text-slate-400 mb-8 sm:mb-10">
-              Deploy MatrixHub in minutes using Docker Compose or Helm. Open source and free for the community.
+              <Translate id="homepage.cta.subtitle">Deploy MatrixHub in minutes using Docker Compose or Helm. Open source and free for the community.</Translate>
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
                <a
                  href="/docs/intro"
                  className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-black hover:bg-slate-200 rounded-lg font-bold text-base sm:text-lg transition-all hover:text-black hover:no-underline hover:scale-105 transform"
                >
-                  Read the Docs
+                  <Translate id="homepage.cta.button">Read the Docs</Translate>
                </a>
                <div className="flex items-center bg-[#0d1117] border border-slate-700 rounded-lg p-1 pr-2 sm:pr-4 hover:border-slate-600 transition-colors">
                  <div className="px-3 sm:px-4 py-2 sm:py-3 text-slate-400 font-mono text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">
@@ -381,7 +405,7 @@ export default function Home(): React.ReactElement {
                   onClick={handleCopy}
                   className="ml-1 sm:ml-2 p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors relative border-none cursor-pointer bg-transparent flex-shrink-0"
                  >
-                   {copied ? <span className="text-green-500 font-bold text-xs">Copied!</span> : <span className="text-xs font-bold border border-slate-600 px-2 py-1 rounded hover:border-green-500 transition-colors">COPY</span>}
+                   {copied ? <span className="text-green-500 font-bold text-xs"><Translate id="homepage.cta.copied">Copied!</Translate></span> : <span className="text-xs font-bold border border-slate-600 px-2 py-1 rounded hover:border-green-500 transition-colors"><Translate id="homepage.cta.copy">COPY</Translate></span>}
                  </button>
                </div>
             </div>

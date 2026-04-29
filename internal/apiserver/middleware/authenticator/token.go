@@ -38,11 +38,12 @@ func NewTokenAuthenticator(tokenRepo user.IAccessTokenRepo) *TokenAuthenticator 
 
 func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
 	token := extractTokenCredential(ctx, r)
+	return a.AuthenticateToken(ctx, "", token)
+}
+
+func (a *TokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, error) {
 	if token == "" || !strings.HasPrefix(token, utils.TokenPrefix) {
 		return nil, nil
-	}
-	if r != nil {
-		ctx = r.Context()
 	}
 	ak, err := a.tokenRepo.GetByTokenHash(ctx, utils.Sha256Hex(token))
 	if err != nil {

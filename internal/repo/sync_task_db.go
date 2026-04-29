@@ -79,5 +79,28 @@ func (r *syncTaskDB) ListSyncTasksByPolicyID(ctx context.Context, policyID int, 
 	return tasks, total, nil
 }
 
+// SelectPendingTasks returns tasks with status = pending.
+func (r *syncTaskDB) SelectPendingTasks(ctx context.Context, limit int) ([]*syncpolicy.SyncTask, error) {
+	var rows []*syncpolicy.SyncTask
+	err := r.db.WithContext(ctx).
+		Where("status = ?", syncpolicy.SyncTaskStatusPending).
+		Order("created_at ASC").
+		Limit(limit).
+		Find(&rows).Error
+	return rows, err
+}
+
+// UpdateTaskStatusCAS atomically updates task status from fromStatus to toStatus.
+func (r *syncTaskDB) UpdateTaskStatusCAS(ctx context.Context, taskID int, fromStatus, toStatus syncpolicy.SyncTaskStatus) (bool, error) {
+	res := r.db.WithContext(ctx).Exec(
+		"UPDATE sync_tasks SET status = ? WHERE id = ? AND status = ?",
+		toStatus, taskID, fromStatus,
+	)
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected == 1, nil
+}
+
 // Ensure syncTaskDB implements ISyncTaskRepo
 var _ syncpolicy.ISyncTaskRepo = (*syncTaskDB)(nil)

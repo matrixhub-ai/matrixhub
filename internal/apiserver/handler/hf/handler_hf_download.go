@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"mime"
 	"net/http"
 	"os"
 	"strconv"
@@ -232,6 +233,9 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 			}()
 			ptr, err := lfs.DecodePointer(reader)
 			if err == nil && ptr != nil {
+				name := blob.Name()
+				w.Header().Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{"filename": name}))
+
 				// This is an LFS file, redirect to the LFS object
 				// Set HuggingFace-required headers before redirect
 				w.Header().Set("X-Repo-Commit", commitHash)
@@ -289,6 +293,9 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	name := blob.Name()
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{"filename": name}))
 
 	// Set HuggingFace-required headers
 	// X-Repo-Commit is required by huggingface_hub to identify the commit

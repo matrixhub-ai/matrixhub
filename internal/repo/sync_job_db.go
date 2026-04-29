@@ -83,5 +83,28 @@ func (r *syncJobDB) ListSyncJobsByTaskID(ctx context.Context, taskID int, page, 
 	return jobs, total, nil
 }
 
+// SelectPendingJobs returns jobs with status = pending.
+func (r *syncJobDB) SelectPendingJobs(ctx context.Context, limit int) ([]*syncjob.SyncJob, error) {
+	var rows []*syncjob.SyncJob
+	err := r.db.WithContext(ctx).
+		Where("status = ?", syncjob.SyncJobStatusPending).
+		Order("created_at ASC").
+		Limit(limit).
+		Find(&rows).Error
+	return rows, err
+}
+
+// UpdateJobStatusCAS atomically updates job status from fromStatus to toStatus.
+func (r *syncJobDB) UpdateJobStatusCAS(ctx context.Context, jobID int, fromStatus, toStatus syncjob.SyncJobStatus) (bool, error) {
+	res := r.db.WithContext(ctx).Exec(
+		"UPDATE sync_jobs SET status = ? WHERE id = ? AND status = ?",
+		toStatus, jobID, fromStatus,
+	)
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected == 1, nil
+}
+
 // Ensure syncJobDB implements ISyncJobRepo
 var _ syncjob.ISyncJobRepo = (*syncJobDB)(nil)

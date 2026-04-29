@@ -45,3 +45,17 @@ func (m *MultiAuthenticator) Authenticate(ctx context.Context, r *http.Request) 
 
 	return nil, nil, fmt.Errorf("failed to authenticate: %s", err)
 }
+
+func (m *MultiAuthenticator) AuthenticateToken(ctx context.Context, username, token string) (succeeded HTTPAuthenticator, identity auth.Identity, err error) {
+	for _, auth := range m.authenticators {
+		identity, err = auth.AuthenticateToken(ctx, username, token)
+		if err != nil {
+			return nil, nil, err
+		}
+		if identity != nil {
+			return auth, identity, nil
+		}
+	}
+
+	return nil, nil, fmt.Errorf("failed to authenticate: %s", err)
+}

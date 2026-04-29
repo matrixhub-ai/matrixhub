@@ -163,6 +163,15 @@ jobServer:
     pollInterval: 30s
     maxConcurrent: 5
     taskMaxDuration: 2h
+  syncTask:
+    pollInterval: 30s
+    maxConcurrent: 5
+    taskMaxDuration: 2h
+  syncJob:
+    pollInterval: 30s
+    maxConcurrent: 5
+    taskMaxDuration: 2h
+  logDir: ""
 
 # -- node configuration
 nodeSelector: {}

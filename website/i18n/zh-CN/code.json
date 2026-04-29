@@ -329,5 +329,122 @@
   "theme.tags.tagsPageTitle": {
     "message": "标签",
     "description": "The title of the tag list page"
+  },
+  "homepage.title": {
+    "message": "开源 AI 模型中心"
+  },
+  "homepage.description": {
+    "message": "专为 vLLM 和 SGLang 设计的世界级、可私有化部署的模型仓库。通过 RBAC 保护您的 AI 资产，通过代理缓存加速分发。"
+  },
+  "homepage.hero.comingSoon": {
+    "message": "即将推出"
+  },
+  "homepage.hero.title": {
+    "message": "开源 AI 模型 {br}{hub}"
+  },
+  "homepage.hero.subtitle": {
+    "message": "MatrixHub 是一个开源、支持私有化部署的 AI 模型注册中心，专为大规模企业级推理而设计。它可以作为 {hf} 的私有化平替，旨在加速 {vllm} 和 {sglang} 的工作负载。"
+  },
+  "homepage.hero.quickStart": {
+    "message": "快速开始"
+  },
+  "homepage.hero.github": {
+    "message": "在 GitHub 上查看"
+  },
+  "homepage.hero.downloadSpeed": {
+    "message": "下载速度"
+  },
+  "homepage.hero.intranet": {
+    "message": "内网"
+  },
+  "homepage.analogy.title": {
+    "message": "{matrixhub} 之于 {hf}，就像 {harbor} 之于 {docker}。"
+  },
+  "homepage.analogy.subtitle": {
+    "message": "停止在关键的 AI 任务中依赖公共互联网。掌控您的资产，加速您的流水线。"
+  },
+  "homepage.features.label": {
+    "message": "核心特性"
+  },
+  "homepage.features.title": {
+    "message": "专为大规模集群设计的基础设施"
+  },
+  "homepage.features.subtitle": {
+    "message": "专为管理海量模型权重的 SRE 和算法工程师量身定制。"
+  },
+  "homepage.features.1.title": {
+    "message": "透明的 HF 代理"
+  },
+  "homepage.features.1.desc": {
+    "message": "Hugging Face 的无缝平替。只需将 HF_ENDPOINT 指向 MatrixHub，即可保持所有训练和推理代码不变。"
+  },
+  "homepage.features.2.title": {
+    "message": "按需缓存"
+  },
+  "homepage.features.2.desc": {
+    "message": "一次拉取，永久缓存。自动将公共模型本地化，减少冗余流量，加速集群内的分发。"
+  },
+  "homepage.features.3.title": {
+    "message": "RBAC 与审计日志"
+  },
+  "homepage.features.3.desc": {
+    "message": "细粒度的权限控制、基于项目的隔离，以及每次上传和下载的全面审计跟踪。"
+  },
+  "homepage.features.4.title": {
+    "message": "存储无关"
+  },
+  "homepage.features.4.desc": {
+    "message": "兼容本地文件系统、NFS 和兼容 S3 的后端（如 MinIO、AWS）。可扩展至无限的模型存储容量。"
+  },
+  "homepage.usecases.title": {
+    "message": "主要使用场景"
+  },
+  "homepage.usecases.subtitle": {
+    "message": "企业如何在生产环境中使用 MatrixHub。"
+  },
+  "homepage.usecases.viewArch": {
+    "message": "查看架构"
+  },
+  "homepage.usecases.1.title": {
+    "message": "零等待分发"
+  },
+  "homepage.usecases.1.desc": {
+    "message": "通过“一次拉取，全量服务”的缓存消除带宽瓶颈。同时在 100 多个 GPU 节点上实现 10Gbps+ 的下载速度。"
+  },
+  "homepage.usecases.2.title": {
+    "message": "离线网络交付"
+  },
+  "homepage.usecases.2.desc": {
+    "message": "安全地将模型传输至隔离网络，提供完整性保护、恶意软件扫描和全面的审计日志。"
+  },
+  "homepage.usecases.3.title": {
+    "message": "私有模型仓库"
+  },
+  "homepage.usecases.3.desc": {
+    "message": "通过标签锁定和 CI/CD 集成集中管理微调后的权重。保证从开发到生产环境的一致性。"
+  },
+  "homepage.usecases.4.title": {
+    "message": "全局多区域同步"
+  },
+  "homepage.usecases.4.desc": {
+    "message": "自动在数据中心之间进行异步、可断点续传的复制，以实现高可用性和低延迟的本地访问。"
+  },
+  "homepage.techstack.label": {
+    "message": "无缝集成于"
+  },
+  "homepage.cta.title": {
+    "message": "准备好掌控您的 AI 模型了吗？"
+  },
+  "homepage.cta.subtitle": {
+    "message": "使用 Docker Compose 或 Helm 在几分钟内即可部署 MatrixHub。完全开源，对社区免费。"
+  },
+  "homepage.cta.button": {
+    "message": "阅读文档"
+  },
+  "homepage.cta.copied": {
+    "message": "已复制！"
+  },
+  "homepage.cta.copy": {
+    "message": "复制"
   }
 }

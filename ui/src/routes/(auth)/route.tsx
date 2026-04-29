@@ -33,8 +33,7 @@ import { useTranslation } from 'react-i18next'
 
 import LogoIcon from '@/assets/svgs/logo.svg?react'
 import { CurrentUserContext } from '@/context/current-user-context.tsx'
-import { ProjectRolesContext } from '@/context/project-role-context'
-import { currentUserQueryOptions, projectRolesQueryOptions } from '@/features/auth/auth.query'
+import { currentUserQueryOptions } from '@/features/auth/auth.query'
 import { queryClient } from '@/queryClient'
 import { Route as ModelsRoute } from '@/routes/(auth)/(app)/models'
 import { Route as CreateModelRoute } from '@/routes/(auth)/(app)/models/new'
@@ -55,14 +54,10 @@ export const Route = createFileRoute('/(auth)')({
   component: AuthLayout,
   loader: async () => {
     try {
-      const [user, projectRoles] = await Promise.all([
-        queryClient.ensureQueryData(currentUserQueryOptions()),
-        queryClient.ensureQueryData(projectRolesQueryOptions()),
-      ])
+      const user = await queryClient.ensureQueryData(currentUserQueryOptions())
 
       return {
         user,
-        projectRoles,
       }
     } catch {
       throw redirect({ to: '/login' })
@@ -288,59 +283,57 @@ function AuthLayout() {
   })
 
   const {
-    user, projectRoles,
+    user,
   } = Route.useLoaderData()
 
   return (
     <CurrentUserContext value={user}>
-      <ProjectRolesContext value={projectRoles}>
-        <AppShell
-          mode="static"
-          header={{ height: 60 }}
+      <AppShell
+        mode="static"
+        header={{ height: 60 }}
+      >
+        <AppShell.Header
+          withBorder={false}
+          style={{ background: '#F8F9FA' }}
         >
-          <AppShell.Header
-            withBorder={false}
-            style={{ background: '#F8F9FA' }}
+          <Flex
+            h="100%"
+            align="center"
+            justify="space-between"
+            px={24}
           >
-            <Flex
-              h="100%"
-              align="center"
-              justify="space-between"
-              px={24}
+            <Group
+              gap={135}
+              wrap="nowrap"
             >
-              <Group
-                gap={135}
-                wrap="nowrap"
-              >
-                <AppLogo />
+              <AppLogo />
 
-                <AppNavbar />
-              </Group>
+              <AppNavbar />
+            </Group>
 
-              <Group gap="md" wrap="nowrap">
-                <LanguageSwitcher />
+            <Group gap="md" wrap="nowrap">
+              <LanguageSwitcher />
 
-                <AccountMenu />
-              </Group>
-            </Flex>
-          </AppShell.Header>
+              <AccountMenu />
+            </Group>
+          </Flex>
+        </AppShell.Header>
 
-          <AppShell.Main
-            styles={{
-              main: {
-                height: 'calc(100vh - var(--app-shell-header-height))',
-              },
-            }}
+        <AppShell.Main
+          styles={{
+            main: {
+              height: 'calc(100vh - var(--app-shell-header-height))',
+            },
+          }}
+        >
+          <CatchBoundary
+            getResetKey={() => resetKey}
+            errorComponent={AuthErrorComponent}
           >
-            <CatchBoundary
-              getResetKey={() => resetKey}
-              errorComponent={AuthErrorComponent}
-            >
-              <Outlet />
-            </CatchBoundary>
-          </AppShell.Main>
-        </AppShell>
-      </ProjectRolesContext>
+            <Outlet />
+          </CatchBoundary>
+        </AppShell.Main>
+      </AppShell>
     </CurrentUserContext>
   )
 }

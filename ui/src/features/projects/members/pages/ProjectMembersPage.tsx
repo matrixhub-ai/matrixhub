@@ -6,8 +6,8 @@ import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useProjectRole } from '@/context/project-role-context'
 import { useCurrentUser } from '@/features/auth/auth.query'
+import { useProjectRole } from '@/features/auth/useProjectRole'
 
 import { AddMemberModal } from '../components/AddMemberModal'
 import { EditRoleModal } from '../components/EditRoleModal'

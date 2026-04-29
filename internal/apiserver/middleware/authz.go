@@ -16,74 +16,70 @@ package middleware
 
 import (
 	"context"
+	"strings"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/matrixhub-ai/hfd/pkg/authenticate"
+	"github.com/matrixhub-ai/hfd/pkg/permission"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
-// methodPermissions maps GRPC methods to required permissions
-var methodPermissions = map[string]role.Permission{
-	// User management
-	"/matrixhub.v1alpha1.Users/GetUser":           role.UserGet,
-	"/matrixhub.v1alpha1.Users/CreateUser":        role.UserCreate,
-	"/matrixhub.v1alpha1.Users/SetUserSysAdmin":   role.UserAuthorize,
-	"/matrixhub.v1alpha1.Users/DeleteUser":        role.UserDelete,
-	"/matrixhub.v1alpha1.Users/ResetUserPassword": role.UserResetPassword,
+const (
+	resourceDataset = "datasets"
+	resourceModel   = "models"
+)
 
-	// Registry management
-	"/matrixhub.v1alpha1.Registries/ListRegistries": role.RegistryGet,
-	"/matrixhub.v1alpha1.Registries/GetRegistry":    role.RegistryGet,
-	"/matrixhub.v1alpha1.Registries/PingRegistry":   role.RegistryGet,
-	"/matrixhub.v1alpha1.Registries/CreateRegistry": role.RegistryCreate,
-	"/matrixhub.v1alpha1.Registries/UpdateRegistry": role.RegistryUpdate,
-	"/matrixhub.v1alpha1.Registries/DeleteRegistry": role.RegistryDelete,
+var (
+	resourcePermissions = map[string]map[bool]role.Permission{
+		resourceDataset: {
+			true:  role.DatasetPull,
+			false: role.DatasetPush,
+		},
+		resourceModel: {
+			true:  role.ModelPull,
+			false: role.ModelPush,
+		},
+	}
+)
 
-	// Sync policy management
-	"/matrixhub.v1alpha1.SyncPolicy/ListSyncPolicies": role.SyncGet,
-	"/matrixhub.v1alpha1.SyncPolicy/GetSyncPolicy":    role.SyncGet,
-	"/matrixhub.v1alpha1.SyncPolicy/ListSyncTasks":    role.SyncGet,
-	"/matrixhub.v1alpha1.SyncPolicy/CreateSyncPolicy": role.SyncCreate,
-	"/matrixhub.v1alpha1.SyncPolicy/CreateSyncTask":   role.SyncCreate,
-	"/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicy": role.SyncUpdate,
-	"/matrixhub.v1alpha1.SyncPolicy/StopSyncTask":     role.SyncUpdate,
-	"/matrixhub.v1alpha1.SyncPolicy/DeleteSyncPolicy": role.SyncDelete,
-
-	// Robot management
-	"/matrixhub.v1alpha1.Robots/CreateRobotAccount":       role.RobotCreate,
-	"/matrixhub.v1alpha1.Robots/ListRobotAccounts":        role.RobotGet,
-	"/matrixhub.v1alpha1.Robots/GetRobotAccount":          role.RobotGet,
-	"/matrixhub.v1alpha1.Robots/DeleteRobotAccount":       role.RobotDelete,
-	"/matrixhub.v1alpha1.Robots/UpdateRobotAccount":       role.RobotUpdate,
-	"/matrixhub.v1alpha1.Robots/RefreshRobotAccountToken": role.RobotUpdate,
-}
-
-// AuthzInterceptor returns a GRPC interceptor that checks platform-level permissions
-func AuthzInterceptor(verifyFunc func(ctx context.Context, perm role.Permission) (bool, error)) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// Get required permission for the method
-		requiredPerm, ok := methodPermissions[info.FullMethod]
-		if !ok {
-			// No permission configured, allow by default
-			return handler(ctx, req)
+func NewRepoEnforcer(authzSvc authz.IAuthzService) func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (bool, error) {
+	return func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (passed bool, err error) {
+		userinfo, ok := authenticate.GetUserInfo(ctx)
+		if ok && userinfo.User != authenticate.Anonymous {
+			identity, err := authcodec.Unmarshal(userinfo.User)
+			if err != nil {
+				return false, err
+			}
+			ctx = auth.WithIdentity(ctx, identity)
 		}
 
-		if _, ok = auth.IdentityFromContext(ctx); !ok {
-			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
+		resourceType := resourceModel
+		if strings.HasPrefix(repoName, resourceDataset) {
+			resourceType = resourceDataset
+			repoName = strings.TrimPrefix(repoName, resourceDataset+"/")
+		}
+		infos := strings.SplitN(repoName, "/", 2)
+		if len(infos) != 2 {
+			return
 		}
 
-		// Verify permission
-		allowed, err := verifyFunc(ctx, requiredPerm)
+		project := infos[0]
+		if project == "" {
+			return
+		}
+		ps := resourcePermissions[resourceType][op.IsRead()]
+		if ps == "" {
+			return
+		}
+		passed, err = authzSvc.VerifyProjectPermissionByName(ctx, project, ps)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-		if !allowed {
-			return nil, status.Error(codes.PermissionDenied, "permission denied")
+			log.Errorf("Failed to verify project permission: %s", err)
 		}
 
-		return handler(ctx, req)
+		return passed, nil
 	}
 }

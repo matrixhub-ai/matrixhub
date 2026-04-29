@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/matrixhub-ai/hfd/pkg/repository"
+
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
@@ -33,6 +35,10 @@ type IModelService interface {
 	GetModel(ctx context.Context, project, name string) (*Model, error)
 	ListModels(ctx context.Context, filter *Filter) ([]*Model, int64, error)
 	DeleteModel(ctx context.Context, project, name string) error
+
+	// EnsureModel ensures that a model exists in the database for the
+	// given namespace and name.
+	EnsureModel(ctx context.Context, project, name string) (*Model, error)
 
 	// Label operations
 	ListModelTaskLabels(ctx context.Context) ([]*Label, error)
@@ -370,7 +376,7 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 	if !prj.HasProxy() {
 		_, err := s.modelRepo.GetByProjectAndName(ctx, project, name)
 		if err != nil {
-			return err
+			return repository.ErrRepositoryNotExists
 		} else {
 			return nil
 		}
@@ -409,4 +415,13 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 	}
 
 	return nil
+}
+
+func (s *ModelService) EnsureModel(ctx context.Context, project, name string) (*Model, error) {
+	model, err := s.modelRepo.GetByProjectAndName(ctx, project, name)
+	if err == nil {
+		return model, nil
+	}
+
+	return s.CreateModel(ctx, project, name)
 }

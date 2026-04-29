@@ -14,7 +14,7 @@ import {
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useProjectRole } from '@/context/project-role-context.tsx'
+import { useProjectRole } from '@/features/auth/useProjectRole'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
 

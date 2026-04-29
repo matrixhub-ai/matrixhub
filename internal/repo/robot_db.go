@@ -74,6 +74,15 @@ func (r *robotRepo) ListSystemRobots(ctx context.Context, page, pageSize int, se
 	return
 }
 
+func (r *robotRepo) GetRobotByTokenHash(ctx context.Context, tokenHash string) (*robot.Robot, error) {
+	var rb robot.Robot
+	err := r.db.WithContext(ctx).Where("token_hash = ?", tokenHash).First(&rb).Error
+	if err != nil {
+		return nil, err
+	}
+	return &rb, nil
+}
+
 func NewRobotRepo(db *gorm.DB) robot.IRobotRepo {
 	return &robotRepo{db: db}
 }

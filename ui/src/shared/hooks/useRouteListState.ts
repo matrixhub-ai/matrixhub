@@ -3,11 +3,25 @@ import {
   useState,
 } from 'react'
 
-import type { MRT_RowSelectionState } from 'mantine-react-table'
+import { DEFAULT_PAGE } from '@/utils/constants'
+
+import type {
+  MRT_ColumnFiltersState,
+  MRT_RowSelectionState,
+  MRT_TableOptions,
+  MRT_Updater,
+} from 'mantine-react-table'
 
 interface RouteListSearchState {
   page?: number
   query?: string
+}
+
+interface RouteColumnFilterSyncConfig<TSearch extends RouteListSearchState> {
+  columnId: string
+  searchKey: keyof TSearch
+  toColumnFilterValue?: (value: TSearch[keyof TSearch]) => unknown
+  toSearchValue?: (value: unknown) => TSearch[keyof TSearch]
 }
 
 interface UseRouteListStateOptions<TSearch extends RouteListSearchState, TRecord> {
@@ -21,9 +35,8 @@ interface UseRouteListStateOptions<TSearch extends RouteListSearchState, TRecord
   refresh?: () => unknown
   defaultPage?: number
   normalizeQuery?: (value: string) => string | undefined
+  columnFilterSync?: RouteColumnFilterSyncConfig<TSearch>[]
 }
-
-const DEFAULT_PAGE = 1
 
 function defaultNormalizeQuery(value: string) {
   const nextQuery = value.trim()
@@ -39,6 +52,7 @@ export function useRouteListState<TSearch extends RouteListSearchState, TRecord>
   refresh,
   defaultPage = DEFAULT_PAGE,
   normalizeQuery = defaultNormalizeQuery,
+  columnFilterSync,
 }: UseRouteListStateOptions<TSearch, TRecord>) {
   const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({})
 
@@ -61,6 +75,19 @@ export function useRouteListState<TSearch extends RouteListSearchState, TRecord>
 
   const selectedCount = selectedRowIds.length
   const currentQuery = normalizeQuery(search.query ?? '')
+  const columnFilters: MRT_ColumnFiltersState = (columnFilterSync ?? []).flatMap((filter) => {
+    const rawValue = search[filter.searchKey]
+    const value = filter.toColumnFilterValue
+      ? filter.toColumnFilterValue(rawValue)
+      : rawValue
+
+    return value == null || value === ''
+      ? []
+      : [{
+          id: filter.columnId,
+          value,
+        }]
+  })
 
   const onSearchChange = (value: string) => {
     const nextQuery = normalizeQuery(value)
@@ -101,6 +128,61 @@ export function useRouteListState<TSearch extends RouteListSearchState, TRecord>
     })
   }
 
+  const onColumnFiltersChange = (updater: MRT_Updater<MRT_ColumnFiltersState>) => {
+    if (!columnFilterSync?.length) {
+      return
+    }
+
+    const nextColumnFilters = typeof updater === 'function'
+      ? updater(columnFilters)
+      : updater
+
+    const nextSearchPatch = {} as Partial<TSearch>
+    let hasChanges = false
+
+    for (const filter of columnFilterSync) {
+      const rawValue = nextColumnFilters.find(
+        columnFilter => columnFilter.id === filter.columnId,
+      )?.value
+      const nextValue = filter.toSearchValue
+        ? filter.toSearchValue(rawValue)
+        : rawValue as TSearch[keyof TSearch]
+
+      if (nextValue !== search[filter.searchKey]) {
+        hasChanges = true
+      }
+
+      nextSearchPatch[filter.searchKey] = nextValue
+    }
+
+    if (!hasChanges) {
+      return
+    }
+
+    clearRowSelection()
+    startTransition(() => {
+      void navigate({
+        replace: true,
+        search: prev => ({
+          ...prev,
+          page: defaultPage,
+          ...nextSearchPatch,
+        }),
+      })
+    })
+  }
+
+  const routeColumnFilterTableOptions: Pick<
+    MRT_TableOptions<object>,
+    'manualFiltering' | 'onColumnFiltersChange' | 'state'
+  > | undefined = columnFilterSync?.length
+    ? {
+        manualFiltering: true,
+        onColumnFiltersChange,
+        state: { columnFilters },
+      }
+    : undefined
+
   return {
     rowSelection,
     setRowSelection,
@@ -111,5 +193,6 @@ export function useRouteListState<TSearch extends RouteListSearchState, TRecord>
     onSearchChange,
     onRefresh,
     onPageChange,
+    routeColumnFilterTableOptions,
   }
 }

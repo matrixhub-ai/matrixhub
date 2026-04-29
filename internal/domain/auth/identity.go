@@ -17,4 +17,5 @@ package auth
 type Identity interface {
 	GetID() int
 	GetName() string
+	TypeName() string
 }

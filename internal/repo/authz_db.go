@@ -84,10 +84,10 @@ func (r *AuthzDBRepo) GetRobotProjectPermissions(ctx context.Context, robotID in
 	}
 	err := r.db.WithContext(ctx).
 		Table("robots").
-		Select("robots.project_permissions").
+		Select("robots.id", "robots.project_permissions as permissions").
 		Joins("INNER JOIN robots_projects rp ON robots.id = robot_id").
 		Where("rp.project_id = ? AND rp.robot_id = ?", projectID, robotID).
-		First(&result).Error
+		Take(&result).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

@@ -30,7 +30,7 @@ func ParseFingerprint(credential string) (string, error) {
 
 	if strings.HasPrefix(credential, "SHA256:") {
 		b64 := strings.TrimPrefix(credential, "SHA256:")
-		if _, err := base64.StdEncoding.DecodeString(b64); err != nil {
+		if _, err := base64.RawStdEncoding.DecodeString(b64); err != nil {
 			return "", errors.New("invalid fingerprint encoding")
 		}
 		return credential, nil
@@ -41,5 +41,5 @@ func ParseFingerprint(credential string) (string, error) {
 		return "", errors.New("invalid ssh public key format")
 	}
 	h := sha256.Sum256(pub.Marshal())
-	return "SHA256:" + base64.StdEncoding.EncodeToString(h[:]), nil
+	return "SHA256:" + base64.RawStdEncoding.EncodeToString(h[:]), nil
 }

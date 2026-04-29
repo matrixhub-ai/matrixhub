@@ -15,8 +15,11 @@
 package syncpolicy
 
 import (
+	"context"
 	"testing"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 )
 
@@ -209,7 +212,7 @@ func TestSyncJobGenerator_Generate(t *testing.T) {
 		},
 	}
 
-	g := NewSyncJobGenerator()
+	g := NewSyncJobGenerator(nil, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			task, jobs, err := g.Generate(t.Context(), tt.policy)
@@ -232,4 +235,132 @@ func TestSyncJobGenerator_Generate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSyncJobGenerator_Generate_Wildcard(t *testing.T) {
+	mockRepo := &mockRegistryRepo{
+		registry: &registry.Registry{
+			ID:   1,
+			Type: "REGISTRY_TYPE_HUGGINGFACE",
+		},
+	}
+	mockDisc := &mockDiscovery{
+		repos: []registrydiscovery.RemoteRepository{
+			{Namespace: "google", Name: "bert-base", ResourceType: "model"},
+			{Namespace: "google", Name: "t5-base", ResourceType: "model"},
+		},
+	}
+	discoveries := map[string]registrydiscovery.Discovery{
+		registrydiscovery.ProviderHuggingFace: mockDisc,
+	}
+	g := NewSyncJobGenerator(mockRepo, discoveries)
+
+	policy := &SyncPolicy{
+		ID:                 1,
+		PolicyType:         SyncPolicyTypePull,
+		TriggerType:        TriggerTypeManual,
+		RegistryID:         1,
+		RemoteProjectName:  "google",
+		RemoteResourceName: "**",
+		LocalProjectName:   "myproject",
+		ResourceTypes:      "model",
+	}
+
+	task, jobs, err := g.Generate(t.Context(), policy)
+	if err != nil {
+		t.Fatalf("Generate() error = %v", err)
+	}
+	if task.TotalItems != 2 {
+		t.Errorf("task.TotalItems = %d, want 2", task.TotalItems)
+	}
+	if len(jobs) != 2 {
+		t.Fatalf("got %d jobs, want 2", len(jobs))
+	}
+
+	if jobs[0].RemoteResourceName != "bert-base" {
+		t.Errorf("jobs[0].RemoteResourceName = %s, want bert-base", jobs[0].RemoteResourceName)
+	}
+	if jobs[0].ResourceName != "bert-base" {
+		t.Errorf("jobs[0].ResourceName = %s, want bert-base", jobs[0].ResourceName)
+	}
+	if jobs[0].SyncType != "pull" {
+		t.Errorf("jobs[0].SyncType = %s, want pull", jobs[0].SyncType)
+	}
+	if jobs[1].RemoteResourceName != "t5-base" {
+		t.Errorf("jobs[1].RemoteResourceName = %s, want t5-base", jobs[1].RemoteResourceName)
+	}
+}
+
+func TestSyncJobGenerator_Generate_PushBaseWildcard(t *testing.T) {
+	// push base with wildcard should still use static matching
+	g := NewSyncJobGenerator(nil, nil)
+	policy := &SyncPolicy{
+		ID:                 2,
+		PolicyType:         SyncPolicyTypePush,
+		TriggerType:        TriggerTypeManual,
+		RegistryID:         1,
+		RemoteProjectName:  "google",
+		RemoteResourceName: "**",
+		LocalProjectName:   "myproject",
+		LocalResourceName:  "myresource",
+		ResourceTypes:      "model",
+	}
+
+	task, jobs, err := g.Generate(t.Context(), policy)
+	if err != nil {
+		t.Fatalf("Generate() error = %v", err)
+	}
+	if len(jobs) != 1 {
+		t.Fatalf("got %d jobs, want 1", len(jobs))
+	}
+	if jobs[0].RemoteResourceName != "**" {
+		t.Errorf("jobs[0].RemoteResourceName = %s, want **", jobs[0].RemoteResourceName)
+	}
+	if jobs[0].SyncType != "push" {
+		t.Errorf("jobs[0].SyncType = %s, want push", jobs[0].SyncType)
+	}
+	if task.TotalItems != 1 {
+		t.Errorf("task.TotalItems = %d, want 1", task.TotalItems)
+	}
+}
+
+// mocks
+
+type mockRegistryRepo struct {
+	registry *registry.Registry
+	err      error
+}
+
+func (m *mockRegistryRepo) ListRegistries(ctx context.Context, page, pageSize int, search string) ([]*registry.Registry, int64, error) {
+	return nil, 0, nil
+}
+func (m *mockRegistryRepo) GetRegistry(ctx context.Context, id int) (*registry.Registry, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.registry, nil
+}
+func (m *mockRegistryRepo) CreateRegistry(ctx context.Context, r registry.Registry) (*registry.Registry, error) {
+	return nil, nil
+}
+func (m *mockRegistryRepo) UpdateRegistry(ctx context.Context, r registry.Registry) error {
+	return nil
+}
+func (m *mockRegistryRepo) DeleteRegistry(ctx context.Context, id int) error {
+	return nil
+}
+func (m *mockRegistryRepo) PingRegistry(ctx context.Context, r registry.Registry) (int, string, error) {
+	return 0, "", nil
+}
+
+type mockDiscovery struct {
+	repos []registrydiscovery.RemoteRepository
+	err   error
+}
+
+func (m *mockDiscovery) ListRepositories(ctx context.Context, reg *registry.Registry, filter registrydiscovery.Filter) ([]registrydiscovery.RemoteRepository, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.repos, nil
 }

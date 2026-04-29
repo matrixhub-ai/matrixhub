@@ -29,6 +29,10 @@ type SSHKey struct {
 	CreatedAt   time.Time
 }
 
+func (s SSHKey) IsExpired(t time.Time) bool {
+	return s.ExpireAt != nil && s.ExpireAt.Before(t)
+}
+
 func (SSHKey) TableName() string {
 	return "ssh_keys"
 }

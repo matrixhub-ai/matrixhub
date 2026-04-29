@@ -94,5 +94,42 @@
   },
   "errors": {
     "missingSyncPolicyId": "Sync policy ID is required"
+  },
+  "executions": {
+    "breadcrumb": "Sync Rule: {{name}}",
+    "searchPlaceholder": "Search by task ID",
+    "filters": {
+      "status": "Status"
+    },
+    "table": {
+      "taskId": "Task",
+      "status": "Status",
+      "triggerType": "Trigger Mode",
+      "startedAt": "Created At",
+      "duration": "Duration",
+      "successRate": "Success Rate",
+      "totalItems": "Total",
+      "actions": "Actions",
+      "empty": "No sync tasks found"
+    },
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "unknown": "Unknown"
+    },
+    "actions": {
+      "stop": "Stop Task"
+    },
+    "notifications": {
+      "stopSuccess": "Sync task stopped successfully",
+      "stopError": "Failed to stop sync task"
+    },
+    "errors": {
+      "invalidSyncPolicyId": "Invalid sync policy ID",
+      "missingSyncTaskId": "Sync task ID is required",
+      "syncPolicyNotFound": "Sync rule not found"
+    }
   }
 }

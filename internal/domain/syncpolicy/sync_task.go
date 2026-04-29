@@ -82,4 +82,7 @@ type ISyncTaskRepo interface {
 	UpdateSyncTask(ctx context.Context, task *SyncTask) error
 	DeleteSyncTask(ctx context.Context, id int) error
 	ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status SyncTaskStatus) ([]*SyncTask, int64, error)
+
+	SelectPendingTasks(ctx context.Context, limit int) ([]*SyncTask, error)
+	UpdateTaskStatusCAS(ctx context.Context, taskID int, fromStatus, toStatus SyncTaskStatus) (bool, error)
 }

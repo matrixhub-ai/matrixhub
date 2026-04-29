@@ -94,5 +94,42 @@
   },
   "errors": {
     "missingSyncPolicyId": "同步策略ID不能为空"
+  },
+  "executions": {
+    "breadcrumb": "同步规则：{{name}}",
+    "searchPlaceholder": "输入任务 ID 搜索",
+    "filters": {
+      "status": "状态"
+    },
+    "table": {
+      "taskId": "任务",
+      "status": "状态",
+      "triggerType": "触发模式",
+      "startedAt": "创建时间",
+      "duration": "持续时间",
+      "successRate": "成功百分比",
+      "totalItems": "总数",
+      "actions": "操作",
+      "empty": "暂无同步任务数据"
+    },
+    "status": {
+      "running": "进行中",
+      "stopped": "已停止",
+      "succeeded": "成功",
+      "failed": "失败",
+      "unknown": "未知"
+    },
+    "actions": {
+      "stop": "停止任务"
+    },
+    "notifications": {
+      "stopSuccess": "同步任务已停止",
+      "stopError": "停止同步任务失败"
+    },
+    "errors": {
+      "invalidSyncPolicyId": "无效的同步策略 ID",
+      "missingSyncTaskId": "同步任务 ID 不能为空",
+      "syncPolicyNotFound": "同步规则不存在"
+    }
   }
 }

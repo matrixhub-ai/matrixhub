@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
@@ -34,25 +35,34 @@ type ISyncPolicyService interface {
 	UpdateSyncTask(ctx context.Context, param *SyncTask) error
 	ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status SyncTaskStatus) ([]*SyncTask, int64, error)
 	CreateSyncTaskAndSyncJobs(ctx context.Context, policy *SyncPolicy) error
-	CreateExcecuteSyncTaskAndSyncJobs(ctx context.Context, policy *SyncPolicy) (*SyncTask, error)
+	CreateSyncTaskAsync(ctx context.Context, policy *SyncPolicy) (*SyncTask, error)
 
 	ClaimDueSyncPolicies(ctx context.Context, nowMs int64) ([]job.DueJob, error)
 	// CreatePendingSyncTask inserts a sync_tasks row only; sync_task_processor runs git work later.
 	CreatePendingSyncTask(ctx context.Context, policyID int, triggerType int) error
+
+	// ClaimPendingSyncTasks selects pending tasks and CAS-claims them for execution.
+	ClaimPendingSyncTasks(ctx context.Context, nowMs int64) ([]job.DueJob, error)
+	// ExecuteSyncTask generates jobs from a claimed task and creates pending sync_jobs.
+	ExecuteSyncTask(ctx context.Context, taskID int) error
+
+	ReportTaskStatus(ctx context.Context, taskID int) error
 }
 
 type SyncPolicyService struct {
 	syncPolicyRepo ISyncPolicyRepo
 	syncTaskRepo   ISyncTaskRepo
 	syncJobService syncjob.ISyncJobService
+	projectRepo    project.IProjectRepo
 	jobGenerator   SyncJobGenerator
 }
 
-func NewSyncPolicyService(sprepo ISyncPolicyRepo, strepo ISyncTaskRepo, sjservice syncjob.ISyncJobService, jobGenerator SyncJobGenerator) ISyncPolicyService {
+func NewSyncPolicyService(sprepo ISyncPolicyRepo, strepo ISyncTaskRepo, sjservice syncjob.ISyncJobService, prepo project.IProjectRepo, jobGenerator SyncJobGenerator) ISyncPolicyService {
 	return &SyncPolicyService{
 		syncPolicyRepo: sprepo,
 		syncTaskRepo:   strepo,
 		syncJobService: sjservice,
+		projectRepo:    prepo,
 		jobGenerator:   jobGenerator,
 	}
 }
@@ -140,6 +150,7 @@ func (sps *SyncPolicyService) ClaimDueSyncPolicies(ctx context.Context, nowMs in
 			continue
 		}
 		out = append(out, job.DueJob{
+			ID:          p.ID,
 			PolicyID:    p.ID,
 			TriggerType: int(p.TriggerType),
 			FireAtMs:    nowMs,
@@ -167,46 +178,139 @@ func (sps *SyncPolicyService) CreatePendingSyncTask(ctx context.Context, policyI
 	return err
 }
 
-// CreateExcecuteSyncTaskAndSyncJobs creates a sync task synchronously,
-// then generates and executes sync jobs asynchronously in a background goroutine.
-func (sps *SyncPolicyService) CreateExcecuteSyncTaskAndSyncJobs(ctx context.Context, policy *SyncPolicy) (*SyncTask, error) {
+// CreateSyncTaskAsync creates a pending sync task for async processing by syncTaskProcessor.
+func (sps *SyncPolicyService) CreateSyncTaskAsync(ctx context.Context, policy *SyncPolicy) (*SyncTask, error) {
 	task := &SyncTask{
 		SyncPolicyID: policy.ID,
 		TriggerType:  policy.TriggerType,
-		Status:       SyncTaskStatusRunning,
+		Status:       SyncTaskStatusPending,
 	}
-	task, err := sps.syncTaskRepo.CreateSyncTask(ctx, task)
+	return sps.syncTaskRepo.CreateSyncTask(ctx, task)
+}
+
+// ClaimPendingSyncTasks selects pending tasks and CAS-claims them for execution.
+func (sps *SyncPolicyService) ClaimPendingSyncTasks(ctx context.Context, _ int64) ([]job.DueJob, error) {
+	candidates, err := sps.syncTaskRepo.SelectPendingTasks(ctx, claimBatchLimit)
 	if err != nil {
 		return nil, err
 	}
-
-	go func() {
-		bgCtx := context.Background()
-		if err := sps.executeSyncJobs(bgCtx, policy, task); err != nil {
-			log.Errorw("failed to execute sync jobs", "error", err, "task_id", task.ID)
+	var out []job.DueJob
+	for _, t := range candidates {
+		claimed, err := sps.syncTaskRepo.UpdateTaskStatusCAS(ctx, t.ID, SyncTaskStatusPending, SyncTaskStatusRunning)
+		if err != nil {
+			return nil, err
 		}
-	}()
-
-	return task, nil
+		if !claimed {
+			continue
+		}
+		out = append(out, job.DueJob{
+			ID:          t.ID,
+			PolicyID:    t.SyncPolicyID,
+			TriggerType: int(t.TriggerType),
+			FireAtMs:    time.Now().UnixMilli(),
+		})
+	}
+	return out, nil
 }
 
-// executeSyncJobs generates jobs from the policy, updates task metadata,
-// then creates and executes each job.
-func (sps *SyncPolicyService) executeSyncJobs(ctx context.Context, policy *SyncPolicy, task *SyncTask) error {
-	genTask, jobs, err := sps.jobGenerator.Generate(ctx, policy)
+// ExecuteSyncTask generates sync jobs from a claimed task and creates pending sync_jobs.
+func (sps *SyncPolicyService) ExecuteSyncTask(ctx context.Context, taskID int) error {
+	task, err := sps.syncTaskRepo.GetSyncTask(ctx, taskID)
 	if err != nil {
 		return err
 	}
+	policy, err := sps.syncPolicyRepo.GetSyncPolicy(ctx, task.SyncPolicyID)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the target project exists before generating jobs so that concurrent
+	// job execution does not race on project creation.
+	if policy.LocalProjectName != "" {
+		if _, err := sps.projectRepo.GetProjectByName(ctx, policy.LocalProjectName); err != nil {
+			if _, createErr := sps.projectRepo.CreateProject(ctx, &project.Project{
+				Name: policy.LocalProjectName,
+				Type: project.ProjectTypePublic,
+			}); createErr != nil {
+				log.Errorw("pre-create project failed", "project", policy.LocalProjectName, "error", createErr)
+			}
+		}
+	}
+
+	_, jobs, err := sps.jobGenerator.Generate(ctx, policy)
+	if err != nil {
+		task.Status = SyncTaskStatusFailed
+		task.CompletedTimestamp = time.Now().Unix()
+		if updateErr := sps.syncTaskRepo.UpdateSyncTask(ctx, task); updateErr != nil {
+			log.Errorw("failed to mark task as failed after generate error", "taskID", taskID, "error", updateErr)
+		}
+		return err
+	}
+
+	task.StartedTimestamp = time.Now().Unix()
 	task.TotalItems = len(jobs)
-	task.StartedTimestamp = genTask.StartedTimestamp
 	if err := sps.syncTaskRepo.UpdateSyncTask(ctx, task); err != nil {
 		return err
 	}
-	for _, job := range jobs {
-		job.SyncTaskID = task.ID
-		if err := sps.syncJobService.CreateAndExcecuteSyncJob(ctx, job); err != nil {
-			log.Infow("CreateAndExcecuteSyncJob failed", "error", err)
+
+	for _, j := range jobs {
+		j.SyncTaskID = task.ID
+		j.Status = syncjob.SyncJobStatusPending
+		if err := sps.syncJobService.CreateSyncJob(ctx, j); err != nil {
+			log.Errorw("create sync job failed", "error", err, "taskID", task.ID)
 		}
 	}
 	return nil
+}
+
+// ReportTaskStatus aggregates job statuses for a task and updates the task record.
+func (sps *SyncPolicyService) ReportTaskStatus(ctx context.Context, taskID int) error {
+	jobs, _, err := sps.syncJobService.ListSyncJobsByTaskID(ctx, taskID, 1, 10000, syncjob.SyncJobStatusUnspecified, "")
+	if err != nil {
+		return err
+	}
+
+	var total, succeeded, failed, stopped, running, pending int
+	for _, j := range jobs {
+		total++
+		switch j.Status {
+		case syncjob.SyncJobStatusSucceeded:
+			succeeded++
+		case syncjob.SyncJobStatusFailed:
+			failed++
+		case syncjob.SyncJobStatusStopped:
+			stopped++
+		case syncjob.SyncJobStatusRunning:
+			running++
+		case syncjob.SyncJobStatusPending:
+			pending++
+		}
+	}
+
+	task, err := sps.syncTaskRepo.GetSyncTask(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	task.TotalItems = total
+	task.SuccessfulItems = succeeded
+	task.FailedItems = failed
+	task.StoppedItems = stopped
+	if total > 0 {
+		task.CompletePercents = (succeeded + failed + stopped) * 100 / total
+	}
+
+	if running == 0 && pending == 0 {
+		task.CompletedTimestamp = time.Now().Unix()
+		switch {
+		case failed > 0:
+			task.Status = SyncTaskStatusFailed
+		case stopped > 0 && succeeded == 0:
+			task.Status = SyncTaskStatusStopped
+		default:
+			task.Status = SyncTaskStatusSucceeded
+		}
+	}
+
+	return sps.syncTaskRepo.UpdateSyncTask(ctx, task)
 }

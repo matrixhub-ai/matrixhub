@@ -14,9 +14,10 @@
 
 package job
 
-// DueJob is one policy execution unit after a successful claim (CAS advance).
+// DueJob is one execution unit after a successful claim (CAS advance).
 type DueJob struct {
-	PolicyID    int
+	ID          int // primary object ID (policy / task / job)
+	PolicyID    int // optional parent policy ID
 	TriggerType int
 	FireAtMs    int64
 }

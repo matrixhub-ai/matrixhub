@@ -30,6 +30,15 @@ data:
         pollInterval: {{ .Values.jobServer.syncPolicy.pollInterval | default "30s" }}
         maxConcurrent: {{ .Values.jobServer.syncPolicy.maxConcurrent | default 5 }}
         taskMaxDuration: {{ .Values.jobServer.syncPolicy.taskMaxDuration | default "2h" }}
+      syncTask:
+        pollInterval: {{ .Values.jobServer.syncTask.pollInterval | default "5s" }}
+        maxConcurrent: {{ .Values.jobServer.syncTask.maxConcurrent | default 5 }}
+        taskMaxDuration: {{ .Values.jobServer.syncTask.taskMaxDuration | default "2h" }}
+      syncJob:
+        pollInterval: {{ .Values.jobServer.syncJob.pollInterval | default "3s" }}
+        maxConcurrent: {{ .Values.jobServer.syncJob.maxConcurrent | default 5 }}
+        taskMaxDuration: {{ .Values.jobServer.syncJob.taskMaxDuration | default "2h" }}
+      logDir: {{ .Values.jobServer.logDir | default "" }}
     {{- end }}
     ui:
       staticDir: /app

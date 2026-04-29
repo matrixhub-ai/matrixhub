@@ -25,8 +25,10 @@ import (
 	"gorm.io/gorm"
 
 	projectv1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -55,6 +57,9 @@ func (h *ProjectHandler) RegisterToServer(opt *ServerOptions) {
 func (h *ProjectHandler) CreateProject(ctx context.Context, req *projectv1alpha1.CreateProjectRequest) (*projectv1alpha1.CreateProjectResponse, error) {
 	if err := req.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	if !hasAtLeastTwoDistinctChars(req.GetName()) {
+		return nil, status.Error(codes.InvalidArgument, "project name must contain at least 2 distinct characters")
 	}
 
 	existingProject, err := h.projectRepo.GetProjectByName(ctx, req.GetName())
@@ -112,13 +117,36 @@ func (h *ProjectHandler) ListProjects(ctx context.Context, req *projectv1alpha1.
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	identity, ok := auth.IdentityFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
+	}
+
+	switch identity.(type) {
+	case *user.Identity:
+		return h.listProjectsForUser(ctx, req)
+	case *robot.Identity:
+		// TODO(robot): implement project listing for robot accounts
+		return nil, status.Error(codes.Unimplemented, "list projects for robot is not implemented yet")
+	default:
+		return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
+	}
+}
+
+func (h *ProjectHandler) listProjectsForUser(ctx context.Context, req *projectv1alpha1.ListProjectsRequest) (*projectv1alpha1.ListProjectsResponse, error) {
 	page := utils.NewPage(req.Page, req.PageSize)
+
+	hasPlatformProjectGet, err := h.authzService.VerifyPlatformPermission(ctx, role.ProjectGet)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
 	projects, total, err := h.projectRepo.ListProjects(
 		ctx,
 		req.GetName(),
 		convertProtoTypeToDomain(req.GetType()),
 		req.GetManagedOnly(),
+		hasPlatformProjectGet,
 		int(page.Page),
 		int(page.PageSize),
 	)
@@ -389,4 +417,17 @@ func convertDomainRoleToProto(r role.RoleType) projectv1alpha1.ProjectRoleType {
 	default:
 		return projectv1alpha1.ProjectRoleType_ROLE_TYPE_PROJECT_VIEWER
 	}
+}
+
+func hasAtLeastTwoDistinctChars(s string) bool {
+	if len(s) < 2 {
+		return false
+	}
+	first := s[0]
+	for i := 1; i < len(s); i++ {
+		if s[i] != first {
+			return true
+		}
+	}
+	return false
 }
