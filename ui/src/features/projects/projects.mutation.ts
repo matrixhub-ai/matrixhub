@@ -3,6 +3,7 @@ import {
 } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { mutationOptions } from '@tanstack/react-query'
 
+import { authKeys } from '@/features/auth/auth.query'
 import i18n from '@/i18n'
 
 import { projectKeys } from './projects.query'
@@ -25,7 +26,7 @@ export function createProjectMutationOptions() {
       }),
     meta: {
       errorMessage: i18n.t('projects.createModal.createFailed'),
-      invalidates: [projectKeys.lists()],
+      invalidates: [projectKeys.lists(), authKeys.projectRoles()],
     } satisfies NotificationMeta,
   })
 }
@@ -36,7 +37,7 @@ export function deleteProjectMutationOptions() {
       Projects.DeleteProject({ name }),
     meta: {
       errorMessage: i18n.t('projects.deleteModal.deleteFailed'),
-      invalidates: [projectKeys.lists()],
+      invalidates: [projectKeys.lists(), authKeys.projectRoles()],
     } satisfies NotificationMeta,
   })
 }
