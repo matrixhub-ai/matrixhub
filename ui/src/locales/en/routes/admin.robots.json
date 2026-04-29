@@ -1,4 +1,87 @@
 {
-  "createRobot": "Create Account",
-  "editRobot": "Edit Account"
+  "title": "Robot Accounts",
+  "searchPlaceholder": "Search robot accounts",
+  "toolbar": {
+    "create": "Add Robot"
+  },
+  "table": {
+    "name": "Username",
+    "status": "Enabled",
+    "platformPermissions": "System Permissions",
+    "projectCoverage": "Covered Projects",
+    "createdAt": "Created At",
+    "expireStatus": "Validity Remaining",
+    "description": "Description",
+    "actions": "Actions",
+    "empty": "No robot accounts found"
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "projectScope": {
+    "all": "All Projects",
+    "selectedCount": "{{count}} Projects"
+  },
+  "permissionCount": "{{count}} Permissions",
+  "noPermissions": "None",
+  "expireStatus": {
+    "never": "Never Expires",
+    "expired": "Expired"
+  },
+  "actions": {
+    "refreshToken": "Refresh Token",
+    "edit": "Edit",
+    "enable": "Enable",
+    "disable": "Disable",
+    "delete": "Delete"
+  },
+  "deleteModal": {
+    "title": "Delete Robot Account",
+    "description": "Delete {{name}}? This action cannot be undone.",
+    "submit": "Delete"
+  },
+  "enableModal": {
+    "title": "Enable Robot Account",
+    "description": "Enable {{name}}?",
+    "submit": "Enable"
+  },
+  "disableModal": {
+    "title": "Disable Robot Account",
+    "description": "Disable {{name}}? The account will no longer be able to access resources.",
+    "submit": "Disable"
+  },
+  "refreshTokenModal": {
+    "title": "Refresh Token {{name}}",
+    "description": "You can click confirm to randomly generate a new token, or manually specify a new token.",
+    "manualSwitch": "Enable this to manually specify the new token",
+    "token": "New Token",
+    "confirmToken": "Confirm Token",
+    "submit": "Refresh Token",
+    "copyDescription": "The new token is shown only once. Copy it now and store it safely.",
+    "validation": {
+      "tokenRequired": "New token is required",
+      "confirmTokenRequired": "Please confirm the new token",
+      "tokenMismatch": "The two tokens do not match"
+    }
+  },
+  "tokenInfoModal": {
+    "refreshSuccessTitle": "Token Refreshed",
+    "copyOnce": "You only have one chance to copy or export the token",
+    "name": "Name",
+    "token": "Token"
+  },
+  "notifications": {
+    "deleteSuccess": "Robot account deleted",
+    "deleteError": "Failed to delete robot account",
+    "enableSuccess": "Robot account enabled",
+    "enableError": "Failed to enable robot account",
+    "disableSuccess": "Robot account disabled",
+    "disableError": "Failed to disable robot account",
+    "refreshTokenSuccess": "Token refreshed",
+    "refreshTokenError": "Failed to refresh token"
+  },
+  "errors": {
+    "missingRobotId": "Robot account ID is missing"
+  }
 }
