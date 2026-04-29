@@ -58,40 +58,43 @@ http://127.0.0.1:3001
 
 MatrixHub provides two Helm installation methods — from a local chart or from the OCI registry.
 
+Set the install target first (used in all commands below):
+
+```bash
+export CHART_VERSION=<chart-version>  
+export NAMESPACE=matrixhub
+```
+
 #### Option A: Install from Local Chart
 
 ```bash
-helm install matrixhub ./deploy/charts/matrixhub
+helm install matrixhub ./deploy/charts/matrixhub \
+  --namespace ${NAMESPACE} --create-namespace
 ```
 
 #### Option B: Install from OCI Registry
 
-Charts are published to GitHub Container Registry (`ghcr.io`) as OCI artifacts:
+Charts are published to GitHub Container Registry (`ghcr.io`) as OCI artifacts.
 
 ```bash
-helm install matrixhub oci://ghcr.io/matrixhub-ai/charts/matrixhub
-```
-
-To install a specific version:
-
-```bash
-helm install matrixhub oci://ghcr.io/matrixhub-ai/charts/matrixhub --version <chart-version>
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace
 ```
 
 #### Expose the Service
 
-Expose it locally (default `ClusterIP`) via port-forward:
+Expose it via `NodePort`:
 
 ```bash
-kubectl port-forward deploy/matrixhub-apiserver 9527:9527
-```
-
-Or expose it via `NodePort`:
-
-```bash
-helm install matrixhub ./deploy/charts/matrixhub --set apiserver.service.type=NodePort
+helm install matrixhub ./deploy/charts/matrixhub \
+  --namespace ${NAMESPACE} --create-namespace \
+  --set apiserver.service.type=NodePort
 # or with OCI:
-helm install matrixhub oci://ghcr.io/matrixhub-ai/charts/matrixhub --set apiserver.service.type=NodePort
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace \
+  --set apiserver.service.type=NodePort
 ```
 
 #### Persistent Storage (PVC)
@@ -108,21 +111,22 @@ By default, the chart creates the following PVCs:
 **Customize storage class and size:**
 
 ```bash
-helm install matrixhub ./deploy/charts/matrixhub \
-  --set apiserver.storage.pvc.storageClass=standard \
-  --set apiserver.storage.pvc.size=100Gi \
-  --set mysql.persistence.storageClass=standard \
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace \
+  --set apiserver.storage.mode=pvc \
+  --set apiserver.storage.pvc.size=50Gi \
   --set mysql.persistence.size=20Gi
 ```
 
 **Use an existing PVC:**
 
 ```bash
-helm install matrixhub ./deploy/charts/matrixhub \
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace \
   --set apiserver.storage.pvc.existingClaim=my-existing-pvc
 ```
-
-> **Note:** If your cluster has a default `StorageClass` that supports dynamic provisioning, PVCs are created automatically. Otherwise, you must manually create a `PersistentVolume` or provide an existing claim.
 
 ## 📚 Docs
 
