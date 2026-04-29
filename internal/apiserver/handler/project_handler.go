@@ -126,7 +126,7 @@ func (h *ProjectHandler) ListProjects(ctx context.Context, req *projectv1alpha1.
 	case *user.Identity:
 		return h.listProjectsForUser(ctx, req)
 	case *robot.Identity:
-		// TODO(robot): implement project listing for robot accounts
+
 		return nil, status.Error(codes.Unimplemented, "list projects for robot is not implemented yet")
 	default:
 		return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())

@@ -140,6 +140,10 @@ func (r *RobotHandler) transferRobot(item *robot.Robot) *v1alpha1.GetRobotAccoun
 		scope = v1alpha1.RobotAccountProjectScope_ROBOT_ACCOUNT_PROJECT_SCOPE_ALL
 	}
 
+	projects := lo.Map(item.Projects, func(p *project.Project, _ int) string {
+		return p.Name
+	})
+
 	return &v1alpha1.GetRobotAccountResponse{
 		Id:                  uint32(item.ID),
 		Name:                item.Name,
@@ -147,12 +151,12 @@ func (r *RobotHandler) transferRobot(item *robot.Robot) *v1alpha1.GetRobotAccoun
 		Status:              status,
 		PlatformPermissions: role.PermissionsToStrings(item.PlatformPermissions),
 		ProjectPermissions:  role.PermissionsToStrings(item.ProjectPermissions),
-		//Projects:            ,
-		CreatedAt:    strconv.Itoa(int(item.CreatedAt.Unix())),
-		ExpireStatus: expireStatus,
-		RemainPeriod: remainPeriod,
-		ExpireDays:   int32(item.Duration),
-		ProjectScope: scope,
+		Projects:            projects,
+		CreatedAt:           strconv.Itoa(int(item.CreatedAt.Unix())),
+		ExpireStatus:        expireStatus,
+		RemainPeriod:        remainPeriod,
+		ExpireDays:          int32(item.Duration),
+		ProjectScope:        scope,
 	}
 }
 

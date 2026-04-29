@@ -46,7 +46,7 @@ func (r *robotRepo) CreateRobot(ctx context.Context, robot *robot.Robot) error {
 
 func (r *robotRepo) GetRobot(ctx context.Context, id int) (*robot.Robot, error) {
 	var rb robot.Robot
-	err := r.db.WithContext(ctx).Where("id = ?", id).First(&rb).Error
+	err := r.db.WithContext(ctx).Where("id = ?", id).Preload("Projects").First(&rb).Error
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (r *robotRepo) ListSystemRobots(ctx context.Context, page, pageSize int, se
 		offset := (page - 1) * pageSize
 		query = query.Offset(offset).Limit(pageSize)
 	}
-	err = query.Find(&rs).Error
+	err = query.Preload("Projects").Find(&rs).Error
 	return
 }
 
