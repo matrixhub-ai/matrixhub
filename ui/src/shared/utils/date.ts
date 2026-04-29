@@ -19,7 +19,7 @@ function isProtobufTimestamp(value: DateValue): value is ProtobufTimestampLike {
   return typeof value === 'object' && value !== null && ('seconds' in value || 'nanos' in value)
 }
 
-function toMilliseconds(value: TimestampValue) {
+export function toMilliseconds(value: TimestampValue) {
   const dateNum = Number(value)
 
   if (Number.isNaN(dateNum)) {

@@ -2,6 +2,7 @@ import { IconAffiliate } from '@tabler/icons-react'
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
+import { AdminPageHeader } from '@/features/admin/components/admin-page-header'
 import { AdminPageLayout } from '@/features/admin/components/admin-page-layout'
 import { ReplicationsPage } from '@/features/admin/replications/pages/ReplicationsPage'
 import { replicationsQueryOptions } from '@/features/admin/replications/replications.query'
@@ -28,11 +29,14 @@ function RouteComponent() {
   const { t } = useTranslation()
 
   return (
-    <AdminPageLayout
-      icon={IconAffiliate}
-      title={t('admin.replications')}
-    >
-      <ReplicationsPage />
-    </AdminPageLayout>
+    <>
+      <AdminPageHeader
+        icon={IconAffiliate}
+        items={[{ label: t('admin.replications') }]}
+      />
+      <AdminPageLayout>
+        <ReplicationsPage />
+      </AdminPageLayout>
+    </>
   )
 }
