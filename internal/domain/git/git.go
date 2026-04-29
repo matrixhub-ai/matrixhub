@@ -16,6 +16,7 @@ package git
 
 import (
 	"context"
+	"io"
 	"time"
 )
 
@@ -113,7 +114,8 @@ type GitRepository struct {
 	ProjectName        string
 	ResourceName       string
 	ResourceType       string
-	Credential         *BasicCredential // optional; used for push auth
+	Credential         *BasicCredential // optional; used for push auth and private repo access
+	LogWriter          io.Writer        // optional; receives git operation output
 }
 
 // IGitRepo defines the repository interface for Git operations on models.
@@ -149,8 +151,6 @@ type IGitRepo interface {
 	// GetBlob returns the content of a file at a specific revision.
 	// repoType: "models" or "datasets"
 	GetBlob(ctx context.Context, repoType, project, name, revision, path string) (*TreeEntry, error)
-
-	CloneFromRemote(ctx context.Context, gitRepository *GitRepository) error
 
 	PullFromRemote(ctx context.Context, gitRepository *GitRepository) error
 
