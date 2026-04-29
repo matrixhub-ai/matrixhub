@@ -19,11 +19,14 @@ import { Route as authAdminIndexRouteImport } from './routes/(auth)/admin/index'
 import { Route as authAdminUsersRouteImport } from './routes/(auth)/admin/users'
 import { Route as authAdminReplicationsRouteImport } from './routes/(auth)/admin/replications'
 import { Route as authAdminRegistriesRouteImport } from './routes/(auth)/admin/registries'
+import { Route as authAdminRobotsRouteRouteImport } from './routes/(auth)/admin/robots/route'
 import { Route as authappProfileRouteRouteImport } from './routes/(auth)/(app)/profile/route'
+import { Route as authAdminRobotsIndexRouteImport } from './routes/(auth)/admin/robots/index'
 import { Route as authappProjectsIndexRouteImport } from './routes/(auth)/(app)/projects/index'
 import { Route as authappProfileIndexRouteImport } from './routes/(auth)/(app)/profile/index'
 import { Route as authappModelsIndexRouteImport } from './routes/(auth)/(app)/models/index'
 import { Route as authappDatasetsIndexRouteImport } from './routes/(auth)/(app)/datasets/index'
+import { Route as authAdminRobotsNewRouteImport } from './routes/(auth)/admin/robots/new'
 import { Route as authappProfileSshKeysRouteImport } from './routes/(auth)/(app)/profile/ssh-keys'
 import { Route as authappProfileSecurityRouteImport } from './routes/(auth)/(app)/profile/security'
 import { Route as authappProfileAccessTokenRouteImport } from './routes/(auth)/(app)/profile/access-token'
@@ -31,6 +34,7 @@ import { Route as authappModelsNewRouteImport } from './routes/(auth)/(app)/mode
 import { Route as authappDatasetsNewRouteImport } from './routes/(auth)/(app)/datasets/new'
 import { Route as authappProjectsProjectIdRouteRouteImport } from './routes/(auth)/(app)/projects/$projectId/route'
 import { Route as authappProjectsProjectIdIndexRouteImport } from './routes/(auth)/(app)/projects/$projectId/index'
+import { Route as authAdminRobotsRobotIdEditRouteImport } from './routes/(auth)/admin/robots/$robotId/edit'
 import { Route as authAdminReplicationsReplicationIdExecutionsRouteImport } from './routes/(auth)/admin/replications_.$replicationId.executions'
 import { Route as authappProjectsProjectIdSettingsIndexRouteImport } from './routes/(auth)/(app)/projects/$projectId/settings/index'
 import { Route as authappProjectsProjectIdModelsIndexRouteImport } from './routes/(auth)/(app)/projects/$projectId/models/index'
@@ -98,10 +102,20 @@ const authAdminRegistriesRoute = authAdminRegistriesRouteImport.update({
   path: '/registries',
   getParentRoute: () => authAdminRouteRoute,
 } as any)
+const authAdminRobotsRouteRoute = authAdminRobotsRouteRouteImport.update({
+  id: '/robots',
+  path: '/robots',
+  getParentRoute: () => authAdminRouteRoute,
+} as any)
 const authappProfileRouteRoute = authappProfileRouteRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => authappRouteRoute,
+} as any)
+const authAdminRobotsIndexRoute = authAdminRobotsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => authAdminRobotsRouteRoute,
 } as any)
 const authappProjectsIndexRoute = authappProjectsIndexRouteImport.update({
   id: '/projects/',
@@ -122,6 +136,11 @@ const authappDatasetsIndexRoute = authappDatasetsIndexRouteImport.update({
   id: '/datasets/',
   path: '/datasets/',
   getParentRoute: () => authappRouteRoute,
+} as any)
+const authAdminRobotsNewRoute = authAdminRobotsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => authAdminRobotsRouteRoute,
 } as any)
 const authappProfileSshKeysRoute = authappProfileSshKeysRouteImport.update({
   id: '/ssh-keys',
@@ -160,6 +179,12 @@ const authappProjectsProjectIdIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => authappProjectsProjectIdRouteRoute,
+  } as any)
+const authAdminRobotsRobotIdEditRoute =
+  authAdminRobotsRobotIdEditRouteImport.update({
+    id: '/$robotId/edit',
+    path: '/$robotId/edit',
+    getParentRoute: () => authAdminRobotsRouteRoute,
   } as any)
 const authAdminReplicationsReplicationIdExecutionsRoute =
   authAdminReplicationsReplicationIdExecutionsRouteImport.update({
@@ -278,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin': typeof authAdminRouteRouteWithChildren
   '/profile': typeof authappProfileRouteRouteWithChildren
+  '/admin/robots': typeof authAdminRobotsRouteRouteWithChildren
   '/admin/registries': typeof authAdminRegistriesRoute
   '/admin/replications': typeof authAdminReplicationsRoute
   '/admin/users': typeof authAdminUsersRoute
@@ -288,11 +314,14 @@ export interface FileRoutesByFullPath {
   '/profile/access-token': typeof authappProfileAccessTokenRoute
   '/profile/security': typeof authappProfileSecurityRoute
   '/profile/ssh-keys': typeof authappProfileSshKeysRoute
+  '/admin/robots/new': typeof authAdminRobotsNewRoute
   '/datasets/': typeof authappDatasetsIndexRoute
   '/models/': typeof authappModelsIndexRoute
   '/profile/': typeof authappProfileIndexRoute
   '/projects/': typeof authappProjectsIndexRoute
+  '/admin/robots/': typeof authAdminRobotsIndexRoute
   '/admin/replications/$replicationId/executions': typeof authAdminReplicationsReplicationIdExecutionsRoute
+  '/admin/robots/$robotId/edit': typeof authAdminRobotsRobotIdEditRoute
   '/projects/$projectId/': typeof authappProjectsProjectIdIndexRoute
   '/projects/$projectId/datasets/$datasetId': typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren
   '/projects/$projectId/models/$modelId': typeof authappProjectsProjectIdModelsModelIdRouteRouteWithChildren
@@ -325,11 +354,14 @@ export interface FileRoutesByTo {
   '/profile/access-token': typeof authappProfileAccessTokenRoute
   '/profile/security': typeof authappProfileSecurityRoute
   '/profile/ssh-keys': typeof authappProfileSshKeysRoute
+  '/admin/robots/new': typeof authAdminRobotsNewRoute
   '/datasets': typeof authappDatasetsIndexRoute
   '/models': typeof authappModelsIndexRoute
   '/profile': typeof authappProfileIndexRoute
   '/projects': typeof authappProjectsIndexRoute
+  '/admin/robots': typeof authAdminRobotsIndexRoute
   '/admin/replications/$replicationId/executions': typeof authAdminReplicationsReplicationIdExecutionsRoute
+  '/admin/robots/$robotId/edit': typeof authAdminRobotsRobotIdEditRoute
   '/projects/$projectId': typeof authappProjectsProjectIdIndexRoute
   '/projects/$projectId/datasets/$datasetId': typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren
   '/projects/$projectId/datasets': typeof authappProjectsProjectIdDatasetsIndexRoute
@@ -357,6 +389,7 @@ export interface FileRoutesById {
   '/(auth)/(app)': typeof authappRouteRouteWithChildren
   '/(auth)/admin': typeof authAdminRouteRouteWithChildren
   '/(auth)/(app)/profile': typeof authappProfileRouteRouteWithChildren
+  '/(auth)/admin/robots': typeof authAdminRobotsRouteRouteWithChildren
   '/(auth)/admin/registries': typeof authAdminRegistriesRoute
   '/(auth)/admin/replications': typeof authAdminReplicationsRoute
   '/(auth)/admin/users': typeof authAdminUsersRoute
@@ -367,11 +400,14 @@ export interface FileRoutesById {
   '/(auth)/(app)/profile/access-token': typeof authappProfileAccessTokenRoute
   '/(auth)/(app)/profile/security': typeof authappProfileSecurityRoute
   '/(auth)/(app)/profile/ssh-keys': typeof authappProfileSshKeysRoute
+  '/(auth)/admin/robots/new': typeof authAdminRobotsNewRoute
   '/(auth)/(app)/datasets/': typeof authappDatasetsIndexRoute
   '/(auth)/(app)/models/': typeof authappModelsIndexRoute
   '/(auth)/(app)/profile/': typeof authappProfileIndexRoute
   '/(auth)/(app)/projects/': typeof authappProjectsIndexRoute
+  '/(auth)/admin/robots/': typeof authAdminRobotsIndexRoute
   '/(auth)/admin/replications_/$replicationId/executions': typeof authAdminReplicationsReplicationIdExecutionsRoute
+  '/(auth)/admin/robots/$robotId/edit': typeof authAdminRobotsRobotIdEditRoute
   '/(auth)/(app)/projects/$projectId/': typeof authappProjectsProjectIdIndexRoute
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId': typeof authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren
   '/(auth)/(app)/projects_/$projectId/models/$modelId': typeof authappProjectsProjectIdModelsModelIdRouteRouteWithChildren
@@ -399,6 +435,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin'
     | '/profile'
+    | '/admin/robots'
     | '/admin/registries'
     | '/admin/replications'
     | '/admin/users'
@@ -409,11 +446,14 @@ export interface FileRouteTypes {
     | '/profile/access-token'
     | '/profile/security'
     | '/profile/ssh-keys'
+    | '/admin/robots/new'
     | '/datasets/'
     | '/models/'
     | '/profile/'
     | '/projects/'
+    | '/admin/robots/'
     | '/admin/replications/$replicationId/executions'
+    | '/admin/robots/$robotId/edit'
     | '/projects/$projectId/'
     | '/projects/$projectId/datasets/$datasetId'
     | '/projects/$projectId/models/$modelId'
@@ -446,11 +486,14 @@ export interface FileRouteTypes {
     | '/profile/access-token'
     | '/profile/security'
     | '/profile/ssh-keys'
+    | '/admin/robots/new'
     | '/datasets'
     | '/models'
     | '/profile'
     | '/projects'
+    | '/admin/robots'
     | '/admin/replications/$replicationId/executions'
+    | '/admin/robots/$robotId/edit'
     | '/projects/$projectId'
     | '/projects/$projectId/datasets/$datasetId'
     | '/projects/$projectId/datasets'
@@ -477,6 +520,7 @@ export interface FileRouteTypes {
     | '/(auth)/(app)'
     | '/(auth)/admin'
     | '/(auth)/(app)/profile'
+    | '/(auth)/admin/robots'
     | '/(auth)/admin/registries'
     | '/(auth)/admin/replications'
     | '/(auth)/admin/users'
@@ -487,11 +531,14 @@ export interface FileRouteTypes {
     | '/(auth)/(app)/profile/access-token'
     | '/(auth)/(app)/profile/security'
     | '/(auth)/(app)/profile/ssh-keys'
+    | '/(auth)/admin/robots/new'
     | '/(auth)/(app)/datasets/'
     | '/(auth)/(app)/models/'
     | '/(auth)/(app)/profile/'
     | '/(auth)/(app)/projects/'
+    | '/(auth)/admin/robots/'
     | '/(auth)/admin/replications_/$replicationId/executions'
+    | '/(auth)/admin/robots/$robotId/edit'
     | '/(auth)/(app)/projects/$projectId/'
     | '/(auth)/(app)/projects_/$projectId/datasets/$datasetId'
     | '/(auth)/(app)/projects_/$projectId/models/$modelId'
@@ -591,12 +638,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authAdminRegistriesRouteImport
       parentRoute: typeof authAdminRouteRoute
     }
+    '/(auth)/admin/robots': {
+      id: '/(auth)/admin/robots'
+      path: '/robots'
+      fullPath: '/admin/robots'
+      preLoaderRoute: typeof authAdminRobotsRouteRouteImport
+      parentRoute: typeof authAdminRouteRoute
+    }
     '/(auth)/(app)/profile': {
       id: '/(auth)/(app)/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof authappProfileRouteRouteImport
       parentRoute: typeof authappRouteRoute
+    }
+    '/(auth)/admin/robots/': {
+      id: '/(auth)/admin/robots/'
+      path: '/'
+      fullPath: '/admin/robots/'
+      preLoaderRoute: typeof authAdminRobotsIndexRouteImport
+      parentRoute: typeof authAdminRobotsRouteRoute
     }
     '/(auth)/(app)/projects/': {
       id: '/(auth)/(app)/projects/'
@@ -625,6 +686,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/datasets/'
       preLoaderRoute: typeof authappDatasetsIndexRouteImport
       parentRoute: typeof authappRouteRoute
+    }
+    '/(auth)/admin/robots/new': {
+      id: '/(auth)/admin/robots/new'
+      path: '/new'
+      fullPath: '/admin/robots/new'
+      preLoaderRoute: typeof authAdminRobotsNewRouteImport
+      parentRoute: typeof authAdminRobotsRouteRoute
     }
     '/(auth)/(app)/profile/ssh-keys': {
       id: '/(auth)/(app)/profile/ssh-keys'
@@ -674,6 +742,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/$projectId/'
       preLoaderRoute: typeof authappProjectsProjectIdIndexRouteImport
       parentRoute: typeof authappProjectsProjectIdRouteRoute
+    }
+    '/(auth)/admin/robots/$robotId/edit': {
+      id: '/(auth)/admin/robots/$robotId/edit'
+      path: '/$robotId/edit'
+      fullPath: '/admin/robots/$robotId/edit'
+      preLoaderRoute: typeof authAdminRobotsRobotIdEditRouteImport
+      parentRoute: typeof authAdminRobotsRouteRoute
     }
     '/(auth)/admin/replications_/$replicationId/executions': {
       id: '/(auth)/admin/replications_/$replicationId/executions'
@@ -935,7 +1010,23 @@ const authappRouteRouteWithChildren = authappRouteRoute._addFileChildren(
   authappRouteRouteChildren,
 )
 
+interface authAdminRobotsRouteRouteChildren {
+  authAdminRobotsNewRoute: typeof authAdminRobotsNewRoute
+  authAdminRobotsIndexRoute: typeof authAdminRobotsIndexRoute
+  authAdminRobotsRobotIdEditRoute: typeof authAdminRobotsRobotIdEditRoute
+}
+
+const authAdminRobotsRouteRouteChildren: authAdminRobotsRouteRouteChildren = {
+  authAdminRobotsNewRoute: authAdminRobotsNewRoute,
+  authAdminRobotsIndexRoute: authAdminRobotsIndexRoute,
+  authAdminRobotsRobotIdEditRoute: authAdminRobotsRobotIdEditRoute,
+}
+
+const authAdminRobotsRouteRouteWithChildren =
+  authAdminRobotsRouteRoute._addFileChildren(authAdminRobotsRouteRouteChildren)
+
 interface authAdminRouteRouteChildren {
+  authAdminRobotsRouteRoute: typeof authAdminRobotsRouteRouteWithChildren
   authAdminRegistriesRoute: typeof authAdminRegistriesRoute
   authAdminReplicationsRoute: typeof authAdminReplicationsRoute
   authAdminUsersRoute: typeof authAdminUsersRoute
@@ -944,6 +1035,7 @@ interface authAdminRouteRouteChildren {
 }
 
 const authAdminRouteRouteChildren: authAdminRouteRouteChildren = {
+  authAdminRobotsRouteRoute: authAdminRobotsRouteRouteWithChildren,
   authAdminRegistriesRoute: authAdminRegistriesRoute,
   authAdminReplicationsRoute: authAdminReplicationsRoute,
   authAdminUsersRoute: authAdminUsersRoute,
