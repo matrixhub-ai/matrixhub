@@ -407,11 +407,14 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 	} else if !mod.ShouldSync() {
 		return nil
 	}
-	if err = s.gitRepo.PullFromRemote(ctx, gr); err != nil {
+	if err = s.gitRepo.PullFromRemote(context.Background(), gr); err != nil {
 		return err
 	}
-	if err = s.SyncMetadata(ctx, mod.ProjectName, mod.Name); err != nil {
+	if err = s.SyncMetadata(context.Background(), mod.ProjectName, mod.Name); err != nil {
 		return err
+	}
+	if ctx.Err() != nil {
+		return ctx.Err()
 	}
 
 	return nil
