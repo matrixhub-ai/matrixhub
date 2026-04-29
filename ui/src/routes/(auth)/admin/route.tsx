@@ -22,6 +22,7 @@ import { currentUserQueryOptions } from '@/features/auth/auth.query'
 import { queryClient } from '@/queryClient'
 import { Route as AdminRegistriesRoute, Icon as AdminRegistriesIcon } from '@/routes/(auth)/admin/registries'
 import { Route as AdminReplicationsRoute, Icon as AdminReplicationsIcon } from '@/routes/(auth)/admin/replications'
+// import { Route as AdminRobotsRoute, Icon as AdminRobotsIcon } from '@/routes/(auth)/admin/robots/index'
 import { Route as AdminUsersRoute, Icon as AdminUsersIcon } from '@/routes/(auth)/admin/users'
 import { setAdminContentViewport } from '@/utils/setContentViewport'
 
@@ -49,6 +50,11 @@ function AdminNavbar() {
       icon: AdminUsersIcon,
       to: AdminUsersRoute.to,
     },
+    // {
+    //   label: t('admin.robots'),
+    //   icon: AdminRobotsIcon,
+    //   to: AdminRobotsRoute.to,
+    // },
     {
       label: t('admin.registries'),
       icon: AdminRegistriesIcon,
