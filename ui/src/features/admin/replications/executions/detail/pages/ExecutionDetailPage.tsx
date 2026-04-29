@@ -32,13 +32,13 @@ function SectionTitle({ title }: { title: string }) {
       <div style={{
         width: rem(4),
         height: rem(16),
-        backgroundColor: 'var(--app-color-gray-10)',
+        backgroundColor: 'var(--mantine-color-cyan-6)',
         borderRadius: rem(2),
       }}
       />
       <Text
-        fw={700}
-        size="lg"
+        fw={600}
+        size="sm"
       >
         {title}
       </Text>
@@ -73,9 +73,6 @@ export function ExecutionDetailPage() {
   const refreshJobs = () => {
     queryClient.invalidateQueries({
       queryKey: adminReplicationExecutionDetailKeys.item(syncPolicyId, syncTaskId),
-    })
-    queryClient.invalidateQueries({
-      queryKey: adminReplicationExecutionDetailKeys.jobs(syncPolicyId, syncTaskId),
     })
   }
 

@@ -35,14 +35,14 @@ export function ExecutionStatsCards({ task }: ExecutionStatsCardsProps) {
       label: t('routes.admin.replications.executions.detail.status.succeeded'),
       value: success,
       icon: IconCircleCheck,
-      color: 'green',
+      color: 'var(--mantine-color-teal-6)',
       bgColor: 'var(--mantine-color-teal-light)',
     },
     {
       label: t('routes.admin.replications.executions.detail.status.failed'),
       value: failed,
       icon: IconAlertCircle,
-      color: 'red',
+      color: 'var(--mantine-color-red-6)',
       bgColor: 'var(--mantine-color-red-light)',
     },
     {
@@ -56,7 +56,7 @@ export function ExecutionStatsCards({ task }: ExecutionStatsCardsProps) {
       label: t('routes.admin.replications.executions.detail.status.stopped'),
       value: stopped,
       icon: IconAlertTriangle,
-      color: 'orange',
+      color: 'var(--mantine-color-yellow-6)',
       bgColor: 'var(--mantine-color-orange-light)',
     },
   ]

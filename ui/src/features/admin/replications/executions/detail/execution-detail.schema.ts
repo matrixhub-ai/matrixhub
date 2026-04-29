@@ -19,9 +19,9 @@ export const syncJobResourceTypeFilterValues = [
 ] as const
 
 export const executionDetailSearchSchema = z.object({
-  page: z.number().int().positive().optional().catch(DEFAULT_PAGE),
-  status: z.nativeEnum(SyncJobStatus).optional(),
-  resourceType: z.nativeEnum(ResourceType).optional(),
+  page: z.coerce.number().int().positive().optional().catch(DEFAULT_PAGE),
+  status: z.enum(syncJobStatusFilterValues).optional(),
+  resourceType: z.enum(syncJobResourceTypeFilterValues).optional(),
 })
 
 export type ExecutionDetailSearch = z.infer<typeof executionDetailSearchSchema>

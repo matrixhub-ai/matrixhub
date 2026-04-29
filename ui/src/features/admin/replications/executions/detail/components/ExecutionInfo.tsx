@@ -45,7 +45,7 @@ export function ExecutionInfo({ task }: ExecutionInfoProps) {
   ]
 
   return (
-    <Card withBorder={false} padding="lg" radius="sm" style={{ backgroundColor: '#F8F9FA' }}>
+    <Card withBorder={false} padding="lg" radius="sm" bg="gray.0">
       <Grid gutter="xl">
         {infoItems.map(item => (
           <Grid.Col
@@ -57,7 +57,7 @@ export function ExecutionInfo({ task }: ExecutionInfoProps) {
             }}
           >
             <Stack gap={4}>
-              <Text size="lg" fw={500} c="var(--mantine-color-black)">
+              <Text component={typeof item.value === 'object' ? 'div' : undefined} size="lg" fw={500} c="var(--mantine-color-black)">
                 {item.value}
               </Text>
               <Text size="sm" c="dimmed">
