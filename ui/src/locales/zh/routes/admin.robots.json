@@ -1,4 +1,87 @@
 {
-  "createRobot": "创建账号",
-  "editRobot": "编辑账号"
+  "title": "机器人账号",
+  "searchPlaceholder": "输入机器人账号搜索",
+  "toolbar": {
+    "create": "添加机器人"
+  },
+  "table": {
+    "name": "用户名",
+    "status": "启用状态",
+    "platformPermissions": "系统权限",
+    "projectCoverage": "覆盖项目数",
+    "createdAt": "创建时间",
+    "expireStatus": "有效期剩余",
+    "description": "描述",
+    "actions": "操作",
+    "empty": "暂无机器人账号数据"
+  },
+  "boolean": {
+    "yes": "是",
+    "no": "否"
+  },
+  "projectScope": {
+    "all": "全部项目",
+    "selectedCount": "{{count}}个项目"
+  },
+  "permissionCount": "{{count}}项权限",
+  "noPermissions": "无",
+  "expireStatus": {
+    "never": "永不过期",
+    "expired": "已过期"
+  },
+  "actions": {
+    "refreshToken": "刷新令牌",
+    "edit": "编辑",
+    "enable": "启用",
+    "disable": "停用",
+    "delete": "删除"
+  },
+  "deleteModal": {
+    "title": "删除机器人账号",
+    "description": "确认删除 {{name}} 吗？此操作不可撤销。",
+    "submit": "删除"
+  },
+  "enableModal": {
+    "title": "启用机器人账号",
+    "description": "确认启用 {{name}} 吗？",
+    "submit": "启用"
+  },
+  "disableModal": {
+    "title": "停用机器人账号",
+    "description": "确认停用 {{name}} 吗？停用后该账号将无法继续访问。",
+    "submit": "停用"
+  },
+  "refreshTokenModal": {
+    "title": "刷新令牌 {{name}}",
+    "description": "您可以直接点击确定按钮来随机生成新的令牌，或者手动为其指定一个新的令牌。",
+    "manualSwitch": "开启此项以便手动指定新令牌",
+    "token": "新令牌",
+    "confirmToken": "确认令牌",
+    "submit": "刷新令牌",
+    "copyDescription": "新令牌仅展示一次，请立即复制并妥善保存。",
+    "validation": {
+      "tokenRequired": "请输入新令牌",
+      "confirmTokenRequired": "请再次输入新令牌",
+      "tokenMismatch": "两次输入的令牌不一致"
+    }
+  },
+  "tokenInfoModal": {
+    "refreshSuccessTitle": "刷新令牌成功",
+    "copyOnce": "您仅有一次机会复制或导出令牌",
+    "name": "名称",
+    "token": "令牌"
+  },
+  "notifications": {
+    "deleteSuccess": "机器人账号删除成功",
+    "deleteError": "删除机器人账号失败",
+    "enableSuccess": "机器人账号已启用",
+    "enableError": "启用机器人账号失败",
+    "disableSuccess": "机器人账号已停用",
+    "disableError": "停用机器人账号失败",
+    "refreshTokenSuccess": "令牌刷新成功",
+    "refreshTokenError": "刷新令牌失败"
+  },
+  "errors": {
+    "missingRobotId": "机器人账号 ID 缺失"
+  }
 }
