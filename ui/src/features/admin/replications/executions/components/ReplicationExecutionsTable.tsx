@@ -1,9 +1,10 @@
-import { Text } from '@mantine/core'
+import { Anchor, Text } from '@mantine/core'
 import {
   SyncTaskStatus,
   TriggerType,
   type SyncTask,
 } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
+import { Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -52,8 +53,36 @@ type ReplicationExecutionsTableProps = Omit<
   syncPolicyId: number
 }
 
-function ExecutionTaskCell({ row }: ExecutionCellProps) {
-  return <Text fw={600}>{row.original.id ?? '-'}</Text>
+function ExecutionTaskCell({
+  row, table,
+}: ExecutionCellProps) {
+  const syncPolicyId = (
+    table.options.meta as { syncPolicyId?: number } | undefined
+  )?.syncPolicyId
+
+  const executionId = row.original.id
+
+  if (executionId == null || syncPolicyId == null) {
+    return <Text fw={600}>{executionId ?? '-'}</Text>
+  }
+
+  return (
+    <Anchor
+      fw={600}
+      renderRoot={props => (
+        <Link
+          {...props}
+          to="/admin/replications/$replicationId/executions/$executionId"
+          params={{
+            replicationId: String(syncPolicyId),
+            executionId: String(executionId),
+          }}
+        />
+      )}
+    >
+      {executionId}
+    </Anchor>
+  )
 }
 
 function ExecutionStatusCell({ row }: ExecutionCellProps) {
