@@ -118,7 +118,7 @@ jobs:
           cp ./changelog-result/${changelog_file} ./changelog-result/changelog.md
 
       - name: Create Release
-        uses: ncipollo/release-action@v1.15.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           artifacts: "chart-package/*"
           draft: true
