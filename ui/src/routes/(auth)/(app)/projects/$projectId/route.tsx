@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next'
 import { useProjectRole } from '@/features/auth/useProjectRole'
 import { projectDetailQueryOptions } from '@/features/projects/projects.query'
 
+import { Route as ProjectDatasetsRoute } from './datasets'
 import { Route as ProjectMembersRoute } from './members'
 import { Route as ProjectModelsRoute } from './models'
 import { Route as ProjectSettingsRoute } from './settings'
@@ -43,6 +44,12 @@ function RouteComponent() {
       id: 'models',
       label: t('projects.detail.tabs.models'),
       to: ProjectModelsRoute.to,
+      params: { projectId },
+    },
+    {
+      id: 'datasets',
+      label: t('projects.detail.tabs.datasets'),
+      to: ProjectDatasetsRoute.to,
       params: { projectId },
     },
     {
