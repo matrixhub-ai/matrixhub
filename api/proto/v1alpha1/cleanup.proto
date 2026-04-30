@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package matrixhub.v1alpha1;
+
+option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
+
+import "google/api/annotations.proto";
+
+service Cleanup {
+  // Preview orphaned data (dry-run)
+  rpc PreviewCleanup(PreviewCleanupRequest) returns (CleanupPreview) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/cleanup/preview"
+      body: "*"
+    };
+  }
+
+  // Execute cleanup
+  rpc ExecuteCleanup(ExecuteCleanupRequest) returns (CleanupResult) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/cleanup/execute"
+      body: "*"
+    };
+  }
+
+  // Get storage statistics
+  rpc GetStorageStats(GetStorageStatsRequest) returns (StorageStats) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/cleanup/stats"
+    };
+  }
+}
+
+message PreviewCleanupRequest {
+  bool include_orphaned_repos = 1;
+  bool include_orphaned_lfs = 2;
+}
+
+message CleanupPreview {
+  repeated OrphanedRepo orphaned_repos = 1;
+  repeated OrphanedLFS orphaned_lfs_objects = 2;
+  int64 total_reclaimable_bytes = 3;
+}
+
+message OrphanedRepo {
+  string path = 1;
+  string type = 2;           // "model" or "dataset"
+  string project_name = 3;
+  string resource_name = 4;
+  int64 size_bytes = 5;
+}
+
+message OrphanedLFS {
+  string oid = 1;
+  int64 size_bytes = 2;
+}
+
+message ExecuteCleanupRequest {
+  bool clean_orphaned_repos = 1;
+  bool clean_orphaned_lfs = 2;
+  bool dry_run = 3;  // true = preview only, no actual deletion
+}
+
+message CleanupResult {
+  int32 repos_deleted = 1;
+  int32 lfs_objects_deleted = 2;
+  int64 space_reclaimed_bytes = 3;
+  repeated string errors = 4;
+}
+
+message GetStorageStatsRequest {}
+
+message StorageStats {
+  int64 total_size_bytes = 1;
+  int64 repositories_size_bytes = 2;
+  int64 lfs_size_bytes = 3;
+  int64 orphaned_size_bytes = 4;
+}
