@@ -28,7 +28,6 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -117,23 +116,11 @@ func (h *ProjectHandler) ListProjects(ctx context.Context, req *projectv1alpha1.
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	identity, ok := auth.IdentityFromContext(ctx)
+	_, ok := auth.IdentityFromContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 	}
 
-	switch identity.(type) {
-	case *user.Identity:
-		return h.listProjectsForUser(ctx, req)
-	case *robot.Identity:
-
-		return nil, status.Error(codes.Unimplemented, "list projects for robot is not implemented yet")
-	default:
-		return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
-	}
-}
-
-func (h *ProjectHandler) listProjectsForUser(ctx context.Context, req *projectv1alpha1.ListProjectsRequest) (*projectv1alpha1.ListProjectsResponse, error) {
 	page := utils.NewPage(req.Page, req.PageSize)
 
 	hasPlatformProjectGet, err := h.authzService.VerifyPlatformPermission(ctx, role.ProjectGet)

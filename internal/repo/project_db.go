@@ -18,9 +18,12 @@ import (
 	"context"
 	"errors"
 
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
@@ -109,10 +112,7 @@ func (r *ProjectDBRepo) GetProjectIDByName(ctx context.Context, name string) (in
 	return p.ID, nil
 }
 
-func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectType project.ProjectType, managedOnly bool, hasPlatformProjectGet bool, page, pageSize int) ([]*project.Project, int64, error) {
-	var projects []*project.Project
-	var total int64
-
+func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectType project.ProjectType, managedOnly bool, hasPlatformProjectGet bool, page, pageSize int) (projects []*project.Project, total int64, err error) {
 	query := r.db.WithContext(ctx).Model(&project.Project{})
 
 	if name != "" {
@@ -123,11 +123,24 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 	}
 
 	if !hasPlatformProjectGet {
-		userID := user.GetCurrentUserId(ctx)
-
-		accessibleIDs, err := r.userProjectIDsWithPermission(ctx, userID, role.ProjectGet)
-		if err != nil {
-			return nil, 0, err
+		identity, ok := auth.IdentityFromContext(ctx)
+		if !ok {
+			return
+		}
+		var accessibleIDs []int
+		switch identity.(type) {
+		case *user.Identity:
+			accessibleIDs, err = r.userProjectIDsWithPermission(ctx, identity.GetID(), role.ProjectGet)
+			if err != nil {
+				return
+			}
+		case *robot.Identity:
+			accessibleIDs, err = r.robotProjectIDsWithPermission(ctx, identity.GetID(), role.ProjectGet)
+			if err != nil {
+				return
+			}
+		default:
+			return
 		}
 
 		if managedOnly {
@@ -144,8 +157,8 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 		}
 	}
 
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+	if err = query.Count(&total).Error; err != nil {
+		return
 	}
 
 	query = query.Select(`projects.*,
@@ -153,17 +166,17 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 		(SELECT COUNT(*) FROM datasets WHERE datasets.project_id = projects.id) as dataset_count`)
 
 	if utils.IsFullPageData(page, pageSize) {
-		if err := query.Order("projects.name ASC").Find(&projects).Error; err != nil {
+		if err = query.Order("projects.name ASC").Find(&projects).Error; err != nil {
 			return nil, 0, err
 		}
 	} else {
 		offset := (page - 1) * pageSize
-		if err := query.Order("projects.name ASC").Offset(offset).Limit(pageSize).Find(&projects).Error; err != nil {
+		if err = query.Order("projects.name ASC").Offset(offset).Limit(pageSize).Find(&projects).Error; err != nil {
 			return nil, 0, err
 		}
 	}
 
-	return projects, total, nil
+	return
 }
 
 func (r *ProjectDBRepo) userProjectIDsWithPermission(ctx context.Context, userID int, perm role.Permission) ([]int, error) {
@@ -190,6 +203,20 @@ func (r *ProjectDBRepo) userProjectIDsWithPermission(ctx context.Context, userID
 		}
 	}
 	return ids, nil
+}
+
+func (r *ProjectDBRepo) robotProjectIDsWithPermission(ctx context.Context, robotId int, perm role.Permission) ([]int, error) {
+	var rb robot.Robot
+	err := r.db.WithContext(ctx).Where("id = ?", robotId).Preload("Projects").First(&rb).Error
+	if err != nil {
+		return nil, err
+	}
+	if !role.MatchPermissions(rb.ProjectPermissions, perm) {
+		return nil, nil
+	}
+	return lo.Map(rb.Projects, func(item *project.Project, _ int) int {
+		return item.ID
+	}), nil
 }
 
 func (r *ProjectDBRepo) UpdateProject(ctx context.Context, p *project.Project) error {
