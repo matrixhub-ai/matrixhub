@@ -130,6 +130,42 @@
       "invalidSyncPolicyId": "Invalid sync policy ID",
       "missingSyncTaskId": "Sync task ID is required",
       "syncPolicyNotFound": "Sync rule not found"
+    },
+    "detail": {
+      "breadcrumb": "Sync Task: {{id}}",
+      "basicInfo": "Basic Information",
+      "statusDistribution": "Task Status Distribution",
+      "subTasks": "Sub-tasks",
+      "filters": {
+        "status": "All Statuses",
+        "resourceType": "Source Type"
+      },
+      "table": {
+        "id": "Task ID",
+        "resourceType": "Source Type",
+        "source": "Source",
+        "target": "Target",
+        "action": "Action",
+        "status": "Status",
+        "createdAt": "Created At",
+        "completedAt": "Completed At",
+        "logs": "Logs"
+      },
+      "status": {
+        "running": "Running",
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "stopped": "Stopped",
+        "unknown": "Unknown"
+      },
+      "resourceType": {
+        "model": "Model",
+        "dataset": "Dataset"
+      },
+      "errors": {
+        "invalidSyncTaskId": "Invalid sync task ID",
+        "syncTaskNotFound": "Sync task not found"
+      }
     }
   }
 }

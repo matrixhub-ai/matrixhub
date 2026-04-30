@@ -130,6 +130,42 @@
       "invalidSyncPolicyId": "无效的同步策略 ID",
       "missingSyncTaskId": "同步任务 ID 不能为空",
       "syncPolicyNotFound": "同步规则不存在"
+    },
+    "detail": {
+      "breadcrumb": "同步任务：{{id}}",
+      "basicInfo": "基本信息",
+      "statusDistribution": "任务状态分布",
+      "subTasks": "子任务",
+      "filters": {
+        "status": "全部状态",
+        "resourceType": "源类型"
+      },
+      "table": {
+        "id": "任务 ID",
+        "resourceType": "源类型",
+        "source": "源",
+        "target": "目标",
+        "action": "操作",
+        "status": "状态",
+        "createdAt": "创建时间",
+        "completedAt": "完成时间",
+        "logs": "日志"
+      },
+      "status": {
+        "running": "进行中",
+        "succeeded": "成功",
+        "failed": "失败",
+        "stopped": "已停止",
+        "unknown": "未知"
+      },
+      "resourceType": {
+        "model": "模型",
+        "dataset": "数据集"
+      },
+      "errors": {
+        "invalidSyncTaskId": "无效的同步任务 ID",
+        "syncTaskNotFound": "同步任务不存在"
+      }
     }
   }
 }
