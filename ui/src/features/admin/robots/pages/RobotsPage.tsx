@@ -152,7 +152,6 @@ export function RobotsPage() {
         onRefreshToken={robot => openActionModal('refreshToken', robot)}
         toolbarExtra={(
           <Button
-            size="compact-sm"
             leftSection={<IconRobot size={16} />}
             onClick={handleCreate}
           >

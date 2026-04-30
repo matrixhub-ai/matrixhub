@@ -110,10 +110,6 @@ function RobotExpireCell({ row }: RobotCellProps) {
   return <Text size="sm">-</Text>
 }
 
-function RobotDescriptionCell({ row }: RobotCellProps) {
-  return <Text size="sm">{row.original.description || '-'}</Text>
-}
-
 export function RobotTable({
   onEdit,
   onDelete,
@@ -162,7 +158,7 @@ export function RobotTable({
     {
       id: 'description',
       header: t('routes.admin.robots.table.description'),
-      Cell: RobotDescriptionCell,
+      accessorFn: row => row.description || '-',
     },
   ]
 
