@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
+	"os"
 	stdpath "path"
 	"strings"
 
@@ -460,21 +462,6 @@ func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision
 	}, nil
 }
 
-func (g *gitRepo) CloneFromRemote(ctx context.Context, gitRepository *git.GitRepository) error {
-	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
-	if repository.IsRepository(gitPath) {
-		return fmt.Errorf("repository already exists")
-	}
-
-	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
-	sourceURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
-	_, err := repository.InitMirror(ctx, gitPath, sourceURL)
-	if err != nil {
-		return err
-	}
-	return g.mirror.Sync(ctx, gitPath, repoName, mirror.WithSyncMirrorSourceURL(sourceURL))
-}
-
 func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepository) error {
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
 	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
@@ -485,7 +472,25 @@ func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepo
 			return err
 		}
 	}
-	return g.mirror.Sync(ctx, gitPath, repoName, mirror.WithSyncMirrorSourceURL(sourceURL))
+
+	logWriter := gitRepository.LogWriter
+	if logWriter == nil {
+		logWriter = os.Stderr
+	}
+
+	syncOptions := []mirror.SyncOption{
+		mirror.WithSyncMirrorSourceURL(sourceURL),
+		mirror.WithSyncOutput(logWriter),
+	}
+
+	if cred := gitRepository.Credential; cred != nil {
+		syncOptions = append(syncOptions,
+			mirror.WithSyncUserInfo(url.UserPassword(cred.Username, cred.Password)),
+		)
+	}
+	return g.mirror.Sync(ctx, gitPath, repoName,
+		syncOptions...,
+	)
 }
 
 // PushToRemote pushes the local repository to the remote registry.

@@ -239,17 +239,12 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 		ProjectName:        syncJob.ProjectName,
 		ResourceName:       syncJob.ResourceName,
 		ResourceType:       syncJob.ResourceType,
+		LogWriter:          logWriter,
 	}
 	mod, _ := sjs.modelRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
 	if mod != nil {
 		if logWriter != nil {
 			_, _ = fmt.Fprintf(logWriter, "[INFO] model exists, pulling from remote\n")
-		}
-		if err = sjs.gitRepo.PullFromRemote(ctx, gr); err != nil {
-			return err
-		}
-		if logWriter != nil {
-			_, _ = fmt.Fprintf(logWriter, "[INFO] pull completed\n")
 		}
 	} else {
 		if logWriter != nil {
@@ -267,12 +262,13 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 		if logWriter != nil {
 			_, _ = fmt.Fprintf(logWriter, "[INFO] created model record (id=%d)\n", mod.ID)
 		}
-		if err = sjs.gitRepo.CloneFromRemote(ctx, gr); err != nil {
-			return err
-		}
-		if logWriter != nil {
-			_, _ = fmt.Fprintf(logWriter, "[INFO] clone completed\n")
-		}
+	}
+
+	if err = sjs.gitRepo.PullFromRemote(ctx, gr); err != nil {
+		return err
+	}
+	if logWriter != nil {
+		_, _ = fmt.Fprintf(logWriter, "[INFO] pull completed\n")
 	}
 
 	if logWriter != nil {
