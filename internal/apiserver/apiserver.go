@@ -134,7 +134,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 	}
 	unaryMiddleware := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(middleware.RecoveryFunc)),
-		middleware.AuthInterceptor(server.repos.Session, server.repos.AccessToken, server.repos.Robot),
+		middleware.AuthInterceptor(server.repos.Session, server.repos.User, server.repos.AccessToken, server.repos.Robot),
 		middleware.AuthzInterceptor(server.services.Authz.VerifyPlatformPermission),
 	}
 
@@ -288,7 +288,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhf.WithPostReceiveHookFunc(postReceiveHookFunc),
 		backendhf.WithLFSStorage(lfsStorage),
 		backendhf.WithMiddlewares(
-			middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session, server.repos.Robot),
+			middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session, server.repos.User, server.repos.Robot),
 		),
 		backendhf.WithServices(server.services.Model, server.repos.Git, server.services.Authz),
 	)

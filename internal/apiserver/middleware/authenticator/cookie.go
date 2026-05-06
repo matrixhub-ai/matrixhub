@@ -17,6 +17,7 @@ package authenticator
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -29,11 +30,12 @@ import (
 // Use cases : web login
 type CookieAuthenticator struct {
 	sessionRepo user.ISessionRepo
+	userRepo    user.IUserRepo
 	cookieName  string
 }
 
-func NewCookieAuthenticator(sessionRepo user.ISessionRepo) *CookieAuthenticator {
-	return &CookieAuthenticator{sessionRepo: sessionRepo, cookieName: user.CookieName}
+func NewCookieAuthenticator(sessionRepo user.ISessionRepo, userRepo user.IUserRepo) *CookieAuthenticator {
+	return &CookieAuthenticator{sessionRepo: sessionRepo, userRepo: userRepo, cookieName: user.CookieName}
 }
 
 // Authenticate extract cookie from context or from http.Request
@@ -65,6 +67,7 @@ func (a *CookieAuthenticator) AuthenticateToken(ctx context.Context, _, token st
 	if !manager.Exists(ctx, user.UserIdCtxKey) {
 		return nil, errors.New("authentication invalid")
 	}
+
 	config := a.sessionRepo.GetSessionConfig()
 	lastActive := manager.GetInt64(ctx, user.LastActiveCtxKey)
 	if lastActive == 0 {
@@ -79,8 +82,21 @@ func (a *CookieAuthenticator) AuthenticateToken(ctx context.Context, _, token st
 		_ = manager.Destroy(ctx)
 		return nil, errors.New("session expired: idle timeout")
 	}
+
+	// check session version
+	userId := manager.GetInt(ctx, user.UserIdCtxKey)
+	u, err := a.userRepo.GetUser(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("get user failed: %w", err)
+	}
+	sessionVersion := manager.GetInt(ctx, user.SessionVersionKey)
+	if sessionVersion != u.SessionVersion {
+		_ = manager.Destroy(ctx)
+		return nil, errors.New("invalid session: session version mismatch")
+	}
+
 	return user.NewUserIdentity(
-		manager.GetInt(ctx, user.UserIdCtxKey),
+		userId,
 		manager.GetString(ctx, user.UsernameCtxKey),
 	), nil
 }

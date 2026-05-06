@@ -29,17 +29,17 @@ CREATE TABLE IF NOT EXISTS `projects`
     CONSTRAINT `fk_projects_registry_id` FOREIGN KEY (`registry_id`) REFERENCES `registries` (`id`)
 ) ENGINE = InnoDb DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `users`
-(
-    `id`         bigint       NOT NULL AUTO_INCREMENT,
-    `username`   varchar(255) NOT NULL,
-    `password`   varchar(255) NOT NULL default "",
-    `email`      varchar(255) NOT NULL default "",
-    `created_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `username` (`username`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+CREATE TABLE `users` (
+   `id` bigint NOT NULL AUTO_INCREMENT,
+   `username` varchar(255) NOT NULL,
+   `password` varchar(255) NOT NULL DEFAULT '',
+   `email` varchar(255) NOT NULL DEFAULT '',
+   `session_version` int NOT NULL DEFAULT '0',
+   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   PRIMARY KEY (`id`),
+   UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `roles`
 (

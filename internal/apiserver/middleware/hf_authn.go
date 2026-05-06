@@ -26,10 +26,10 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 )
 
-func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) func(http.Handler) http.Handler {
+func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo, robotRepo)
+			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo, userRepo, robotRepo)
 			_, identity, err := auth.Authenticate(r.Context(), r)
 			if err == nil {
 				r = setUserInfo(r, identity)

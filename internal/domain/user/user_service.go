@@ -69,6 +69,7 @@ func (us UserService) LoginUser(ctx context.Context, username, password string, 
 	manager.Put(ctx, UsernameCtxKey, u.Username)
 	manager.Put(ctx, LoginAtCtxKey, now)
 	manager.Put(ctx, LastActiveCtxKey, now)
+	manager.Put(ctx, SessionVersionKey, u.SessionVersion)
 
 	token, expiry, err := manager.Commit(ctx)
 	if err != nil {

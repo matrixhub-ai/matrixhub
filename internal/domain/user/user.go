@@ -22,13 +22,14 @@ import (
 )
 
 type User struct {
-	ID        int `gorm:"primary_key"`
-	Username  string
-	Password  string
-	Email     string
-	IsAdmin   bool `gorm:"-"` // Platform admin flag (not read from DB directly, determined via members_roles_projects table)
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID             int `gorm:"primary_key"`
+	Username       string
+	Password       string
+	Email          string
+	IsAdmin        bool `gorm:"-"` // Platform admin flag (not read from DB directly, determined via members_roles_projects table)
+	SessionVersion int
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 func (u User) CheckPassword(password string) bool {
