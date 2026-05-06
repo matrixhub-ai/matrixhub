@@ -213,15 +213,19 @@ func (r *RobotHandler) UpdateRobotAccount(ctx context.Context, request *v1alpha1
 		scope = robot.ProjectScopeAll
 	}
 	rb.Description = request.Description
-	rb.Duration = int(request.ExpireDays)
 	rb.PlatformPermissions = platformPermissions
 	rb.ProjectPermissions = projectPermissions
 	rb.ProjectScope = scope
 
-	if request.ExpireDays > 0 {
-		expireAt := time.Now().AddDate(0, 0, int(request.ExpireDays))
-		rb.ExpireAt = &expireAt
+	if int(request.ExpireDays) != rb.Duration {
+		if request.ExpireDays == 0 {
+			rb.ExpireAt = nil
+		} else {
+			expireAt := rb.CreatedAt.AddDate(0, 0, int(request.ExpireDays))
+			rb.ExpireAt = &expireAt
+		}
 	}
+	rb.Duration = int(request.ExpireDays)
 
 	rb.Projects, err = r.checkProjects(ctx, request.ProjectScope, request.Projects)
 	if err != nil {
