@@ -1,0 +1,113 @@
+name: Deploy Demo Site
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag (e.g. latest, v1.0.0, latest-6f42311)'
+        required: true
+        default: 'latest'
+
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: false
+
+env:
+  DEPLOY_USER: root
+  DEPLOY_PATH: /root/matrixhub/deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: demo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare directories on ECS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: mkdir -p ${{ env.DEPLOY_PATH }} /root/matrixhub/config
+
+      - name: Sync configs to ECS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          # Preserve directory structure so files land at the correct paths under /root/matrixhub
+          source: "deploy/docker-compose.yml,deploy/docker-compose.override.yml,deploy/nginx.conf,config/config.yaml"
+          target: /root/matrixhub
+          strip_components: 0
+
+      - name: Write .env and restart
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ${{ env.DEPLOY_PATH }}
+            IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+            echo "[$(date '+%F %T')] === deploy start (tag: ${IMAGE_TAG}) ==="
+
+            # Patch migrationPath to use the path baked into the image
+            sed -i 's|^migrationPath: \./db/migrations|migrationPath: /etc/matrixhub/migrations|' /root/matrixhub/config/config.yaml
+
+            # Create .env with random passwords on first deploy; only update image tag on subsequent runs
+            if [ ! -f .env ]; then
+              cat > .env << EOF
+            MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)
+            MYSQL_PASSWORD=$(openssl rand -hex 16)
+            MATRIXHUB_IMAGE_TAG=${IMAGE_TAG}
+            EOF
+              echo ".env created"
+            else
+              sed -i "s|^MATRIXHUB_IMAGE_TAG=.*|MATRIXHUB_IMAGE_TAG=${IMAGE_TAG}|" .env
+            fi
+
+            docker compose --profile prod pull matrixhub
+            docker compose --profile prod up -d
+
+            # Reload nginx config without downtime; start it if not yet running
+            docker exec matrixhub-nginx nginx -s reload 2>/dev/null || \
+              docker compose --profile prod up -d nginx
+
+            echo "[$(date '+%F %T')] === deploy done ==="
+
+      - name: Setup restart crontab
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            mkdir -p /root/matrixhub/logs
+
+            # Write reset script
+            cat > /root/matrixhub/reset.sh << 'EOF'
+            #!/bin/bash
+            set -euo pipefail
+            cd /root/matrixhub/deploy
+            echo "[$(date '+%F %T')] === reset start ==="
+            docker compose --profile prod down
+            rm -rf data/mysql data/matrixhub
+            docker compose --profile prod up -d
+            echo "[$(date '+%F %T')] === reset done ==="
+            EOF
+            chmod +x /root/matrixhub/reset.sh
+
+            # Setup crontab
+            CRON_ENTRY="0 */6 * * * /root/matrixhub/reset.sh >> /root/matrixhub/logs/reset.log 2>&1"
+            if crontab -l 2>/dev/null | grep -qF "$CRON_ENTRY"; then
+              echo "crontab entry already exists, skipping"
+            else
+              crontab -l 2>/dev/null | grep -v 'matrixhub.*reset' > /tmp/crontab.tmp || true
+              echo "$CRON_ENTRY" >> /tmp/crontab.tmp
+              crontab /tmp/crontab.tmp
+              rm /tmp/crontab.tmp
+              echo "crontab entry updated"
+            fi

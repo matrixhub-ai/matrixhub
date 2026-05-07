@@ -1,0 +1,20 @@
+# Demo environment overlay. Deployed to ECS by GitHub Actions and auto-loaded by Docker Compose.
+# Restricts ports to localhost and adds nginx with ACME certificate management.
+# Run with: docker compose --profile prod up -d
+services:
+  nginx:
+    profiles: [prod]
+    image: docker.io/library/nginx:1.29.4
+    container_name: matrixhub-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - acme-data:/var/cache/nginx/acme
+    depends_on:
+      - matrixhub
+    restart: unless-stopped
+
+volumes:
+  acme-data:
