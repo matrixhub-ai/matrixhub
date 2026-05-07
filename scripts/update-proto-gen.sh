@@ -95,3 +95,5 @@ for version in ${VERSIONS[@]}; do
     --openapiv2_opt=allow_delete_body=true \
     --grpc-gateway-ts_out="${TS_DIR}"
 done
+
+"${ROOT_DIR}/scripts/patch_ts_sdk.sh"
