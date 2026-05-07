@@ -11,7 +11,11 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { formatExpiredAt } from '@/features/profile/profile.utils.ts'
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 import { formatDateTime } from '@/shared/utils/date'
 
 import type {
@@ -37,12 +41,10 @@ const StatusCell = ({ row }: { row: MRT_Row<SSHKey> }) => {
   )
 }
 
-type TableCellProps = Parameters<NonNullable<MRT_ColumnDef<SSHKey>['Cell']>>[0]
-
 function ActionCell({
   row,
   table,
-}: TableCellProps) {
+}: DataTableRowActionsProps<SSHKey>) {
   const { t } = useTranslation()
   const onDelete = (
     table.options.meta as { onDelete?: (key: SSHKey) => void } | undefined
@@ -93,13 +95,6 @@ export function SshKeysTable({
       header: t('profile.sshKey.importedAt'),
       Cell: ({ row }) => formatDateTime(row.original.createdAt),
     },
-    {
-      id: 'actions',
-      enableSorting: false,
-      header: '',
-      Cell: ActionCell,
-      size: 80,
-    },
   ]
 
   return (
@@ -110,6 +105,13 @@ export function SshKeysTable({
       loading={loading}
       fetching={fetching}
       onRefresh={onRefresh}
+      enableRowActions
+      renderRowActions={ActionCell}
+      displayColumnDefOptions={{
+        'mrt-row-actions': {
+          size: 80,
+        },
+      }}
       tableOptions={{
         meta: { onDelete },
       }}

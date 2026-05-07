@@ -8,7 +8,11 @@ import { Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 import { StatusIndicator } from '@/shared/components/StatusIndicator'
 import { formatDateTime } from '@/shared/utils/date'
 
@@ -135,7 +139,7 @@ function ExecutionStatusCell({ row }: ExecutionCellProps) {
 function ExecutionActionsCell({
   row,
   table,
-}: ExecutionCellProps) {
+}: DataTableRowActionsProps<SyncTask>) {
   const syncPolicyId = (
     table.options.meta as { syncPolicyId?: number } | undefined
   )?.syncPolicyId
@@ -218,12 +222,6 @@ export function ReplicationExecutionsTable({
       accessorFn: row => formatReplicationExecutionTotalItems(row),
       size: 100,
     },
-    {
-      id: 'actions',
-      header: t('routes.admin.replications.executions.table.actions'),
-      Cell: ExecutionActionsCell,
-      size: 126,
-    },
   ], [t])
 
   return (
@@ -234,6 +232,13 @@ export function ReplicationExecutionsTable({
       fetching={fetching}
       getRowId={getReplicationExecutionRowId}
       onRefresh={onRefresh}
+      enableRowActions
+      renderRowActions={ExecutionActionsCell}
+      displayColumnDefOptions={{
+        'mrt-row-actions': {
+          size: 126,
+        },
+      }}
       tableOptions={{
         ...tableOptions,
         meta: {

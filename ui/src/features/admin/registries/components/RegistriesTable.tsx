@@ -11,7 +11,11 @@ import {
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 import { formatDateTime } from '@/shared/utils/date'
 
 import { DeleteRegistryAction } from './DeleteRegistryAction'
@@ -22,8 +26,6 @@ import type { Registry } from '@matrixhub/api-ts/v1alpha1/registry.pb'
 import type { MRT_ColumnDef } from 'mantine-react-table'
 
 type RegistryCellProps = Parameters<NonNullable<MRT_ColumnDef<Registry>['Cell']>>[0]
-
-type RegistryActionCellProps = Parameters<NonNullable<DataTableProps<Registry>['renderRowActions']>>[0]
 
 type RegistriesTableProps = Omit<DataTableProps<Registry>, 'columns'>
 
@@ -108,7 +110,7 @@ function RegistryCredentialCell({ row }: RegistryCellProps) {
 
 function RegistryActionsCell({
   row,
-}: RegistryActionCellProps) {
+}: DataTableRowActionsProps<Registry>) {
   const isDisabled = row.original.id == null
 
   return (
@@ -169,7 +171,6 @@ export function RegistriesTable(props: RegistriesTableProps) {
       getRowId={getRegistryRowId}
       enableRowActions
       renderRowActions={RegistryActionsCell}
-      positionActionsColumn="last"
     />
   )
 }

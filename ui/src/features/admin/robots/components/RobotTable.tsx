@@ -10,7 +10,11 @@ import {
 } from '@matrixhub/api-ts/v1alpha1/robot.pb'
 import { useTranslation } from 'react-i18next'
 
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 import { formatDateTime } from '@/shared/utils/date'
 
 import {
@@ -22,8 +26,6 @@ import {
 import type { MRT_ColumnDef } from 'mantine-react-table'
 
 type RobotCellProps = Parameters<NonNullable<MRT_ColumnDef<RobotAccount>['Cell']>>[0]
-
-type RobotActionCellProps = Parameters<NonNullable<DataTableProps<RobotAccount>['renderRowActions']>>[0]
 
 type RobotTableProps = Omit<DataTableProps<RobotAccount>, 'columns'> & {
   onEdit?: (robot: RobotAccount) => void
@@ -115,14 +117,9 @@ export function RobotTable({
   onDelete,
   onToggleStatus,
   onRefreshToken,
-  tableOptions,
   ...props
 }: RobotTableProps) {
   const { t } = useTranslation()
-  const {
-    initialState,
-    ...restTableOptions
-  } = tableOptions ?? {}
 
   const columns: MRT_ColumnDef<RobotAccount>[] = [
     {
@@ -162,7 +159,7 @@ export function RobotTable({
     },
   ]
 
-  const renderRobotActions = ({ row }: RobotActionCellProps) => {
+  const renderRobotActions = ({ row }: DataTableRowActionsProps<RobotAccount>) => {
     const robot = row.original
     const actionDisabled = robot.id == null
     const enabled = isRobotEnabled(robot)
@@ -212,7 +209,6 @@ export function RobotTable({
   }
 
   return (
-    // FIXME: Should all lists use the component's built-in actions column with fixed enabled?
     <DataTable
       {...props}
       columns={columns}
@@ -221,21 +217,7 @@ export function RobotTable({
       getRowId={getRobotRowId}
       enableRowActions
       renderRowActions={renderRobotActions}
-      positionActionsColumn="last"
-      tableOptions={{
-        ...restTableOptions,
-        enableColumnPinning: true,
-        initialState: {
-          ...initialState,
-          columnPinning: {
-            ...initialState?.columnPinning,
-            right: [
-              ...(initialState?.columnPinning?.right ?? []),
-              'mrt-row-actions',
-            ],
-          },
-        },
-      }}
+      pinRowActions
     />
   )
 }

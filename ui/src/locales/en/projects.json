@@ -30,7 +30,6 @@
         "name": "Name",
         "memberType": "Member Type",
         "roleType": "Permission Type",
-        "actions": "Actions",
         "empty": "No members yet"
       },
       "memberType": {
@@ -85,7 +84,6 @@
     "modelCount": "Models",
     "datasetCount": "Datasets",
     "updatedAt": "Last Updated",
-    "actions": "Actions",
     "empty": "No projects found",
     "loading": "Loading projects...",
     "recordsPerPage": "Rows per page",

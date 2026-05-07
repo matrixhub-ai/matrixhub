@@ -103,6 +103,8 @@ See `tanstack-integration.md` for the complete error handling strategy.
 - Put stable shared table wrappers under `src/shared/components/data-table/` unless the project later adopts a different shared location
 - Centralize shared table styling and behavior in the wrapper, including pagination, loading states, empty states, row actions, selection behavior, and similar concerns
 - The shared `DataTable` wrapper owns default MRT filter behavior and styling; feature tables should only opt specific columns in with `enableColumnFilter: true` and the needed column filter props
+- Feature tables should use `DataTable`'s `enableRowActions` and `renderRowActions` for per-row operation UI instead of adding regular columns such as `id: 'actions'`, `id: 'action'`, or `id: 'detail'`
+- `DataTable` places row actions at the end by default; use `pinRowActions` when the MRT row actions column should remain fixed during horizontal scrolling
 - For route-backed list pages, keep search params, pagination, refresh, selection, and any route-synchronized column-filter state in the page layer or a shared hook such as `src/shared/hooks/useRouteListState.ts`
 - Do not introduce a different table abstraction or second table library for the same class of UI without agreement
 

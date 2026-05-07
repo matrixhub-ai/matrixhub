@@ -65,6 +65,9 @@ export interface DataTableToolbarProps {
   toolbarExtra?: ReactNode
 }
 
+export type DataTableRowActionsProps<TData extends MRT_RowData>
+  = Parameters<NonNullable<MRT_TableOptions<TData>['renderRowActions']>>[0]
+
 /**
  * Common props for resource table wrappers (e.g. ProjectsTable, ModelsTable).
  * Provides the standard set of pagination, search, selection, and action props
@@ -97,6 +100,7 @@ export interface DataTableProps<TData extends MRT_RowData> extends DataTableTool
   enableRowActions?: boolean
   renderRowActions?: MRT_TableOptions<TData>['renderRowActions']
   positionActionsColumn?: 'first' | 'last'
+  pinRowActions?: boolean
 
   // --- Loading ---
   loading?: boolean
@@ -129,6 +133,8 @@ export interface DataTableProps<TData extends MRT_RowData> extends DataTableTool
 }
 
 // -- Internal helpers --
+
+const ROW_ACTIONS_COLUMN_ID = 'mrt-row-actions'
 
 function hasContent(value: ReactNode) {
   return value !== null && value !== undefined && value !== false && value !== ''
@@ -249,7 +255,8 @@ export function DataTable<TData extends MRT_RowData>({
   // Row actions
   enableRowActions = false,
   renderRowActions,
-  positionActionsColumn,
+  positionActionsColumn = 'last',
+  pinRowActions = false,
   // Toolbar
   searchPlaceholder,
   searchValue,
@@ -275,6 +282,7 @@ export function DataTable<TData extends MRT_RowData>({
   const {
     columnFilterDisplayMode = 'popover',
     defaultColumn,
+    enableColumnPinning = false,
     enableColumnFilters = true,
     initialState,
     mantineFilterSelectProps,
@@ -287,6 +295,40 @@ export function DataTable<TData extends MRT_RowData>({
   } = tableOptions ?? {}
 
   const enhancedColumns = useMemo(() => withFilterTooltipLabels(columns), [columns])
+
+  const shouldPinRowActions = enableRowActions && pinRowActions
+  const actionColumnPinning = initialState?.columnPinning
+  const pinnedLeftColumns = (actionColumnPinning?.left ?? [])
+    .filter(columnId => columnId !== ROW_ACTIONS_COLUMN_ID)
+  const pinnedRightColumns = (actionColumnPinning?.right ?? [])
+    .filter(columnId => columnId !== ROW_ACTIONS_COLUMN_ID)
+  const pinnedInitialState = shouldPinRowActions
+    ? {
+        ...initialState,
+        columnPinning: {
+          ...actionColumnPinning,
+          left: positionActionsColumn === 'first'
+            ? [...pinnedLeftColumns, ROW_ACTIONS_COLUMN_ID]
+            : pinnedLeftColumns,
+          right: positionActionsColumn === 'last'
+            ? [...pinnedRightColumns, ROW_ACTIONS_COLUMN_ID]
+            : pinnedRightColumns,
+        },
+      }
+    : initialState
+  const mergedDisplayColumnDefOptions = {
+    ...(displayColumnDefOptions ?? {}),
+    'mrt-row-select': {
+      header: '',
+      size: 44,
+      grow: false,
+      ...displayColumnDefOptions?.['mrt-row-select'],
+    },
+    'mrt-row-actions': {
+      header: t('shared.actions'),
+      ...displayColumnDefOptions?.['mrt-row-actions'],
+    },
+  }
 
   const [debouncedLoading] = useDebouncedValue(loading, 300)
 
@@ -404,6 +446,7 @@ export function DataTable<TData extends MRT_RowData>({
         enableHiding={false}
         enablePagination={false}
         enableColumnFilters={enableColumnFilters}
+        enableColumnPinning={shouldPinRowActions || enableColumnPinning}
         enableSorting={false}
         enableTableHead={!hideTableHead}
         columnFilterDisplayMode={columnFilterDisplayMode}
@@ -423,20 +466,12 @@ export function DataTable<TData extends MRT_RowData>({
         renderEmptyRowsFallback={effectiveRenderEmptyRowsFallback}
         localization={{ noRecordsToDisplay: '' }}
         // Display column overrides
-        displayColumnDefOptions={{
-          'mrt-row-select': {
-            header: '',
-            size: 44,
-            grow: false,
-            ...displayColumnDefOptions?.['mrt-row-select'],
-          },
-          ...displayColumnDefOptions,
-        }}
+        displayColumnDefOptions={mergedDisplayColumnDefOptions}
         // Escape hatch
         {...restTableOptions}
         initialState={{
           density: 'xs',
-          ...initialState,
+          ...pinnedInitialState,
         }}
         state={tableState}
         mantineFilterSelectProps={args => ({

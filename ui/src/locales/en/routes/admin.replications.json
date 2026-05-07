@@ -12,7 +12,6 @@
     "target": "Target: Project Name",
     "triggerType": "Trigger Mode",
     "bandwidth": "Bandwidth",
-    "actions": "Actions",
     "empty": "No sync rules found"
   },
   "status": {
