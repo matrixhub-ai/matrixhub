@@ -42,6 +42,7 @@
     "minLength": "{{field}}长度不能少于{{min}}",
     "maxLength": "{{field}}长度不能超过{{max}}",
     "nameStartChar": "必须以字母或数字开头",
-    "nameInvalidChars": "只能包含小写字母、数字、点、下划线和连字符"
+    "nameInvalidChars": "只能包含小写字母、数字、点、下划线和连字符",
+    "minNumber": "{{field}}必须大于或等于{{min}}"
   }
 }

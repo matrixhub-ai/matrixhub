@@ -25,7 +25,7 @@ export const createRobotAccountFormSchema = (t: TFunction) => z.object({
     field: t('routes.admin.robots.fields.description'),
   })),
   expiryMode: robotExpiryModeSchema,
-  expireDays: z.number().int().min(1, t('common.validation.minLength', {
+  expireDays: z.number().int().min(1, t('common.validation.minNumber', {
     min: 1,
     field: t('routes.admin.robots.fields.expiry'),
   })).optional(),
