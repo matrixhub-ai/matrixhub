@@ -6,6 +6,8 @@ export interface NotificationMeta {
   errorMessage?: string
   /** Skip all notifications for this query/mutation */
   skipNotification?: boolean
+  /** Refetch this query when the current UI language changes */
+  localeDependent?: boolean
   /** Query keys to invalidate on mutation success */
   invalidates?: readonly (readonly unknown[])[]
 }
