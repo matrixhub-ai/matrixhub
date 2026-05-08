@@ -30,7 +30,6 @@
         "name": "名称",
         "memberType": "成员类型",
         "roleType": "权限类型",
-        "actions": "操作",
         "empty": "暂无成员"
       },
       "memberType": {
@@ -85,7 +84,6 @@
     "modelCount": "模型数量",
     "datasetCount": "数据集数量",
     "updatedAt": "创建时间",
-    "actions": "操作",
     "empty": "暂无项目数据",
     "loading": "正在加载项目...",
     "recordsPerPage": "每页",

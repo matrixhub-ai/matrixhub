@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 
 import AnchorLink from '@/shared/components/AnchorLink.tsx'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
-import { DataTable } from '@/shared/components/DataTable'
+import { DataTable, type DataTableRowActionsProps } from '@/shared/components/DataTable'
 import { formatDateTime } from '@/shared/utils/date'
 
 import type { Commit } from '@matrixhub/api-ts/v1alpha1/model.pb'
@@ -69,7 +69,7 @@ function CommitAuthorDateCell({ row }: CommitCellProps) {
 function CommitDetailCell({
   row,
   table,
-}: CommitCellProps) {
+}: DataTableRowActionsProps<Commit>) {
   const { t } = useTranslation()
   const {
     getDetailLinkProps,
@@ -120,15 +120,6 @@ export function CommitsTable({
       header: '',
       Cell: CommitAuthorDateCell,
     },
-    {
-      id: 'detail',
-      header: '',
-      Cell: CommitDetailCell,
-      size: 80,
-      minSize: 80,
-      maxSize: 80,
-      grow: false,
-    },
   ]
 
   return (
@@ -141,6 +132,17 @@ export function CommitsTable({
         loading={loading}
         emptyTitle={t('common.noResults')}
         onPageChange={onPageChange}
+        enableRowActions
+        renderRowActions={CommitDetailCell}
+        displayColumnDefOptions={{
+          'mrt-row-actions': {
+            header: '',
+            size: 80,
+            minSize: 80,
+            maxSize: 80,
+            grow: false,
+          },
+        }}
         tableOptions={{
           meta: {
             getDetailLinkProps,

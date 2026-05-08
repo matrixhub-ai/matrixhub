@@ -10,7 +10,11 @@ import {
 import { IconFileText } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 import { StatusIndicator } from '@/shared/components/StatusIndicator'
 import { formatDateTime } from '@/shared/utils/date'
 
@@ -80,7 +84,7 @@ function JobStatusCell({ row }: JobCellProps) {
 
 function JobActionsCell({
   row,
-}: JobCellProps) {
+}: DataTableRowActionsProps<SyncJob>) {
   const { t } = useTranslation()
 
   if (row.original.id == null) {
@@ -173,11 +177,6 @@ export function SyncJobTable({
       header: t('routes.admin.replications.executions.detail.table.completedAt'),
       accessorFn: row => formatDateTime(row.completedTimestamp, 'YYYY/M/D HH:mm'),
     },
-    {
-      id: 'actions',
-      header: t('routes.admin.replications.executions.detail.table.logs'),
-      Cell: JobActionsCell,
-    },
   ]
 
   return (
@@ -187,6 +186,13 @@ export function SyncJobTable({
       emptyTitle={t('routes.admin.replications.executions.table.empty')}
       fetching={fetching}
       onRefresh={onRefresh}
+      enableRowActions
+      renderRowActions={JobActionsCell}
+      displayColumnDefOptions={{
+        'mrt-row-actions': {
+          header: t('routes.admin.replications.executions.detail.table.logs'),
+        },
+      }}
       tableOptions={tableOptions}
     />
   )

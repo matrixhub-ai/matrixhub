@@ -9,7 +9,11 @@ import { Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 
 import { DeleteReplicationAction } from './DeleteReplicationAction'
 import { EditReplicationAction } from './EditReplicationAction'
@@ -25,8 +29,6 @@ import type { SyncPolicyItem } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
 import type { MRT_ColumnDef } from 'mantine-react-table'
 
 type ReplicationCellProps = Parameters<NonNullable<MRT_ColumnDef<SyncPolicyItem>['Cell']>>[0]
-
-type ReplicationActionCellProps = Parameters<NonNullable<DataTableProps<SyncPolicyItem>['renderRowActions']>>[0]
 
 type ReplicationsTableProps = Omit<DataTableProps<SyncPolicyItem>, 'columns'>
 
@@ -76,7 +78,7 @@ function ReplicationStatusCell({ row }: ReplicationCellProps) {
 
 function ReplicationActionsCell({
   row,
-}: ReplicationActionCellProps) {
+}: DataTableRowActionsProps<SyncPolicyItem>) {
   const isDisabled = row.original.id == null
 
   return (
@@ -210,7 +212,6 @@ export function ReplicationsTable(props: ReplicationsTableProps) {
       getRowId={getReplicationRowId}
       enableRowActions
       renderRowActions={ReplicationActionsCell}
-      positionActionsColumn="last"
     />
   )
 }

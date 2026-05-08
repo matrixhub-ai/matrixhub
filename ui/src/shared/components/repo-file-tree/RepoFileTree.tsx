@@ -11,7 +11,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import AnchorLink from '@/shared/components/AnchorLink'
-import { DataTable } from '@/shared/components/DataTable'
+import { DataTable, type DataTableRowActionsProps } from '@/shared/components/DataTable'
 import { formatRelativeTime } from '@/shared/utils/date'
 import { formatStorageSize } from '@/shared/utils/format'
 
@@ -90,7 +90,7 @@ function FileDateCell({ row }: FileCellProps) {
   )
 }
 
-function FileActionCell({ row }: FileCellProps) {
+function FileActionCell({ row }: DataTableRowActionsProps<RepoFile>) {
   const { t } = useTranslation()
   const file = row.original
 
@@ -182,13 +182,6 @@ export function RepoFileTree({
       size: 185,
       grow: false,
     },
-    {
-      id: 'action',
-      header: '',
-      Cell: FileActionCell,
-      size: 185,
-      grow: false,
-    },
   ]
 
   return (
@@ -225,6 +218,15 @@ export function RepoFileTree({
         loading={isLoading}
         emptyTitle={t('common.noResults')}
         hideTableHead
+        enableRowActions
+        renderRowActions={FileActionCell}
+        displayColumnDefOptions={{
+          'mrt-row-actions': {
+            header: '',
+            size: 185,
+            grow: false,
+          },
+        }}
         tableOptions={{
           meta: {
             buildTreeLink,

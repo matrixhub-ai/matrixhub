@@ -12,7 +12,6 @@
     "target": "目标仓库：项目名称",
     "triggerType": "触发模式",
     "bandwidth": "带宽",
-    "actions": "操作",
     "empty": "暂无同步规则数据"
   },
   "status": {
