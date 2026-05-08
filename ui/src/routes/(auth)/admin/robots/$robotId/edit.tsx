@@ -1,27 +1,25 @@
-import { Button } from '@mantine/core'
-import { IconArrowLeft } from '@tabler/icons-react'
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
 
 import { AdminPageLayout } from '@/features/admin/components/admin-page-layout'
+import { RobotAccountEditPage } from '@/features/admin/robots/pages/RobotAccountEditPage'
+import { robotAccountDetailQueryOptions } from '@/features/admin/robots/robot.query'
 
 export const Route = createFileRoute('/(auth)/admin/robots/$robotId/edit')({
+  loader: async ({
+    context: { queryClient },
+    params: { robotId },
+  }) => {
+    await queryClient.ensureQueryData(robotAccountDetailQueryOptions(Number(robotId)))
+  },
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const { t } = useTranslation()
   const { robotId } = Route.useParams()
 
   return (
-    <>
-      <Button leftSection={<IconArrowLeft />} variant="transparent" color="text/title">{t('routes.admin.robots.editRobot')}</Button>
-
-      <AdminPageLayout>
-        robot edit:
-        {' '}
-        {robotId}
-      </AdminPageLayout>
-    </>
+    <AdminPageLayout>
+      <RobotAccountEditPage robotId={Number(robotId)} />
+    </AdminPageLayout>
   )
 }

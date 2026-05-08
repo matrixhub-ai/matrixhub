@@ -66,6 +66,7 @@
     }
   },
   "tokenInfoModal": {
+    "createSuccessTitle": "创建机器人账号成功",
     "refreshSuccessTitle": "刷新令牌成功",
     "copyOnce": "您仅有一次机会复制或导出令牌",
     "name": "名称",
@@ -79,9 +80,40 @@
     "disableSuccess": "机器人账号已停用",
     "disableError": "停用机器人账号失败",
     "refreshTokenSuccess": "令牌刷新成功",
-    "refreshTokenError": "刷新令牌失败"
+    "refreshTokenError": "刷新令牌失败",
+    "createSuccess": "机器人账号已创建",
+    "createError": "创建机器人账号失败",
+    "updateSuccess": "机器人账号已更新",
+    "updateError": "更新机器人账号失败"
   },
   "errors": {
     "missingRobotId": "机器人账号 ID 缺失"
+  },
+  "createRobot": "创建账号",
+  "editRobot": "编辑账号",
+  "sections": {
+    "basic": "基本信息",
+    "platformPermissions": "系统权限",
+    "projectPermissions": "项目权限",
+    "projectPermissionMatrix": "项目权限明细"
+  },
+  "fields": {
+    "name": "名称",
+    "description": "描述",
+    "descriptionCount": "{{count}}/{{max}}",
+    "expiry": "过期时间",
+    "expireDays": "天数",
+    "dayUnit": "天",
+    "projectScope": "项目范围",
+    "projects": "项目",
+    "projectsPlaceholder": "请选择项目"
+  },
+  "expiry": {
+    "never": "永不过期",
+    "days": "指定天数"
+  },
+  "projectScopeForm": {
+    "all": "覆盖所有项目",
+    "selected": "选择已有项目"
   }
 }

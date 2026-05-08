@@ -66,6 +66,7 @@
     }
   },
   "tokenInfoModal": {
+    "createSuccessTitle": "Robot Account Created",
     "refreshSuccessTitle": "Token Refreshed",
     "copyOnce": "You only have one chance to copy or export the token",
     "name": "Name",
@@ -79,9 +80,40 @@
     "disableSuccess": "Robot account disabled",
     "disableError": "Failed to disable robot account",
     "refreshTokenSuccess": "Token refreshed",
-    "refreshTokenError": "Failed to refresh token"
+    "refreshTokenError": "Failed to refresh token",
+    "createSuccess": "Robot account created",
+    "createError": "Failed to create robot account",
+    "updateSuccess": "Robot account updated",
+    "updateError": "Failed to update robot account"
   },
   "errors": {
     "missingRobotId": "Robot account ID is missing"
+  },
+  "createRobot": "Create Account",
+  "editRobot": "Edit Account",
+  "sections": {
+    "basic": "Basic Information",
+    "platformPermissions": "Platform Permissions",
+    "projectPermissions": "Project Permissions",
+    "projectPermissionMatrix": "Project Permission Details"
+  },
+  "fields": {
+    "name": "Name",
+    "description": "Description",
+    "descriptionCount": "{{count}}/{{max}}",
+    "expiry": "Expiry",
+    "expireDays": "Days",
+    "dayUnit": "days",
+    "projectScope": "Project Scope",
+    "projects": "Projects",
+    "projectsPlaceholder": "Select projects"
+  },
+  "expiry": {
+    "never": "Never expires",
+    "days": "Specific days"
+  },
+  "projectScopeForm": {
+    "all": "All projects",
+    "selected": "Selected projects"
   }
 }

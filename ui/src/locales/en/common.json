@@ -42,6 +42,7 @@
     "minLength": "{{field}} must be at least {{min}} characters",
     "maxLength": "{{field}} must be at most {{max}} characters",
     "nameStartChar": "Must start with a letter or digit",
-    "nameInvalidChars": "Can only contain lowercase letters, digits, dots, underscores, and hyphens"
+    "nameInvalidChars": "Can only contain lowercase letters, digits, dots, underscores, and hyphens",
+    "minNumber": "{{field}} must be greater than or equal to {{min}}"
   }
 }

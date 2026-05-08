@@ -9,3 +9,7 @@ a {
 .mantine-Tabs-tab[data-active] {
   color: var(--mantine-color-gray-9);
 }
+
+.mantine-Accordion-control[data-active] {
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+}
