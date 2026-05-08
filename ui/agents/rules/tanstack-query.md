@@ -109,6 +109,22 @@ export function deleteProjectMutationOptions(): ... {
 }
 ```
 
+## Locale-Dependent Queries
+
+SDK requests send the current i18next language as `Accept-Language`. If an API response depends on that header, mark the query with `meta.localeDependent: true` so `src/queryClient.ts` invalidates it when the language changes.
+
+Keep the feature key prefix intact. For example, model queries should still start with `modelKeys.all` / `['models']`; do not put a shared locale key before the feature key, because feature-level invalidation such as `invalidateQueries({ queryKey: modelKeys.all })` relies on TanStack Query's prefix matching.
+
+```ts
+return queryOptions({
+  queryKey: modelKeys.list(search),
+  queryFn: () => Models.ListModels({ ... }),
+  meta: {
+    localeDependent: true,
+  } satisfies NotificationMeta,
+})
+```
+
 ## Cache Invalidation
 
 - `queryClient.invalidateQueries({ queryKey: projectKeys.all })` — invalidate everything for the feature

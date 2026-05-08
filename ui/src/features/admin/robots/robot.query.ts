@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-query'
 
 import type { RobotsSearch } from '@/routes/(auth)/admin/robots'
+import type { NotificationMeta } from '@/types/tanstack-query'
 
 export const adminRobotKeys = {
   all: ['admin', 'robots'] as const,
@@ -55,6 +56,9 @@ export function robotPermissionsQueryOptions() {
   return queryOptions({
     queryKey: adminRobotKeys.permissions(),
     queryFn: () => Roles.ListAllPermissions({}),
+    meta: {
+      localeDependent: true,
+    } satisfies NotificationMeta,
   })
 }
 
