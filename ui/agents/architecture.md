@@ -36,7 +36,7 @@ Owns only route adapter concerns:
 - `createFileRoute(...)` definitions
 - route-level layout, redirects, `beforeLoad`
 - route params, search params, metadata
-- `validateSearch` (Zod) and `loader` (prefetch via `ensureQueryData`)
+- `validateSearch` (Zod) and `loader` (detail pages block via `ensureQueryData`; list pages use non-blocking `prefetchQuery`)
 - very simple static pages
 
 Does **not** own complex page UI, business-flow orchestration, or large state. Every route file exports `Route`. See `patterns.md §11–§15` for the route-side protocol.
@@ -80,7 +80,7 @@ Reference: `src/features/projects/members/`.
 
 Stable primitives reused across ≥2 features. Same folder shape as a feature (`components/`, `hooks/`, `types/`, `utils/`). Examples that already live here: `DataTable`, `SearchToolbar`, `Pagination`, `ModalWrapper`, `useRouteListState`, `useForm`, `usePayloadModal`.
 
-**Shared table wrapper** goes under `src/shared/components/data-table/` (or the current shared location if it later moves). Centralise pagination, loading/empty states, row actions, selection behaviour, and shared styling inside the wrapper — feature tables stay focused on columns, cells, and feature-specific toolbar actions.
+**Shared table wrapper** is `src/shared/components/DataTable.tsx`. Centralise pagination, loading/empty states, row actions, selection behaviour, and shared styling inside the wrapper — feature tables stay focused on columns, cells, and feature-specific toolbar actions.
 
 Only promote code to `src/shared/` once reuse is clear. Do not pre-emptively abstract.
 

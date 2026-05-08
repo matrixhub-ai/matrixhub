@@ -267,17 +267,19 @@ Async server checks compose naturally on the same field:
 
 ## §11. Route: search params with Zod
 
-Always validate search params with a Zod schema. Use `fallback` (from `@tanstack/router-zod-adapter`) for defaults so an invalid or missing value is coerced rather than throwing.
+Always validate search params with a Zod schema. Use `.optional().default(value).catch(value)` for defaults so an invalid or missing value is coerced rather than throwing.
 
 ```ts
 import { z } from 'zod'
-import { fallback } from '@tanstack/router-zod-adapter'
+
+const defaults = {
+  query: '',
+  page: 1,
+}
 
 export const projectsSearchSchema = z.object({
-  q: fallback(z.string(), ''),
-  sort: fallback(z.enum(['updatedAt', 'name']), 'updatedAt'),
-  order: fallback(z.enum(['asc', 'desc']), 'desc'),
-  page: fallback(z.number().int().min(1), 1),
+  query: z.string().trim().optional().default(defaults.query).catch(defaults.query),
+  page: z.coerce.number().int().nonnegative().optional().default(defaults.page).catch(defaults.page),
 })
 export type ProjectsSearch = z.infer<typeof projectsSearchSchema>
 ```

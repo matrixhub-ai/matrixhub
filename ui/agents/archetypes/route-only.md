@@ -19,7 +19,7 @@ A change that touches only route plumbing — search params, loaders, redirects 
 
 From `patterns.md`:
 
-- §11 Search params with Zod + `fallback`
+- §11 Search params with Zod + `.default().catch()`
 - §12 Loaders — detail pages `await` to block navigation, list pages fire-and-forget (`void`); `loaderDeps` when loader reads search
 - §14 Route hooks & context — single `QueryClient`, `getRouteApi` outside the route file
 
@@ -27,7 +27,7 @@ From `patterns.md`:
 
 ## Archetype-specific gotchas
 
-- **Updating `validateSearch` shape is a user-facing contract change.** Existing bookmarks / inbound links must degrade gracefully — use `fallback` for every new param so missing/invalid values don't redirect to error.
+- **Updating `validateSearch` shape is a user-facing contract change.** Existing bookmarks / inbound links must degrade gracefully — use `.default().catch()` for every new param so missing/invalid values don't redirect to error.
 - **Add `loaderDeps` when the loader newly depends on search.** Adding a search param without declaring it in `loaderDeps` means the loader sees stale data after back-navigation.
 - **Do not hand-edit `src/routeTree.gen.ts`.** After changing route files, the generator runs on `pnpm dev` / `pnpm build` and refreshes the tree.
 - **Guards belong in `beforeLoad` / a parent route**, not in the component. Returning `redirect(...)` from `beforeLoad` is the canonical pattern.
@@ -48,7 +48,7 @@ From `patterns.md`:
 
 Subset of `workflows/review-checklist.md`:
 
-- New/changed search params use `fallback` for defaults.
+- New/changed search params use `.default().catch()` for defaults.
 - `loaderDeps` reflects the params the loader reads.
 - No manual edit of `src/routeTree.gen.ts`.
 - No second `QueryClient` introduced.

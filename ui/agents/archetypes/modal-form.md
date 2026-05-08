@@ -52,7 +52,7 @@ From `patterns.md`:
 
 Subset of `workflows/review-checklist.md`:
 
-- Form uses `@tanstack/react-form` + Zod schema — no Mantine `useForm`, no `useState` for field values.
+- Form uses `useForm` from `@/shared/hooks/useForm` + Zod schema — no Mantine `useForm`, no `useState` for field values.
 - `fieldError(field)` feeds Mantine `error` props.
 - `onBlur={field.handleBlur}` is present on every bound field.
 - `form.reset()` runs when the modal opens.

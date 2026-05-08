@@ -45,7 +45,7 @@ The full definitions live in the files linked. This table is an index so every r
 |---|---|
 | `src/routeTree.gen.ts` is tool-generated — never hand-edit | `stack.md`, `patterns.md §19` |
 | Complex page UI lives in `src/features/`, not `src/routes/` | `architecture.md` |
-| New forms use `@tanstack/react-form` + Zod — not Mantine `useForm`, not `useState` for field values | `patterns.md §7–§9`, `§19` |
+| New forms use `useForm` from `@/shared/hooks/useForm` + Zod — not Mantine `useForm`, not `useState` for field values | `patterns.md §7–§9`, `§19` |
 | Data tables go through the project wrapper — `mantine-react-table` is not wired directly in a feature page | `patterns.md §17`, `§19` |
 | API errors surface via global `MutationCache` / `QueryCache` — no per-component `try/catch` / `notifications.show()` | `patterns.md §4`, `§16`, `§19` |
 | New user-facing copy goes into locale files (`en` + `zh` both) — not hardcoded strings | `stack.md` |

@@ -26,7 +26,7 @@ From `patterns.md`:
 - §1 Architecture at a glance — definition/runtime flow
 - §2–§3 Query keys + `queryOptions` / `mutationOptions` factories
 - §4 `NotificationMeta` behavior (set `errorMessage`; `successMessage` only when needed)
-- §11 Route: search params with Zod + `fallback`
+- §11 Route: search params with Zod + `.default().catch()`
 - §12 Route: `prefetchQuery` loader (non-blocking) + `loaderDeps`
 - §13 Route: `useQuery` after prefetch
 - §17 Tables — go through the project wrapper (`src/shared/components/DataTable.tsx`)
@@ -58,7 +58,7 @@ From `patterns.md`:
 
 Subset of `workflows/review-checklist.md`:
 
-- `validateSearch` + Zod schema present with `fallback` defaults.
+- `validateSearch` + Zod schema present with `.default().catch()` defaults.
 - `loaderDeps` declared when the loader reads search.
 - Every mutation has `meta.errorMessage` and `meta.invalidates`.
 - Table usage goes through the project wrapper, not raw `mantine-react-table`.

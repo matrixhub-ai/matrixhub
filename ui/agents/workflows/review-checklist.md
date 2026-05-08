@@ -28,7 +28,7 @@ Every item below is phrased as a verifiable predicate. Tick or fail each one aga
 
 ## Forms
 
-- [ ] Forms use `@tanstack/react-form` + Zod schema — no Mantine `useForm`, no `useState` for field values, no other form library.
+- [ ] Forms use `useForm` from `@/shared/hooks/useForm` + Zod schema — no Mantine `useForm`, no `useState` for field values, no other form library.
 - [ ] Zod schemas are passed directly to field `validators`; no manual `safeParse` in validators.
 - [ ] `fieldError(field)` from `@/shared/utils/form` feeds every Mantine `error` prop.
 - [ ] Every bound field has `onBlur={field.handleBlur}`.
