@@ -1,3 +1,4 @@
+import { actionIconTheme } from './ActionIcon'
 import { alertTheme } from './Alert'
 import { anchorTheme } from './Anchor'
 import { buttonTheme } from './Button'
@@ -11,6 +12,7 @@ import { tabsTheme } from './Tabs'
 import { tabsTabTheme } from './TabsTab'
 
 export const themeComponents = {
+  ActionIcon: actionIconTheme,
   Alert: alertTheme,
   Anchor: anchorTheme,
   Button: buttonTheme,
