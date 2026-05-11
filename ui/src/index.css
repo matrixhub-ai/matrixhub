@@ -10,6 +10,22 @@ a {
   color: var(--mantine-color-gray-9);
 }
 
+.mantine-Button-root:where([data-with-left-section]) {
+  padding-inline-start: var(--button-padding-x);
+}
+
+.mantine-Button-root:where([data-with-right-section]) {
+  padding-inline-end: var(--button-padding-x);
+}
+
+.mantine-Button-section:where([data-position='left']) {
+  margin-inline-end: 6px;
+}
+
+.mantine-Button-section:where([data-position='right']) {
+  margin-inline-start: 6px;
+}
+
 .mantine-Accordion-control[data-active] {
   border-bottom: 1px solid var(--mantine-color-gray-3);
 }

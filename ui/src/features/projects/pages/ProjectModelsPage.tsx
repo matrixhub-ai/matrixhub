@@ -129,8 +129,6 @@ export function ProjectModelsPage() {
 
           <Link to="/models/new" search={{ projectId }}>
             <Button
-              h={32}
-              px="md"
               radius={6}
               leftSection={<IconCube size={16} />}
             >

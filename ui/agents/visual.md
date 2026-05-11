@@ -10,6 +10,7 @@ Mantine usage, color decisions, and Figma/SVG asset handling.
 - Prefer `Text` and `Title` for text rendering.
 - Prefer Mantine props and theme tokens for spacing — not hardcoded pixel values.
 - When styling a Mantine component that already expresses state or hierarchy (e.g. `Button` variants, `Badge` colors), first use the component's own semantics and stateful API before adding explicit colors.
+- Keep Mantine component theme configuration split by component under `src/mantine-theme/components/{Component}.ts`, and register it through `src/mantine-theme/components/index.ts`. Do not add large inline `components` blocks in `src/mantineTheme.ts`.
 - Do not pile raw `div`s or inline styles where Mantine already covers the use case.
 - Do not hardcode colors, font sizes, or spacing values as the default approach.
 
