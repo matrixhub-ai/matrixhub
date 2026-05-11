@@ -35,6 +35,10 @@ type SyncJobTableProps = Omit<
 
 type JobCellProps = Parameters<NonNullable<MRT_ColumnDef<SyncJob>['Cell']>>[0]
 
+function getSyncJobLogUrl(syncPolicyId: number, syncTaskId: number, syncJobId: number) {
+  return `/api/v1alpha1/sync-policies/${syncPolicyId}/sync-tasks/${syncTaskId}/sync-jobs/${syncJobId}/log`
+}
+
 function JobStatusCell({ row }: JobCellProps) {
   const { t } = useTranslation()
   const status = row.original.status
@@ -84,18 +88,29 @@ function JobStatusCell({ row }: JobCellProps) {
 
 function JobActionsCell({
   row,
-}: DataTableRowActionsProps<SyncJob>) {
-  const { t } = useTranslation()
+  syncPolicyId,
+  syncTaskId,
+  logsLabel,
+}: Pick<DataTableRowActionsProps<SyncJob>, 'row'> & {
+  syncPolicyId: number
+  syncTaskId: number
+  logsLabel: string
+}) {
+  const syncJobId = row.original.id
 
-  if (row.original.id == null) {
+  if (syncPolicyId == null || syncTaskId == null || syncJobId == null) {
     return null
   }
 
   return (
-    <Tooltip label={t('routes.admin.replications.executions.detail.table.logs')}>
+    <Tooltip label={logsLabel}>
       <ActionIcon
         variant="subtle"
-        disabled
+        component="a"
+        href={getSyncJobLogUrl(syncPolicyId, syncTaskId, syncJobId)}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={logsLabel}
       >
         <IconFileText size={18} />
       </ActionIcon>
@@ -104,12 +119,15 @@ function JobActionsCell({
 }
 
 export function SyncJobTable({
+  syncPolicyId,
+  syncTaskId,
   onRefresh,
   fetching = false,
   tableOptions,
   ...props
 }: SyncJobTableProps) {
   const { t } = useTranslation()
+  const logsLabel = t('routes.admin.replications.executions.detail.table.logs')
 
   const columns: MRT_ColumnDef<SyncJob>[] = [
     {
@@ -187,10 +205,17 @@ export function SyncJobTable({
       fetching={fetching}
       onRefresh={onRefresh}
       enableRowActions
-      renderRowActions={JobActionsCell}
+      renderRowActions={({ row }) => (
+        <JobActionsCell
+          row={row}
+          syncPolicyId={syncPolicyId}
+          syncTaskId={syncTaskId}
+          logsLabel={logsLabel}
+        />
+      )}
       displayColumnDefOptions={{
         'mrt-row-actions': {
-          header: t('routes.admin.replications.executions.detail.table.logs'),
+          header: logsLabel,
         },
       }}
       tableOptions={tableOptions}
