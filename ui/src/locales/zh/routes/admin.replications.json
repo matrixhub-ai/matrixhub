@@ -68,6 +68,11 @@
     "targetProjectName": "目标项目",
     "targetProjectNamePlaceholder": "例如：my-project",
     "triggerType": "触发模式",
+    "cronExpression": "Cron 表达式",
+    "cronExpressionPlaceholder": "例如：23 16 * * *",
+    "cronExpressionHint": "请输入五段式 Cron：分钟 小时 日期 月份 星期。",
+    "cronExpressionRaw": "Cron：{{cron}}",
+    "cronExpressionHelp": "当前表达式含义：{{description}}。",
     "bandwidth": "带宽限制",
     "bandwidthHint": "设置执行该条同步规则时的最大网络带宽。实际总带宽需要考虑并发执行的情况。如无需限制，请输入 -1。",
     "isOverwrite": "覆盖已有资源",
@@ -76,6 +81,8 @@
   "validation": {
     "resourceNameRequired": "请输入资源名称",
     "resourceTypesRequired": "至少需要选择一个资源类型",
+    "cronRequired": "请输入 Cron 表达式",
+    "cronInvalid": "请输入五段式 Cron 表达式",
     "sourceRegistryRequired": "请选择源仓库",
     "targetRegistryRequired": "请选择目标仓库"
   },

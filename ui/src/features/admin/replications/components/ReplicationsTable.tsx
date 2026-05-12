@@ -2,9 +2,13 @@ import {
   Anchor,
   Badge,
   Group,
+  Stack,
   Text,
 } from '@mantine/core'
-import { SyncPolicyType } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
+import {
+  SyncPolicyType,
+  TriggerType,
+} from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
 import { Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +18,7 @@ import {
   type DataTableProps,
   type DataTableRowActionsProps,
 } from '@/shared/components/DataTable'
+import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
 
 import { DeleteReplicationAction } from './DeleteReplicationAction'
 import { EditReplicationAction } from './EditReplicationAction'
@@ -21,6 +26,7 @@ import { SyncReplicationAction } from './SyncReplicationAction'
 import { ToggleReplicationAction } from './ToggleReplicationAction'
 import {
   formatReplicationBandwidth,
+  getCronExpressionDescription,
   getReplicationRowId,
 } from '../replications.utils'
 
@@ -73,6 +79,52 @@ function ReplicationStatusCell({ row }: ReplicationCellProps) {
         ? t('routes.admin.replications.status.disabled')
         : t('routes.admin.replications.status.enabled')}
     </Badge>
+  )
+}
+
+function ReplicationTriggerTypeCell({ row }: ReplicationCellProps) {
+  const {
+    t,
+    i18n,
+  } = useTranslation()
+  const triggerType = row.original.triggerType
+
+  if (triggerType === TriggerType.TRIGGER_TYPE_MANUAL) {
+    return t('routes.admin.replications.trigger.manual')
+  }
+
+  if (triggerType !== TriggerType.TRIGGER_TYPE_SCHEDULED) {
+    return EMPTY_VALUE
+  }
+
+  const cronExpression = row.original.triggerTypeSchedule?.cron?.trim() ?? ''
+  const cronDescription = getCronExpressionDescription(
+    cronExpression,
+    i18n.resolvedLanguage ?? i18n.language,
+  )
+  const cronExpressionHint = cronDescription
+    ? t('routes.admin.replications.form.cronExpressionHelp', {
+        description: cronDescription,
+      })
+    : t('routes.admin.replications.form.cronExpressionHint')
+
+  return (
+    <FieldHintLabel
+      label={t('routes.admin.replications.trigger.scheduled')}
+      hint={(
+        <Stack gap={4}>
+          <Text size="xs">
+            {t('routes.admin.replications.form.cronExpressionRaw', {
+              cron: cronExpression || EMPTY_VALUE,
+            })}
+          </Text>
+          <Text size="xs">
+            {cronExpressionHint}
+          </Text>
+        </Stack>
+      )}
+      tooltipProps={{ w: 360 }}
+    />
   )
 }
 
@@ -180,17 +232,8 @@ export function ReplicationsTable(props: ReplicationsTableProps) {
     {
       id: 'triggerType',
       header: t('routes.admin.replications.table.triggerType'),
-      accessorFn: (row) => {
-        if (row.triggerType === 'TRIGGER_TYPE_MANUAL') {
-          return t('routes.admin.replications.trigger.manual')
-        }
-
-        if (row.triggerType === 'TRIGGER_TYPE_SCHEDULED') {
-          return t('routes.admin.replications.trigger.scheduled')
-        }
-
-        return EMPTY_VALUE
-      },
+      accessorFn: row => row.triggerType ?? EMPTY_VALUE,
+      Cell: ReplicationTriggerTypeCell,
     },
     {
       id: 'bandwidth',

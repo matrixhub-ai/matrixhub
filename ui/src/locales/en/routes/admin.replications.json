@@ -68,6 +68,11 @@
     "targetProjectName": "Target Project",
     "targetProjectNamePlaceholder": "e.g., my-project",
     "triggerType": "Trigger Mode",
+    "cronExpression": "Cron Expression",
+    "cronExpressionPlaceholder": "e.g., 23 16 * * *",
+    "cronExpressionHint": "Use five fields: minute hour day month weekday.",
+    "cronExpressionRaw": "Cron: {{cron}}",
+    "cronExpressionHelp": "Current expression: {{description}}.",
     "bandwidth": "Bandwidth Limit",
     "bandwidthHint": "Sets the maximum network bandwidth for this sync rule. The actual total bandwidth depends on concurrent runs. Enter -1 for unlimited bandwidth.",
     "isOverwrite": "Overwrite existing resources",
@@ -76,6 +81,8 @@
   "validation": {
     "resourceNameRequired": "Resource name is required",
     "resourceTypesRequired": "At least one resource type is required",
+    "cronRequired": "Cron expression is required",
+    "cronInvalid": "Enter a five-field cron expression",
     "sourceRegistryRequired": "Source registry is required",
     "targetRegistryRequired": "Target registry is required"
   },

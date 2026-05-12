@@ -1,7 +1,11 @@
+import cronstrue from 'cronstrue'
+import 'cronstrue/locales/zh_CN'
+
 import type { ReplicationBandwidthUnit } from './replications.schema'
 import type { SyncPolicyItem } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
 
 const BANDWIDTH_UNIT_BASE = 1024
+const CRON_FIELD_COUNT = 5
 
 export function getReplicationRowId(item: SyncPolicyItem) {
   return String(item.id ?? item.name ?? '-')
@@ -75,4 +79,37 @@ export function getDefaultBandwidthValue(bandwidth?: string): string {
   }
 
   return bandwidth
+}
+
+export function normalizeFiveFieldCronExpression(expression: string) {
+  return expression.trim().replace(/\s+/g, ' ')
+}
+
+export function isFiveFieldCronExpression(expression: string) {
+  const fields = normalizeFiveFieldCronExpression(expression).split(' ')
+
+  return fields.length === CRON_FIELD_COUNT && fields.every(field => field.length > 0)
+}
+
+function getCronstrueLocale(language?: string) {
+  return language?.toLowerCase().startsWith('zh') ? 'zh_CN' : 'en'
+}
+
+export function getCronExpressionDescription(expression: string, language?: string) {
+  const normalizedExpression = normalizeFiveFieldCronExpression(expression)
+
+  if (!isFiveFieldCronExpression(normalizedExpression)) {
+    return undefined
+  }
+
+  try {
+    return cronstrue.toString(normalizedExpression, {
+      locale: getCronstrueLocale(language),
+      throwExceptionOnParseError: true,
+      use24HourTimeFormat: true,
+      verbose: true,
+    })
+  } catch {
+    return undefined
+  }
 }

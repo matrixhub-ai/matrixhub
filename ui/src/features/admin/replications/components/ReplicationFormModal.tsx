@@ -35,6 +35,7 @@ import {
 } from '../replications.mutation'
 import {
   createReplicationFormSchema,
+  replicationCronExpressionSchema,
   type ReplicationResourceTypeValue,
   type ReplicationFormValues,
   replicationResourceTypeValues,
@@ -43,8 +44,10 @@ import {
 } from '../replications.schema'
 import {
   convertBandwidthToApiValue,
+  getCronExpressionDescription,
   getDefaultBandwidthUnit,
   getDefaultBandwidthValue,
+  normalizeFiveFieldCronExpression,
 } from '../replications.utils'
 import classes from './ReplicationFormModal.module.css'
 
@@ -124,6 +127,13 @@ function buildPolicyPayload(values: ReplicationFormValues) {
     triggerType: values.triggerType,
     bandwidth,
     isOverwrite: values.isOverwrite,
+    ...(values.triggerType === TriggerType.TRIGGER_TYPE_SCHEDULED
+      ? {
+          triggerTypeSchedule: {
+            cron: normalizeFiveFieldCronExpression(values.cronExpression),
+          },
+        }
+      : {}),
   }
 
   if (values.policyType === SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE) {
@@ -164,6 +174,7 @@ function getFormDefaults(syncPolicy?: SyncPolicyItem): ReplicationFormValues {
     triggerType: syncPolicy?.triggerType === TriggerType.TRIGGER_TYPE_SCHEDULED
       ? TriggerType.TRIGGER_TYPE_SCHEDULED
       : TriggerType.TRIGGER_TYPE_MANUAL,
+    cronExpression: syncPolicy?.triggerTypeSchedule?.cron ?? '',
     bandwidth: getDefaultBandwidthValue(syncPolicy?.bandwidth),
     bandwidthUnit: getDefaultBandwidthUnit(syncPolicy?.bandwidth),
     isOverwrite: syncPolicy?.isOverwrite ?? true,
@@ -185,7 +196,10 @@ export function ReplicationFormModal({
   syncPolicy,
   onClose,
 }: ReplicationFormModalProps) {
-  const { t } = useTranslation()
+  const {
+    t,
+    i18n,
+  } = useTranslation()
   const createMutation = useMutation(createReplicationMutationOptions())
   const updateMutation = useMutation(updateReplicationMutationOptions())
   const registriesQuery = useQuery({
@@ -196,13 +210,31 @@ export function ReplicationFormModal({
     enabled: opened,
   })
 
-  const registryOptions = useMemo(
-    () => (registriesQuery.data?.registries ?? []).map(registry => ({
-      value: String(registry.id),
-      label: registry.name || registry.url || `#${registry.id}`,
-    })),
-    [registriesQuery.data],
-  )
+  const registryOptions = useMemo(() => {
+    const options = new Map<string, {
+      value: string
+      label: string
+    }>()
+
+    for (const registry of registriesQuery.data?.registries ?? []) {
+      if (registry.id == null || registry.id < 1) {
+        continue
+      }
+
+      const value = String(registry.id)
+
+      if (!value || options.has(value)) {
+        continue
+      }
+
+      options.set(value, {
+        value,
+        label: registry.name || registry.url || `#${registry.id}`,
+      })
+    }
+
+    return Array.from(options.values())
+  }, [registriesQuery.data])
 
   const resourceTypeOptions = useMemo(() => replicationResourceTypeValues.map(
     value => ({
@@ -219,7 +251,6 @@ export function ReplicationFormModal({
       label: value === TriggerType.TRIGGER_TYPE_SCHEDULED
         ? t('routes.admin.replications.trigger.scheduled')
         : t('routes.admin.replications.trigger.manual'),
-      disabled: value === TriggerType.TRIGGER_TYPE_SCHEDULED,
     }),
   ), [t])
 
@@ -257,6 +288,10 @@ export function ReplicationFormModal({
   const isPushMode = useStore(
     form.store,
     state => state.values.policyType === SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE,
+  )
+  const isScheduledMode = useStore(
+    form.store,
+    state => state.values.triggerType === TriggerType.TRIGGER_TYPE_SCHEDULED,
   )
 
   const handleSubmit = () => {
@@ -476,6 +511,7 @@ export function ReplicationFormModal({
           {field => (
             <Select
               label={t('routes.admin.replications.form.triggerType')}
+              withAsterisk
               data={triggerTypeOptions}
               value={field.state.value}
               onChange={value => field.handleChange(
@@ -486,6 +522,45 @@ export function ReplicationFormModal({
             />
           )}
         </form.Field>
+
+        {isScheduledMode && (
+          <form.Field
+            name="cronExpression"
+            validators={{
+              onChange: replicationCronExpressionSchema(),
+            }}
+          >
+            {(field) => {
+              const cronDescription = getCronExpressionDescription(
+                field.state.value,
+                i18n.resolvedLanguage ?? i18n.language,
+              )
+              const cronExpressionHint = cronDescription
+                ? t('routes.admin.replications.form.cronExpressionHelp', {
+                    description: cronDescription,
+                  })
+                : t('routes.admin.replications.form.cronExpressionHint')
+
+              return (
+                <TextInput
+                  label={(
+                    <FieldHintLabel
+                      label={t('routes.admin.replications.form.cronExpression')}
+                      hint={cronExpressionHint}
+                      tooltipProps={{ w: 360 }}
+                    />
+                  )}
+                  withAsterisk
+                  placeholder={t('routes.admin.replications.form.cronExpressionPlaceholder')}
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.currentTarget.value)}
+                  onBlur={field.handleBlur}
+                  error={fieldError(field)}
+                />
+              )
+            }}
+          </form.Field>
+        )}
 
         <Group gap="xs" align="flex-end">
           <form.Field name="bandwidth">
