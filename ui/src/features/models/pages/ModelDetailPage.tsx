@@ -97,8 +97,8 @@ export function ModelDetailPage({
           metaItems={buildModelMetaItems(model, projectId, i18n.t.bind(i18n))}
           actions={(
             <>
-              <Button size="xs" color="cyan" variant="light" leftSection={<IconCloudUpload size={16} />}>{t('model.detail.upload')}</Button>
-              <Button size="xs" color="cyan" variant="light" leftSection={<IconDownload size={16} />}>{t('model.detail.download')}</Button>
+              <Button color="cyan" fw="normal" variant="light" leftSection={<IconCloudUpload size={16} />}>{t('model.detail.upload')}</Button>
+              <Button color="cyan" fw="normal" variant="light" leftSection={<IconDownload size={16} />}>{t('model.detail.download')}</Button>
             </>
           )}
         />

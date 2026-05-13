@@ -33,7 +33,7 @@ export const buttonTheme = Button.extend({
   },
   vars: (_, props) => ({
     root: {
-      '--button-bd': rem(0),
+      '--button-bd': props.variant === 'outline' || props.variant === 'default' ? undefined : rem(0),
       '--button-height': isMappedButtonSize(props.size) ? buttonSizeMap[props.size].height : undefined,
       '--button-padding-x': isMappedButtonSize(props.size) ? buttonSizeMap[props.size].paddingX : undefined,
     },
