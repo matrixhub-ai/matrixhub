@@ -6,7 +6,7 @@ Technology choices, global wirings, and day-to-day commands. Everything here is 
 
 ## Stack
 
-- `pnpm` — package manager
+- `pnpm 10.x` — package manager (`package.json` pins the Corepack version)
 - `Vite` — dev server / build
 - `React 19`
 - `TypeScript`

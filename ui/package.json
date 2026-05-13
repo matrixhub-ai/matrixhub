@@ -2,7 +2,11 @@
   "name": "matrixhub-ui",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@10.17.0",
   "type": "module",
+  "engines": {
+    "pnpm": ">=10 <11"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
