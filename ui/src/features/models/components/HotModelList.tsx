@@ -7,8 +7,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
+import { ModelCard } from '@/features/models/components/ModelCard'
 import { catalogModelsQueryOptions } from '@/features/models/models.query.ts'
-import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
 
 const { useSearch } = getRouteApi('/(auth)/(app)/models/')

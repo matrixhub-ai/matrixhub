@@ -1,6 +1,5 @@
 import { Select, Stack } from '@mantine/core'
 import { MemberType } from '@matrixhub/api-ts/v1alpha1/project.pb'
-import { Users } from '@matrixhub/api-ts/v1alpha1/user.pb'
 import { useStore } from '@tanstack/react-form'
 import {
   useMutation,
@@ -9,6 +8,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
+import { allUsersQueryOptions } from '@/features/admin/users/users.query'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
@@ -70,11 +70,7 @@ export function AddMemberModal({
   const memberType = useStore(form.store, s => s.values.memberType)
 
   const { data: usersData } = useQuery({
-    queryKey: ['users', 'list'],
-    queryFn: () => Users.ListUsers({
-      page: 1,
-      pageSize: -1,
-    }),
+    ...allUsersQueryOptions(),
     enabled: opened && memberType === MemberType.MEMBER_TYPE_USER,
   })
 
@@ -114,6 +110,7 @@ export function AddMemberModal({
               withAsterisk
               data={memberTypeOptions}
               value={field.state.value}
+              onBlur={field.handleBlur}
               onChange={(value) => {
                 field.handleChange(value ?? '')
                 form.setFieldValue('memberId', '')
@@ -133,6 +130,7 @@ export function AddMemberModal({
               data={userOptions}
               value={field.state.value || null}
               onChange={value => field.handleChange(value ?? '')}
+              onBlur={field.handleBlur}
               searchable
               disabled={memberType === MemberType.MEMBER_TYPE_GROUP}
               error={fieldError(field)}
@@ -150,6 +148,7 @@ export function AddMemberModal({
               data={roleOptions}
               value={field.state.value || null}
               onChange={value => field.handleChange(value ?? '')}
+              onBlur={field.handleBlur}
               error={fieldError(field)}
             />
           )}

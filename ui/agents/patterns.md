@@ -96,7 +96,7 @@ All user-facing API feedback flows through `MutationCache` / `QueryCache` in `sr
 
 Behavior:
 
-- `MutationCache.onSuccess` — shows a green notification **only if `meta.successMessage` is provided**, then auto-invalidates `meta.invalidates` query keys.
+- `MutationCache.onSuccess` — shows a notification **only if `meta.successMessage` is provided**, then auto-invalidates `meta.invalidates` query keys. `successMessage` and `successColor` may be resolver functions when the message/color depends on the mutation result.
 - `MutationCache.onError` — shows a red notification with `meta.errorMessage` as the title + the error detail.
 - `QueryCache.onError` — shows a red notification **only** for background refetch failures (query that previously had data). Initial load failures surface through route `errorComponent`.
 - Both caches respect `meta.skipNotification` for background/silent operations.

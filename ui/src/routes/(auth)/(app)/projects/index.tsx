@@ -29,7 +29,7 @@ export const Route = createFileRoute('/(auth)/(app)/projects/')({
   loader: ({
     context, deps,
   }) => {
-    void context.queryClient.ensureQueryData(
+    void context.queryClient.prefetchQuery(
       projectsQueryOptions({
         query: deps.query ?? '',
         page: deps.page ?? DEFAULT_PROJECTS_PAGE,

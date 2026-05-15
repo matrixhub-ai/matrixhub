@@ -14,6 +14,7 @@ export const adminRegistryKeys = {
   all: ['admin', 'registries'] as const,
   lists: () => [...adminRegistryKeys.all, 'list'] as const,
   list: (search: RegistriesSearch) => [...adminRegistryKeys.lists(), search] as const,
+  allRegistries: () => [...adminRegistryKeys.lists(), 'all'] as const,
 }
 
 export function registriesQueryOptions(search: RegistriesSearch) {
@@ -24,6 +25,23 @@ export function registriesQueryOptions(search: RegistriesSearch) {
         page: search.page,
         pageSize: DEFAULT_REGISTRIES_PAGE_SIZE,
         search: search.query,
+      })
+
+      return {
+        registries: response.registries ?? [],
+        pagination: response.pagination,
+      }
+    },
+  })
+}
+
+export function allRegistriesQueryOptions() {
+  return queryOptions({
+    queryKey: adminRegistryKeys.allRegistries(),
+    queryFn: async () => {
+      const response = await Registries.ListRegistries({
+        page: 1,
+        pageSize: -1,
       })
 
       return {
