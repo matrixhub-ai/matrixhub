@@ -488,15 +488,39 @@ func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepo
 			mirror.WithSyncUserInfo(url.UserPassword(cred.Username, cred.Password)),
 		)
 	}
-	return g.mirror.Sync(ctx, gitPath, repoName,
+	return g.mirror.PullFromRemote(ctx, gitPath, repoName,
 		syncOptions...,
 	)
 }
 
 // PushToRemote pushes the local repository to the remote registry.
-// TODO: implement actual push logic; currently returns a placeholder error.
 func (g *gitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitRepository) error {
-	return fmt.Errorf("push base sync is not yet implemented")
+	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
+	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
+	destinationURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
+	if !repository.IsRepository(gitPath) {
+		return fmt.Errorf("local repository does not exist at %s", gitPath)
+	}
+
+	logWriter := gitRepository.LogWriter
+	if logWriter == nil {
+		logWriter = os.Stderr
+	}
+
+	syncOptions := []mirror.SyncOption{
+		mirror.WithSyncMirrorDestinationURL(destinationURL),
+		mirror.WithSyncOutput(logWriter),
+	}
+
+	if cred := gitRepository.Credential; cred != nil {
+		syncOptions = append(syncOptions,
+			mirror.WithSyncUserInfo(url.UserPassword(cred.Username, cred.Password)),
+		)
+	}
+
+	return g.mirror.PushToRemote(ctx, gitPath, repoName,
+		syncOptions...,
+	)
 }
 
 // ExtractMetadata reads raw metadata-related files from a Git repository.

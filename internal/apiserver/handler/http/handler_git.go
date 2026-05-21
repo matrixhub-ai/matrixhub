@@ -102,19 +102,6 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reject receive-pack (push) advertisement for mirror repositories
-	if service == repository.GitReceivePack && h.mirror != nil {
-		isMirror, err := h.mirror.IsMirror(r.Context(), repoName)
-		if err != nil {
-			responseText(w, fmt.Sprintf("Failed to check mirror status: %v", err), http.StatusInternalServerError)
-			return
-		}
-		if isMirror {
-			responseText(w, "push to mirror repository is not allowed", http.StatusForbidden)
-			return
-		}
-	}
-
 	if h.permissionHookFunc != nil {
 		op := permission.OperationReadRepo
 		if service == repository.GitReceivePack {
@@ -180,19 +167,6 @@ func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service 
 	if repoPath == "" {
 		responseText(w, fmt.Sprintf("repository %q not found", repoName), http.StatusNotFound)
 		return
-	}
-
-	// Reject pushes to mirror repositories
-	if service == repository.GitReceivePack && h.mirror != nil {
-		isMirror, err := h.mirror.IsMirror(r.Context(), repoName)
-		if err != nil {
-			responseText(w, fmt.Sprintf("Failed to check mirror status: %v", err), http.StatusInternalServerError)
-			return
-		}
-		if isMirror {
-			responseText(w, "push to mirror repository is not allowed", http.StatusForbidden)
-			return
-		}
 	}
 
 	if h.permissionHookFunc != nil {
