@@ -70,13 +70,23 @@ const config: Config = {
       hideOnScroll: false,
       items: [
         {
-          to: '/docs/intro',
-          label: 'Documentation',
+          to: '/product',
+          label: 'Product',
+          position: 'left',
+        },
+        {
+          to: '/docs/overview',
+          label: 'Docs',
           position: 'left',
         },
         {
           to: '/blog',
           label: 'Blog',
+          position: 'left',
+        },
+        {
+          to: '/community',
+          label: 'Community',
           position: 'left',
         },
         {
@@ -90,7 +100,7 @@ const config: Config = {
           className: 'navbar-github-link',
         },
         {
-          to: '/docs/intro',
+          to: '/docs/getting-started',
           label: 'Get Started',
           position: 'right',
           className: 'navbar-get-started-button',
@@ -103,22 +113,27 @@ const config: Config = {
         {
           title: 'Product',
           items: [
-            { label: 'Integrations', href: '#' },
-            { label: 'Roadmap', href: '#' },
+            { label: 'Why MatrixHub', to: '/product/why-matrixhub' },
+            { label: 'Use Cases', to: '/product/use-cases' },
+            { label: 'Architecture', to: '/product/architecture' },
+            { label: 'Comparison', to: '/product/comparison' },
           ],
         },
         {
           title: 'Resources',
           items: [
-            { label: 'Documentation', to: '/docs/intro' },
-            { label: 'API Reference', href: '#' },
-            { label: 'Community', href: '#' },
+            { label: 'Documentation', to: '/docs/overview' },
+            { label: 'API Reference', to: '/docs/reference' },
+            { label: 'Blog', to: '/blog' },
+            { label: 'Changelog', to: '/changelog' },
           ],
         },
         {
-          title: 'Connect',
+          title: 'Community',
           items: [
             { label: 'GitHub', href: 'https://github.com/matrixhub-ai/matrixhub' },
+            { label: 'Community', to: '/community' },
+            { label: 'Roadmap', to: '/roadmap' },
           ],
         },
       ],

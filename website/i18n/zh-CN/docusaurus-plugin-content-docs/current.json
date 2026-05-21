@@ -3,9 +3,49 @@
     "message": "当前版本",
     "description": "The label for version current"
   },
-  "sidebar.tutorialSidebar.category.Operations": {
+  "sidebar.tutorialSidebar.category.Overview": {
+    "message": "概览",
+    "description": "The label for category 'Overview' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Getting Started": {
+    "message": "快速开始",
+    "description": "The label for category 'Getting Started' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Installation": {
+    "message": "安装部署",
+    "description": "The label for category 'Installation' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Concepts": {
+    "message": "核心概念",
+    "description": "The label for category 'Concepts' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Guides": {
     "message": "操作指南",
+    "description": "The label for category 'Guides' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Integrations": {
+    "message": "集成",
+    "description": "The label for category 'Integrations' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Operations": {
+    "message": "运维管理",
     "description": "The label for category 'Operations' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Security": {
+    "message": "安全",
+    "description": "The label for category 'Security' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Reference": {
+    "message": "参考手册",
+    "description": "The label for category 'Reference' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Troubleshooting": {
+    "message": "故障排查",
+    "description": "The label for category 'Troubleshooting' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Development": {
+    "message": "开发",
+    "description": "The label for category 'Development' in sidebar 'tutorialSidebar'"
   },
   "sidebar.tutorialSidebar.category.Project Management": {
     "message": "项目管理",
