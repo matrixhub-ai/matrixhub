@@ -1,0 +1,32 @@
+.codeBlock {
+  position: relative;
+  border: 1px solid var(--mantine-color-gray-2);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-gray-0);
+}
+
+.code {
+  display: block;
+  padding: var(--mantine-spacing-md);
+  padding-right: calc(var(--mantine-spacing-xl) + var(--mantine-spacing-sm));
+  color: var(--mantine-color-gray-9);
+  font-size: var(--mantine-font-size-sm);
+  line-height: var(--mantine-line-height-md);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.copyButton {
+  position: absolute;
+  top: var(--mantine-spacing-xs);
+  right: var(--mantine-spacing-xs);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.codeBlock:hover .copyButton,
+.codeBlock:focus-within .copyButton {
+  opacity: 1;
+  pointer-events: auto;
+}

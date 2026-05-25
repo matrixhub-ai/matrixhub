@@ -18,10 +18,25 @@
   "detail": {
     "upload": "上传模型文件",
     "download": "下载模型文件",
+    "use": "使用此模型",
     "desc": "模型介绍",
     "tree": "模型文件",
     "setting": "模型设置",
-    "history": "{{count}} 条提交"
+    "history": "{{count}} 条提交",
+    "commandDialog": {
+      "upload": {
+        "title": "上传模型文件",
+        "description": "运行以下命令将本地文件上传到该模型。"
+      },
+      "download": {
+        "title": "下载模型文件",
+        "description": "运行以下命令下载该模型。"
+      },
+      "use": {
+        "title": "使用此模型",
+        "description": "运行以下命令通过 vLLM 启动该模型。"
+      }
+    }
   },
   "settings": {
     "delete": {

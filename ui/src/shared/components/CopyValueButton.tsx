@@ -17,6 +17,7 @@ interface CopyValueButtonProps {
   value: string
   timeout?: number
   iconSize?: number
+  iconClassName?: string
   color?: string
   children?: (props: CopyRenderProps) => ReactNode
 }
@@ -25,6 +26,7 @@ export function CopyValueButton({
   value,
   color = 'gray',
   timeout = 1500,
+  iconClassName,
   iconSize = 16,
   children,
 }: CopyValueButtonProps) {
@@ -53,6 +55,8 @@ export function CopyValueButton({
                       variant="subtle"
                       color={color}
                       onClick={copy}
+                      className={iconClassName}
+                      aria-label={copied ? t('shared.copyValueButton.copied') : t('shared.copyValueButton.copy')}
                     >
                       <IconCopy size={iconSize} />
                     </ActionIcon>

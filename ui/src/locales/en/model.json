@@ -18,10 +18,25 @@
   "detail": {
     "upload": "Upload Model Files",
     "download": "Download Model",
+    "use": "Use This Model",
     "desc": "Model Introduction",
     "tree": "Model Files",
     "setting": "Settings",
-    "history": "Commit History"
+    "history": "Commit History",
+    "commandDialog": {
+      "upload": {
+        "title": "Upload Model Files",
+        "description": "Run this command to upload local files to this model."
+      },
+      "download": {
+        "title": "Download Model",
+        "description": "Run this command to download this model."
+      },
+      "use": {
+        "title": "Use This Model",
+        "description": "Run this command to serve this model with vLLM."
+      }
+    }
   },
   "settings": {
     "delete": {
