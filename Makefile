@@ -66,8 +66,10 @@ image-build: ## Build the MatrixHub image
 		-t $(IMAGE_REPO):$(VERSION) \
 		-f deploy/docker/matrixhub/Dockerfile \
 		$(if $(PLATFORMS),--platform=$(PLATFORMS)) \
-		--build-arg GOPROXY=$(GOPROXY) \
-		--build-arg BASE_IMAGE_PREFIX=$(BASE_IMAGE_PREFIX) \
+		--build-arg GOPROXY="$(GOPROXY)" \
+		--build-arg HTTP_PROXY="$(HTTP_PROXY)" \
+		--build-arg HTTPS_PROXY="$(HTTPS_PROXY)" \
+		--build-arg BASE_IMAGE_PREFIX="$(BASE_IMAGE_PREFIX)" \
 		$(PUSH) \
 		$(IMAGE_BUILD_EXTRA_OPTS) \
 		.

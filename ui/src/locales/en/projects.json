@@ -30,7 +30,6 @@
         "name": "Name",
         "memberType": "Member Type",
         "roleType": "Permission Type",
-        "actions": "Actions",
         "empty": "No members yet"
       },
       "memberType": {
@@ -85,7 +84,6 @@
     "modelCount": "Models",
     "datasetCount": "Datasets",
     "updatedAt": "Last Updated",
-    "actions": "Actions",
     "empty": "No projects found",
     "loading": "Loading projects...",
     "recordsPerPage": "Rows per page",
@@ -126,7 +124,8 @@
   "validation": {
     "nameRequired": "Project name is required",
     "nameMinLength": "Project name must be at least 2 characters",
-    "nameFormat": "Only lowercase letters, numbers and hyphens allowed; must start and end with a letter or number",
+    "nameFormat": "Only letters, numbers and hyphens allowed; must start and end with a letter or number",
+    "nameDistinctChars": "Project name must contain at least two different characters",
     "organizationRequired": "Organization or user is required when proxy is enabled",
     "registryRequired": "Registry is required when proxy is enabled"
   }

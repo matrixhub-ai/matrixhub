@@ -140,6 +140,10 @@ func (r *RobotHandler) transferRobot(item *robot.Robot) *v1alpha1.GetRobotAccoun
 		scope = v1alpha1.RobotAccountProjectScope_ROBOT_ACCOUNT_PROJECT_SCOPE_ALL
 	}
 
+	projects := lo.Map(item.Projects, func(p *project.Project, _ int) string {
+		return p.Name
+	})
+
 	return &v1alpha1.GetRobotAccountResponse{
 		Id:                  uint32(item.ID),
 		Name:                item.Name,
@@ -147,12 +151,12 @@ func (r *RobotHandler) transferRobot(item *robot.Robot) *v1alpha1.GetRobotAccoun
 		Status:              status,
 		PlatformPermissions: role.PermissionsToStrings(item.PlatformPermissions),
 		ProjectPermissions:  role.PermissionsToStrings(item.ProjectPermissions),
-		//Projects:            ,
-		CreatedAt:    strconv.Itoa(int(item.CreatedAt.Unix())),
-		ExpireStatus: expireStatus,
-		RemainPeriod: remainPeriod,
-		ExpireDays:   int32(item.Duration),
-		ProjectScope: scope,
+		Projects:            projects,
+		CreatedAt:           strconv.Itoa(int(item.CreatedAt.Unix())),
+		ExpireStatus:        expireStatus,
+		RemainPeriod:        remainPeriod,
+		ExpireDays:          int32(item.Duration),
+		ProjectScope:        scope,
 	}
 }
 
@@ -209,15 +213,19 @@ func (r *RobotHandler) UpdateRobotAccount(ctx context.Context, request *v1alpha1
 		scope = robot.ProjectScopeAll
 	}
 	rb.Description = request.Description
-	rb.Duration = int(request.ExpireDays)
 	rb.PlatformPermissions = platformPermissions
 	rb.ProjectPermissions = projectPermissions
 	rb.ProjectScope = scope
 
-	if request.ExpireDays > 0 {
-		expireAt := time.Now().AddDate(0, 0, int(request.ExpireDays))
-		rb.ExpireAt = &expireAt
+	if int(request.ExpireDays) != rb.Duration {
+		if request.ExpireDays == 0 {
+			rb.ExpireAt = nil
+		} else {
+			expireAt := rb.CreatedAt.AddDate(0, 0, int(request.ExpireDays))
+			rb.ExpireAt = &expireAt
+		}
 	}
+	rb.Duration = int(request.ExpireDays)
 
 	rb.Projects, err = r.checkProjects(ctx, request.ProjectScope, request.Projects)
 	if err != nil {

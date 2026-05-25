@@ -89,7 +89,10 @@ func (u *UserRepo) UpdateUserPassword(ctx context.Context, id int, password stri
 		return err
 	}
 	user.Password = password
-	return u.db.WithContext(ctx).Model(user).Where("id = ?", user.ID).Updates(user).Error
+	return u.db.WithContext(ctx).Model(user).Where("id = ?", user.ID).Updates(map[string]interface{}{
+		"password":        password,
+		"session_version": gorm.Expr("session_version + 1"),
+	}).Error
 }
 
 func (u *UserRepo) SetUserSysAdmin(ctx context.Context, userID int, isAdmin bool) error {

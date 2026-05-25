@@ -38,6 +38,14 @@ type HTTPAuthenticator interface {
 	//   (nil, err)      — credentials were present but invalid; reject immediately, do not try further
 	//   (identity, nil) — authentication succeeded
 	Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error)
+
+	// AuthenticateToken verify the extracted credentials.
+	//
+	// Return semantics:
+	//   (nil, nil)      — this method does not apply to this request; skip and try the next one
+	//   (nil, err)      — credentials were present but invalid; reject immediately, do not try further
+	//   (identity, nil) — authentication succeeded
+	AuthenticateToken(ctx context.Context, username, token string) (auth.Identity, error)
 }
 
 type SessionRenewer interface {

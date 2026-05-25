@@ -13,6 +13,8 @@ import {
 import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks'
 import { IconRefresh, IconTrash } from '@tabler/icons-react'
 import { MantineReactTable } from 'mantine-react-table'
+import 'mantine-react-table/styles.css'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Pagination } from './Pagination'
@@ -63,6 +65,9 @@ export interface DataTableToolbarProps {
   toolbarExtra?: ReactNode
 }
 
+export type DataTableRowActionsProps<TData extends MRT_RowData>
+  = Parameters<NonNullable<MRT_TableOptions<TData>['renderRowActions']>>[0]
+
 /**
  * Common props for resource table wrappers (e.g. ProjectsTable, ModelsTable).
  * Provides the standard set of pagination, search, selection, and action props
@@ -95,6 +100,7 @@ export interface DataTableProps<TData extends MRT_RowData> extends DataTableTool
   enableRowActions?: boolean
   renderRowActions?: MRT_TableOptions<TData>['renderRowActions']
   positionActionsColumn?: 'first' | 'last'
+  pinRowActions?: boolean
 
   // --- Loading ---
   loading?: boolean
@@ -128,6 +134,8 @@ export interface DataTableProps<TData extends MRT_RowData> extends DataTableTool
 
 // -- Internal helpers --
 
+const ROW_ACTIONS_COLUMN_ID = 'mrt-row-actions'
+
 function hasContent(value: ReactNode) {
   return value !== null && value !== undefined && value !== false && value !== ''
 }
@@ -156,9 +164,79 @@ function mergeTableOptionProps<TData extends MRT_RowData, TProps extends object>
   }
 }
 
-// -- DataTable --
+function resolveTableOptionProps<TArgs extends object, TProps extends object>(
+  props: TProps | ((args: TArgs) => TProps) | undefined,
+  args: TArgs,
+) {
+  if (!props) {
+    return undefined
+  }
 
-const emptyRowsFallback = () => null
+  return typeof props === 'function'
+    ? props(args)
+    : props
+}
+
+// Build a value→label map from the static `data` of a select-filter column so
+// the active-filter tooltip shows the human-readable label instead of the raw
+// value. Skipped when `mantineFilterSelectProps` is a function (we can't inspect
+// it without table args) or `data` is missing/grouped.
+function deriveSelectFilterLabelMap<TData extends MRT_RowData>(
+  column: MRT_ColumnDef<TData>,
+): Map<string, string> | undefined {
+  const filterProps = column.mantineFilterSelectProps
+
+  if (!filterProps || typeof filterProps === 'function') {
+    return undefined
+  }
+
+  const data = (filterProps as { data?: unknown }).data
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return undefined
+  }
+
+  const labelByValue = new Map<string, string>()
+
+  for (const item of data) {
+    if (typeof item === 'string') {
+      labelByValue.set(item, item)
+    } else if (item && typeof item === 'object' && 'value' in item) {
+      const value = String((item as { value: unknown }).value ?? '')
+      const label = (item as { label?: unknown }).label
+
+      labelByValue.set(value, typeof label === 'string' ? label : value)
+    }
+  }
+
+  return labelByValue.size > 0 ? labelByValue : undefined
+}
+
+function withFilterTooltipLabels<TData extends MRT_RowData>(
+  columns: MRT_ColumnDef<TData>[],
+): MRT_ColumnDef<TData>[] {
+  return columns.map((column) => {
+    if (column.filterTooltipValueFn) {
+      return column
+    }
+    const labelByValue = deriveSelectFilterLabelMap(column)
+
+    if (!labelByValue) {
+      return column
+    }
+
+    return {
+      ...column,
+      filterTooltipValueFn: (value: unknown) => {
+        const key = String(value ?? '')
+
+        return labelByValue.get(key) ?? key
+      },
+    }
+  })
+}
+
+// -- DataTable --
 
 export function DataTable<TData extends MRT_RowData>({
   data,
@@ -177,7 +255,8 @@ export function DataTable<TData extends MRT_RowData>({
   // Row actions
   enableRowActions = false,
   renderRowActions,
-  positionActionsColumn,
+  positionActionsColumn = 'last',
+  pinRowActions = false,
   // Toolbar
   searchPlaceholder,
   searchValue,
@@ -191,7 +270,7 @@ export function DataTable<TData extends MRT_RowData>({
   // Loading
   loading = false,
   fetching = false,
-  renderEmptyRowsFallback = emptyRowsFallback,
+  renderEmptyRowsFallback,
   // Header
   hideTableHead = false,
   // Display column overrides
@@ -201,13 +280,55 @@ export function DataTable<TData extends MRT_RowData>({
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
   const {
+    columnFilterDisplayMode = 'popover',
+    defaultColumn,
+    enableColumnPinning = false,
+    enableColumnFilters = true,
     initialState,
+    mantineFilterSelectProps,
+    mantineFilterTextInputProps,
     mantinePaperProps,
     mantineTableContainerProps,
     mantineTableProps,
     state: extraState,
     ...restTableOptions
   } = tableOptions ?? {}
+
+  const enhancedColumns = useMemo(() => withFilterTooltipLabels(columns), [columns])
+
+  const shouldPinRowActions = enableRowActions && pinRowActions
+  const actionColumnPinning = initialState?.columnPinning
+  const pinnedLeftColumns = (actionColumnPinning?.left ?? [])
+    .filter(columnId => columnId !== ROW_ACTIONS_COLUMN_ID)
+  const pinnedRightColumns = (actionColumnPinning?.right ?? [])
+    .filter(columnId => columnId !== ROW_ACTIONS_COLUMN_ID)
+  const pinnedInitialState = shouldPinRowActions
+    ? {
+        ...initialState,
+        columnPinning: {
+          ...actionColumnPinning,
+          left: positionActionsColumn === 'first'
+            ? [...pinnedLeftColumns, ROW_ACTIONS_COLUMN_ID]
+            : pinnedLeftColumns,
+          right: positionActionsColumn === 'last'
+            ? [...pinnedRightColumns, ROW_ACTIONS_COLUMN_ID]
+            : pinnedRightColumns,
+        },
+      }
+    : initialState
+  const mergedDisplayColumnDefOptions = {
+    ...(displayColumnDefOptions ?? {}),
+    'mrt-row-select': {
+      header: '',
+      size: 44,
+      grow: false,
+      ...displayColumnDefOptions?.['mrt-row-select'],
+    },
+    'mrt-row-actions': {
+      header: t('shared.actions'),
+      ...displayColumnDefOptions?.['mrt-row-actions'],
+    },
+  }
 
   const [debouncedLoading] = useDebouncedValue(loading, 300)
 
@@ -282,7 +403,22 @@ export function DataTable<TData extends MRT_RowData>({
   // Empty state
   const hasEmptyTitle = hasContent(emptyTitle)
   const hasEmptyDescription = hasContent(emptyDescription)
-  const showEmptyState = data.length === 0 && !loading && (hasEmptyTitle || hasEmptyDescription)
+  const hasCustomEmptyState = hasEmptyTitle || hasEmptyDescription
+  const renderDefaultEmptyRowsFallback = hasCustomEmptyState
+    ? () => (
+        <Center py="xl" w="100%">
+          <Stack align="center" gap="xs">
+            {hasEmptyTitle && <Text fw={500}>{emptyTitle}</Text>}
+            {hasEmptyDescription && (
+              <Text size="sm" c="dimmed">
+                {emptyDescription}
+              </Text>
+            )}
+          </Stack>
+        </Center>
+      )
+    : () => null
+  const effectiveRenderEmptyRowsFallback = renderEmptyRowsFallback ?? renderDefaultEmptyRowsFallback
 
   // Pagination
   const totalPages = pagination?.pages
@@ -297,7 +433,7 @@ export function DataTable<TData extends MRT_RowData>({
       {toolbar}
 
       <MantineReactTable
-        columns={columns}
+        columns={enhancedColumns}
         data={data}
         enableBottomToolbar={false}
         enableTopToolbar={false}
@@ -309,38 +445,43 @@ export function DataTable<TData extends MRT_RowData>({
         enableGlobalFilterModes={false}
         enableHiding={false}
         enablePagination={false}
-        enableColumnFilters={false}
+        enableColumnFilters={enableColumnFilters}
+        enableColumnPinning={shouldPinRowActions || enableColumnPinning}
         enableSorting={false}
         enableTableHead={!hideTableHead}
+        columnFilterDisplayMode={columnFilterDisplayMode}
+        defaultColumn={{
+          enableColumnFilter: false,
+          ...defaultColumn,
+        }}
         // Selection
         enableRowSelection={enableRowSelection}
         enableSelectAll={enableSelectAll}
-        layoutMode="grid"
         onRowSelectionChange={onRowSelectionChange}
         getRowId={getRowId}
         // Row actions
         enableRowActions={enableRowActions}
         renderRowActions={renderRowActions}
         positionActionsColumn={positionActionsColumn}
-        renderEmptyRowsFallback={renderEmptyRowsFallback}
+        renderEmptyRowsFallback={effectiveRenderEmptyRowsFallback}
         localization={{ noRecordsToDisplay: '' }}
         // Display column overrides
-        displayColumnDefOptions={{
-          'mrt-row-select': {
-            header: '',
-            size: 44,
-            grow: false,
-            ...displayColumnDefOptions?.['mrt-row-select'],
-          },
-          ...displayColumnDefOptions,
-        }}
+        displayColumnDefOptions={mergedDisplayColumnDefOptions}
         // Escape hatch
         {...restTableOptions}
         initialState={{
           density: 'xs',
-          ...initialState,
+          ...pinnedInitialState,
         }}
         state={tableState}
+        mantineFilterSelectProps={args => ({
+          clearable: true,
+          comboboxProps: { withinPortal: false },
+          ...resolveTableOptionProps(mantineFilterSelectProps, args),
+        })}
+        mantineFilterTextInputProps={args => ({
+          ...resolveTableOptionProps(mantineFilterTextInputProps, args),
+        })}
         mantinePaperProps={mergeTableOptionProps<TData, PaperProps>(
           {
             radius: 0,
@@ -388,19 +529,6 @@ export function DataTable<TData extends MRT_RowData>({
           bg: row.getIsSelected() ? 'var(--mantine-color-cyan-light)' : undefined,
         })}
       />
-
-      {showEmptyState && (
-        <Center py="xl">
-          <Stack align="center" gap="xs">
-            {hasEmptyTitle && <Text fw={500}>{emptyTitle}</Text>}
-            {hasEmptyDescription && (
-              <Text size="sm" c="dimmed">
-                {emptyDescription}
-              </Text>
-            )}
-          </Stack>
-        </Center>
-      )}
 
       {onPageChange && (
         <Pagination

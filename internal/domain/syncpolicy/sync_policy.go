@@ -195,6 +195,11 @@ func (p *SyncPolicy) IsPushBase() bool {
 	return p.PolicyType == SyncPolicyTypePush
 }
 
+// HasWildcardResourceName returns true when the policy targets all resources in the remote project.
+func (p *SyncPolicy) HasWildcardResourceName() bool {
+	return p.RemoteResourceName == "**" || p.RemoteResourceName == "*"
+}
+
 type ISyncPolicyRepo interface {
 	CreateSyncPolicy(ctx context.Context, policy *SyncPolicy) error
 	GetSyncPolicy(ctx context.Context, id int) (*SyncPolicy, error)

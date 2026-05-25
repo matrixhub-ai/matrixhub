@@ -16,6 +16,9 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -27,19 +30,25 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+	"github.com/matrixhub-ai/matrixhub/internal/jobserver/canceller"
+	"github.com/matrixhub-ai/matrixhub/internal/jobserver/logstore"
 )
 
 type SyncPolicyHandler struct {
 	syncPolicyService syncpolicy.ISyncPolicyService
 	syncJobService    syncjob.ISyncJobService
 	registryRepo      registry.IRegistryRepo
+	logStore          logstore.LogStore
+	canceller         canceller.Canceller
 }
 
-func NewSyncPolicyHandler(syncPolicyService syncpolicy.ISyncPolicyService, syncJobService syncjob.ISyncJobService, registryRepo registry.IRegistryRepo) IHandler {
+func NewSyncPolicyHandler(syncPolicyService syncpolicy.ISyncPolicyService, syncJobService syncjob.ISyncJobService, registryRepo registry.IRegistryRepo, logStore logstore.LogStore, canc canceller.Canceller) IHandler {
 	return &SyncPolicyHandler{
 		syncPolicyService: syncPolicyService,
 		syncJobService:    syncJobService,
 		registryRepo:      registryRepo,
+		logStore:          logStore,
+		canceller:         canc,
 	}
 }
 
@@ -217,13 +226,8 @@ func (h *SyncPolicyHandler) CreateSyncTask(ctx context.Context, request *v1alpha
 		return nil, status.Error(codes.Internal, "failed to get sync policy")
 	}
 
-	// Check if policy is disabled
-	if policy.IsDisabled {
-		return nil, status.Error(codes.FailedPrecondition, "sync policy is disabled")
-	}
-
-	// Service creates the task synchronously and executes jobs asynchronously
-	task, err := h.syncPolicyService.CreateExcecuteSyncTaskAndSyncJobs(ctx, policy)
+	// Create a pending task; syncTaskProcessor will pick it up and execute.
+	task, err := h.syncPolicyService.CreateSyncTaskAsync(ctx, policy)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to create sync task")
 	}
@@ -316,13 +320,12 @@ func (h *SyncPolicyHandler) UpdateSyncPolicySwitch(ctx context.Context, request 
 	}, nil
 }
 
-// StopSyncTask stops a running sync task
+// StopSyncTask stops a running sync task and cancels in-flight jobs.
 func (h *SyncPolicyHandler) StopSyncTask(ctx context.Context, request *v1alpha1.StopSyncTaskRequest) (*v1alpha1.StopSyncTaskResponse, error) {
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	// Get the task
 	task, err := h.syncPolicyService.GetSyncTask(ctx, int(request.SyncTaskId))
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
@@ -331,12 +334,35 @@ func (h *SyncPolicyHandler) StopSyncTask(ctx context.Context, request *v1alpha1.
 		return nil, status.Error(codes.Internal, "failed to get sync task")
 	}
 
-	// Verify the task belongs to the policy
 	if task.SyncPolicyID != int(request.SyncPolicyId) {
 		return nil, status.Error(codes.InvalidArgument, "sync task does not belong to the specified policy")
 	}
 
-	// Update task status to stopped
+	// Cancel running jobs and mark pending jobs as stopped.
+	allJobs, _, err := h.syncJobService.ListSyncJobsByTaskID(ctx, task.ID, 1, 10000, syncjob.SyncJobStatusUnspecified, "")
+	if err == nil {
+		for _, j := range allJobs {
+			if j.Status == syncjob.SyncJobStatusRunning {
+				h.canceller.Cancel(j.ID)
+			}
+			if j.Status != syncjob.SyncJobStatusStopped {
+				j.Status = syncjob.SyncJobStatusStopped
+				if upErr := h.syncJobService.UpdateSyncJob(ctx, j); upErr != nil {
+					log.Warnw("update stopped job failed", "jobID", j.ID, "error", upErr)
+				}
+			}
+		}
+	}
+
+	// Refresh task statistics so StoppedItems reflects reality.
+	if repErr := h.syncPolicyService.ReportTaskStatus(ctx, task.ID); repErr != nil {
+		log.Warnw("report task status failed after stop", "taskID", task.ID, "error", repErr)
+	}
+
+	task, err = h.syncPolicyService.GetSyncTask(ctx, task.ID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to refresh sync task")
+	}
 	task.Status = syncpolicy.SyncTaskStatusStopped
 	task.CompletedTimestamp = time.Now().Unix()
 
@@ -381,7 +407,7 @@ func (h *SyncPolicyHandler) ListSyncJobs(ctx context.Context, request *v1alpha1.
 
 	items := make([]*v1alpha1.SyncJob, len(jobs))
 	for i, j := range jobs {
-		items[i] = syncJobToProto(j)
+		items[i] = h.syncJobToProto(ctx, j)
 	}
 
 	return &v1alpha1.ListSyncJobsResponse{
@@ -408,8 +434,22 @@ func (h *SyncPolicyHandler) GetSyncJobLog(ctx context.Context, request *v1alpha1
 		return nil, status.Error(codes.Internal, "failed to get sync job")
 	}
 
+	rc, err := h.logStore.Reader(int(request.SyncJobId))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &v1alpha1.GetSyncJobLogResponse{Log: ""}, nil
+		}
+		return nil, status.Error(codes.Internal, "failed to read job log")
+	}
+	defer func() { _ = rc.Close() }()
+
+	content, err := io.ReadAll(rc)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to read job log content")
+	}
+
 	return &v1alpha1.GetSyncJobLogResponse{
-		Log: "",
+		Log: string(content),
 	}, nil
 }
 
@@ -592,7 +632,7 @@ func buildResourcePath(project, name string) string {
 	return project + "/" + name
 }
 
-func syncJobToProto(j *syncjob.SyncJob) *v1alpha1.SyncJob {
+func (h *SyncPolicyHandler) syncJobToProto(ctx context.Context, j *syncjob.SyncJob) *v1alpha1.SyncJob {
 	if j == nil {
 		return nil
 	}
@@ -602,15 +642,32 @@ func syncJobToProto(j *syncjob.SyncJob) *v1alpha1.SyncJob {
 		action = "clone"
 	}
 
+	regName := ""
+	if h.registryRepo != nil && j.RemoteRegistryID > 0 {
+		if reg, err := h.registryRepo.GetRegistry(ctx, j.RemoteRegistryID); err == nil && reg != nil {
+			regName = reg.Name
+		}
+	}
+
+	var src, dst string
+	if j.SyncType == "pull" {
+		src = fmt.Sprintf("%s:%s/%s", regName, j.RemoteProjectName, j.RemoteResourceName)
+		dst = fmt.Sprintf("local:%s/%s", j.ProjectName, j.ResourceName)
+	} else {
+		src = fmt.Sprintf("local:%s/%s", j.ProjectName, j.ResourceName)
+		dst = fmt.Sprintf("%s:%s/%s", regName, j.RemoteProjectName, j.RemoteResourceName)
+	}
+
 	return &v1alpha1.SyncJob{
 		Id:                 int32(j.ID),
 		SyncTaskId:         int32(j.SyncTaskID),
 		ResourceType:       stringToResourceType(j.ResourceType),
-		ResourceName:       j.ResourceName,
-		TargetResourceName: j.RemoteResourceName,
+		ResourceName:       src,
+		TargetResourceName: dst,
 		Action:             action,
 		Status:             v1alpha1.SyncJobStatus(j.Status),
 		CompletedTimestamp: j.CompletedTimestamp,
+		CreatedTimestamp:   j.CreatedAt.Unix(),
 	}
 }
 

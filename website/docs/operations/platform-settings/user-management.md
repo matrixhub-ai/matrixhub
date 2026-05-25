@@ -4,25 +4,38 @@ sidebar_position: 1
 
 # User Management
 
+Only platform administrators can access and operate the user management functions.
+
 ## Prerequisites
 
-- You must be an **Organization Admin** or **Platform Admin**.
+- Logged in to MatrixHub with a platform admin account.
 
-## Steps
+## User List Overview
 
-### Create User
+The user management page contains the following information and operations:
 
-1. Log in to MatrixHub and navigate to **Platform Settings** -> **User Management**.
+| Parameter | Description |
+|-----------|-------------|
+| Username | The unique identifier of the user account. |
+| Platform Admin | Indicates whether the user has platform administrator permissions. |
+| Source | The source of the user, supporting **Built-in** or **LDAP**. |
+| Creation Time | The time the user account was created. |
+| Operations | Supports **Set as Admin**, **Cancel Admin**, **Reset Password**, and **Delete**. |
 
-    ![User Overview](./images/user-overview.png)
+![User Overview](./images/user-overview.png)
 
-1. Click **Create User**, fill in the username, email, and initial password, then click **Confirm**.
+## Create User
 
-    ![Create User](./images/user-create.jpg)
+1. Navigate to the **Platform Settings** -> **User Management** page and click **Create User**.
+1. Enter the username, password, and confirm password; check **Set as Admin** if necessary.
+1. Click **Confirm** to complete the creation.
 
-### Reset Password
+![Create User](./images/user-create.jpg)
 
-1. Find the target user in the list, click **Reset Password**, enter the new password, and confirm.
+## Reset Password
 
-    ![Reset Password](./images/user-reset-password.jpg)
+1. Find the target user in the user list and click **Reset Password**.
+1. Enter the new password and confirm the password.
+1. Click **Confirm** to submit.
 
+![Reset Password](./images/user-reset-password.jpg)

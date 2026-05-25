@@ -16,6 +16,7 @@ package git
 
 import (
 	"context"
+	"io"
 	"time"
 )
 
@@ -100,6 +101,12 @@ type RepoMetadataFiles struct {
 	Size                 int64
 }
 
+// BasicCredential holds username/password for remote git authentication.
+type BasicCredential struct {
+	Username string
+	Password string
+}
+
 type GitRepository struct {
 	RemoteRegistryURL  string
 	RemoteProjectName  string
@@ -107,6 +114,8 @@ type GitRepository struct {
 	ProjectName        string
 	ResourceName       string
 	ResourceType       string
+	Credential         *BasicCredential // optional; used for push auth and private repo access
+	LogWriter          io.Writer        // optional; receives git operation output
 }
 
 // IGitRepo defines the repository interface for Git operations on models.
@@ -143,9 +152,9 @@ type IGitRepo interface {
 	// repoType: "models" or "datasets"
 	GetBlob(ctx context.Context, repoType, project, name, revision, path string) (*TreeEntry, error)
 
-	CloneFromRemote(ctx context.Context, gitRepository *GitRepository) error
-
 	PullFromRemote(ctx context.Context, gitRepository *GitRepository) error
+
+	PushToRemote(ctx context.Context, gitRepository *GitRepository) error
 
 	// ExtractMetadata reads metadata-related raw files from a Git repository.
 	// repoType: "models" or "datasets"

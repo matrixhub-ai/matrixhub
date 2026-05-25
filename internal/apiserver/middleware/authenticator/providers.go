@@ -19,22 +19,25 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
-func NewWebAuthenticator(sessionRepo user.ISessionRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
+func NewWebAuthenticator(sessionRepo user.ISessionRepo, userRepo user.IUserRepo, tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
-		NewCookieAuthenticator(sessionRepo),
+		NewCookieAuthenticator(sessionRepo, userRepo),
+		NewTokenAuthenticator(tokenRepo),
 		NewRobotAuthenticator(robotRepo),
 	)
 }
 
-func NewHfCLIAuthenticator(tokenRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo) *MultiAuthenticator {
+func NewHfCLIAuthenticator(tokenRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewTokenAuthenticator(tokenRepo),
-		NewCookieAuthenticator(sessionRepo),
+		NewCookieAuthenticator(sessionRepo, userRepo),
+		NewRobotTokenAuthenticator(robotRepo),
 	)
 }
 
-func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo) *MultiAuthenticator {
+func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewTokenAuthenticator(tokenRepo),
+		NewRobotTokenAuthenticator(robotRepo),
 	)
 }

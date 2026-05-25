@@ -109,6 +109,18 @@ export interface InitReq extends RequestInit {
   pathPrefix?: string
 }
 
+export type FetchFn = typeof fetch
+
+let fetchFn: FetchFn = (input, init) => fetch(input, init)
+
+export function setFetchFn(fetcher: FetchFn) {
+  fetchFn = fetcher
+}
+
+export function resetFetchFn() {
+  fetchFn = (input, init) => fetch(input, init)
+}
+
 export function replacer(key: any, value: any): any {
   if(value && value.constructor === Uint8Array) {
     return b64Encode(value, 0, value.length);
@@ -122,7 +134,7 @@ export function fetchReq<I, O>(path: string, init?: InitReq): Promise<O> {
 
   const url = pathPrefix ? `${pathPrefix}${path}` : path
 
-  return fetch(url, req).then(r => r.json().then((body: O) => {
+  return fetchFn(url, req).then(r => r.json().then((body: O) => {
     if (!r.ok) { throw body; }
     return body;
   })) as Promise<O>
@@ -139,7 +151,7 @@ export type NotifyStreamEntityArrival<T> = (resp: T) => void
 export async function fetchStreamingRequest<S, R>(path: string, callback?: NotifyStreamEntityArrival<R>, init?: InitReq) {
   const {pathPrefix, ...req} = init || {}
   const url = pathPrefix ?`${pathPrefix}${path}` : path
-  const result = await fetch(url, req)
+  const result = await fetchFn(url, req)
   // needs to use the .ok to check the status of HTTP status code
   // http other than 200 will not throw an error, instead the .ok will become false.
   // see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#

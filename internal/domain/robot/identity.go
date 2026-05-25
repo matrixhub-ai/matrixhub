@@ -15,12 +15,16 @@
 package robot
 
 type Identity struct {
-	ID   int
-	Name string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 func (i Identity) GetID() int {
 	return i.ID
+}
+
+func (i Identity) TypeName() string {
+	return "robot"
 }
 
 func (i Identity) GetName() string {

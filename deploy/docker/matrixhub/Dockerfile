@@ -16,10 +16,11 @@ WORKDIR /workspace
 
 ARG GOPROXY
 ENV GOPROXY=${GOPROXY}
+# HTTP_PROXY/HTTPS_PROXY are predefined Docker build args: declaring them as
+# ARG makes them available as env vars during RUN, without being persisted
+# into the image config.
 ARG HTTP_PROXY
-ENV HTTP_PROXY=${HTTP_PROXY}
 ARG HTTPS_PROXY
-ENV HTTPS_PROXY=${HTTPS_PROXY}
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add gcc musl-dev
@@ -40,6 +41,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 FROM ${BASE_IMAGE_PREFIX}/node:${NODE_IMAGE_VERSION} AS ui
 ENV CI=true
 WORKDIR /app/ui
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
 COPY ui /app/ui/
 COPY api /app/api/
 RUN corepack enable
@@ -48,6 +51,11 @@ RUN pnpm build
 
 ##########################################
 FROM ${BASE_IMAGE_PREFIX}/library/alpine:${ALPINE_VERSION} AS matrixhub
+
+# Proxy args are declared (but not ENV'd) so networked steps below can use
+# them without persisting proxy settings into the runtime image.
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add ca-certificates git && \

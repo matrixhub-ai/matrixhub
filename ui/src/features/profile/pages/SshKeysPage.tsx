@@ -48,8 +48,6 @@ export function SshKeysPage() {
         emptyTitle={t('profile.sshKey.emptyTitle')}
         toolbarExtra={(
           <Button
-            h={32}
-            px="md"
             radius={6}
             onClick={createHandlers.open}
           >

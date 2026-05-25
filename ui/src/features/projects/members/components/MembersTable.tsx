@@ -8,7 +8,11 @@ import { MemberType } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import { useTranslation } from 'react-i18next'
 
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 
 import type { ProjectMember } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import type { MRT_ColumnDef } from 'mantine-react-table'
@@ -86,7 +90,7 @@ function RoleTypeCell({ row }: MemberCellProps) {
 
 function ActionsCell({
   row, table,
-}: MemberCellProps) {
+}: DataTableRowActionsProps<ProjectMember>) {
   const { t } = useTranslation()
   const meta = table.options.meta as {
     currentUsername?: string
@@ -164,13 +168,6 @@ export function MembersTable({
       header: t('projects.detail.membersPage.table.roleType'),
       Cell: RoleTypeCell,
     },
-    ...isAdmin
-      ? [{
-          id: 'actions',
-          header: t('projects.detail.membersPage.table.actions'),
-          Cell: ActionsCell,
-        }]
-      : [],
   ]
 
   return (
@@ -193,6 +190,8 @@ export function MembersTable({
       rowSelection={rowSelection}
       onRowSelectionChange={onRowSelectionChange}
       getRowId={row => `${row.memberType}:${row.memberId}`}
+      enableRowActions={isAdmin}
+      renderRowActions={ActionsCell}
       tableOptions={{
         enableBatchRowSelection: true,
         enableMultiRowSelection: true,

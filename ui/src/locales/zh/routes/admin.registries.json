@@ -14,8 +14,8 @@
     "url": "目标 URL",
     "urlPlaceholder": "http://docker.m.daocloud.io",
     "username": "用户名",
-    "usernameHint": "若拉取目标仓库中的私密模型，请输入目标仓库的用户名和密码。",
-    "password": "密码",
+    "usernameHint": "若拉取目标仓库中的私密模型，请输入目标仓库的用户名和访问密钥，支持机器人账号。",
+    "password": "访问密钥",
     "verifyRemoteCert": "验证远程证书",
     "verifyRemoteCertHint": "确定远程同步是否要验证远程 MatrixHub 实例的证书。如果远程实例使用的是自签或者非信任证书，不要勾选此项。",
     "testConnection": "测试连接"

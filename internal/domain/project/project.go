@@ -87,7 +87,7 @@ type IProjectRepo interface {
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
 	GetProjectByName(ctx context.Context, name string) (*Project, error)
 	GetProjectIDByName(ctx context.Context, name string) (int, error)
-	ListProjects(ctx context.Context, name string, projectType ProjectType, managedOnly bool, page, pageSize int) ([]*Project, int64, error)
+	ListProjects(ctx context.Context, name string, projectType ProjectType, managedOnly bool, hasPlatformProjectGet bool, page, pageSize int) ([]*Project, int64, error)
 	UpdateProject(ctx context.Context, project *Project) error
 	DeleteProject(ctx context.Context, id int) error
 	ListProjectInfoByNames(ctx context.Context, names []string) ([]*Project, error)

@@ -8,6 +8,8 @@ import { z } from 'zod'
 import i18n from '@/i18n'
 import { withNameStartCharRule, withNameValidCharsRule } from '@/shared/validation'
 
+import { isFiveFieldCronExpression } from './replications.utils'
+
 export const DEFAULT_REPLICATIONS_PAGE = 1
 export const DEFAULT_REPLICATIONS_PAGE_SIZE = 10
 export const DESCRIPTION_MAX_LENGTH = 50
@@ -42,6 +44,17 @@ function t(key: string) {
   return i18n.getFixedT(i18n.resolvedLanguage ?? i18n.language)(key)
 }
 
+export function replicationCronExpressionSchema() {
+  return z
+    .string()
+    .trim()
+    .min(1, t('routes.admin.replications.validation.cronRequired'))
+    .refine(
+      value => isFiveFieldCronExpression(value),
+      t('routes.admin.replications.validation.cronInvalid'),
+    )
+}
+
 function replicationFormBaseSchema() {
   return z.object({
     name: withNameValidCharsRule(withNameStartCharRule(z
@@ -54,6 +67,7 @@ function replicationFormBaseSchema() {
       z.literal(SyncPolicyType.SYNC_POLICY_TYPE_PUSH_BASE),
     ]),
     triggerType: z.enum(replicationTriggerTypeValues),
+    cronExpression: z.string().trim(),
     bandwidth: z.string().trim().optional(),
     bandwidthUnit: z.enum(replicationBandwidthUnitValues),
     isOverwrite: z.boolean(),
@@ -68,6 +82,8 @@ function replicationFormBaseSchema() {
 }
 
 export function createReplicationFormSchema() {
+  const cronExpressionSchema = replicationCronExpressionSchema()
+
   return replicationFormBaseSchema().superRefine((data, ctx) => {
     if (data.resourceTypes.length === 0) {
       ctx.addIssue({
@@ -75,6 +91,19 @@ export function createReplicationFormSchema() {
         message: t('routes.admin.replications.validation.resourceTypesRequired'),
         path: ['resourceTypes'],
       })
+    }
+
+    if (data.triggerType === TriggerType.TRIGGER_TYPE_SCHEDULED) {
+      const cronResult = cronExpressionSchema.safeParse(data.cronExpression)
+
+      if (!cronResult.success) {
+        ctx.addIssue({
+          code: 'custom',
+          message: cronResult.error.issues[0]?.message
+            ?? t('routes.admin.replications.validation.cronInvalid'),
+          path: ['cronExpression'],
+        })
+      }
     }
 
     if (

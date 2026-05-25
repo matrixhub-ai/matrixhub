@@ -71,7 +71,7 @@ func (m *CreateProjectRequest) validate(all bool) error {
 	if !_CreateProjectRequest_Name_Pattern.MatchString(m.GetName()) {
 		err := CreateProjectRequestValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$\"",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$\"",
 		}
 		if !all {
 			return err
@@ -212,7 +212,7 @@ var _ interface {
 	ErrorName() string
 } = CreateProjectRequestValidationError{}
 
-var _CreateProjectRequest_Name_Pattern = regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{2}$")
+var _CreateProjectRequest_Name_Pattern = regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$")
 
 var _CreateProjectRequest_Type_NotInLookup = map[ProjectType]struct{}{
 	0: {},

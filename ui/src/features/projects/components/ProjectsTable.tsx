@@ -7,7 +7,11 @@ import { ProjectType } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { DataTable, type DataTableProps } from '@/shared/components/DataTable'
+import {
+  DataTable,
+  type DataTableProps,
+  type DataTableRowActionsProps,
+} from '@/shared/components/DataTable'
 import { formatDateTime } from '@/shared/utils/date'
 
 import type { Project } from '@matrixhub/api-ts/v1alpha1/project.pb'
@@ -78,7 +82,7 @@ function ProjectProxyCell({ row }: ProjectCellProps) {
 function ProjectActionsCell({
   row,
   table,
-}: ProjectCellProps) {
+}: DataTableRowActionsProps<Project>) {
   const { t } = useTranslation()
   const onDelete = (
     table.options.meta as { onDelete?: (project: Project) => void } | undefined
@@ -141,12 +145,6 @@ export function ProjectsTable({
       header: t('projects.table.updatedAt'),
       accessorFn: row => formatDateTime(row.updatedAt),
     },
-    {
-      id: 'actions',
-      enableSorting: false,
-      header: t('projects.table.actions'),
-      Cell: ProjectActionsCell,
-    },
   ]
 
   return (
@@ -165,6 +163,8 @@ export function ProjectsTable({
       onPageChange={onPageChange}
       onRefresh={onRefresh}
       getRowId={row => String(row.name)}
+      enableRowActions
+      renderRowActions={ProjectActionsCell}
       tableOptions={{
         meta: { onDelete },
       }}

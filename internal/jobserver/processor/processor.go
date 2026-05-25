@@ -29,6 +29,8 @@ type Processor string
 
 const (
 	ProcessorSyncPolicy Processor = "syncPolicy"
+	ProcessorSyncTask   Processor = "syncTask"
+	ProcessorSyncJob    Processor = "syncJob"
 )
 
 // ExecuteFn runs one claimed policy execution (insert task/jobs + git work happens inside service).
@@ -77,6 +79,7 @@ type processor struct {
 	taskMax   time.Duration
 	execute   ExecuteFn
 	pollDueFn PollDueFn
+	runOneFn  func(ctx context.Context, d job.DueJob) // optional override
 
 	wg   sync.WaitGroup
 	done chan struct{}
@@ -111,6 +114,9 @@ func newProcessor(
 }
 
 func (b *processor) Processor() Processor { return b.processor }
+
+// String returns the string representation.
+func (p Processor) String() string { return string(p) }
 
 // Start launches the poll loop in a background goroutine (non-blocking).
 func (b *processor) Start(ctx context.Context) {
@@ -165,7 +171,15 @@ func (b *processor) pollOnce(ctx context.Context) {
 }
 
 func (b *processor) runOne(ctx context.Context, d job.DueJob) {
-	lockKey := string(b.processor) + ":" + strconv.Itoa(d.PolicyID)
+	if b.runOneFn != nil {
+		b.runOneFn(ctx, d)
+		return
+	}
+	b.runOneDefault(ctx, d)
+}
+
+func (b *processor) runOneDefault(ctx context.Context, d job.DueJob) {
+	lockKey := string(b.processor) + ":" + strconv.Itoa(d.ID)
 
 	qCtx, qCancel := context.WithTimeout(ctx, b.taskMax)
 	defer qCancel()
@@ -173,20 +187,20 @@ func (b *processor) runOne(ctx context.Context, d job.DueJob) {
 	case b.sem <- struct{}{}:
 	case <-qCtx.Done():
 		log.Warnw("jobserver: queue timeout waiting for slot",
-			"processor", b.processor, "policyId", d.PolicyID, "error", qCtx.Err())
+			"processor", b.processor, "id", d.ID, "error", qCtx.Err())
 		return
 	}
 	defer func() { <-b.sem }()
 
 	if !b.locker.TryAcquire(lockKey, time.UnixMilli(d.FireAtMs)) {
-		log.Debugw("jobserver: skip, policy lock not acquired", "processor", b.processor, "policyId", d.PolicyID)
+		log.Debugw("jobserver: skip, lock not acquired", "processor", b.processor, "id", d.ID)
 		return
 	}
 	defer b.locker.Release(lockKey)
 
 	runCtx, cancel := context.WithTimeout(ctx, b.taskMax)
 	defer cancel()
-	if err := b.execute(runCtx, d.PolicyID, d.TriggerType); err != nil {
-		log.Errorw("jobserver: execute failed", "processor", b.processor, "policyId", d.PolicyID, "error", err)
+	if err := b.execute(runCtx, d.ID, d.TriggerType); err != nil {
+		log.Errorw("jobserver: execute failed", "processor", b.processor, "id", d.ID, "error", err)
 	}
 }

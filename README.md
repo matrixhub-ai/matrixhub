@@ -1,5 +1,7 @@
 # MatrixHub
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/matrixhub-ai/matrixhub)
+
 **MatrixHub** is an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a drop-in private replacement for Hugging Face, purpose-built to accelerate **vLLM** and **SGLang** workloads.
 
 ## 💡 Why MatrixHub?
@@ -33,15 +35,111 @@ MatrixHub streamlines the transition from public model hubs to production-grade 
 
 ## 🚀 Quick Start
 
-### Docker Deployment
+### Docker Compose Deployment
 
-Deploy MatrixHub with Docker:
+Use Docker Compose with the provided configuration files:
+
+- `website/static/deploy/docker/docker-compose.yaml`
+- `website/static/deploy/docker/config.yaml`
+
+Make sure `docker-compose.yaml` and `config.yaml` are in the same folder, then start the service:
 
 ```bash
-docker run -d -p 9527:9527 -v $PWD/data:/data ghcr.io/matrixhub-ai/matrixhub:main
+docker compose -f docker-compose.yaml up -d
 ```
 
-Access MatrixHub at `http://localhost:9527`.
+Default service endpoint:
+
+```text
+http://127.0.0.1:3001
+```
+
+### Helm (Kubernetes) Deployment
+
+MatrixHub provides two Helm installation methods — from a local chart or from the OCI registry.
+
+Set the install target first (used in all commands below):
+
+```bash
+export CHART_VERSION=<chart-version>  
+export NAMESPACE=matrixhub
+```
+
+#### Option A: Install from Local Chart
+
+```bash
+helm install matrixhub ./deploy/charts/matrixhub \
+  --namespace ${NAMESPACE} --create-namespace
+```
+
+#### Option B: Install from OCI Registry
+
+Charts are published to GitHub Container Registry (`ghcr.io`) as OCI artifacts.
+
+```bash
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace
+```
+
+#### Expose the Service
+
+Expose it via `NodePort`:
+
+```bash
+helm install matrixhub ./deploy/charts/matrixhub \
+  --namespace ${NAMESPACE} --create-namespace \
+  --set apiserver.service.type=NodePort
+# or with OCI:
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace \
+  --set apiserver.service.type=NodePort
+```
+
+#### Persistent Storage (PVC)
+
+MatrixHub uses PersistentVolumeClaims to persist data. Currently only PVC is supported as the storage backend; S3-compatible storage will be supported in a future release.
+
+By default, the chart creates the following PVCs:
+
+| PVC | Mount Path | Default Size | Purpose |
+|-----|-----------|--------------|---------|
+| `<release>-apiserver-data` | `/data/matrixhub` | `50Gi` | Model artifacts & cache |
+| `<release>-mysql-pv-claim` | `/var/lib/mysql` | `8Gi` | Built-in MySQL data (only when `global.storage.apiserver.builtIn=true`, which is the default) |
+
+**Customize storage class and size:**
+
+```bash
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace \
+  --set apiserver.storage.mode=pvc \
+  --set apiserver.storage.pvc.size=50Gi \
+  --set mysql.persistence.size=20Gi
+```
+
+**Use an existing PVC:**
+
+```bash
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version ${CHART_VERSION} \
+  --namespace ${NAMESPACE} --create-namespace \
+  --set apiserver.storage.pvc.existingClaim=my-existing-pvc
+```
+
+## 📚 Docs
+
+- [Documentation site](https://matrixhub.ai)
+- [Development guide](docs/development.md)
+
+## Project governance
+
+- [Maintainers](MAINTAINERS.md)
+- [Governance](GOVERNANCE.md)
+- [Security policy](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Community, discussion, contribution, and support
 

@@ -2,7 +2,11 @@
   "name": "matrixhub-ui",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@10.17.0",
   "type": "module",
+  "engines": {
+    "pnpm": ">=10 <11"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -25,6 +29,7 @@
     "@tanstack/react-query-devtools": "^5.91.3",
     "@tanstack/react-router": "^1.166.6",
     "@tanstack/react-router-devtools": "^1.166.6",
+    "cronstrue": "^3.14.0",
     "dayjs": "^1.11.20",
     "diff2html": "^3.4.56",
     "filesize": "^11.0.13",

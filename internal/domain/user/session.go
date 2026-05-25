@@ -22,12 +22,13 @@ import (
 )
 
 const (
-	CookieName       = "token"
-	UsernameCtxKey   = "username"
-	UserIdCtxKey     = "user_id"
-	LoginAtCtxKey    = "login_at"
-	LastActiveCtxKey = "last_active"
-	RememberMeCtxKey = "__rememberMe"
+	CookieName        = "token"
+	UsernameCtxKey    = "username"
+	UserIdCtxKey      = "user_id"
+	LoginAtCtxKey     = "login_at"
+	LastActiveCtxKey  = "last_active"
+	SessionVersionKey = "session_version"
+	RememberMeCtxKey  = "__rememberMe"
 
 	MaxPersistentSessionLifetime        = time.Hour * 24 * 30
 	DefaultPersistentSessionIdleTimeout = time.Hour * 24 * 7

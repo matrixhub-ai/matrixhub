@@ -14,8 +14,8 @@
     "url": "Target URL",
     "urlPlaceholder": "http://docker.m.daocloud.io",
     "username": "Username",
-    "usernameHint": "Enter the upstream registry username and password when pulling private models.",
-    "password": "Password",
+    "usernameHint": "Enter the upstream registry username and access token when pulling private models; robot accounts are supported.",
+    "password": "Access Token",
     "verifyRemoteCert": "Verify Remote Cert",
     "verifyRemoteCertHint": "Choose whether to verify the remote MatrixHub instance certificate during sync. Leave this unchecked when the remote instance uses a self-signed or otherwise untrusted certificate.",
     "testConnection": "Test Connection"

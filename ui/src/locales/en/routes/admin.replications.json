@@ -12,7 +12,6 @@
     "target": "Target: Project Name",
     "triggerType": "Trigger Mode",
     "bandwidth": "Bandwidth",
-    "actions": "Actions",
     "empty": "No sync rules found"
   },
   "status": {
@@ -69,6 +68,11 @@
     "targetProjectName": "Target Project",
     "targetProjectNamePlaceholder": "e.g., my-project",
     "triggerType": "Trigger Mode",
+    "cronExpression": "Cron Expression",
+    "cronExpressionPlaceholder": "e.g., 23 16 * * *",
+    "cronExpressionHint": "Use five fields: minute hour day month weekday.",
+    "cronExpressionRaw": "Cron: {{cron}}",
+    "cronExpressionHelp": "Current expression: {{description}}.",
     "bandwidth": "Bandwidth Limit",
     "bandwidthHint": "Sets the maximum network bandwidth for this sync rule. The actual total bandwidth depends on concurrent runs. Enter -1 for unlimited bandwidth.",
     "isOverwrite": "Overwrite existing resources",
@@ -77,6 +81,8 @@
   "validation": {
     "resourceNameRequired": "Resource name is required",
     "resourceTypesRequired": "At least one resource type is required",
+    "cronRequired": "Cron expression is required",
+    "cronInvalid": "Enter a five-field cron expression",
     "sourceRegistryRequired": "Source registry is required",
     "targetRegistryRequired": "Target registry is required"
   },
@@ -94,5 +100,78 @@
   },
   "errors": {
     "missingSyncPolicyId": "Sync policy ID is required"
+  },
+  "executions": {
+    "breadcrumb": "Sync Rule: {{name}}",
+    "searchPlaceholder": "Search by task ID",
+    "filters": {
+      "status": "Status"
+    },
+    "table": {
+      "taskId": "Task",
+      "status": "Status",
+      "triggerType": "Trigger Mode",
+      "startedAt": "Created At",
+      "duration": "Duration",
+      "successRate": "Success Rate",
+      "totalItems": "Total",
+      "actions": "Actions",
+      "empty": "No sync tasks found"
+    },
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "unknown": "Unknown"
+    },
+    "actions": {
+      "stop": "Stop Task"
+    },
+    "notifications": {
+      "stopSuccess": "Sync task stopped successfully",
+      "stopError": "Failed to stop sync task"
+    },
+    "errors": {
+      "invalidSyncPolicyId": "Invalid sync policy ID",
+      "missingSyncTaskId": "Sync task ID is required",
+      "syncPolicyNotFound": "Sync rule not found"
+    },
+    "detail": {
+      "breadcrumb": "Sync Task: {{id}}",
+      "basicInfo": "Basic Information",
+      "statusDistribution": "Task Status Distribution",
+      "subTasks": "Sub-tasks",
+      "filters": {
+        "status": "All Statuses",
+        "resourceType": "Source Type"
+      },
+      "table": {
+        "id": "Task ID",
+        "resourceType": "Source Type",
+        "source": "Source",
+        "target": "Target",
+        "action": "Action",
+        "status": "Status",
+        "createdAt": "Created At",
+        "completedAt": "Completed At",
+        "logs": "Logs"
+      },
+      "status": {
+        "running": "Running",
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "stopped": "Stopped",
+        "unknown": "Unknown"
+      },
+      "resourceType": {
+        "model": "Model",
+        "dataset": "Dataset"
+      },
+      "errors": {
+        "invalidSyncTaskId": "Invalid sync task ID",
+        "syncTaskNotFound": "Sync task not found"
+      }
+    }
   }
 }

@@ -7,17 +7,18 @@ sidebar_position: 1
 ## Prerequisites
 
 - A valid MatrixHub account.
-- Hugging Face CLI installed locally (`hf` command available). Login via `hf auth login`.
+- Access to at least one private repository or public repository (e.g., `my-matrixhub-project/test-mn`).
+- Hugging Face CLI installed locally, and the command `hf auth login` is available in your terminal.
 
 ## Steps
 
 ### Create Access Token
 
-1. Log in to the MatrixHub platform. Go to **Personal Center** -> **Access Token** page.
+1. Log in to the MatrixHub platform. Go to the **Personal Center** -> **Access Token** page.
 
     ![Access Token Overview](./images/access-token-overview.jpg)
 
-1. Click **Create Access Token**, fill in a name (e.g., `demo`), select the expiration time, and click **Confirm**.
+1. Click **Create Access Token**, fill in a name (e.g., `demo`), select the expiration time (e.g., **Never expires** or a specific duration), and click **Confirm**.
 
     ![Create Access Token](./images/access-token-create.jpg)
 
@@ -27,37 +28,36 @@ sidebar_position: 1
 
 ### Use Access Token
 
-1. Configure the service endpoint in your local terminal.
+1. Configure the service endpoint in your local terminal using your MatrixHub address:
 
     ```bash
-    export HF_ENDPOINT="https://<your-matrixhub-endpoint>"
+    export HF_ENDPOINT="matrixhub.url" # example: http://127.0.0.1:xxx
     ```
 
-1. Run the login command.
+1. Run the login command:
 
     ```bash
     hf auth login
     ```
 
-1. Enter your saved Token when prompted.
+1. Enter your saved Token when prompted to complete authentication.
 
-1. Once logged in, you can access private projects in **MatrixHub** via the CLI.
+1. Execute a download command to verify access to the **MatrixHub** repository:
 
     ```bash
-    hf download <project-name>/<model-name>
+    hf download my-matrixhub-project/test-mn
     ```
 
 ### Revoke Access Token
 
-1. Go to **Personal Center** -> **Access Token** page, find the Token you want to revoke, and click **Delete**.
+1. Go to the **Personal Center** -> **Access Token** page, find the target Token, and perform the delete operation.
 
-1. Once revoked, any CLI operations using that Token will fail immediately.
+1. Once revoked, any CLI operations requiring authentication with that Token will prompt that you are not logged in or the authentication is invalid.
 
-## Parameters
+## Configuration Parameters
 
 | Parameter | Description |
 |-----------|-------------|
-| Name | A descriptive name for the Token. |
-| Expiration | The duration the Token remains valid. |
-| Token Value | The actual secret string used for authentication. |
-
+| Name | A descriptive identifier for the Token, useful for distinguishing different purposes. |
+| Expiration | Can be set to **Never expires** or a custom date. It will automatically become invalid after this period. |
+| Token Value | The actual secret string used for authentication. It is only fully displayed once upon creation and must be copied and saved immediately. |

@@ -2,6 +2,7 @@ import { IconUsers as AdminUsersIcon } from '@tabler/icons-react'
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
+import { AdminPageHeader } from '@/features/admin/components/admin-page-header'
 import { AdminPageLayout } from '@/features/admin/components/admin-page-layout'
 import { UsersPage } from '@/features/admin/users/pages/UsersPage'
 import { usersQueryOptions } from '@/features/admin/users/users.query'
@@ -28,11 +29,14 @@ function RouteComponent() {
   const { t } = useTranslation()
 
   return (
-    <AdminPageLayout
-      icon={AdminUsersIcon}
-      title={t('admin.users')}
-    >
-      <UsersPage />
-    </AdminPageLayout>
+    <>
+      <AdminPageHeader
+        icon={AdminUsersIcon}
+        items={[{ label: t('admin.users') }]}
+      />
+      <AdminPageLayout>
+        <UsersPage />
+      </AdminPageLayout>
+    </>
   )
 }

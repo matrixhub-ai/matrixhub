@@ -1,5 +1,6 @@
 {
   "search": "Search",
+  "actions": "Actions",
   "refresh": "Refresh",
   "batchDeleteWithCount": "Delete {{count}} selected",
   "batchDelete": "Batch Delete",

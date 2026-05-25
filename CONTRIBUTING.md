@@ -1,12 +1,12 @@
 # Contributing Guidelines
 
-Welcome to MatrixHub! We are excited to have you here. This project follows the CNCF [Code of Conduct](code-of-conduct.md). An excerpt:
+Welcome to MatrixHub! We are excited to have you here. This project follows the CNCF [Code of Conduct](CODE_OF_CONDUCT.md). An excerpt:
 
 _As contributors and maintainers of this project, and in the interest of fostering an open and welcoming community, we pledge to respect all people who contribute through reporting issues, posting feature requests, updating documentation, submitting pull requests or patches, and other activities._
 
 ## Before You Start
 
-- Read the [Code of Conduct](code-of-conduct.md).
+- Read the [Code of Conduct](CODE_OF_CONDUCT.md).
 - Check open [issues](https://github.com/matrixhub/matrixhub/issues) and [pull requests](https://github.com/matrixhub/matrixhub/pulls) to avoid duplicate work.
 
 ## Local Development

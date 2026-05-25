@@ -14,7 +14,7 @@ import {
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useProjectRole } from '@/context/project-role-context.tsx'
+import { useProjectRole } from '@/features/auth/useProjectRole'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
 
@@ -97,8 +97,8 @@ export function ModelDetailPage({
           metaItems={buildModelMetaItems(model, projectId, i18n.t.bind(i18n))}
           actions={(
             <>
-              <Button size="xs" color="cyan" variant="light" leftSection={<IconCloudUpload size={16} />}>{t('model.detail.upload')}</Button>
-              <Button size="xs" color="cyan" variant="light" leftSection={<IconDownload size={16} />}>{t('model.detail.download')}</Button>
+              <Button color="cyan" fw="normal" variant="light" leftSection={<IconCloudUpload size={16} />}>{t('model.detail.upload')}</Button>
+              <Button color="cyan" fw="normal" variant="light" leftSection={<IconDownload size={16} />}>{t('model.detail.download')}</Button>
             </>
           )}
         />

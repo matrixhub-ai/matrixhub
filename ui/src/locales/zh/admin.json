@@ -1,5 +1,6 @@
 {
   "users": "用户管理",
+  "robots": "机器人账号",
   "registries": "仓库管理",
   "replications": "远程同步"
 }

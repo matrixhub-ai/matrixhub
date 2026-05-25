@@ -1,5 +1,6 @@
 {
   "search": "搜索",
+  "actions": "操作",
   "refresh": "刷新",
   "batchDeleteWithCount": "删除已选 {{count}} 项",
   "batchDelete": "批量删除",

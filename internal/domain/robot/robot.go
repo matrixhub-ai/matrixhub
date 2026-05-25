@@ -74,6 +74,7 @@ type IRobotRepo interface {
 	CreateRobot(ctx context.Context, robot *Robot) error
 	GetRobot(ctx context.Context, id int) (*Robot, error)
 	GetRobotByName(ctx context.Context, name string) (*Robot, error)
+	GetRobotByTokenHash(ctx context.Context, tokenHash string) (*Robot, error)
 	UpdateRobot(ctx context.Context, robot *Robot) error
 	DeleteRobot(ctx context.Context, id int) error
 	ListSystemRobots(ctx context.Context, page, pageSize int, search string) ([]*Robot, int64, error)

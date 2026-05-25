@@ -7,7 +7,7 @@ sidebar_position: 2
 ## Prerequisites
 
 - A valid MatrixHub account.
-- Joined the target project with read/write permissions for the model repository.
+- Joined the target project with read/write permissions for the model repository (Admin or Developer permissions).
 - Hugging Face CLI installed locally (`hf` command available).
 - Network access to the MatrixHub service endpoint.
 

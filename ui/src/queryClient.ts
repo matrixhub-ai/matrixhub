@@ -80,3 +80,11 @@ export const queryClient = new QueryClient({
     },
   },
 })
+
+i18n.on('languageChanged', () => {
+  void queryClient.invalidateQueries({
+    predicate: query => Boolean(
+      (query.meta as NotificationMeta | undefined)?.localeDependent,
+    ),
+  })
+})
