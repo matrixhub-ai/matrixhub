@@ -108,8 +108,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 	)
 
 	httpServer := &http.Server{
-		Handler:           engine,
-		ReadHeaderTimeout: 30 * time.Second,
+		Handler: engine,
 	}
 
 	server := &APIServer{
