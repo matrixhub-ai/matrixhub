@@ -9,7 +9,7 @@ export default function Community(): React.ReactElement {
       title: translate({ id: 'community.github.title', message: 'GitHub' }),
       description: translate({ id: 'community.github.description', message: 'Star and follow the MatrixHub repository for updates, issues, and releases.' }),
       linkText: translate({ id: 'community.github.linkText', message: 'Visit Repository →' }),
-      href: 'https://github.com/matrixhub-ai',
+      href: 'https://github.com/matrixhub-ai/matrixhub',
     },
     {
       emoji: '🤝',
