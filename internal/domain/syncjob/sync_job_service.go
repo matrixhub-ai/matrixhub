@@ -199,9 +199,16 @@ func (sjs *SyncJobService) executeGitJob(ctx context.Context, syncJob *SyncJob, 
 	if logWriter != nil {
 		_, _ = fmt.Fprintf(logWriter, "[INFO] job start, id=%d, registry=%s (id=%d), resource_type=%s\n",
 			syncJob.ID, reg.URL, syncJob.RemoteRegistryID, syncJob.ResourceType)
+		var sourceProject, sourceResource, targetProject, targetResource string
+		if syncJob.SyncType == "push" {
+			sourceProject, sourceResource = syncJob.ProjectName, syncJob.ResourceName
+			targetProject, targetResource = syncJob.RemoteProjectName, syncJob.RemoteResourceName
+		} else {
+			sourceProject, sourceResource = syncJob.RemoteProjectName, syncJob.RemoteResourceName
+			targetProject, targetResource = syncJob.ProjectName, syncJob.ResourceName
+		}
 		_, _ = fmt.Fprintf(logWriter, "[INFO] source=%s/%s -> target=%s/%s, sync_type=%s\n",
-			syncJob.RemoteProjectName, syncJob.RemoteResourceName,
-			syncJob.ProjectName, syncJob.ResourceName, syncJob.SyncType)
+			sourceProject, sourceResource, targetProject, targetResource, syncJob.SyncType)
 	}
 
 	switch syncJob.SyncType {
@@ -240,6 +247,14 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 		ResourceName:       syncJob.ResourceName,
 		ResourceType:       syncJob.ResourceType,
 		LogWriter:          logWriter,
+	}
+	if reg.GetCredential() != nil {
+		if bc := registry.AsBasic(reg.GetCredential()); bc != nil {
+			gr.Credential = &git.BasicCredential{
+				Username: bc.Username,
+				Password: bc.Password,
+			}
+		}
 	}
 	mod, _ := sjs.modelRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
 	if mod != nil {
@@ -290,6 +305,7 @@ func (sjs *SyncJobService) executePushJob(ctx context.Context, syncJob *SyncJob,
 		ProjectName:        syncJob.ProjectName,
 		ResourceName:       syncJob.ResourceName,
 		ResourceType:       syncJob.ResourceType,
+		LogWriter:          logWriter,
 	}
 	if reg.GetCredential() != nil {
 		if bc := registry.AsBasic(reg.GetCredential()); bc != nil {

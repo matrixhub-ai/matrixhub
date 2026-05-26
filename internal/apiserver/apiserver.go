@@ -156,11 +156,12 @@ func NewAPIServer(config *config.Config) *APIServer {
 }
 
 type gitHooks struct {
-	permissionHookFunc  func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (bool, error)
-	preReceiveHookFunc  func(ctx context.Context, repoName string, updates []receive.RefUpdate) (bool, error)
-	postReceiveHookFunc func(ctx context.Context, repoName string, updates []receive.RefUpdate) error
-	mirrorSourceFunc    func(ctx context.Context, repoName string) (string, bool, error)
-	mirrorRefFilterFunc func(ctx context.Context, repoName string, remoteRefs []string) ([]string, error)
+	permissionHookFunc    func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (bool, error)
+	preReceiveHookFunc    func(ctx context.Context, repoName string, updates []receive.RefUpdate) (bool, error)
+	postReceiveHookFunc   func(ctx context.Context, repoName string, updates []receive.RefUpdate) error
+	mirrorSourceFunc      func(ctx context.Context, repoName string) (string, bool, error)
+	mirrorDestinationFunc func(ctx context.Context, repoName string) (string, bool, error)
+	mirrorRefFilterFunc   func(ctx context.Context, repoName string, remoteRefs []string) ([]string, error)
 }
 
 func (server *APIServer) initGitHooks() {
@@ -195,6 +196,10 @@ func (server *APIServer) initMirrorHooks() {
 		return "", false, nil
 	}
 
+	mirrorDestinationFunc := func(ctx context.Context, repoName string) (string, bool, error) {
+		return "", false, nil
+	}
+
 	mirrorRefFilterFunc := func(ctx context.Context, repoName string, remoteRefs []string) ([]string, error) {
 		filteredRefs := []string{}
 		for _, ref := range remoteRefs {
@@ -205,6 +210,7 @@ func (server *APIServer) initMirrorHooks() {
 		return filteredRefs, nil
 	}
 	server.gitHooks.mirrorSourceFunc = mirrorSourceFunc
+	server.gitHooks.mirrorDestinationFunc = mirrorDestinationFunc
 	server.gitHooks.mirrorRefFilterFunc = mirrorRefFilterFunc
 }
 
@@ -246,12 +252,14 @@ func (server *APIServer) initGitStorage() {
 	lfsStorage := lfs.NewLocal(storage.LFSDir())
 
 	mirrorSourceFunc := server.gitHooks.mirrorSourceFunc
+	mirrorDestinationFunc := server.gitHooks.mirrorDestinationFunc
 	mirrorRefFilterFunc := server.gitHooks.mirrorRefFilterFunc
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
 	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
 
 	sharedMirror := mirror.NewMirror(
 		mirror.WithMirrorSourceFunc(mirrorSourceFunc),
+		mirror.WithMirrorDestinationFunc(mirrorDestinationFunc),
 		mirror.WithMirrorRefFilterFunc(mirrorRefFilterFunc),
 		mirror.WithPreReceiveHookFunc(preReceiveHookFunc),
 		mirror.WithPostReceiveHookFunc(postReceiveHookFunc),
