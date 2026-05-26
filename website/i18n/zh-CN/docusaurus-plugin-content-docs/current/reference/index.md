@@ -1,7 +1,8 @@
 ---
+title: 参考
 sidebar_position: 1
 ---
 
-# 参考手册
+# 参考
 
-API 参考、CLI 命令、配置选项与环境变量。
+API 参考、CLI 命令、配置选项和环境变量。

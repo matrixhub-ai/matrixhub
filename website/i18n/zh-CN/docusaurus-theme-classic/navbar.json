@@ -18,5 +18,21 @@
   "item.label.Get Started": {
     "message": "快速开始",
     "description": "Navbar item with label Get Started"
+  },
+  "item.label.Product": {
+    "message": "产品",
+    "description": "Navbar item with label Product"
+  },
+  "item.label.Docs": {
+    "message": "文档",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.Blog": {
+    "message": "博客",
+    "description": "Navbar item with label Blog"
+  },
+  "item.label.Community": {
+    "message": "社区",
+    "description": "Navbar item with label Community"
   }
 }

@@ -1,7 +1,8 @@
 ---
+title: 故障排除
 sidebar_position: 1
 ---
 
-# 故障排查
+# 故障排除
 
-常见问题、FAQ 及 MatrixHub 诊断流程。
+MatrixHub 的常见问题、FAQ 和诊断流程。

@@ -446,5 +446,248 @@
   },
   "homepage.cta.copy": {
     "message": "复制"
+  },
+  "changelog.title": {
+    "message": "更新日志"
+  },
+  "changelog.description": {
+    "message": "MatrixHub 的版本发布历史和更新说明。"
+  },
+  "changelog.heading": {
+    "message": "更新日志"
+  },
+  "changelog.subtitle": {
+    "message": "MatrixHub 的版本发布历史和更新说明。"
+  },
+  "community.github.title": {
+    "message": "GitHub"
+  },
+  "community.github.description": {
+    "message": "星标并关注 MatrixHub 仓库以获取更新、问题和发布。"
+  },
+  "community.github.linkText": {
+    "message": "访问仓库 →"
+  },
+  "community.contributing.title": {
+    "message": "贡献"
+  },
+  "community.contributing.description": {
+    "message": "我们欢迎各种形式的贡献——代码、文档、bug 报告和功能请求。"
+  },
+  "community.contributing.linkText": {
+    "message": "贡献指南 →"
+  },
+  "community.channels.title": {
+    "message": "社区频道"
+  },
+  "community.channels.description": {
+    "message": "在 Discord、GitHub Discussions 或我们的邮件列表中参与交流。"
+  },
+  "community.channels.linkText": {
+    "message": "加入 Discord →"
+  },
+  "community.title": {
+    "message": "社区"
+  },
+  "community.description": {
+    "message": "加入 MatrixHub 社区 — 共同贡献、交流和构建。"
+  },
+  "community.heading": {
+    "message": "社区"
+  },
+  "community.subtitle": {
+    "message": "加入 MatrixHub 社区 — 共同贡献、交流和构建。"
+  },
+  "roadmap.title": {
+    "message": "路线图"
+  },
+  "roadmap.description": {
+    "message": "查看 MatrixHub 的规划 — 即将推出的功能、改进和里程碑。"
+  },
+  "roadmap.heading": {
+    "message": "路线图"
+  },
+  "roadmap.subtitle": {
+    "message": "查看 MatrixHub 的规划 — 即将推出的功能、改进和里程碑。"
+  },
+  "airGapped.title": {
+    "message": "离线环境交付"
+  },
+  "airGapped.description": {
+    "message": "安全地将 AI 模型交付至物理隔离和断网环境。"
+  },
+  "airGapped.heading": {
+    "message": "离线环境交付"
+  },
+  "airGapped.subtitle": {
+    "message": "安全地将 AI 模型交付至物理隔离和断网环境。"
+  },
+  "architecture.title": {
+    "message": "架构"
+  },
+  "architecture.description": {
+    "message": "MatrixHub 的技术架构 — 代理层、缓存引擎、存储后端与 API 设计。"
+  },
+  "architecture.heading": {
+    "message": "架构"
+  },
+  "architecture.subtitle": {
+    "message": "MatrixHub 的技术架构 — 代理层、缓存引擎、存储后端与 API 设计。"
+  },
+  "comparison.title": {
+    "message": "方案对比"
+  },
+  "comparison.description": {
+    "message": "MatrixHub 与 Hugging Face、Harbor 及其他模型管理方案的对比。"
+  },
+  "comparison.heading": {
+    "message": "方案对比"
+  },
+  "comparison.subtitle": {
+    "message": "MatrixHub 与 Hugging Face、Harbor 及其他模型管理方案的对比。"
+  },
+  "governance.title": {
+    "message": "安全治理"
+  },
+  "governance.description": {
+    "message": "通过 RBAC、审计日志和合规控制实现企业级 AI 模型治理。"
+  },
+  "governance.heading": {
+    "message": "安全治理"
+  },
+  "governance.subtitle": {
+    "message": "通过 RBAC、审计日志和合规控制实现企业级 AI 模型治理。"
+  },
+  "hfCompatible.title": {
+    "message": "兼容 Hugging Face"
+  },
+  "hfCompatible.description": {
+    "message": "与 Hugging Face 生态系统无缝兼容 — 使用你已有的工具、库和工作流程。"
+  },
+  "hfCompatible.heading": {
+    "message": "兼容 Hugging Face"
+  },
+  "hfCompatible.subtitle": {
+    "message": "与 Hugging Face 生态系统无缝兼容 — 使用你已有的工具、库和工作流程。"
+  },
+  "product.title": {
+    "message": "产品"
+  },
+  "product.description": {
+    "message": "探索 MatrixHub 功能 — 专为大规模企业级推理而构建的开源、支持私有化部署的模型中心。"
+  },
+  "product.heading": {
+    "message": "产品"
+  },
+  "product.subtitle": {
+    "message": "探索 MatrixHub 功能 — 专为大规模企业级推理而构建的开源、支持私有化部署的模型中心。"
+  },
+  "product.comparison.heading": {
+    "message": "MatrixHub 对比其他方案"
+  },
+  "product.comparison.subtitle": {
+    "message": "看看 MatrixHub 与 Hugging Face、Harbor 及其他模型管理解决方案的对比。"
+  },
+  "product.comparison.cta": {
+    "message": "查看对比"
+  },
+  "inferenceAccel.title": {
+    "message": "推理加速"
+  },
+  "inferenceAccel.description": {
+    "message": "通过本地缓存加速 vLLM、SGLang 等推理引擎的模型分发。"
+  },
+  "inferenceAccel.heading": {
+    "message": "推理加速"
+  },
+  "inferenceAccel.subtitle": {
+    "message": "通过本地缓存加速 vLLM、SGLang 等推理引擎的模型分发。"
+  },
+  "remoteSync.title": {
+    "message": "远程同步"
+  },
+  "remoteSync.description": {
+    "message": "通过异步、可断点续传的复制机制在数据中心和区域之间同步模型。"
+  },
+  "remoteSync.heading": {
+    "message": "远程同步"
+  },
+  "remoteSync.subtitle": {
+    "message": "通过异步、可断点续传的复制机制在数据中心和区域之间同步模型。"
+  },
+  "useCases.title": {
+    "message": "使用场景"
+  },
+  "useCases.description": {
+    "message": "MatrixHub 在企业级 AI 团队中的实际部署场景。"
+  },
+  "useCases.heading": {
+    "message": "使用场景"
+  },
+  "useCases.subtitle": {
+    "message": "MatrixHub 在企业级 AI 团队中的实际部署场景。"
+  },
+  "whyMatrixhub.title": {
+    "message": "为何选择 MatrixHub"
+  },
+  "whyMatrixhub.description": {
+    "message": "企业为何选择 MatrixHub 作为其私有模型仓库。"
+  },
+  "whyMatrixhub.heading": {
+    "message": "为何选择 MatrixHub"
+  },
+  "whyMatrixhub.subtitle": {
+    "message": "企业为何选择 MatrixHub 作为其私有模型仓库。"
+  },
+  "product.underConstruction": {
+    "message": "🚀 即将推出"
+  },
+  "product.feature.why.title": {
+    "message": "为何选择 MatrixHub"
+  },
+  "product.feature.why.desc": {
+    "message": "为何企业选择 MatrixHub 作为私有模型仓库。"
+  },
+  "product.feature.usecases.title": {
+    "message": "使用场景"
+  },
+  "product.feature.usecases.desc": {
+    "message": "企业级 AI 团队在生产环境中的实际部署方案。"
+  },
+  "product.feature.arch.title": {
+    "message": "架构"
+  },
+  "product.feature.arch.desc": {
+    "message": "代理层、缓存引擎、存储后端与 API 设计。"
+  },
+  "product.feature.hf.title": {
+    "message": "兼容 Hugging Face"
+  },
+  "product.feature.hf.desc": {
+    "message": "与 Hugging Face 生态系统实现无缝兼容。"
+  },
+  "product.feature.inference.title": {
+    "message": "推理加速"
+  },
+  "product.feature.inference.desc": {
+    "message": "为 vLLM、SGLang 等引擎加速模型分发。"
+  },
+  "product.feature.airgap.title": {
+    "message": "离线环境交付"
+  },
+  "product.feature.airgap.desc": {
+    "message": "安全地将模型交付至物理隔离环境。"
+  },
+  "product.feature.sync.title": {
+    "message": "远程同步"
+  },
+  "product.feature.sync.desc": {
+    "message": "在多个数据中心与区域之间同步模型数据。"
+  },
+  "product.feature.gov.title": {
+    "message": "安全治理"
+  },
+  "product.feature.gov.desc": {
+    "message": "面向企业 AI 的 RBAC、审计日志和合规控制。"
   }
 }

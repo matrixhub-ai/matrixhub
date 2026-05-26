@@ -2,62 +2,62 @@
 sidebar_position: 1
 ---
 
-# Access Token
+# 访问令牌 (Access Token)
 
-## 前提条件
+## 前置条件
 
-- 已有可登录 MatrixHub 的账号
-- 已有至少一个可访问的私有仓库或公开访问的仓库（示例：`my-matrixhub-project/test-mn`）
-- 本地已安装 Hugging Face CLI，并可在终端执行 `hf auth login`
+- 拥有有效的 MatrixHub 账号。
+- 至少拥有一个私有仓库或公共仓库的访问权限（例如：`my-matrixhub-project/test-mn`）。
+- 本地已安装 Hugging Face CLI，且终端中可以使用 `hf auth login` 命令。
 
 ## 操作步骤
 
-### 创建 Access Token
+### 创建访问令牌
 
-1. 登录 MatrixHub，进入 **个人中心** -> **访问密钥** 页面。
+1. 登录 MatrixHub 平台。进入 **个人中心** -> **访问令牌 (Access Token)** 页面。
 
-    ![Access Token 列表页](./images/access-token-overview.jpg)
+    ![访问令牌概览](./images/access-token-overview.jpg)
 
-1. 点击 **创建密钥** ，填写名称（示例：`demo`），选择有效期（如 **永久** 或指定时长），点击 **确定** 。
+1. 点击 **创建访问令牌**，填写名称（例如：`demo`），选择过期时间（例如：**永不过期** 或特定时长），然后点击 **确认**。
 
-    ![创建 Access Token 页面](./images/access-token-create.jpg)
+    ![创建访问令牌](./images/access-token-create.jpg)
 
-1. 在创建成功弹窗中复制生成的 Token，并妥善保存。
+1. 创建成功后，将弹出一个窗口显示 Token。**请立即复制并妥善保存**，因为它将不再显示。
 
-    ![保存 Access Token 页面](./images/access-token-save.png)
+    ![保存访问令牌](./images/access-token-save.png)
 
-### 使用 Access Token
+### 使用访问令牌
 
-1. 使用 MatrixHub 地址，配置访问端点：
+1. 使用您的 MatrixHub 地址在本地终端中配置服务端点：
 
     ```bash
-    export HF_ENDPOINT="matrixhub.url" # example：http://127.0.0.1:xxx
+    export HF_ENDPOINT="matrixhub.url" # 示例: http://127.0.0.1:xxx
     ```
 
-1. 在终端执行登录命令：
+1. 运行登录命令：
 
     ```bash
     hf auth login
     ```
 
-1. 按提示粘贴 Token，完成认证。
+1. 根据提示输入您保存的 Token 以完成身份验证。
 
-1. 执行下载命令验证 **MatrixHub** 仓库访问权限：
+1. 执行下载命令以验证对 **MatrixHub** 仓库的访问权限：
 
     ```bash
     hf download my-matrixhub-project/test-mn
     ```
 
-### 撤销 Access Token
+### 撤销访问令牌
 
-1. 返回 **个人中心** -> **访问密钥** 页面，在目标 Token 右侧执行删除操作。
+1. 进入 **个人中心** -> **访问令牌** 页面，找到目标 Token，并执行删除操作。
 
-1. 撤销后再次执行需要认证的命令，会提示未登录或认证失效。
+1. 撤销后，任何需要该 Token 进行身份验证的 CLI 操作都会提示您尚未登录或身份验证无效。
 
-## 配置参数说明
+## 配置参数
 
-| 参数 | 说明 |
-|------|------|
-| 名称 | Token 的标识名称，便于区分不同用途 |
-| 有效期 | 可选 **永久** 或自定义日期，过期后自动失效 |
-| Token 值 | 仅在创建时完整展示一次，需立即复制保存 |
+| 参数 | 描述 |
+|-----------|-------------|
+| 名称 | Token 的描述性标识符，用于区分不同用途。 |
+| 过期时间 | 可以设置为 **永不过期** 或自定义日期。超过该期限后将自动失效。 |
+| Token 值 | 用于身份验证的实际密钥字符串。仅在创建时完整显示一次，必须立即复制并保存。 |

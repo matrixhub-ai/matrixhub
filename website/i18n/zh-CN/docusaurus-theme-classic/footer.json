@@ -17,22 +17,54 @@
   },
   "link.item.label.Roadmap": {
     "message": "路线图",
-    "description": "The label of footer link with label=Roadmap linking to #"
+    "description": "The label of footer link with label=Roadmap linking to /roadmap"
   },
   "link.item.label.Documentation": {
     "message": "文档",
-    "description": "The label of footer link with label=Documentation linking to /docs/intro"
+    "description": "The label of footer link with label=Documentation linking to /docs/overview"
   },
   "link.item.label.API Reference": {
     "message": "API 参考",
-    "description": "The label of footer link with label=API Reference linking to #"
+    "description": "The label of footer link with label=API Reference linking to /docs/reference"
   },
   "link.item.label.Community": {
     "message": "社区",
-    "description": "The label of footer link with label=Community linking to #"
+    "description": "The label of footer link with label=Community linking to /community"
   },
   "link.item.label.GitHub": {
     "message": "GitHub",
     "description": "The label of footer link with label=GitHub linking to https://github.com/matrixhub-ai/matrixhub"
+  },
+  "link.title.Community": {
+    "message": "社区",
+    "description": "The title of the footer links column with title=Community in the footer"
+  },
+  "link.item.label.Why MatrixHub": {
+    "message": "为何选择 MatrixHub",
+    "description": "The label of footer link with label=Why MatrixHub linking to /product/why-matrixhub"
+  },
+  "link.item.label.Use Cases": {
+    "message": "使用场景",
+    "description": "The label of footer link with label=Use Cases linking to /product/use-cases"
+  },
+  "link.item.label.Architecture": {
+    "message": "架构",
+    "description": "The label of footer link with label=Architecture linking to /product/architecture"
+  },
+  "link.item.label.Comparison": {
+    "message": "对比",
+    "description": "The label of footer link with label=Comparison linking to /product/comparison"
+  },
+  "link.item.label.Blog": {
+    "message": "博客",
+    "description": "The label of footer link with label=Blog linking to /blog"
+  },
+  "link.item.label.Changelog": {
+    "message": "更新日志",
+    "description": "The label of footer link with label=Changelog linking to /changelog"
+  },
+  "copyright": {
+    "message": "© 2026 MatrixHub Open Source. Apache 2.0 Licensed.",
+    "description": "The footer copyright"
   }
 }

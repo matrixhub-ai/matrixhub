@@ -29,7 +29,7 @@ export default function AirGappedDelivery(): React.ReactElement {
 
         <section className="py-16 max-w-4xl mx-auto px-6">
           <div className="text-center text-slate-500">
-            <p>🚧 This page is under construction. Content coming soon.</p>
+            <p><Translate id="product.underConstruction">🚧 This page is under construction. Content coming soon.</Translate></p>
           </div>
         </section>
       </main>

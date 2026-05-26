@@ -125,7 +125,7 @@ curl http://127.0.0.1:3001
 
 建议立即修改密码。
 
-![登录](../images/login.png)
+![登录](./images/login.png)
 
 ### Step 3：创建远程仓库
 
@@ -143,10 +143,10 @@ Type: HuggingFace
 请求 -> MatrixHub -> Hugging Face -> 回源
 ```
 
-![远程仓库1](../images/remote1.png)
-![远程仓库2](../images/remote2.png)
-![远程仓库3](../images/remote3.png)
-![远程仓库4](../images/remote4.png)
+![远程仓库1](./images/registry1.PNG)
+![远程仓库2](./images/registry2.PNG)
+![远程仓库3](./images/registry3.PNG)
+![远程仓库4](./images/registry4.PNG)
 
 ### Step 4：创建 Proxy 项目
 
@@ -161,15 +161,15 @@ Type: HuggingFace
 - 选择刚才创建的 `huggingface` 远程仓库
 - 填写代理模型组织：`deepseek-ai`
 
-![创建项目1](../images/creprojcet1.png)
-![创建项目2](../images/creprojcet2.png)
+![创建项目1](./images/project1.PNG)
+![创建项目2](./images/project2.png)
 
 ### Step 5：客户端接入
 
 ```bash
 export HF_ENDPOINT="http://127.0.0.1:3001"
 ```
-![客户端1](../images/client1.png)
+![客户端1](./images/client1.png)
 本质上是在做这几件事：
 
 - 劫持客户端请求
@@ -183,10 +183,10 @@ export HF_ENDPOINT="http://127.0.0.1:3001"
 ```bash
 hf download deepseek-ai/DeepSeek-V4-Pro
 ```
-![客户端2](../images/client2.png)
+![客户端2](./images/download1.png)
 
 下载完成后，进入‘deepseek-ai' 项目可以看到 DeepSeek-V4-Pro 模型在页面上出现.
-![下载](../images/download.png)
+![下载](./images/download.png)
 
 ## 验证缓存是否生效
 
