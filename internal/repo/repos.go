@@ -54,6 +54,7 @@ type Repos struct {
 	SyncJob     syncjob.ISyncJobRepo
 	Authz       authz.IAuthzProjectRepo
 	Cleanup     cleanup.ICleanupRepo
+	CleanupData cleanup.ICleanupStorageRepo
 	Robot       robot.IRobotRepo
 }
 
@@ -85,6 +86,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.SyncJob = NewSyncJobDB(repos.DB)
 	repos.Authz = NewAuthzDBRepo(repos.DB)
 	repos.Cleanup = NewCleanupDB(repos.DB)
+	repos.CleanupData = NewCleanupStorageRepo(repos.GitStorage, conf.DataDir)
 	repos.Robot = NewRobotRepo(repos.DB)
 
 	return repos

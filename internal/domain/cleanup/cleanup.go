@@ -67,12 +67,18 @@ type ICleanupRepo interface {
 	ListAllDatasetPaths(ctx context.Context) ([]string, error)
 }
 
-// ICleanupService defines the service interface for cleanup operations.
-type ICleanupService interface {
-	// PreviewCleanup previews orphaned data without deleting.
-	PreviewCleanup(ctx context.Context, includeRepos, includeLFS bool) (*CleanupPreview, error)
-	// ExecuteCleanup executes cleanup based on options.
-	ExecuteCleanup(ctx context.Context, cleanRepos, cleanLFS bool, dryRun bool) (*CleanupResult, error)
-	// GetStorageStats returns storage statistics.
-	GetStorageStats(ctx context.Context) (*StorageStats, error)
+// ICleanupStorageRepo defines storage operations needed by cleanup use-cases.
+type ICleanupStorageRepo interface {
+	// FindOrphanedRepos finds Git repositories on disk that are not present in valid paths.
+	FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*OrphanedRepo, error)
+	// FindOrphanedLFS finds LFS objects on disk that are not referenced by repositories.
+	FindOrphanedLFS(ctx context.Context) ([]*OrphanedLFS, error)
+	// DeleteRepo deletes an orphaned repository by relative path.
+	DeleteRepo(ctx context.Context, path string) error
+	// DeleteLFSObject deletes an orphaned LFS object.
+	DeleteLFSObject(ctx context.Context, object *OrphanedLFS) error
+	// RepositoriesSize returns the size of all repositories on disk.
+	RepositoriesSize(ctx context.Context) int64
+	// LFSSize returns the size of all LFS objects on disk.
+	LFSSize(ctx context.Context) int64
 }
