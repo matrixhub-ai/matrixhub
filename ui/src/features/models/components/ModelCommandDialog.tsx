@@ -28,6 +28,8 @@ interface CommandCodeBlockProps {
   command: string
 }
 
+const HF_ENDPOINT_PLACEHOLDER = window.location.origin
+
 function buildModelCommand(type: ModelCommandType, modelPath: string, hfEndpoint: string) {
   const commandByType = {
     upload: `hf upload ${modelPath} . .`,
@@ -66,7 +68,7 @@ export function ModelCommandDialog({
   const command = buildModelCommand(
     type,
     modelPath,
-    systemConfigQuery.data?.endpoints?.hfBase ?? '',
+    systemConfigQuery.data?.endpoints?.hfBase || HF_ENDPOINT_PLACEHOLDER,
   )
 
   return (
