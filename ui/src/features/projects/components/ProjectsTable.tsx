@@ -4,6 +4,7 @@ import {
   Text,
 } from '@mantine/core'
 import { ProjectType } from '@matrixhub/api-ts/v1alpha1/project.pb'
+import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -17,8 +18,15 @@ import { formatDateTime } from '@/shared/utils/date'
 import type { Project } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import type { MRT_ColumnDef } from 'mantine-react-table'
 
+type ProjectRoleMap = Record<string, ProjectRoleType>
+
 function isPublicProject(type?: ProjectType) {
   return type === ProjectType.PROJECT_TYPE_PUBLIC
+}
+
+function canDeleteProject(project: Project, projectRoles?: ProjectRoleMap) {
+  return !!project.name
+    && projectRoles?.[project.name] === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
 }
 
 type ProjectCellProps = Parameters<NonNullable<MRT_ColumnDef<Project>['Cell']>>[0]
@@ -84,14 +92,23 @@ function ProjectActionsCell({
   table,
 }: DataTableRowActionsProps<Project>) {
   const { t } = useTranslation()
-  const onDelete = (
-    table.options.meta as { onDelete?: (project: Project) => void } | undefined
-  )?.onDelete
+  const {
+    onDelete,
+    projectRoles,
+  } = (table.options.meta as {
+    onDelete?: (project: Project) => void
+    projectRoles?: ProjectRoleMap
+  } | undefined) ?? {}
+  const disabled = !onDelete || !canDeleteProject(row.original, projectRoles)
 
   return (
     <Anchor
       component="button"
       size="sm"
+      c={disabled ? 'dimmed' : undefined}
+      underline={disabled ? 'never' : 'hover'}
+      disabled={disabled}
+      style={disabled ? { cursor: 'not-allowed' } : undefined}
       onClick={() => onDelete?.(row.original)}
     >
       {t('projects.actions.delete')}
@@ -101,6 +118,7 @@ function ProjectActionsCell({
 
 export type ProjectsTableProps = Omit<DataTableProps<Project>, 'columns'> & {
   onDelete?: (project: Project) => void
+  projectRoles?: ProjectRoleMap
 }
 
 export function ProjectsTable({
@@ -111,6 +129,7 @@ export function ProjectsTable({
   searchValue,
   onSearchChange,
   onDelete,
+  projectRoles,
   onPageChange,
   toolbarExtra,
   onRefresh,
@@ -166,7 +185,10 @@ export function ProjectsTable({
       enableRowActions
       renderRowActions={ProjectActionsCell}
       tableOptions={{
-        meta: { onDelete },
+        meta: {
+          onDelete,
+          projectRoles,
+        },
       }}
     />
   )
