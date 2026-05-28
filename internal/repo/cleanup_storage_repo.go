@@ -23,32 +23,18 @@ import (
 	"sync"
 
 	"github.com/matrixhub-ai/hfd/pkg/repository"
-	gitstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/cleanup"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 )
-
-type cleanupStorageRepo struct {
-	storage *gitstorage.Storage
-	dataDir string
-}
 
 type lfsObjectInfo struct {
 	size int64
 	path string
 }
 
-// NewCleanupStorageRepo creates a filesystem-backed cleanup storage adapter.
-func NewCleanupStorageRepo(storage *gitstorage.Storage, dataDir string) cleanup.ICleanupStorageRepo {
-	return &cleanupStorageRepo{
-		storage: storage,
-		dataDir: dataDir,
-	}
-}
-
 // FindOrphanedRepos finds orphaned Git repositories on disk.
-func (r *cleanupStorageRepo) FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*cleanup.OrphanedRepo, error) {
+func (g *gitRepo) FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*git.OrphanedRepo, error) {
 	validPaths := make(map[string]bool)
 	for _, p := range validModelPaths {
 		validPaths[p+".git"] = true
@@ -57,8 +43,8 @@ func (r *cleanupStorageRepo) FindOrphanedRepos(ctx context.Context, validModelPa
 		validPaths["datasets/"+p+".git"] = true
 	}
 
-	reposDir := filepath.Join(r.dataDir, "repositories")
-	orphaned := []*cleanup.OrphanedRepo{}
+	reposDir := g.storage.RepositoriesDir()
+	orphaned := []*git.OrphanedRepo{}
 
 	err := filepath.Walk(reposDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || !info.IsDir() {
@@ -93,7 +79,7 @@ func (r *cleanupStorageRepo) FindOrphanedRepos(ctx context.Context, validModelPa
 			}
 		}
 
-		orphaned = append(orphaned, &cleanup.OrphanedRepo{
+		orphaned = append(orphaned, &git.OrphanedRepo{
 			Path:         relPath,
 			Type:         repoType,
 			ProjectName:  projectName,
@@ -108,21 +94,21 @@ func (r *cleanupStorageRepo) FindOrphanedRepos(ctx context.Context, validModelPa
 }
 
 // FindOrphanedLFS finds orphaned LFS objects on disk.
-func (r *cleanupStorageRepo) FindOrphanedLFS(ctx context.Context) ([]*cleanup.OrphanedLFS, error) {
-	allOIDs, err := r.scanLFSObjects(ctx)
+func (g *gitRepo) FindOrphanedLFS(ctx context.Context) ([]*git.OrphanedLFS, error) {
+	allOIDs, err := g.scanLFSObjects(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	referencedOIDs, err := r.collectReferencedOIDs(ctx)
+	referencedOIDs, err := g.collectReferencedOIDs(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	orphaned := make([]*cleanup.OrphanedLFS, 0)
+	orphaned := make([]*git.OrphanedLFS, 0)
 	for oid, info := range allOIDs {
 		if !referencedOIDs[oid] {
-			orphaned = append(orphaned, &cleanup.OrphanedLFS{
+			orphaned = append(orphaned, &git.OrphanedLFS{
 				OID:       oid,
 				SizeBytes: info.size,
 				Path:      info.path,
@@ -134,12 +120,11 @@ func (r *cleanupStorageRepo) FindOrphanedLFS(ctx context.Context) ([]*cleanup.Or
 }
 
 // DeleteRepo deletes an orphaned repository by relative path.
-func (r *cleanupStorageRepo) DeleteRepo(ctx context.Context, path string) error {
+func (g *gitRepo) DeleteRepo(ctx context.Context, path string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	reposDir := filepath.Join(r.dataDir, "repositories")
-	fullPath, err := confinedPath(reposDir, path)
+	fullPath, err := confinedPath(g.storage.RepositoriesDir(), path)
 	if err != nil {
 		return err
 	}
@@ -147,11 +132,11 @@ func (r *cleanupStorageRepo) DeleteRepo(ctx context.Context, path string) error 
 }
 
 // DeleteLFSObject deletes an orphaned LFS object.
-func (r *cleanupStorageRepo) DeleteLFSObject(ctx context.Context, object *cleanup.OrphanedLFS) error {
+func (g *gitRepo) DeleteLFSObject(ctx context.Context, object *git.OrphanedLFS) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	fullPath, err := confinedPath(r.storage.LFSDir(), object.Path)
+	fullPath, err := confinedPath(g.storage.LFSDir(), object.Path)
 	if err != nil {
 		return err
 	}
@@ -159,24 +144,24 @@ func (r *cleanupStorageRepo) DeleteLFSObject(ctx context.Context, object *cleanu
 }
 
 // RepositoriesSize returns the size of all repositories on disk.
-func (r *cleanupStorageRepo) RepositoriesSize(ctx context.Context) int64 {
+func (g *gitRepo) RepositoriesSize(ctx context.Context) int64 {
 	if ctx.Err() != nil {
 		return 0
 	}
-	return calculateDirSize(filepath.Join(r.dataDir, "repositories"))
+	return calculateDirSize(g.storage.RepositoriesDir())
 }
 
 // LFSSize returns the size of all LFS objects on disk.
-func (r *cleanupStorageRepo) LFSSize(ctx context.Context) int64 {
+func (g *gitRepo) LFSSize(ctx context.Context) int64 {
 	if ctx.Err() != nil {
 		return 0
 	}
-	return calculateDirSize(r.storage.LFSDir())
+	return calculateDirSize(g.storage.LFSDir())
 }
 
-func (r *cleanupStorageRepo) scanLFSObjects(ctx context.Context) (map[string]*lfsObjectInfo, error) {
+func (g *gitRepo) scanLFSObjects(ctx context.Context) (map[string]*lfsObjectInfo, error) {
 	objects := make(map[string]*lfsObjectInfo)
-	lfsDir, err := filepath.Abs(r.storage.LFSDir())
+	lfsDir, err := filepath.Abs(g.storage.LFSDir())
 	if err != nil {
 		return nil, err
 	}
@@ -205,24 +190,24 @@ func (r *cleanupStorageRepo) scanLFSObjects(ctx context.Context) (map[string]*lf
 	return objects, err
 }
 
-func (r *cleanupStorageRepo) collectReferencedOIDs(ctx context.Context) (map[string]bool, error) {
+func (g *gitRepo) collectReferencedOIDs(ctx context.Context) (map[string]bool, error) {
 	referencedOIDs := make(map[string]bool)
 
-	reposDir := filepath.Join(r.dataDir, "repositories")
+	reposDir := g.storage.RepositoriesDir()
 	if _, err := os.Stat(reposDir); os.IsNotExist(err) {
 		return referencedOIDs, nil
 	}
 
-	repoPaths := r.listAllRepoPaths(ctx, reposDir)
+	repoPaths := g.listAllRepoPaths(ctx, reposDir)
 
-	g, _ := errgroup.WithContext(ctx)
-	g.SetLimit(10)
+	group, _ := errgroup.WithContext(ctx)
+	group.SetLimit(10)
 
 	var mu sync.Mutex
 
 	for _, repoPath := range repoPaths {
-		g.Go(func() error {
-			oids, err := r.collectRepoLFSOIDs(repoPath)
+		group.Go(func() error {
+			oids, err := g.collectRepoLFSOIDs(repoPath)
 			if err != nil {
 				return nil
 			}
@@ -235,14 +220,14 @@ func (r *cleanupStorageRepo) collectReferencedOIDs(ctx context.Context) (map[str
 		})
 	}
 
-	if err := g.Wait(); err != nil {
+	if err := group.Wait(); err != nil {
 		return nil, err
 	}
 
 	return referencedOIDs, nil
 }
 
-func (r *cleanupStorageRepo) listAllRepoPaths(ctx context.Context, reposDir string) []string {
+func (g *gitRepo) listAllRepoPaths(ctx context.Context, reposDir string) []string {
 	repoPaths := []string{}
 	err := filepath.Walk(reposDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || !info.IsDir() {
@@ -262,7 +247,7 @@ func (r *cleanupStorageRepo) listAllRepoPaths(ctx context.Context, reposDir stri
 	return repoPaths
 }
 
-func (r *cleanupStorageRepo) collectRepoLFSOIDs(repoPath string) (map[string]bool, error) {
+func (g *gitRepo) collectRepoLFSOIDs(repoPath string) (map[string]bool, error) {
 	oids := make(map[string]bool)
 
 	repo, err := repository.Open(repoPath)

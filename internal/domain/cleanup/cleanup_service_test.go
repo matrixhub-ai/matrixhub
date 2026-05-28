@@ -18,70 +18,149 @@ import (
 	"context"
 	"reflect"
 	"testing"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 )
 
-type fakeCleanupRepo struct {
-	modelPaths   []string
+type fakeModelRepo struct {
+	modelPaths []string
+}
+
+type fakeDatasetRepo struct {
 	datasetPaths []string
 }
 
-func (f *fakeCleanupRepo) ListAllModelPaths(context.Context) ([]string, error) {
+func (f *fakeModelRepo) Create(context.Context, *model.Model) (*model.Model, error) { return nil, nil }
+
+func (f *fakeModelRepo) GetByProjectAndName(context.Context, string, string) (*model.Model, error) {
+	return nil, nil
+}
+
+func (f *fakeModelRepo) List(context.Context, *model.Filter) ([]*model.Model, int64, error) {
+	return nil, 0, nil
+}
+
+func (f *fakeModelRepo) Delete(context.Context, string, string) error { return nil }
+
+func (f *fakeModelRepo) UpdateMetadata(context.Context, int64, *model.MetadataUpdate) error {
+	return nil
+}
+
+func (f *fakeModelRepo) UpdateSetting(context.Context, int64, *model.SettingUpdate) error {
+	return nil
+}
+
+func (f *fakeModelRepo) ListAllPaths(context.Context) ([]string, error) {
 	return f.modelPaths, nil
 }
 
-func (f *fakeCleanupRepo) ListAllDatasetPaths(context.Context) ([]string, error) {
+func (f *fakeDatasetRepo) Create(context.Context, *dataset.Dataset) (*dataset.Dataset, error) {
+	return nil, nil
+}
+
+func (f *fakeDatasetRepo) GetByProjectAndName(context.Context, string, string) (*dataset.Dataset, error) {
+	return nil, nil
+}
+
+func (f *fakeDatasetRepo) List(context.Context, *model.Filter) ([]*dataset.Dataset, int64, error) {
+	return nil, 0, nil
+}
+
+func (f *fakeDatasetRepo) Delete(context.Context, string, string) error { return nil }
+
+func (f *fakeDatasetRepo) ListAllPaths(context.Context) ([]string, error) {
 	return f.datasetPaths, nil
 }
 
-type fakeCleanupStorageRepo struct {
+type fakeGitRepo struct {
 	gotModelPaths   []string
 	gotDatasetPaths []string
-	orphanedRepos   []*OrphanedRepo
-	orphanedLFS     []*OrphanedLFS
+	orphanedRepos   []*git.OrphanedRepo
+	orphanedLFS     []*git.OrphanedLFS
 	deletedRepos    []string
 	deletedLFS      []string
 	reposSize       int64
 	lfsSize         int64
 }
 
-func (f *fakeCleanupStorageRepo) FindOrphanedRepos(_ context.Context, validModelPaths, validDatasetPaths []string) ([]*OrphanedRepo, error) {
+func (f *fakeGitRepo) CreateRepository(context.Context, string, string, string) error { return nil }
+
+func (f *fakeGitRepo) DeleteRepository(context.Context, string, string, string) error { return nil }
+
+func (f *fakeGitRepo) ListRevisions(context.Context, string, string, string) (*git.Revisions, error) {
+	return nil, nil
+}
+
+func (f *fakeGitRepo) ListCommits(context.Context, string, string, string, string, int, int) ([]*git.Commit, int64, error) {
+	return nil, 0, nil
+}
+
+func (f *fakeGitRepo) GetCommit(context.Context, string, string, string, string) (*git.Commit, error) {
+	return nil, nil
+}
+
+func (f *fakeGitRepo) CreateCommit(context.Context, string, string, string, string, *git.Commit, []git.CommitOperation) (string, error) {
+	return "", nil
+}
+
+func (f *fakeGitRepo) GetTree(context.Context, string, string, string, string, string) ([]*git.TreeEntry, error) {
+	return nil, nil
+}
+
+func (f *fakeGitRepo) GetBlob(context.Context, string, string, string, string, string) (*git.TreeEntry, error) {
+	return nil, nil
+}
+
+func (f *fakeGitRepo) PullFromRemote(context.Context, *git.GitRepository) error { return nil }
+
+func (f *fakeGitRepo) PushToRemote(context.Context, *git.GitRepository) error { return nil }
+
+func (f *fakeGitRepo) ExtractMetadata(context.Context, string, string, string) (*git.RepoMetadataFiles, error) {
+	return nil, nil
+}
+
+func (f *fakeGitRepo) FindOrphanedRepos(_ context.Context, validModelPaths, validDatasetPaths []string) ([]*git.OrphanedRepo, error) {
 	f.gotModelPaths = validModelPaths
 	f.gotDatasetPaths = validDatasetPaths
 	return f.orphanedRepos, nil
 }
 
-func (f *fakeCleanupStorageRepo) FindOrphanedLFS(context.Context) ([]*OrphanedLFS, error) {
+func (f *fakeGitRepo) FindOrphanedLFS(context.Context) ([]*git.OrphanedLFS, error) {
 	return f.orphanedLFS, nil
 }
 
-func (f *fakeCleanupStorageRepo) DeleteRepo(_ context.Context, path string) error {
+func (f *fakeGitRepo) DeleteRepo(_ context.Context, path string) error {
 	f.deletedRepos = append(f.deletedRepos, path)
 	return nil
 }
 
-func (f *fakeCleanupStorageRepo) DeleteLFSObject(_ context.Context, object *OrphanedLFS) error {
+func (f *fakeGitRepo) DeleteLFSObject(_ context.Context, object *git.OrphanedLFS) error {
 	f.deletedLFS = append(f.deletedLFS, object.OID)
 	return nil
 }
 
-func (f *fakeCleanupStorageRepo) RepositoriesSize(context.Context) int64 {
+func (f *fakeGitRepo) RepositoriesSize(context.Context) int64 {
 	return f.reposSize
 }
 
-func (f *fakeCleanupStorageRepo) LFSSize(context.Context) int64 {
+func (f *fakeGitRepo) LFSSize(context.Context) int64 {
 	return f.lfsSize
 }
 
 func TestCleanupServicePreviewUsesDomainPorts(t *testing.T) {
-	dbRepo := &fakeCleanupRepo{
-		modelPaths:   []string{"project/model"},
+	modelRepo := &fakeModelRepo{
+		modelPaths: []string{"project/model"},
+	}
+	datasetRepo := &fakeDatasetRepo{
 		datasetPaths: []string{"project/dataset"},
 	}
-	storageRepo := &fakeCleanupStorageRepo{
-		orphanedRepos: []*OrphanedRepo{{Path: "orphan/model.git", SizeBytes: 10}},
-		orphanedLFS:   []*OrphanedLFS{{OID: "12345678", SizeBytes: 20}},
+	gitRepo := &fakeGitRepo{
+		orphanedRepos: []*git.OrphanedRepo{{Path: "orphan/model.git", SizeBytes: 10}},
+		orphanedLFS:   []*git.OrphanedLFS{{OID: "12345678", SizeBytes: 20}},
 	}
-	service := NewCleanupService(dbRepo, storageRepo)
+	service := NewCleanupService(modelRepo, datasetRepo, gitRepo)
 
 	preview, err := service.PreviewCleanup(context.Background(), true, true)
 	if err != nil {
@@ -90,20 +169,20 @@ func TestCleanupServicePreviewUsesDomainPorts(t *testing.T) {
 	if preview.TotalReclaimable != 30 {
 		t.Fatalf("expected total reclaimable 30, got %d", preview.TotalReclaimable)
 	}
-	if !reflect.DeepEqual(storageRepo.gotModelPaths, dbRepo.modelPaths) {
-		t.Fatalf("expected model paths %v, got %v", dbRepo.modelPaths, storageRepo.gotModelPaths)
+	if !reflect.DeepEqual(gitRepo.gotModelPaths, modelRepo.modelPaths) {
+		t.Fatalf("expected model paths %v, got %v", modelRepo.modelPaths, gitRepo.gotModelPaths)
 	}
-	if !reflect.DeepEqual(storageRepo.gotDatasetPaths, dbRepo.datasetPaths) {
-		t.Fatalf("expected dataset paths %v, got %v", dbRepo.datasetPaths, storageRepo.gotDatasetPaths)
+	if !reflect.DeepEqual(gitRepo.gotDatasetPaths, datasetRepo.datasetPaths) {
+		t.Fatalf("expected dataset paths %v, got %v", datasetRepo.datasetPaths, gitRepo.gotDatasetPaths)
 	}
 }
 
 func TestCleanupServiceExecuteDelegatesDeletionToStoragePort(t *testing.T) {
-	storageRepo := &fakeCleanupStorageRepo{
-		orphanedRepos: []*OrphanedRepo{{Path: "orphan/model.git", SizeBytes: 10}},
-		orphanedLFS:   []*OrphanedLFS{{OID: "12345678", SizeBytes: 20}},
+	gitRepo := &fakeGitRepo{
+		orphanedRepos: []*git.OrphanedRepo{{Path: "orphan/model.git", SizeBytes: 10}},
+		orphanedLFS:   []*git.OrphanedLFS{{OID: "12345678", SizeBytes: 20}},
 	}
-	service := NewCleanupService(&fakeCleanupRepo{}, storageRepo)
+	service := NewCleanupService(&fakeModelRepo{}, &fakeDatasetRepo{}, gitRepo)
 
 	result, err := service.ExecuteCleanup(context.Background(), true, true, false)
 	if err != nil {
@@ -112,10 +191,10 @@ func TestCleanupServiceExecuteDelegatesDeletionToStoragePort(t *testing.T) {
 	if result.ReposDeleted != 1 || result.LFSObjectsDeleted != 1 || result.SpaceReclaimed != 30 {
 		t.Fatalf("unexpected result: %+v", result)
 	}
-	if !reflect.DeepEqual(storageRepo.deletedRepos, []string{"orphan/model.git"}) {
-		t.Fatalf("expected repo deletion through storage port, got %v", storageRepo.deletedRepos)
+	if !reflect.DeepEqual(gitRepo.deletedRepos, []string{"orphan/model.git"}) {
+		t.Fatalf("expected repo deletion through git port, got %v", gitRepo.deletedRepos)
 	}
-	if !reflect.DeepEqual(storageRepo.deletedLFS, []string{"12345678"}) {
-		t.Fatalf("expected lfs deletion through storage port, got %v", storageRepo.deletedLFS)
+	if !reflect.DeepEqual(gitRepo.deletedLFS, []string{"12345678"}) {
+		t.Fatalf("expected lfs deletion through git port, got %v", gitRepo.deletedLFS)
 	}
 }

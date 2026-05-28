@@ -92,6 +92,9 @@ type IModelRepo interface {
 
 	// UpdateSetting updates model settings (e.g., popular flag).
 	UpdateSetting(ctx context.Context, modelID int64, update *SettingUpdate) error
+
+	// ListAllPaths returns all valid model paths (project/name format).
+	ListAllPaths(ctx context.Context) ([]string, error)
 }
 
 // ILabelRepo defines the repository interface for label operations.

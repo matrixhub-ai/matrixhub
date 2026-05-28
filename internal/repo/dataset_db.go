@@ -34,6 +34,22 @@ func NewDatasetDB(db *gorm.DB) dataset.IDatasetRepo {
 	return &datasetDB{db: db}
 }
 
+// ListAllPaths returns all valid dataset paths (project/name format) from database.
+// Datasets without a valid project reference are excluded; those are data integrity
+// issues, not orphaned repositories.
+func (d *datasetDB) ListAllPaths(ctx context.Context) ([]string, error) {
+	var paths []string
+	if err := d.db.WithContext(ctx).
+		Table("datasets d").
+		Select("CONCAT(p.name, '/', d.name)").
+		Joins("LEFT JOIN projects p ON d.project_id = p.id").
+		Where("p.name IS NOT NULL").
+		Find(&paths).Error; err != nil {
+		return nil, err
+	}
+	return paths, nil
+}
+
 // List retrieves datasets with filtering and pagination
 func (d *datasetDB) List(ctx context.Context, filter *model.Filter) ([]*dataset.Dataset, int64, error) {
 	// Set defaults

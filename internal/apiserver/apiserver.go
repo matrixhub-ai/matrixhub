@@ -442,7 +442,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		jobGenerator,
 	)
 	// init cleanup service
-	cleanupService := cleanup.NewCleanupService(repos.Cleanup, repos.CleanupData)
+	cleanupService := cleanup.NewCleanupService(repos.Model, repos.Dataset, repos.Git)
 
 	// wire task status reporter from sync policy service to sync job service
 	syncJobService.SetOnJobDone(syncPolicyService.ReportTaskStatus)
