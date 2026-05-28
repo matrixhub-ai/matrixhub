@@ -3,11 +3,13 @@ import {
   Button,
   Code,
   Group,
+  Skeleton,
   Stack,
   Text,
 } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 
+import { useSystemConfig } from '@/features/system/system.query'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 
@@ -26,16 +28,14 @@ interface CommandCodeBlockProps {
   command: string
 }
 
-const HF_ENDPOINT_PLACEHOLDER = 'https://example.matrixhub.io'
-
-function buildModelCommand(type: ModelCommandType, modelPath: string) {
+function buildModelCommand(type: ModelCommandType, modelPath: string, hfEndpoint: string) {
   const commandByType = {
     upload: `hf upload ${modelPath} . .`,
     download: `hf download ${modelPath}`,
     use: `vllm serve ${modelPath}`,
   }
 
-  return `export HF_ENDPOINT=${HF_ENDPOINT_PLACEHOLDER}\n${commandByType[type]}`
+  return `export HF_ENDPOINT=${hfEndpoint}\n${commandByType[type]}`
 }
 
 function CommandCodeBlock({ command }: CommandCodeBlockProps) {
@@ -62,7 +62,12 @@ export function ModelCommandDialog({
   onClose,
 }: ModelCommandDialogProps) {
   const { t } = useTranslation()
-  const command = buildModelCommand(type, modelPath)
+  const systemConfigQuery = useSystemConfig()
+  const command = buildModelCommand(
+    type,
+    modelPath,
+    systemConfigQuery.data?.endpoints?.hfBase ?? '',
+  )
 
   return (
     <ModalWrapper
@@ -83,7 +88,9 @@ export function ModelCommandDialog({
           {t(`model.detail.commandDialog.${type}.description`)}
         </Text>
 
-        <CommandCodeBlock command={command} />
+        {systemConfigQuery.isPending
+          ? <Skeleton height={92} radius="sm" />
+          : <CommandCodeBlock command={command} />}
       </Stack>
     </ModalWrapper>
   )

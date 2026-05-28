@@ -20,13 +20,5 @@
   position: absolute;
   top: var(--mantine-spacing-xs);
   right: var(--mantine-spacing-xs);
-  opacity: 0;
-  pointer-events: none;
   transition: opacity 120ms ease;
-}
-
-.codeBlock:hover .copyButton,
-.codeBlock:focus-within .copyButton {
-  opacity: 1;
-  pointer-events: auto;
 }
