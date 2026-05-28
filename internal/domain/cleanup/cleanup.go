@@ -14,10 +14,6 @@
 
 package cleanup
 
-import (
-	"context"
-)
-
 // OrphanedRepo represents an orphaned Git repository on disk
 // that has no corresponding record in the database.
 type OrphanedRepo struct {
@@ -57,28 +53,4 @@ type StorageStats struct {
 	RepositoriesSizeBytes int64
 	LFSSizeBytes          int64
 	OrphanedSizeBytes     int64
-}
-
-// ICleanupRepo defines the repository interface for cleanup operations.
-type ICleanupRepo interface {
-	// ListAllModelPaths returns all valid model paths (project/name format) from database.
-	ListAllModelPaths(ctx context.Context) ([]string, error)
-	// ListAllDatasetPaths returns all valid dataset paths from database.
-	ListAllDatasetPaths(ctx context.Context) ([]string, error)
-}
-
-// ICleanupStorageRepo defines storage operations needed by cleanup use-cases.
-type ICleanupStorageRepo interface {
-	// FindOrphanedRepos finds Git repositories on disk that are not present in valid paths.
-	FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*OrphanedRepo, error)
-	// FindOrphanedLFS finds LFS objects on disk that are not referenced by repositories.
-	FindOrphanedLFS(ctx context.Context) ([]*OrphanedLFS, error)
-	// DeleteRepo deletes an orphaned repository by relative path.
-	DeleteRepo(ctx context.Context, path string) error
-	// DeleteLFSObject deletes an orphaned LFS object.
-	DeleteLFSObject(ctx context.Context, object *OrphanedLFS) error
-	// RepositoriesSize returns the size of all repositories on disk.
-	RepositoriesSize(ctx context.Context) int64
-	// LFSSize returns the size of all LFS objects on disk.
-	LFSSize(ctx context.Context) int64
 }

@@ -20,7 +20,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/cleanup"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
@@ -53,8 +52,6 @@ type Repos struct {
 	SyncTask    syncpolicy.ISyncTaskRepo
 	SyncJob     syncjob.ISyncJobRepo
 	Authz       authz.IAuthzProjectRepo
-	Cleanup     cleanup.ICleanupRepo
-	CleanupData cleanup.ICleanupStorageRepo
 	Robot       robot.IRobotRepo
 }
 
@@ -85,8 +82,6 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.SyncTask = NewSyncTaskDB(repos.DB)
 	repos.SyncJob = NewSyncJobDB(repos.DB)
 	repos.Authz = NewAuthzDBRepo(repos.DB)
-	repos.Cleanup = NewCleanupDB(repos.DB)
-	repos.CleanupData = NewCleanupStorageRepo(repos.GitStorage, conf.DataDir)
 	repos.Robot = NewRobotRepo(repos.DB)
 
 	return repos

@@ -33,6 +33,22 @@ func NewModelDB(db *gorm.DB) model.IModelRepo {
 	return &modelDB{db: db}
 }
 
+// ListAllPaths returns all valid model paths (project/name format) from database.
+// Models without a valid project reference are excluded; those are data integrity
+// issues, not orphaned repositories.
+func (m *modelDB) ListAllPaths(ctx context.Context) ([]string, error) {
+	var paths []string
+	if err := m.db.WithContext(ctx).
+		Table("models m").
+		Select("CONCAT(p.name, '/', m.name)").
+		Joins("LEFT JOIN projects p ON m.project_id = p.id").
+		Where("p.name IS NOT NULL").
+		Find(&paths).Error; err != nil {
+		return nil, err
+	}
+	return paths, nil
+}
+
 // List retrieves models with filtering and pagination
 func (m *modelDB) List(ctx context.Context, filter *model.Filter) ([]*model.Model, int64, error) {
 	// Build base query with JOIN to projects

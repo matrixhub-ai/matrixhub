@@ -50,4 +50,7 @@ type IDatasetRepo interface {
 
 	// Delete removes a dataset from the database by its project and name.
 	Delete(ctx context.Context, project, name string) error
+
+	// ListAllPaths returns all valid dataset paths (project/name format).
+	ListAllPaths(ctx context.Context) ([]string, error)
 }
