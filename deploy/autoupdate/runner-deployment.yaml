@@ -169,10 +169,21 @@ spec:
               value: "/runner/_work"
             - name: DISABLE_AUTO_UPDATE
               value: "true"
-            # Non-ephemeral so registration survives pod restarts (when PVC persists)
-            - name: EPHEMERAL
-              value: "false"
-            # Don't deregister on shutdown — credentials would be invalidated
+            # Credential persistence: copy /actions-runner/.runner etc to this
+            # directory on shutdown, restore from it on startup. Together with
+            # the PVC mounted below, this lets pod restarts skip ./config.sh
+            # entirely — no new registration token needed.
+            - name: CONFIGURED_ACTIONS_RUNNER_FILES_DIR
+              value: "/runner"
+            # Required when CONFIGURED_ACTIONS_RUNNER_FILES_DIR is set,
+            # otherwise the entrypoint exits with an error. Disabling auto-
+            # deregistration means runner identity stays valid on GitHub side
+            # across pod restarts.
+            - name: DISABLE_AUTOMATIC_DEREGISTRATION
+              value: "true"
+            # NOTE: do NOT set EPHEMERAL here. The entrypoint uses `[ -n "$EPHEMERAL" ]`
+            # which is true for any non-empty value (including "false"), so setting
+            # EPHEMERAL=false would actually enable ephemeral mode. Leave unset.
             - name: RUNNER_SCOPE
               value: "org"
 
