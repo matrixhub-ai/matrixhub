@@ -689,5 +689,458 @@
   },
   "product.feature.gov.desc": {
     "message": "面向企业 AI 的 RBAC、审计日志和合规控制。"
+  },
+  "airgap.title": {
+    "message": "离线环境交付"
+  },
+  "airgap.description": {
+    "message": "安全地将模型交付至隔离环境。"
+  },
+  "airgap.heading": {
+    "message": "离线环境交付"
+  },
+  "airgap.subtitle": {
+    "message": "安全地将模型交付至隔离环境。"
+  },
+  "airgap.isolated.title": {
+    "message": "无缝离线体验"
+  },
+  "airgap.isolated.desc": {
+    "message": "安全地将模型传入隔离网络，同时为研究人员保持原生的 Hugging Face 体验——无需互联网。"
+  },
+  "airgap.workflow.title": {
+    "message": "离线交付工作流"
+  },
+  "architecture.controlPlane.title": {
+    "message": "控制面"
+  },
+  "architecture.cp1": {
+    "message": "API 网关与路由"
+  },
+  "architecture.cp2": {
+    "message": "认证与授权"
+  },
+  "architecture.cp3": {
+    "message": "仓库元数据管理"
+  },
+  "architecture.cp4": {
+    "message": "项目、策略、配额与审计服务"
+  },
+  "architecture.cp5": {
+    "message": "Web UI 与管理工作流"
+  },
+  "architecture.dataPlane.title": {
+    "message": "数据面"
+  },
+  "architecture.dp1": {
+    "message": "大文件上传与下载路径"
+  },
+  "architecture.dp2": {
+    "message": "缓存填充路径"
+  },
+  "architecture.dp3": {
+    "message": "复制路径"
+  },
+  "architecture.dp4": {
+    "message": "离线传输的导入与导出路径"
+  },
+  "architecture.dp5": {
+    "message": "直连 GPU 加载的加速路径"
+  },
+  "architecture.storage.title": {
+    "message": "存储与状态"
+  },
+  "architecture.store1": {
+    "message": "对象存储或文件系统用于大型制品"
+  },
+  "architecture.store2": {
+    "message": "关系数据库用于元数据、令牌、标签"
+  },
+  "architecture.store3": {
+    "message": "Redis 或内存缓存用于热元数据"
+  },
+  "architecture.store4": {
+    "message": "消息队列用于异步任务"
+  },
+  "architecture.execution.title": {
+    "message": "执行模型"
+  },
+  "architecture.exec1": {
+    "message": "无状态 API 服务"
+  },
+  "architecture.exec2": {
+    "message": "异步工作进程用于传输编排"
+  },
+  "architecture.exec3": {
+    "message": "显式重试、退避和死信处理"
+  },
+  "governance.artifact.title": {
+    "message": "企业制品管理"
+  },
+  "governance.artifact.desc": {
+    "message": "多个内部团队微调模型。版本在训练、测试和生产之间漂移。MatrixHub 将模型转变为受治理的生产制品，而不是非正式的文件共享。"
+  },
+  "governance.rbac.title": {
+    "message": "RBAC 与多租户"
+  },
+  "governance.rbac.desc": {
+    "message": "基于项目的隔离与细粒度权限控制。与您现有的 LDAP/SSO 提供商无缝集成，实现集中式访问控制。"
+  },
+  "governance.audit.title": {
+    "message": "审计与合规"
+  },
+  "governance.audit.desc": {
+    "message": "通过全面的日志实现完整的可追溯性。追踪每个模型版本的上传、升级、下载或访问规则变更的操作者。"
+  },
+  "governance.integrity.title": {
+    "message": "完整性保护"
+  },
+  "governance.integrity.desc": {
+    "message": "标签锁定、发布晋升工作流、内置恶意软件扫描和内容签名，确保您的生产模型不被篡改。"
+  },
+  "hf.title": {
+    "message": "兼容 Hugging Face"
+  },
+  "hf.description": {
+    "message": "与 Hugging Face 生态系统无缝兼容。"
+  },
+  "hf.heading": {
+    "message": "兼容 Hugging Face"
+  },
+  "hf.subtitle": {
+    "message": "与 Hugging Face 生态系统无缝兼容。"
+  },
+  "hf.transparent.title": {
+    "message": "透明代理模式"
+  },
+  "hf.transparent.desc": {
+    "message": "零代码变更即可切换到私有托管。MatrixHub 提供即插即用的端点替换，您现有的工具无需任何修改。"
+  },
+  "hf.api.title": {
+    "message": "API 兼容性边界"
+  },
+  "hf.api.desc": {
+    "message": "我们精确实现了 vLLM、SGLang 和常用 Hugging Face 客户端所需的 Hugging Face API 子集。没有臃肿的功能堆叠，只有企业推理团队真正需要的基础设施层。"
+  },
+  "hf.artifacts.title": {
+    "message": "原生制品支持"
+  },
+  "hf.artifacts.desc": {
+    "message": "无缝支持 PyTorch bin、Safetensors、GGML/GGUF 和分词器。MatrixHub 原生理解模型目录结构，实现优化的分块与分发。"
+  },
+  "acceleration.title": {
+    "message": "推理加速"
+  },
+  "acceleration.description": {
+    "message": "为 vLLM、SGLang 等推理引擎加速模型分发。"
+  },
+  "acceleration.heading": {
+    "message": "推理加速"
+  },
+  "acceleration.subtitle": {
+    "message": "为 vLLM、SGLang 等推理引擎加速模型分发。"
+  },
+  "acceleration.zeroWait.title": {
+    "message": "零等待分发"
+  },
+  "acceleration.zeroWait.desc": {
+    "message": "通过「一次拉取，全量服务」的缓存消除带宽瓶颈，在 100+ GPU 节点上同时实现 10Gbps+ 的速度。MatrixHub 彻底改变了大规模推理集群的启动性能。"
+  },
+  "acceleration.pullOnce.title": {
+    "message": "一次拉取，全量服务"
+  },
+  "acceleration.pullOnce.desc": {
+    "message": "首次请求从公共源获取模型并本地持久化。后续节点通过本地网络从 MatrixHub 读取，无需重复下载。"
+  },
+  "acceleration.p2p.title": {
+    "message": "P2P 分发"
+  },
+  "acceleration.p2p.desc": {
+    "message": "未来将原生支持 P2P 分发，应对数百个推理节点同时初始化时的启动风暴。"
+  },
+  "acceleration.netloader.title": {
+    "message": "NetLoader"
+  },
+  "acceleration.netloader.desc": {
+    "message": "专为直连 GPU 的权重流式加载设计，绕过磁盘 I/O 瓶颈，实现极致加速。"
+  },
+  "sync.title": {
+    "message": "远程同步"
+  },
+  "sync.description": {
+    "message": "在数据中心和区域之间同步模型。"
+  },
+  "sync.heading": {
+    "message": "远程同步"
+  },
+  "sync.subtitle": {
+    "message": "在数据中心和区域之间同步模型。"
+  },
+  "sync.global.title": {
+    "message": "全局多区域复制"
+  },
+  "sync.global.desc": {
+    "message": "自动在数据中心之间进行异步、可断点续传的复制，实现高可用性和低延迟的本地访问。MatrixHub 让全球协作变得可管理。"
+  },
+  "sync.resume.title": {
+    "message": "分块与续传"
+  },
+  "sync.resume.desc": {
+    "message": "传输采用分块、续传和重试机制，WAN 链路的网络不稳定不需要从头重启 100GB+ 的大文件下载。"
+  },
+  "sync.policy.title": {
+    "message": "策略驱动"
+  },
+  "sync.policy.desc": {
+    "message": "根据源仓库、资源过滤器、触发模式（自动/手动）和带宽限制配置精确的同步规则。"
+  },
+  "sync.features.title": {
+    "message": "同步功能特性"
+  },
+  "why.problem.title": {
+    "message": "企业 AI 的挑战"
+  },
+  "why.problem.desc": {
+    "message": "企业推理环境与公共模型共享平台面临着不同的约束。常见痛点包括："
+  },
+  "why.positioning.title": {
+    "message": "我们的产品主张"
+  },
+  "why.pos1.title": {
+    "message": "私有部署优先"
+  },
+  "why.pos1.desc": {
+    "message": "与公共模型平台相比，MatrixHub 以私有部署和企业运维为优先。我们针对内部集群和受控网络进行优化。"
+  },
+  "why.pos2.title": {
+    "message": "兼容 Hugging Face"
+  },
+  "why.pos2.desc": {
+    "message": "与通用制品仓库相比，MatrixHub 原生优化了 Hugging Face 兼容的模型访问和大模型分发语义。"
+  },
+  "why.pos3.title": {
+    "message": "运维可靠性"
+  },
+  "why.pos3.desc": {
+    "message": "我们专注于完整性、运维可靠性和面向推理的工作流，而非不相关功能的堆叠。"
+  },
+  "airgap.step1.title": {
+    "message": "在 DMZ 区镜像"
+  },
+  "airgap.step1.desc": {
+    "message": "管理员在联网的预发布或 DMZ 环境中部署 MatrixHub，并将所需模型镜像至预发布中心。"
+  },
+  "airgap.step2.title": {
+    "message": "导出与传输"
+  },
+  "airgap.step2.desc": {
+    "message": "将镜像内容导出为便携式归档包，安全传输至隔离的生产网络。"
+  },
+  "airgap.step3.title": {
+    "message": "导入生产环境"
+  },
+  "airgap.step3.desc": {
+    "message": "生产中心导入内容。模型将被自动解析、校验和上线。"
+  },
+  "airgap.step4.title": {
+    "message": "原生访问"
+  },
+  "airgap.step4.desc": {
+    "message": "内部用户通过完全相同的 Hugging Face 兼容接口访问模型，无需任何互联网连接。"
+  },
+  "sync.f0.title": {
+    "message": "带宽限速"
+  },
+  "sync.f0.desc": {
+    "message": "控制同步下载带宽，避免在高峰时段占满 WAN 连接。"
+  },
+  "sync.f1.title": {
+    "message": "资源过滤"
+  },
+  "sync.f1.desc": {
+    "message": "通过指定名称或通配符（例如 `llama-3*`）匹配需要同步的资源。"
+  },
+  "sync.f2.title": {
+    "message": "自动覆盖控制"
+  },
+  "sync.f2.desc": {
+    "message": "跳过已有文件或强制执行远程覆盖本地的策略。"
+  },
+  "useCases.uc1.label": {
+    "message": "场景一"
+  },
+  "useCases.uc1.title": {
+    "message": "内网推理加速"
+  },
+  "useCases.uc1.scenarioLabel": {
+    "message": "应用场景"
+  },
+  "useCases.uc1.scenario": {
+    "message": "某内部生产环境运行着一个包含 100 台 GPU 服务器的 vLLM 集群。一个 70B 模型可能超过 130 GB。如果每个节点都独立从公共 Hugging Face 端点拉取，启动变得缓慢，公网带宽成为瓶颈。"
+  },
+  "useCases.uc1.valueLabel": {
+    "message": "产品价值"
+  },
+  "useCases.uc1.value.0": {
+    "message": "减少冷启动放大效应"
+  },
+  "useCases.uc1.value.1": {
+    "message": "减轻外部带宽压力"
+  },
+  "useCases.uc1.value.2": {
+    "message": "提供统一的模型访问运维控制点"
+  },
+  "useCases.uc2.label": {
+    "message": "场景二"
+  },
+  "useCases.uc2.title": {
+    "message": "离线网络模型传输"
+  },
+  "useCases.uc2.scenarioLabel": {
+    "message": "应用场景"
+  },
+  "useCases.uc2.scenario": {
+    "message": "政府、国防或核心金融环境需要使用开源模型，但运行在隔离网络中。"
+  },
+  "useCases.uc2.valueLabel": {
+    "message": "产品价值"
+  },
+  "useCases.uc2.value.0": {
+    "message": "保持物理隔离边界"
+  },
+  "useCases.uc2.value.1": {
+    "message": "减少手动模型处理开销"
+  },
+  "useCases.uc2.value.2": {
+    "message": "保持联网与断网环境中客户端工作流的一致性"
+  },
+  "useCases.uc3.label": {
+    "message": "场景三"
+  },
+  "useCases.uc3.title": {
+    "message": "企业模型制品管理"
+  },
+  "useCases.uc3.scenarioLabel": {
+    "message": "应用场景"
+  },
+  "useCases.uc3.scenario": {
+    "message": "多个内部团队微调模型。版本在训练、测试和生产之间漂移。运维人员需要固定的、受治理的发布版本，而不是非正式的文件共享。"
+  },
+  "useCases.uc3.valueLabel": {
+    "message": "产品价值"
+  },
+  "useCases.uc3.value.0": {
+    "message": "将模型转变为受治理的生产制品"
+  },
+  "useCases.uc3.value.1": {
+    "message": "提高发布可重复性"
+  },
+  "useCases.uc3.value.2": {
+    "message": "减少跨环境的意外模型漂移"
+  },
+  "useCases.uc4.label": {
+    "message": "场景四"
+  },
+  "useCases.uc4.title": {
+    "message": "跨区域分发"
+  },
+  "useCases.uc4.scenarioLabel": {
+    "message": "应用场景"
+  },
+  "useCases.uc4.scenario": {
+    "message": "全球团队在不同区域运营计算中心。通过不稳定的 WAN 链路复制数十 TB 的权重和数据集既缓慢又难以运维。"
+  },
+  "useCases.uc4.valueLabel": {
+    "message": "产品价值"
+  },
+  "useCases.uc4.value.0": {
+    "message": "降低跨区域延迟"
+  },
+  "useCases.uc4.value.1": {
+    "message": "减少 WAN 拥塞"
+  },
+  "useCases.uc4.value.2": {
+    "message": "让全球协作变得可管理"
+  },
+  "why.pain1.title": {
+    "message": "带宽瓶颈"
+  },
+  "why.pain1.desc": {
+    "message": "大模型从公共端点反复下载既昂贵又缓慢。生产集群可能包含数十甚至数百个同时启动的节点。"
+  },
+  "why.pain2.title": {
+    "message": "网络隔离"
+  },
+  "why.pain2.desc": {
+    "message": "离线和受监管环境需要受控的模型导入导出，打破了标准工作流。"
+  },
+  "why.pain3.title": {
+    "message": "模型版本漂移"
+  },
+  "why.pain3.desc": {
+    "message": "微调的模型版本在训练、测试和生产之间变得不一致，缺乏正式的制品管理。"
+  },
+  "why.pain4.title": {
+    "message": "跨区域延迟"
+  },
+  "why.pain4.desc": {
+    "message": "通过不稳定的 WAN 链路复制数十 TB 的数据既缓慢又痛苦。全球团队需要本地访问。"
+  },
+  "comparison.positioning": {
+    "message": "MatrixHub 定位于公共模型平台与通用制品仓库之间。它专注于企业推理团队真正需要的基础设施层：私有部署、高速分发、发布管理、跨区域复制和策略控制。"
+  },
+  "comparison.vsSaas.title": {
+    "message": "对比公共 SaaS 模型平台"
+  },
+  "comparison.vsSaas.desc": {
+    "message": "与公共模型平台相比，MatrixHub 以私有部署和企业运维为优先。"
+  },
+  "comparison.vsSaas.point1": {
+    "message": "私有部署——针对内部集群和受控网络优化"
+  },
+  "comparison.vsSaas.point2": {
+    "message": "面向企业运维设计的治理与发布控制"
+  },
+  "comparison.vsSaas.point3": {
+    "message": "围绕基础设施所有权设计的复制与缓存机制"
+  },
+  "comparison.vsSaas.point4": {
+    "message": "面向隔离和受监管环境的离线交付能力"
+  },
+  "comparison.vsRegistry.title": {
+    "message": "对比通用制品仓库"
+  },
+  "comparison.vsRegistry.desc": {
+    "message": "现有制品仓库提供治理能力，但未针对 Hugging Face 兼容的模型消费进行优化。MatrixHub 专为 Hugging Face 兼容的模型访问和大模型分发进行了优化。"
+  },
+  "comparison.vsRegistry.point1": {
+    "message": "Hugging Face 兼容的访问模式——通过重定向 HF_ENDPOINT 即可零代码切换"
+  },
+  "comparison.vsRegistry.point2": {
+    "message": "模型感知的缓存与分发工作流"
+  },
+  "comparison.vsRegistry.point3": {
+    "message": "专为 vLLM 和 SGLang 推理引擎优化"
+  },
+  "comparison.vsRegistry.point4": {
+    "message": "针对超大制品和重复访问模式进行优化"
+  },
+  "comparison.vsOSS.title": {
+    "message": "对比其他开源模型平台"
+  },
+  "comparison.vsOSS.desc": {
+    "message": "MatrixHub 以运维完整性作为差异化竞争力。四大核心用例——内网加速、离线传输、受治理的模型发布和跨区域分发——是评估标准。如果一个替代方案无法端到端地处理这些工作流，那它就不是目标用户的完整解决方案。"
+  },
+  "comparison.vsOSS.point1": {
+    "message": "推理优先，而非训练平台优先"
+  },
+  "comparison.vsOSS.point2": {
+    "message": "偏好简单、可靠的工作流，而非广泛但浅薄的功能"
+  },
+  "comparison.vsOSS.point3": {
+    "message": "完整覆盖企业推理工作流的端到端能力"
+  },
+  "comparison.vsOSS.point4": {
+    "message": "默认私有部署与企业级管控"
   }
 }
