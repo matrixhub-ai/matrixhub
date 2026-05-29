@@ -10,10 +10,15 @@ import {
   IconApiApp as ProjectIcon,
   IconHomePlus,
 } from '@tabler/icons-react'
-import { useQueryClient } from '@tanstack/react-query'
+import {
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { projectRolesQueryOptions } from '@/features/auth/auth.query'
 
 import { CreateProjectModal } from '../components/CreateProjectModal'
 import { DeleteProjectModal } from '../components/DeleteProjectModal'
@@ -39,6 +44,7 @@ export function ProjectsPage() {
 
   const projects = data?.projects ?? []
   const pagination = data?.pagination
+  const { data: projectRolesData } = useQuery(projectRolesQueryOptions())
 
   const [createOpened, createHandlers] = useDisclosure(false)
   const [deleteOpened, deleteHandlers] = useDisclosure(false)
@@ -93,6 +99,7 @@ export function ProjectsPage() {
           searchValue={search.query ?? ''}
           onSearchChange={handleSearchChange}
           onDelete={handleDelete}
+          projectRoles={projectRolesData?.projectRoles}
           onPageChange={handlePageChange}
           onRefresh={handleRefresh}
           fetching={isFetching}
