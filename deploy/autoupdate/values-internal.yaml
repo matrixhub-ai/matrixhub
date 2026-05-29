@@ -1,0 +1,22 @@
+# Internal network Helm values for MatrixHub
+# Used by the self-hosted runner during helm upgrade
+#
+# This file is mounted into the runner pod via ConfigMap
+# and also kept here as the source of truth.
+apiserver:
+  image:
+    registry: ghcr.m.daocloud.io
+    repository: matrixhub-ai/matrixhub
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: NodePort
+  storage:
+    mode: pvc
+    pvc:
+      size: 60Gi
+
+mysql:
+  registry: docker.m.daocloud.io
+  persistence:
+    size: 8Gi

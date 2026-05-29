@@ -7,11 +7,142 @@ on:
 
 permissions: write-all
 
+env:
+  # Helm v3 uses client-side apply by default — no field manager conflicts
+  HELM_VERSION: v3.18.4
+  CHART_NAME: matrixhub
+
 jobs:
-  call-workflow:
+  # Job 0: Compute version string, used by all downstream jobs
+  # Format: <latest-tag>-<sha> (e.g. 0.0.2-rc.11-1a016ee)
+  compute-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute version
+        id: ver
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.1")
+          VERSION="${LATEST_TAG#v}-${SHORT_SHA}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
+
+  # Job 1: Build and push image to ghcr.io
+  # Image tag uses 'v' prefix (e.g. v0.0.1-d3e4b1b) to distinguish from chart tag,
+  # since both live in the same OCI repo path (ghcr.io/<owner>/matrixhub).
+  build-image:
+    needs: compute-version
     uses: ./.github/workflows/call-release-image.yaml
     with:
       ref: 'main'
-      tagoverride: 'latest'
-      add_sha_tag: true
+      tagoverride: v${{ needs.compute-version.outputs.version }}
     secrets: inherit
+
+  # Job 2: Package and push Helm chart to ghcr.io as OCI artifact
+  push-chart:
+    needs: compute-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package and push chart
+        run: |
+          cd deploy/charts
+          VERSION="${{ needs.compute-version.outputs.version }}"
+
+          echo "Chart version: ${VERSION}"
+
+          # Chart version = VERSION (no v); appVersion + image tag = vVERSION (matches image)
+          sed -i "s/^version:.*/version: ${VERSION}/" ${{ env.CHART_NAME }}/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"v${VERSION}\"/" ${{ env.CHART_NAME }}/Chart.yaml
+          sed -i "s|tag: \"\"|tag: v${VERSION}|" ${{ env.CHART_NAME }}/values.yaml
+
+          helm lint ${{ env.CHART_NAME }}
+          helm package ${{ env.CHART_NAME }}
+
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          # Chart and image share the same OCI repo, but with different tags:
+          #   image: v${VERSION} (e.g. v0.0.1-d3e4b1b)
+          #   chart: ${VERSION}  (e.g. 0.0.1-d3e4b1b, no 'v' prefix)
+          helm push "${{ env.CHART_NAME }}-${VERSION}.tgz" oci://ghcr.io/${REPO_OWNER}
+
+          echo "Chart pushed: oci://ghcr.io/${REPO_OWNER}/${{ env.CHART_NAME }}:${VERSION}"
+
+  # Job 3: Deploy to internal cluster using the just-built artifacts
+  deploy-internal:
+    needs: [compute-version, build-image, push-chart]
+    runs-on: self-hosted
+    if: success()
+    steps:
+      # Remove any stale helm from /usr/local/bin so setup-helm's version wins in PATH
+      - name: Clean stale helm
+        run: |
+          sudo rm -f /usr/local/bin/helm /usr/bin/helm 2>/dev/null || \
+            rm -f /usr/local/bin/helm /usr/bin/helm 2>/dev/null || true
+          echo "Cleaned. which helm: $(which helm 2>&1 || echo none)"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Verify Helm version
+        run: |
+          which helm
+          helm version --short
+
+      - name: Login to GHCR (avoids broken anonymous auth flow)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username "${{ github.actor }}" --password-stdin
+
+      - name: Pull chart and deploy
+        run: |
+          VERSION="${{ needs.compute-version.outputs.version }}"
+          # Runner pod has outbound internet; pull chart directly from ghcr.io
+          # (the daocloud mirror does NOT proxy OCI auth properly).
+          # Chart uses unprefixed version tag (image uses v-prefixed) to share OCI repo.
+          CHART_REF="${CHART_REGISTRY:-oci://ghcr.io/matrixhub-ai}/${{ env.CHART_NAME }}"
+          VALUES_FILE="${VALUES_FILE:-/etc/matrixhub/values-internal.yaml}"
+          NAMESPACE="${DEPLOY_NAMESPACE:-matrixhub}"
+
+          echo "Deploying version: ${VERSION}"
+
+          rm -rf /tmp/chart
+          helm pull "${CHART_REF}" --version "${VERSION}" --untar --destination /tmp/chart
+
+          VALS_ARGS=""
+          if [ -f "${VALUES_FILE}" ]; then
+            VALS_ARGS="-f ${VALUES_FILE}"
+            echo "Using values from: ${VALUES_FILE}"
+          fi
+
+          # Image tag has 'v' prefix; chart version doesn't.
+          # Helm v3 uses client-side 3-way merge by default (no --force-conflicts needed)
+          helm upgrade ${{ env.CHART_NAME }} /tmp/chart/${{ env.CHART_NAME }} \
+            -n "${NAMESPACE}" \
+            ${VALS_ARGS} \
+            --set apiserver.image.tag="v${VERSION}" \
+            --wait --timeout 300s
+
+          rm -rf /tmp/chart
+          echo "Deploy complete. Version=${VERSION}"
