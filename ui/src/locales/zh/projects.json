@@ -63,6 +63,11 @@
       "batchRemoveModal": {
         "title": "批量移除",
         "message": "确定要移除 {{count}} 个成员吗?移除后该成员将不再拥有 {{projectName}} 的相应权限。"
+      },
+      "notifications": {
+        "addError": "添加成员失败",
+        "updateRoleError": "更新成员权限失败",
+        "removeError": "移除成员失败"
       }
     }
   },
