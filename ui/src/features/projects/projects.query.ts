@@ -1,4 +1,4 @@
-import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
+import { Projects, ProjectPermissionFilter } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import {
   keepPreviousData,
   queryOptions,
@@ -35,7 +35,7 @@ export function projectsQueryOptions(search: ProjectsSearch) {
       name: search.query || undefined,
       page: search.page,
       pageSize: DEFAULT_PROJECTS_PAGE_SIZE,
-      managedOnly: true,
+      permissionFilter: ProjectPermissionFilter.PERMISSION_FILTER_MANAGED_ONLY,
     }),
   })
 }

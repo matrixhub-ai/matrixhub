@@ -54,6 +54,28 @@ func (p *Project) IsPublic() bool {
 	return p.Type == ProjectTypePublic
 }
 
+type PermissionFilter int
+
+const (
+	PermissionFilterUnspecified PermissionFilter = iota
+	PermissionFilterManagedOnly
+	PermissionFilterCanWrite
+	PermissionFilterCanRead
+)
+
+// PermissionsForFilter maps a PermissionFilter to the permission points that
+// satisfy it. CanWrite requires write access to models or datasets (OR logic);
+// all other filters require read access. It is a domain rule shared by both the
+// handler (platform-level checks) and the repo (project-level checks).
+func PermissionsForFilter(f PermissionFilter) []role.Permission {
+	switch f {
+	case PermissionFilterCanWrite:
+		return role.ProjectWritePermission
+	default:
+		return []role.Permission{role.ProjectGet}
+	}
+}
+
 type MemberType string
 
 const (
@@ -87,7 +109,7 @@ type IProjectRepo interface {
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
 	GetProjectByName(ctx context.Context, name string) (*Project, error)
 	GetProjectIDByName(ctx context.Context, name string) (int, error)
-	ListProjects(ctx context.Context, name string, projectType ProjectType, managedOnly bool, hasPlatformProjectGet bool, page, pageSize int) ([]*Project, int64, error)
+	ListProjects(ctx context.Context, name string, projectType ProjectType, permFilter PermissionFilter, hasPlatformPermission bool, page, pageSize int) ([]*Project, int64, error)
 	UpdateProject(ctx context.Context, project *Project) error
 	DeleteProject(ctx context.Context, id int) error
 	ListProjectInfoByNames(ctx context.Context, names []string) ([]*Project, error)

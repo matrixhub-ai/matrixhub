@@ -83,7 +83,7 @@ message CreateProjectResponse {
 message ListProjectsRequest {
   string name = 1;
   ProjectType type = 2;
-  bool managed_only = 3;
+  ProjectPermissionFilter permission_filter = 3;
   int32 page = 4;
   int32 page_size = 5;
 }
@@ -134,6 +134,19 @@ enum ProjectType {
   PROJECT_TYPE_UNSPECIFIED = 0;
   PROJECT_TYPE_PRIVATE = 1;
   PROJECT_TYPE_PUBLIC = 2;
+}
+
+// ProjectPermissionFilter controls which projects are returned based on user permissions.
+// Wire values are backward compatible with the old bool managed_only field (false=0, true=1).
+enum ProjectPermissionFilter {
+  // Default: returns accessible projects + public projects (compatible with old managed_only=false)
+  PERMISSION_FILTER_UNSPECIFIED = 0;
+  // Returns only explicitly authorized projects, excluding public (compatible with old managed_only=true)
+  PERMISSION_FILTER_MANAGED_ONLY = 1;
+  // Returns only projects where user has write permission (model.push or dataset.push)
+  PERMISSION_FILTER_CAN_WRITE = 2;
+  // Returns projects where user has read permission + public projects
+  PERMISSION_FILTER_CAN_READ = 3;
 }
 
 message ListProjectMembersRequest {

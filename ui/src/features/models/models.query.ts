@@ -5,7 +5,7 @@ import {
   type ListModelsRequest,
   Models,
 } from '@matrixhub/api-ts/v1alpha1/model.pb'
-import { Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
+import { ProjectPermissionFilter, Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { queryOptions, useQuery } from '@tanstack/react-query'
 
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants.ts'
@@ -27,7 +27,7 @@ export const modelKeys = {
 
   taskLabels: () => [...modelKeys.all, 'task-labels'] as const,
   libraryLabels: () => [...modelKeys.all, 'library-labels'] as const,
-  projects: () => [...modelKeys.all, 'projects'] as const,
+  projects: (permissionFilter: ProjectPermissionFilter) => [...modelKeys.all, 'projects', permissionFilter] as const,
 
   commits: () => [...modelKeys.all, 'commit-list'] as const,
   commitsList: (projectId: string, modelName: string, params: Pick<ListModelCommitsRequest, 'revision' | 'page' | 'pageSize'>) => [
@@ -246,18 +246,29 @@ export function useModelLibraryLabels() {
   })
 }
 
-export function useModelProjects() {
-  return useQuery({
-    queryKey: modelKeys.projects(),
+function modelProjectsQueryOptions(permissionFilter: ProjectPermissionFilter) {
+  return queryOptions({
+    queryKey: modelKeys.projects(permissionFilter),
     queryFn: async () => {
       const response = await Projects.ListProjects({
         page: 1,
         pageSize: -1,
+        permissionFilter,
       })
 
       return response.projects ?? []
     },
   })
+}
+
+// Marketplace filter panel: any project the user can read (incl. public).
+export function useReadableModelProjects() {
+  return useQuery(modelProjectsQueryOptions(ProjectPermissionFilter.PERMISSION_FILTER_CAN_READ))
+}
+
+// Create-model page: only projects the user can push models to.
+export function useWritableModelProjects() {
+  return useQuery(modelProjectsQueryOptions(ProjectPermissionFilter.PERMISSION_FILTER_CAN_WRITE))
 }
 
 // -- Internal helpers --

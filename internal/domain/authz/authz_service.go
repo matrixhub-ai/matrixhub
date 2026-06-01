@@ -108,12 +108,14 @@ func (s *AuthzService) getUserPermissions(ctx context.Context, id *user.Identity
 	if err != nil {
 		return nil, err
 	}
+	if projectId == 0 {
+		return platformPerms, nil
+	}
 
 	projectPerms, err := s.authzRepo.GetUserProjectPermissions(ctx, id.GetID(), projectId)
 	if err != nil {
 		return nil, err
 	}
-
 	return append(platformPerms, projectPerms...), nil
 }
 

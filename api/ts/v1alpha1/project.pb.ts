@@ -16,6 +16,13 @@ export enum ProjectType {
   PROJECT_TYPE_PUBLIC = "PROJECT_TYPE_PUBLIC",
 }
 
+export enum ProjectPermissionFilter {
+  PERMISSION_FILTER_UNSPECIFIED = "PERMISSION_FILTER_UNSPECIFIED",
+  PERMISSION_FILTER_MANAGED_ONLY = "PERMISSION_FILTER_MANAGED_ONLY",
+  PERMISSION_FILTER_CAN_WRITE = "PERMISSION_FILTER_CAN_WRITE",
+  PERMISSION_FILTER_CAN_READ = "PERMISSION_FILTER_CAN_READ",
+}
+
 export enum MemberType {
   MEMBER_TYPE_USER = "MEMBER_TYPE_USER",
   MEMBER_TYPE_GROUP = "MEMBER_TYPE_GROUP",
@@ -34,7 +41,7 @@ export type CreateProjectResponse = {
 export type ListProjectsRequest = {
   name?: string
   type?: ProjectType
-  managedOnly?: boolean
+  permissionFilter?: ProjectPermissionFilter
   page?: number
   pageSize?: number
 }

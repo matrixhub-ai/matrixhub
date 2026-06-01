@@ -18,12 +18,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/samber/lo"
 	"gorm.io/gorm"
 
-	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
@@ -112,7 +109,7 @@ func (r *ProjectDBRepo) GetProjectIDByName(ctx context.Context, name string) (in
 	return p.ID, nil
 }
 
-func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectType project.ProjectType, managedOnly bool, hasPlatformProjectGet bool, page, pageSize int) (projects []*project.Project, total int64, err error) {
+func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectType project.ProjectType, permFilter project.PermissionFilter, hasPlatformPermission bool, page, pageSize int) (projects []*project.Project, total int64, err error) {
 	query := r.db.WithContext(ctx).Model(&project.Project{})
 
 	if name != "" {
@@ -122,33 +119,21 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 		query = query.Where("type = ?", projectType)
 	}
 
-	if !hasPlatformProjectGet {
-		identity, ok := auth.IdentityFromContext(ctx)
-		if !ok {
-			return
-		}
-		var accessibleIDs []int
-		switch identity.(type) {
-		case *user.Identity:
-			accessibleIDs, err = r.userProjectIDsWithPermission(ctx, identity.GetID(), role.ProjectGet)
-			if err != nil {
-				return
-			}
-		case *robot.Identity:
-			accessibleIDs, err = r.robotProjectIDsWithPermission(ctx, identity.GetID(), role.ProjectGet)
-			if err != nil {
-				return
-			}
-		default:
-			return
+	if !hasPlatformPermission {
+		requiredPerms := project.PermissionsForFilter(permFilter)
+
+		accessibleIDs, err := r.userProjectIDsWithAnyPermission(ctx, user.GetCurrentUserId(ctx), requiredPerms)
+		if err != nil {
+			return nil, 0, err
 		}
 
-		if managedOnly {
+		switch permFilter {
+		case project.PermissionFilterManagedOnly, project.PermissionFilterCanWrite:
 			if len(accessibleIDs) == 0 {
 				return []*project.Project{}, 0, nil
 			}
 			query = query.Where("projects.id IN ?", accessibleIDs)
-		} else {
+		default:
 			if len(accessibleIDs) == 0 {
 				query = query.Where("type = ?", project.ProjectTypePublic)
 			} else {
@@ -179,7 +164,7 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 	return
 }
 
-func (r *ProjectDBRepo) userProjectIDsWithPermission(ctx context.Context, userID int, perm role.Permission) ([]int, error) {
+func (r *ProjectDBRepo) userProjectIDsWithAnyPermission(ctx context.Context, userID int, perms []role.Permission) ([]int, error) {
 	type binding struct {
 		ProjectID   int
 		Permissions role.PermissionList
@@ -198,25 +183,14 @@ func (r *ProjectDBRepo) userProjectIDsWithPermission(ctx context.Context, userID
 
 	ids := make([]int, 0, len(bindings))
 	for _, b := range bindings {
-		if role.MatchPermissions(b.Permissions, perm) {
-			ids = append(ids, b.ProjectID)
+		for _, perm := range perms {
+			if role.MatchPermissions(b.Permissions, perm) {
+				ids = append(ids, b.ProjectID)
+				break
+			}
 		}
 	}
 	return ids, nil
-}
-
-func (r *ProjectDBRepo) robotProjectIDsWithPermission(ctx context.Context, robotId int, perm role.Permission) ([]int, error) {
-	var rb robot.Robot
-	err := r.db.WithContext(ctx).Where("id = ?", robotId).Preload("Projects").First(&rb).Error
-	if err != nil {
-		return nil, err
-	}
-	if !role.MatchPermissions(rb.ProjectPermissions, perm) {
-		return nil, nil
-	}
-	return lo.Map(rb.Projects, func(item *project.Project, _ int) int {
-		return item.ID
-	}), nil
 }
 
 func (r *ProjectDBRepo) UpdateProject(ctx context.Context, p *project.Project) error {

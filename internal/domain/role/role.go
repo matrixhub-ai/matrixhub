@@ -34,6 +34,8 @@ const (
 	ProjectRoleViewer
 )
 
+var ProjectWritePermission = []Permission{ModelPush, DatasetPush}
+
 // Role represents a role in the system
 type Role struct {
 	ID          int            `gorm:"primary_key"`

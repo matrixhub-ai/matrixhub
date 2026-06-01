@@ -74,6 +74,64 @@ func (ProjectType) EnumDescriptor() ([]byte, []int) {
 	return file_v1alpha1_project_proto_rawDescGZIP(), []int{0}
 }
 
+// ProjectPermissionFilter controls which projects are returned based on user permissions.
+// Wire values are backward compatible with the old bool managed_only field (false=0, true=1).
+type ProjectPermissionFilter int32
+
+const (
+	// Default: returns accessible projects + public projects (compatible with old managed_only=false)
+	ProjectPermissionFilter_PERMISSION_FILTER_UNSPECIFIED ProjectPermissionFilter = 0
+	// Returns only explicitly authorized projects, excluding public (compatible with old managed_only=true)
+	ProjectPermissionFilter_PERMISSION_FILTER_MANAGED_ONLY ProjectPermissionFilter = 1
+	// Returns only projects where user has write permission (model.push or dataset.push)
+	ProjectPermissionFilter_PERMISSION_FILTER_CAN_WRITE ProjectPermissionFilter = 2
+	// Returns projects where user has read permission + public projects
+	ProjectPermissionFilter_PERMISSION_FILTER_CAN_READ ProjectPermissionFilter = 3
+)
+
+// Enum value maps for ProjectPermissionFilter.
+var (
+	ProjectPermissionFilter_name = map[int32]string{
+		0: "PERMISSION_FILTER_UNSPECIFIED",
+		1: "PERMISSION_FILTER_MANAGED_ONLY",
+		2: "PERMISSION_FILTER_CAN_WRITE",
+		3: "PERMISSION_FILTER_CAN_READ",
+	}
+	ProjectPermissionFilter_value = map[string]int32{
+		"PERMISSION_FILTER_UNSPECIFIED":  0,
+		"PERMISSION_FILTER_MANAGED_ONLY": 1,
+		"PERMISSION_FILTER_CAN_WRITE":    2,
+		"PERMISSION_FILTER_CAN_READ":     3,
+	}
+)
+
+func (x ProjectPermissionFilter) Enum() *ProjectPermissionFilter {
+	p := new(ProjectPermissionFilter)
+	*p = x
+	return p
+}
+
+func (x ProjectPermissionFilter) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ProjectPermissionFilter) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1alpha1_project_proto_enumTypes[1].Descriptor()
+}
+
+func (ProjectPermissionFilter) Type() protoreflect.EnumType {
+	return &file_v1alpha1_project_proto_enumTypes[1]
+}
+
+func (x ProjectPermissionFilter) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ProjectPermissionFilter.Descriptor instead.
+func (ProjectPermissionFilter) EnumDescriptor() ([]byte, []int) {
+	return file_v1alpha1_project_proto_rawDescGZIP(), []int{1}
+}
+
 type MemberType int32
 
 const (
@@ -104,11 +162,11 @@ func (x MemberType) String() string {
 }
 
 func (MemberType) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1alpha1_project_proto_enumTypes[1].Descriptor()
+	return file_v1alpha1_project_proto_enumTypes[2].Descriptor()
 }
 
 func (MemberType) Type() protoreflect.EnumType {
-	return &file_v1alpha1_project_proto_enumTypes[1]
+	return &file_v1alpha1_project_proto_enumTypes[2]
 }
 
 func (x MemberType) Number() protoreflect.EnumNumber {
@@ -117,7 +175,7 @@ func (x MemberType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MemberType.Descriptor instead.
 func (MemberType) EnumDescriptor() ([]byte, []int) {
-	return file_v1alpha1_project_proto_rawDescGZIP(), []int{1}
+	return file_v1alpha1_project_proto_rawDescGZIP(), []int{2}
 }
 
 type CreateProjectRequest struct {
@@ -225,14 +283,14 @@ func (*CreateProjectResponse) Descriptor() ([]byte, []int) {
 }
 
 type ListProjectsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type          ProjectType            `protobuf:"varint,2,opt,name=type,proto3,enum=matrixhub.v1alpha1.ProjectType" json:"type,omitempty"`
-	ManagedOnly   bool                   `protobuf:"varint,3,opt,name=managed_only,json=managedOnly,proto3" json:"managed_only,omitempty"`
-	Page          int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState  `protogen:"open.v1"`
+	Name             string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type             ProjectType             `protobuf:"varint,2,opt,name=type,proto3,enum=matrixhub.v1alpha1.ProjectType" json:"type,omitempty"`
+	PermissionFilter ProjectPermissionFilter `protobuf:"varint,3,opt,name=permission_filter,json=permissionFilter,proto3,enum=matrixhub.v1alpha1.ProjectPermissionFilter" json:"permission_filter,omitempty"`
+	Page             int32                   `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize         int32                   `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ListProjectsRequest) Reset() {
@@ -279,11 +337,11 @@ func (x *ListProjectsRequest) GetType() ProjectType {
 	return ProjectType_PROJECT_TYPE_UNSPECIFIED
 }
 
-func (x *ListProjectsRequest) GetManagedOnly() bool {
+func (x *ListProjectsRequest) GetPermissionFilter() ProjectPermissionFilter {
 	if x != nil {
-		return x.ManagedOnly
+		return x.PermissionFilter
 	}
-	return false
+	return ProjectPermissionFilter_PERMISSION_FILTER_UNSPECIFIED
 }
 
 func (x *ListProjectsRequest) GetPage() int32 {
@@ -1288,11 +1346,11 @@ const file_v1alpha1_project_proto_rawDesc = "" +
 	"\vregistry_id\x18\x03 \x01(\v2\x1b.google.protobuf.Int32ValueR\n" +
 	"registryId\x12\"\n" +
 	"\forganization\x18\x04 \x01(\tR\forganization\"\x17\n" +
-	"\x15CreateProjectResponse\"\xb2\x01\n" +
+	"\x15CreateProjectResponse\"\xe9\x01\n" +
 	"\x13ListProjectsRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x123\n" +
-	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeR\x04type\x12!\n" +
-	"\fmanaged_only\x18\x03 \x01(\bR\vmanagedOnly\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeR\x04type\x12X\n" +
+	"\x11permission_filter\x18\x03 \x01(\x0e2+.matrixhub.v1alpha1.ProjectPermissionFilterR\x10permissionFilter\x12\x12\n" +
 	"\x04page\x18\x04 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\"\x8f\x01\n" +
 	"\x14ListProjectsResponse\x127\n" +
@@ -1371,7 +1429,12 @@ const file_v1alpha1_project_proto_rawDesc = "" +
 	"\vProjectType\x12\x1c\n" +
 	"\x18PROJECT_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROJECT_TYPE_PRIVATE\x10\x01\x12\x17\n" +
-	"\x13PROJECT_TYPE_PUBLIC\x10\x02*9\n" +
+	"\x13PROJECT_TYPE_PUBLIC\x10\x02*\xa1\x01\n" +
+	"\x17ProjectPermissionFilter\x12!\n" +
+	"\x1dPERMISSION_FILTER_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1ePERMISSION_FILTER_MANAGED_ONLY\x10\x01\x12\x1f\n" +
+	"\x1bPERMISSION_FILTER_CAN_WRITE\x10\x02\x12\x1e\n" +
+	"\x1aPERMISSION_FILTER_CAN_READ\x10\x03*9\n" +
 	"\n" +
 	"MemberType\x12\x14\n" +
 	"\x10MEMBER_TYPE_USER\x10\x00\x12\x15\n" +
@@ -1400,81 +1463,83 @@ func file_v1alpha1_project_proto_rawDescGZIP() []byte {
 	return file_v1alpha1_project_proto_rawDescData
 }
 
-var file_v1alpha1_project_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_v1alpha1_project_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_v1alpha1_project_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_v1alpha1_project_proto_goTypes = []any{
 	(ProjectType)(0),                         // 0: matrixhub.v1alpha1.ProjectType
-	(MemberType)(0),                          // 1: matrixhub.v1alpha1.MemberType
-	(*CreateProjectRequest)(nil),             // 2: matrixhub.v1alpha1.CreateProjectRequest
-	(*CreateProjectResponse)(nil),            // 3: matrixhub.v1alpha1.CreateProjectResponse
-	(*ListProjectsRequest)(nil),              // 4: matrixhub.v1alpha1.ListProjectsRequest
-	(*ListProjectsResponse)(nil),             // 5: matrixhub.v1alpha1.ListProjectsResponse
-	(*GetProjectRequest)(nil),                // 6: matrixhub.v1alpha1.GetProjectRequest
-	(*GetProjectResponse)(nil),               // 7: matrixhub.v1alpha1.GetProjectResponse
-	(*DeleteProjectRequest)(nil),             // 8: matrixhub.v1alpha1.DeleteProjectRequest
-	(*DeleteProjectResponse)(nil),            // 9: matrixhub.v1alpha1.DeleteProjectResponse
-	(*UpdateProjectRequest)(nil),             // 10: matrixhub.v1alpha1.UpdateProjectRequest
-	(*UpdateProjectResponse)(nil),            // 11: matrixhub.v1alpha1.UpdateProjectResponse
-	(*Project)(nil),                          // 12: matrixhub.v1alpha1.Project
-	(*ListProjectMembersRequest)(nil),        // 13: matrixhub.v1alpha1.ListProjectMembersRequest
-	(*ListProjectMembersResponse)(nil),       // 14: matrixhub.v1alpha1.ListProjectMembersResponse
-	(*ProjectMember)(nil),                    // 15: matrixhub.v1alpha1.ProjectMember
-	(*AddProjectMemberWithRoleRequest)(nil),  // 16: matrixhub.v1alpha1.AddProjectMemberWithRoleRequest
-	(*AddProjectMemberWithRoleResponse)(nil), // 17: matrixhub.v1alpha1.AddProjectMemberWithRoleResponse
-	(*RemoveProjectMembersRequest)(nil),      // 18: matrixhub.v1alpha1.RemoveProjectMembersRequest
-	(*MemberToRemove)(nil),                   // 19: matrixhub.v1alpha1.MemberToRemove
-	(*RemoveProjectMembersResponse)(nil),     // 20: matrixhub.v1alpha1.RemoveProjectMembersResponse
-	(*UpdateProjectMemberRoleRequest)(nil),   // 21: matrixhub.v1alpha1.UpdateProjectMemberRoleRequest
-	(*UpdateProjectMemberRoleResponse)(nil),  // 22: matrixhub.v1alpha1.UpdateProjectMemberRoleResponse
-	(*wrapperspb.Int32Value)(nil),            // 23: google.protobuf.Int32Value
-	(*Pagination)(nil),                       // 24: matrixhub.v1alpha1.Pagination
-	(*timestamppb.Timestamp)(nil),            // 25: google.protobuf.Timestamp
-	(ProjectRoleType)(0),                     // 26: matrixhub.v1alpha1.ProjectRoleType
+	(ProjectPermissionFilter)(0),             // 1: matrixhub.v1alpha1.ProjectPermissionFilter
+	(MemberType)(0),                          // 2: matrixhub.v1alpha1.MemberType
+	(*CreateProjectRequest)(nil),             // 3: matrixhub.v1alpha1.CreateProjectRequest
+	(*CreateProjectResponse)(nil),            // 4: matrixhub.v1alpha1.CreateProjectResponse
+	(*ListProjectsRequest)(nil),              // 5: matrixhub.v1alpha1.ListProjectsRequest
+	(*ListProjectsResponse)(nil),             // 6: matrixhub.v1alpha1.ListProjectsResponse
+	(*GetProjectRequest)(nil),                // 7: matrixhub.v1alpha1.GetProjectRequest
+	(*GetProjectResponse)(nil),               // 8: matrixhub.v1alpha1.GetProjectResponse
+	(*DeleteProjectRequest)(nil),             // 9: matrixhub.v1alpha1.DeleteProjectRequest
+	(*DeleteProjectResponse)(nil),            // 10: matrixhub.v1alpha1.DeleteProjectResponse
+	(*UpdateProjectRequest)(nil),             // 11: matrixhub.v1alpha1.UpdateProjectRequest
+	(*UpdateProjectResponse)(nil),            // 12: matrixhub.v1alpha1.UpdateProjectResponse
+	(*Project)(nil),                          // 13: matrixhub.v1alpha1.Project
+	(*ListProjectMembersRequest)(nil),        // 14: matrixhub.v1alpha1.ListProjectMembersRequest
+	(*ListProjectMembersResponse)(nil),       // 15: matrixhub.v1alpha1.ListProjectMembersResponse
+	(*ProjectMember)(nil),                    // 16: matrixhub.v1alpha1.ProjectMember
+	(*AddProjectMemberWithRoleRequest)(nil),  // 17: matrixhub.v1alpha1.AddProjectMemberWithRoleRequest
+	(*AddProjectMemberWithRoleResponse)(nil), // 18: matrixhub.v1alpha1.AddProjectMemberWithRoleResponse
+	(*RemoveProjectMembersRequest)(nil),      // 19: matrixhub.v1alpha1.RemoveProjectMembersRequest
+	(*MemberToRemove)(nil),                   // 20: matrixhub.v1alpha1.MemberToRemove
+	(*RemoveProjectMembersResponse)(nil),     // 21: matrixhub.v1alpha1.RemoveProjectMembersResponse
+	(*UpdateProjectMemberRoleRequest)(nil),   // 22: matrixhub.v1alpha1.UpdateProjectMemberRoleRequest
+	(*UpdateProjectMemberRoleResponse)(nil),  // 23: matrixhub.v1alpha1.UpdateProjectMemberRoleResponse
+	(*wrapperspb.Int32Value)(nil),            // 24: google.protobuf.Int32Value
+	(*Pagination)(nil),                       // 25: matrixhub.v1alpha1.Pagination
+	(*timestamppb.Timestamp)(nil),            // 26: google.protobuf.Timestamp
+	(ProjectRoleType)(0),                     // 27: matrixhub.v1alpha1.ProjectRoleType
 }
 var file_v1alpha1_project_proto_depIdxs = []int32{
 	0,  // 0: matrixhub.v1alpha1.CreateProjectRequest.type:type_name -> matrixhub.v1alpha1.ProjectType
-	23, // 1: matrixhub.v1alpha1.CreateProjectRequest.registry_id:type_name -> google.protobuf.Int32Value
+	24, // 1: matrixhub.v1alpha1.CreateProjectRequest.registry_id:type_name -> google.protobuf.Int32Value
 	0,  // 2: matrixhub.v1alpha1.ListProjectsRequest.type:type_name -> matrixhub.v1alpha1.ProjectType
-	12, // 3: matrixhub.v1alpha1.ListProjectsResponse.projects:type_name -> matrixhub.v1alpha1.Project
-	24, // 4: matrixhub.v1alpha1.ListProjectsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	0,  // 5: matrixhub.v1alpha1.GetProjectResponse.type:type_name -> matrixhub.v1alpha1.ProjectType
-	25, // 6: matrixhub.v1alpha1.GetProjectResponse.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 7: matrixhub.v1alpha1.UpdateProjectRequest.type:type_name -> matrixhub.v1alpha1.ProjectType
-	0,  // 8: matrixhub.v1alpha1.Project.type:type_name -> matrixhub.v1alpha1.ProjectType
-	25, // 9: matrixhub.v1alpha1.Project.updated_at:type_name -> google.protobuf.Timestamp
-	15, // 10: matrixhub.v1alpha1.ListProjectMembersResponse.members:type_name -> matrixhub.v1alpha1.ProjectMember
-	24, // 11: matrixhub.v1alpha1.ListProjectMembersResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	1,  // 12: matrixhub.v1alpha1.ProjectMember.member_type:type_name -> matrixhub.v1alpha1.MemberType
-	26, // 13: matrixhub.v1alpha1.ProjectMember.role:type_name -> matrixhub.v1alpha1.ProjectRoleType
-	1,  // 14: matrixhub.v1alpha1.AddProjectMemberWithRoleRequest.member_type:type_name -> matrixhub.v1alpha1.MemberType
-	26, // 15: matrixhub.v1alpha1.AddProjectMemberWithRoleRequest.role:type_name -> matrixhub.v1alpha1.ProjectRoleType
-	19, // 16: matrixhub.v1alpha1.RemoveProjectMembersRequest.members:type_name -> matrixhub.v1alpha1.MemberToRemove
-	1,  // 17: matrixhub.v1alpha1.MemberToRemove.member_type:type_name -> matrixhub.v1alpha1.MemberType
-	1,  // 18: matrixhub.v1alpha1.UpdateProjectMemberRoleRequest.member_type:type_name -> matrixhub.v1alpha1.MemberType
-	26, // 19: matrixhub.v1alpha1.UpdateProjectMemberRoleRequest.role:type_name -> matrixhub.v1alpha1.ProjectRoleType
-	2,  // 20: matrixhub.v1alpha1.Projects.CreateProject:input_type -> matrixhub.v1alpha1.CreateProjectRequest
-	4,  // 21: matrixhub.v1alpha1.Projects.ListProjects:input_type -> matrixhub.v1alpha1.ListProjectsRequest
-	6,  // 22: matrixhub.v1alpha1.Projects.GetProject:input_type -> matrixhub.v1alpha1.GetProjectRequest
-	10, // 23: matrixhub.v1alpha1.Projects.UpdateProject:input_type -> matrixhub.v1alpha1.UpdateProjectRequest
-	8,  // 24: matrixhub.v1alpha1.Projects.DeleteProject:input_type -> matrixhub.v1alpha1.DeleteProjectRequest
-	13, // 25: matrixhub.v1alpha1.Projects.ListProjectMembers:input_type -> matrixhub.v1alpha1.ListProjectMembersRequest
-	16, // 26: matrixhub.v1alpha1.Projects.AddProjectMemberWithRole:input_type -> matrixhub.v1alpha1.AddProjectMemberWithRoleRequest
-	18, // 27: matrixhub.v1alpha1.Projects.RemoveProjectMembers:input_type -> matrixhub.v1alpha1.RemoveProjectMembersRequest
-	21, // 28: matrixhub.v1alpha1.Projects.UpdateProjectMemberRole:input_type -> matrixhub.v1alpha1.UpdateProjectMemberRoleRequest
-	3,  // 29: matrixhub.v1alpha1.Projects.CreateProject:output_type -> matrixhub.v1alpha1.CreateProjectResponse
-	5,  // 30: matrixhub.v1alpha1.Projects.ListProjects:output_type -> matrixhub.v1alpha1.ListProjectsResponse
-	7,  // 31: matrixhub.v1alpha1.Projects.GetProject:output_type -> matrixhub.v1alpha1.GetProjectResponse
-	11, // 32: matrixhub.v1alpha1.Projects.UpdateProject:output_type -> matrixhub.v1alpha1.UpdateProjectResponse
-	9,  // 33: matrixhub.v1alpha1.Projects.DeleteProject:output_type -> matrixhub.v1alpha1.DeleteProjectResponse
-	14, // 34: matrixhub.v1alpha1.Projects.ListProjectMembers:output_type -> matrixhub.v1alpha1.ListProjectMembersResponse
-	17, // 35: matrixhub.v1alpha1.Projects.AddProjectMemberWithRole:output_type -> matrixhub.v1alpha1.AddProjectMemberWithRoleResponse
-	20, // 36: matrixhub.v1alpha1.Projects.RemoveProjectMembers:output_type -> matrixhub.v1alpha1.RemoveProjectMembersResponse
-	22, // 37: matrixhub.v1alpha1.Projects.UpdateProjectMemberRole:output_type -> matrixhub.v1alpha1.UpdateProjectMemberRoleResponse
-	29, // [29:38] is the sub-list for method output_type
-	20, // [20:29] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	1,  // 3: matrixhub.v1alpha1.ListProjectsRequest.permission_filter:type_name -> matrixhub.v1alpha1.ProjectPermissionFilter
+	13, // 4: matrixhub.v1alpha1.ListProjectsResponse.projects:type_name -> matrixhub.v1alpha1.Project
+	25, // 5: matrixhub.v1alpha1.ListProjectsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	0,  // 6: matrixhub.v1alpha1.GetProjectResponse.type:type_name -> matrixhub.v1alpha1.ProjectType
+	26, // 7: matrixhub.v1alpha1.GetProjectResponse.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 8: matrixhub.v1alpha1.UpdateProjectRequest.type:type_name -> matrixhub.v1alpha1.ProjectType
+	0,  // 9: matrixhub.v1alpha1.Project.type:type_name -> matrixhub.v1alpha1.ProjectType
+	26, // 10: matrixhub.v1alpha1.Project.updated_at:type_name -> google.protobuf.Timestamp
+	16, // 11: matrixhub.v1alpha1.ListProjectMembersResponse.members:type_name -> matrixhub.v1alpha1.ProjectMember
+	25, // 12: matrixhub.v1alpha1.ListProjectMembersResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	2,  // 13: matrixhub.v1alpha1.ProjectMember.member_type:type_name -> matrixhub.v1alpha1.MemberType
+	27, // 14: matrixhub.v1alpha1.ProjectMember.role:type_name -> matrixhub.v1alpha1.ProjectRoleType
+	2,  // 15: matrixhub.v1alpha1.AddProjectMemberWithRoleRequest.member_type:type_name -> matrixhub.v1alpha1.MemberType
+	27, // 16: matrixhub.v1alpha1.AddProjectMemberWithRoleRequest.role:type_name -> matrixhub.v1alpha1.ProjectRoleType
+	20, // 17: matrixhub.v1alpha1.RemoveProjectMembersRequest.members:type_name -> matrixhub.v1alpha1.MemberToRemove
+	2,  // 18: matrixhub.v1alpha1.MemberToRemove.member_type:type_name -> matrixhub.v1alpha1.MemberType
+	2,  // 19: matrixhub.v1alpha1.UpdateProjectMemberRoleRequest.member_type:type_name -> matrixhub.v1alpha1.MemberType
+	27, // 20: matrixhub.v1alpha1.UpdateProjectMemberRoleRequest.role:type_name -> matrixhub.v1alpha1.ProjectRoleType
+	3,  // 21: matrixhub.v1alpha1.Projects.CreateProject:input_type -> matrixhub.v1alpha1.CreateProjectRequest
+	5,  // 22: matrixhub.v1alpha1.Projects.ListProjects:input_type -> matrixhub.v1alpha1.ListProjectsRequest
+	7,  // 23: matrixhub.v1alpha1.Projects.GetProject:input_type -> matrixhub.v1alpha1.GetProjectRequest
+	11, // 24: matrixhub.v1alpha1.Projects.UpdateProject:input_type -> matrixhub.v1alpha1.UpdateProjectRequest
+	9,  // 25: matrixhub.v1alpha1.Projects.DeleteProject:input_type -> matrixhub.v1alpha1.DeleteProjectRequest
+	14, // 26: matrixhub.v1alpha1.Projects.ListProjectMembers:input_type -> matrixhub.v1alpha1.ListProjectMembersRequest
+	17, // 27: matrixhub.v1alpha1.Projects.AddProjectMemberWithRole:input_type -> matrixhub.v1alpha1.AddProjectMemberWithRoleRequest
+	19, // 28: matrixhub.v1alpha1.Projects.RemoveProjectMembers:input_type -> matrixhub.v1alpha1.RemoveProjectMembersRequest
+	22, // 29: matrixhub.v1alpha1.Projects.UpdateProjectMemberRole:input_type -> matrixhub.v1alpha1.UpdateProjectMemberRoleRequest
+	4,  // 30: matrixhub.v1alpha1.Projects.CreateProject:output_type -> matrixhub.v1alpha1.CreateProjectResponse
+	6,  // 31: matrixhub.v1alpha1.Projects.ListProjects:output_type -> matrixhub.v1alpha1.ListProjectsResponse
+	8,  // 32: matrixhub.v1alpha1.Projects.GetProject:output_type -> matrixhub.v1alpha1.GetProjectResponse
+	12, // 33: matrixhub.v1alpha1.Projects.UpdateProject:output_type -> matrixhub.v1alpha1.UpdateProjectResponse
+	10, // 34: matrixhub.v1alpha1.Projects.DeleteProject:output_type -> matrixhub.v1alpha1.DeleteProjectResponse
+	15, // 35: matrixhub.v1alpha1.Projects.ListProjectMembers:output_type -> matrixhub.v1alpha1.ListProjectMembersResponse
+	18, // 36: matrixhub.v1alpha1.Projects.AddProjectMemberWithRole:output_type -> matrixhub.v1alpha1.AddProjectMemberWithRoleResponse
+	21, // 37: matrixhub.v1alpha1.Projects.RemoveProjectMembers:output_type -> matrixhub.v1alpha1.RemoveProjectMembersResponse
+	23, // 38: matrixhub.v1alpha1.Projects.UpdateProjectMemberRole:output_type -> matrixhub.v1alpha1.UpdateProjectMemberRoleResponse
+	30, // [30:39] is the sub-list for method output_type
+	21, // [21:30] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_project_proto_init() }
@@ -1489,7 +1554,7 @@ func file_v1alpha1_project_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_project_proto_rawDesc), len(file_v1alpha1_project_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,

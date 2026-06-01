@@ -346,7 +346,7 @@ func (m *ListProjectsRequest) validate(all bool) error {
 
 	// no validation rules for Type
 
-	// no validation rules for ManagedOnly
+	// no validation rules for PermissionFilter
 
 	// no validation rules for Page
 

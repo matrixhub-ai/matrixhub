@@ -53,10 +53,18 @@
             "default": "PROJECT_TYPE_UNSPECIFIED"
           },
           {
-            "name": "managedOnly",
+            "name": "permissionFilter",
+            "description": " - PERMISSION_FILTER_UNSPECIFIED: Default: returns accessible projects + public projects (compatible with old managed_only=false)\n - PERMISSION_FILTER_MANAGED_ONLY: Returns only explicitly authorized projects, excluding public (compatible with old managed_only=true)\n - PERMISSION_FILTER_CAN_WRITE: Returns only projects where user has write permission (model.push or dataset.push)\n - PERMISSION_FILTER_CAN_READ: Returns projects where user has read permission + public projects",
             "in": "query",
             "required": false,
-            "type": "boolean"
+            "type": "string",
+            "enum": [
+              "PERMISSION_FILTER_UNSPECIFIED",
+              "PERMISSION_FILTER_MANAGED_ONLY",
+              "PERMISSION_FILTER_CAN_WRITE",
+              "PERMISSION_FILTER_CAN_READ"
+            ],
+            "default": "PERMISSION_FILTER_UNSPECIFIED"
           },
           {
             "name": "page",
@@ -620,6 +628,17 @@
           "$ref": "#/definitions/v1alpha1ProjectRoleType"
         }
       }
+    },
+    "v1alpha1ProjectPermissionFilter": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_FILTER_UNSPECIFIED",
+        "PERMISSION_FILTER_MANAGED_ONLY",
+        "PERMISSION_FILTER_CAN_WRITE",
+        "PERMISSION_FILTER_CAN_READ"
+      ],
+      "default": "PERMISSION_FILTER_UNSPECIFIED",
+      "description": "ProjectPermissionFilter controls which projects are returned based on user permissions.\nWire values are backward compatible with the old bool managed_only field (false=0, true=1).\n\n - PERMISSION_FILTER_UNSPECIFIED: Default: returns accessible projects + public projects (compatible with old managed_only=false)\n - PERMISSION_FILTER_MANAGED_ONLY: Returns only explicitly authorized projects, excluding public (compatible with old managed_only=true)\n - PERMISSION_FILTER_CAN_WRITE: Returns only projects where user has write permission (model.push or dataset.push)\n - PERMISSION_FILTER_CAN_READ: Returns projects where user has read permission + public projects"
     },
     "v1alpha1ProjectRoleType": {
       "type": "string",

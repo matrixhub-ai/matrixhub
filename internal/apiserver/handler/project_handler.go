@@ -28,6 +28,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -116,14 +117,27 @@ func (h *ProjectHandler) ListProjects(ctx context.Context, req *projectv1alpha1.
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	_, ok := auth.IdentityFromContext(ctx)
+	identity, ok := auth.IdentityFromContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 	}
 
+	switch identity.(type) {
+	case *user.Identity:
+		return h.listProjectsForUser(ctx, req)
+	case *robot.Identity:
+		return nil, status.Error(codes.Unimplemented, "list projects for robot is not implemented yet")
+	default:
+		return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
+	}
+}
+
+func (h *ProjectHandler) listProjectsForUser(ctx context.Context, req *projectv1alpha1.ListProjectsRequest) (*projectv1alpha1.ListProjectsResponse, error) {
 	page := utils.NewPage(req.Page, req.PageSize)
 
-	hasPlatformProjectGet, err := h.authzService.VerifyPlatformPermission(ctx, role.ProjectGet)
+	permFilter := convertProtoPermissionFilterToDomain(req.GetPermissionFilter())
+
+	hasPlatformPermission, err := h.hasPlatformPermissionForFilter(ctx, permFilter)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -132,8 +146,8 @@ func (h *ProjectHandler) ListProjects(ctx context.Context, req *projectv1alpha1.
 		ctx,
 		req.GetName(),
 		convertProtoTypeToDomain(req.GetType()),
-		req.GetManagedOnly(),
-		hasPlatformProjectGet,
+		permFilter,
+		hasPlatformPermission,
 		int(page.Page),
 		int(page.PageSize),
 	)
@@ -159,6 +173,19 @@ func (h *ProjectHandler) ListProjects(ctx context.Context, req *projectv1alpha1.
 			Pages:    utils.CalculatePages(total, req.GetPageSize()),
 		},
 	}, nil
+}
+
+func (h *ProjectHandler) hasPlatformPermissionForFilter(ctx context.Context, permFilter project.PermissionFilter) (bool, error) {
+	for _, perm := range project.PermissionsForFilter(permFilter) {
+		allowed, err := h.authzService.VerifyPlatformPermission(ctx, perm)
+		if err != nil {
+			return false, err
+		}
+		if allowed {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (h *ProjectHandler) UpdateProject(ctx context.Context, req *projectv1alpha1.UpdateProjectRequest) (*projectv1alpha1.UpdateProjectResponse, error) {
@@ -403,6 +430,19 @@ func convertDomainRoleToProto(r role.RoleType) projectv1alpha1.ProjectRoleType {
 		return projectv1alpha1.ProjectRoleType_ROLE_TYPE_PROJECT_VIEWER
 	default:
 		return projectv1alpha1.ProjectRoleType_ROLE_TYPE_PROJECT_VIEWER
+	}
+}
+
+func convertProtoPermissionFilterToDomain(f projectv1alpha1.ProjectPermissionFilter) project.PermissionFilter {
+	switch f {
+	case projectv1alpha1.ProjectPermissionFilter_PERMISSION_FILTER_MANAGED_ONLY:
+		return project.PermissionFilterManagedOnly
+	case projectv1alpha1.ProjectPermissionFilter_PERMISSION_FILTER_CAN_WRITE:
+		return project.PermissionFilterCanWrite
+	case projectv1alpha1.ProjectPermissionFilter_PERMISSION_FILTER_CAN_READ:
+		return project.PermissionFilterCanRead
+	default:
+		return project.PermissionFilterUnspecified
 	}
 }
 

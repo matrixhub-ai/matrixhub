@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import {
   useModelLibraryLabels,
-  useModelProjects,
+  useReadableModelProjects,
   useModelTaskLabels,
 } from '@/features/models/models.query'
 import { LibraryFilterPanel } from '@/shared/components/resource-filter-panel/LibraryFilterPanel'
@@ -58,7 +58,7 @@ export function ModelsFilterPanel() {
   const {
     data: projects = [],
     isLoading: projectsLoading,
-  } = useModelProjects()
+  } = useReadableModelProjects()
 
   const search = modelsRouteApi.useSearch()
   const {

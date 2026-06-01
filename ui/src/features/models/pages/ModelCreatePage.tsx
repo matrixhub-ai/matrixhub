@@ -13,7 +13,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { createModelMutationOptions } from '@/features/models/models.mutation'
-import { useModelProjects } from '@/features/models/models.query.ts'
+import { useWritableModelProjects } from '@/features/models/models.query.ts'
 import { createModelSchema } from '@/features/models/models.schema'
 import { ProjectSelect } from '@/shared/components/ProjectSelect'
 import { useForm } from '@/shared/hooks/useForm'
@@ -66,7 +66,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
     },
   })
 
-  const { data: projects = [] } = useModelProjects()
+  const { data: projects = [] } = useWritableModelProjects()
 
   useEffect(() => {
     const projectId = form.state.values.projectId
