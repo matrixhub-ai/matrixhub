@@ -199,6 +199,12 @@ var (
 				RobotCreate, RobotDelete, RobotUpdate,
 			},
 		},
+		{
+			Category: CleanupManagement,
+			Permissions: []Permission{
+				CleanupGet, CleanupExecute,
+			},
+		},
 	}
 
 	ProjectPermissions = PermissionCategoriesList{
@@ -246,6 +252,7 @@ const (
 	ProjectMemberManagement PermissionCategory = "project_member_management"
 	ProjectRobotManagement  PermissionCategory = "project_robot_management"
 	ProjectSetting          PermissionCategory = "project_setting"
+	CleanupManagement       PermissionCategory = "cleanup_management"
 )
 
 // Platform-level permissions
@@ -274,6 +281,10 @@ const (
 	AccessKeyGet    Permission = "access_key.get"    // View access keys
 	AccessKeyCreate Permission = "access_key.create" // Create access key
 	AccessKeyDelete Permission = "access_key.delete" // Delete access key
+
+	// Cleanup management
+	CleanupGet     Permission = "cleanup.get"     // Preview cleanup and view storage stats
+	CleanupExecute Permission = "cleanup.execute" // Execute cleanup
 )
 
 // Project-level permissions

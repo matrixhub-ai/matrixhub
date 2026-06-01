@@ -101,6 +101,24 @@ type RepoMetadataFiles struct {
 	Size                 int64
 }
 
+// OrphanedRepo represents an orphaned Git repository on disk
+// that has no corresponding record in the database.
+type OrphanedRepo struct {
+	Path         string
+	Type         string
+	ProjectName  string
+	ResourceName string
+	SizeBytes    int64
+}
+
+// OrphanedLFS represents an orphaned LFS object on disk
+// that is not referenced by any Git repository.
+type OrphanedLFS struct {
+	OID       string
+	SizeBytes int64
+	Path      string
+}
+
 // BasicCredential holds username/password for remote git authentication.
 type BasicCredential struct {
 	Username string
@@ -159,4 +177,17 @@ type IGitRepo interface {
 	// ExtractMetadata reads metadata-related raw files from a Git repository.
 	// repoType: "models" or "datasets"
 	ExtractMetadata(ctx context.Context, repoType, project, name string) (*RepoMetadataFiles, error)
+
+	// FindOrphanedRepos finds Git repositories on disk that are not present in valid paths.
+	FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*OrphanedRepo, error)
+	// FindOrphanedLFS finds LFS objects on disk that are not referenced by repositories.
+	FindOrphanedLFS(ctx context.Context) ([]*OrphanedLFS, error)
+	// DeleteRepo deletes an orphaned repository by relative path.
+	DeleteRepo(ctx context.Context, path string) error
+	// DeleteLFSObject deletes an orphaned LFS object.
+	DeleteLFSObject(ctx context.Context, object *OrphanedLFS) error
+	// RepositoriesSize returns the size of all repositories on disk.
+	RepositoriesSize(ctx context.Context) int64
+	// LFSSize returns the size of all LFS objects on disk.
+	LFSSize(ctx context.Context) int64
 }

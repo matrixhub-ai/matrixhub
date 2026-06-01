@@ -59,6 +59,11 @@ var methodPermissions = map[string]role.Permission{
 	"/matrixhub.v1alpha1.Robots/DeleteRobotAccount":       role.RobotDelete,
 	"/matrixhub.v1alpha1.Robots/UpdateRobotAccount":       role.RobotUpdate,
 	"/matrixhub.v1alpha1.Robots/RefreshRobotAccountToken": role.RobotUpdate,
+
+	// Cleanup management
+	"/matrixhub.v1alpha1.Cleanup/PreviewCleanup":  role.CleanupGet,
+	"/matrixhub.v1alpha1.Cleanup/GetStorageStats": role.CleanupGet,
+	"/matrixhub.v1alpha1.Cleanup/ExecuteCleanup":  role.CleanupExecute,
 }
 
 // AuthzInterceptor returns a GRPC interceptor that checks platform-level permissions

@@ -49,6 +49,7 @@ import (
 	backendlfs "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/lfs"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/cleanup"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
@@ -108,7 +109,8 @@ func NewAPIServer(config *config.Config) *APIServer {
 	)
 
 	httpServer := &http.Server{
-		Handler: engine,
+		Handler:           engine,
+		ReadHeaderTimeout: 30 * time.Second,
 	}
 
 	server := &APIServer{
@@ -126,6 +128,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 	server.initGitHooks()
 	server.initGitAuth()
 	server.initSSHBackend()
+	server.initHandlersServicesRepos()
 
 	// Register authn + authz middleware (must be after initHandlersServicesRepos)
 	streamMiddleware := []grpc.StreamServerInterceptor{
@@ -378,6 +381,7 @@ type Services struct {
 	Model   model.IModelService
 	Dataset dataset.IDatasetService
 	Authz   authz.IAuthzService
+	Cleanup cleanup.ICleanupService
 }
 
 func (server *APIServer) initHandlersServicesRepos() {
@@ -437,6 +441,8 @@ func (server *APIServer) initHandlersServicesRepos() {
 		repos.Project,
 		jobGenerator,
 	)
+	// init cleanup service
+	cleanupService := cleanup.NewCleanupService(repos.Model, repos.Dataset, repos.Git)
 
 	// wire task status reporter from sync policy service to sync job service
 	syncJobService.SetOnJobDone(syncPolicyService.ReportTaskStatus)
@@ -450,6 +456,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		Model:   modelService,
 		Dataset: datasetService,
 		Authz:   authzService,
+		Cleanup: cleanupService,
 	}
 
 	// init handlers
@@ -462,6 +469,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewDatasetHandler(datasetService),
 		handler.NewModelHandler(modelService, authzService),
 		handler.NewSyncPolicyHandler(syncPolicyService, syncJobService, repos.Registry, logStore, canc),
+		handler.NewCleanupHandler(cleanupService),
 		handler.NewRoleHandler(),
 		handler.NewRobotHandler(repos.Robot, repos.Project),
 		handler.NewSystemHandler(repo.NewSystemProvider(server.config)),
