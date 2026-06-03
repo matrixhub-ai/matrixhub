@@ -53,7 +53,7 @@ const sidebars: SidebarsConfig = {
           label: 'Platform Settings',
           items: [
             'operations/platform-settings/user-management',
-            'operations/platform-settings/repository-management',
+            'operations/platform-settings/registry-management',
             'operations/platform-settings/remote-sync',
           ],
         },

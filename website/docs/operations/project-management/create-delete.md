@@ -7,7 +7,7 @@ sidebar_position: 1
 ## Prerequisites
 
 - Logged into MatrixHub.
-- When creating a proxy project, you must first configure the target repository (e.g., Hugging Face) in **Repository Management**.
+- When creating a proxy project, you must first configure the target registry (e.g., Hugging Face) in **Registry Management**.
 
 ## Steps
 
@@ -35,8 +35,8 @@ Deleting a project cannot be undone. Please ensure you have backed up models and
 |-----------|-------------|
 | Project Name | Only supports lowercase letters, numbers, and hyphens (`-`); must start and end with a letter or number. |
 | Visibility | **Public**: Other users can see this project in Project Management.<br/>**Private**: Visible only to project members. |
-| Proxy project | Check this to enable proxy access via the target repository. |
-| Target repository | Required for proxy projects (e.g., Hugging Face). |
+| Proxy project | Check this to enable proxy access via the target registry. |
+| Target registry | Required for proxy projects (e.g., Hugging Face). |
 | Organization/Username | If the model path is `Organization/ModelName` (e.g., `Qwen/Qwen3.5-35B-A3B`), fill in the Organization; for personal account models, fill in the Username. |
 
 ## Project Rules
@@ -45,7 +45,7 @@ Deleting a project cannot be undone. Please ensure you have backed up models and
 - **Roles after creation:** The creator automatically becomes the **Admin** of the project.
 - **Public project visibility:** Non-member users can see public projects in the project list.
 - **Private project visibility:** Hidden from non-member users by default.
-- **Proxy project access:** Public models can be downloaded; private models remain subject to the target repository's access controls.
+- **Proxy project access:** Public models can be downloaded; private models remain subject to the target registry's access controls.
 
 ## Naming Rules Examples
 

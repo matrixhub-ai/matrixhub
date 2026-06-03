@@ -40,5 +40,5 @@ sidebar_position: 1
 面向平台基础设施工程师的高级配置、账号治理及多地域数据分发指南：
 
 *   👉 **[全局账号与安全管理](/docs/operations/platform-settings/user-management)**：全局用户账户治理、企业级 LDAP/SSO 单点登录对接及全局用户存储配额审计。
-*   👉 **[全局模型存储引擎设置](/docs/operations/platform-settings/repository-management)**：管理全局模型底座（NFS、S3、MinIO 等对象存储），并定义自动垃圾回收与超期模型配额清理策略。
+*   👉 **[仓库管理](/docs/operations/platform-settings/registry-management)**：配置平台访问外部模型源（如 Hugging Face、ModelScope 或企业内部源）的连接信息。
 *   👉 **[跨地域大模型远程同步](/docs/operations/platform-settings/remote-sync)**：基于策略的跨数据中心大文件多线程并发异步复制机制，包含分块并发和断点续传的配置指南。

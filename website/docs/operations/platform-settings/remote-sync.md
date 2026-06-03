@@ -4,12 +4,12 @@ sidebar_position: 3
 
 # Remote Synchronization
 
-Remote synchronization is used to pull **Models** or **Datasets** from a remote model repository (such as a configured Hugging Face source) into the current MatrixHub deployment according to specific rules. This is suitable for private scenarios where the platform centrally pulls and updates resources.
+Remote synchronization is used to pull **Models** or **Datasets** from a remote model registry (such as a configured Hugging Face source) into the current MatrixHub deployment according to specific rules. This is suitable for private scenarios where the platform centrally pulls and updates resources.
 
 ## Prerequisites
 
 - **Permissions:** Only **Platform Admins** can create and manage remote synchronization rules.
-- **Source Repository:** An available remote source must be configured in **Repository Management**; without a configured source repository, you cannot specify a pull source.
+- **Source Registry:** An available remote source must be configured in **Registry Management**; without a configured source registry, you cannot specify a pull source.
 - **Project and Repository:** The **Target Project** is optional; if left blank, resources are stored according to the platform's default rules. **Project** and **Repository** are different concepts, please distinguish them according to the actual interface.
 
 ## Steps
@@ -25,7 +25,7 @@ Remote synchronization is used to pull **Models** or **Datasets** from a remote 
 
     ![Create Sync](./images/sync-create.jpg)
 
-1. Configure **Sync Rule** and **Source Repository**, **Resource Filter**, **Target Project**, **Trigger Mode**, **Bandwidth Limit**, etc. (see the **Configuration Parameters** below for details).
+1. Configure **Sync Rule** and **Source Registry**, **Resource Filter**, **Target Project**, **Trigger Mode**, **Bandwidth Limit**, etc. (see the **Configuration Parameters** below for details).
 
 1. Click **Confirm** to complete the creation. After creation, you can **Edit**, **Delete** the rule in the list, or trigger a pull via operations like **Sync Now** (specific button names are subject to the interface).
 
@@ -43,7 +43,7 @@ Remote synchronization is used to pull **Models** or **Datasets** from a remote 
 | Name | The display name of the synchronization rule, up to 64 characters, can only contain lowercase letters, numbers, hyphens ("-"), and dots ("."), and must start with a lowercase letter or number. |
 | Description | Supplementary explanation for the rule's purpose, within 50 characters. |
 | Sync Rule | Select the synchronization direction, currently primarily **Pull**; whether **Push** is supported depends on the version capabilities. |
-| Source Repository | Select a remote source already configured in **Repository Management** (e.g., official site, mirror site, or enterprise custom source). |
+| Source Registry | Select a remote source already configured in **Registry Management** (e.g., official site, mirror site, or enterprise custom source). |
 | Resource Name | Match the resources to be synchronized by name, e.g., `llama-3` or `*` for all. |
 | Resource Type | Specify the type of synchronization object, commonly **Model**, **Dataset**, or both. |
 | Target Project | The project or workspace to which the synchronized resources will belong, **not required**; if not filled, they are stored according to platform default rules. |

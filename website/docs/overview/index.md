@@ -47,14 +47,6 @@ The project's evolution is divided into clear operational milestones:
     *   Deep Kubernetes-native integrations with vLLM and SGLang.
     *   Exploratory net-loading streaming directly to GPU weights.
 
-## Project Scope Boundaries (Non-Goals)
-
-To remain highly focused and maintain long-term reliability, MatrixHub explicitly does **not** aim to be:
-*   A general-purpose MLOps platform.
-*   A training orchestration or experiment tracking system.
-*   A public community model-sharing platform.
-*   Fully feature-equivalent to Hugging Face on day one (focus is strictly on the inference and distribution subset).
-
 ## Success Criteria
 
 We measure the success of MatrixHub by how well it simplifies operations:

@@ -44,14 +44,6 @@ MatrixHub 的演进路径分为四个极具实操性的技术阶段：
     *   提供与 vLLM 和 SGLang 深度绑定的 Kubernetes Operator。
     *   探索 NetLoader 等模型权重直接加载至 GPU 显存的流式传输方案。
 
-## 🚫 非目标 (Non-Goals)
-
-为保持系统的轻量化与高可用度，MatrixHub 明确 **不** 包含以下方向：
-*   不作为通用的 MLOps 平台（如不参与训练监控、评估等）。
-*   不作为训练编排或实验追踪工具（如 MLflow、Weights & Biases 替代品）。
-*   不作为公共的社交模型分享平台（非公共 SaaS Model Hub）。
-*   不追求在第一天实现与 Hugging Face 所有非推理 API 的 100% 对等。
-
 ## 🏆 成功衡量指标
 
 当 MatrixHub 能够完美处理以下任务时，即代表部署成功：

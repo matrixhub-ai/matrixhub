@@ -39,5 +39,5 @@ Generate secure credentials for command-line tools:
 Enterprise settings and multi-region replication controls for platform engineers:
 
 *   👉 **[User & Account Management](/docs/operations/platform-settings/user-management)**: Manage global accounts, set usage quotas, and configure corporate single sign-on (SSO/LDAP) configurations.
-*   👉 **[Global Repository Settings](/docs/operations/platform-settings/repository-management)**: Manage global storage backends (S3, MinIO, NFS) and define garbage collection and storage quota cleanups.
+*   👉 **[Registry Management](/docs/operations/platform-settings/registry-management)**: Configure upstream connection endpoints and credentials to access external registry sources (Hugging Face, ModelScope).
 *   👉 **[Cross-Region Remote Sync](/docs/operations/platform-settings/remote-sync)**: Configure asynchronous, policy-driven remote replication links between geographical data center hubs.
