@@ -481,10 +481,10 @@
     "message": "社区频道"
   },
   "community.channels.description": {
-    "message": "在 Discord、GitHub Discussions 或我们的邮件列表中参与交流。"
+    "message": "加入 CNCF Slack 的 #matrixhub 频道，与维护者和用户交流。"
   },
   "community.channels.linkText": {
-    "message": "加入 Discord →"
+    "message": "加入 CNCF Slack 的 #matrixhub →"
   },
   "community.title": {
     "message": "社区"

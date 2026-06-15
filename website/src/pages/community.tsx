@@ -21,9 +21,9 @@ export default function Community(): React.ReactElement {
     {
       emoji: '💬',
       title: translate({ id: 'community.channels.title', message: 'Community Channels' }),
-      description: translate({ id: 'community.channels.description', message: 'Join the conversation on Discord, GitHub Discussions, or our mailing list.' }),
-      linkText: translate({ id: 'community.channels.linkText', message: 'Join Discord →' }),
-      href: 'https://discord.gg/Jwbvn46Bc8',
+      description: translate({ id: 'community.channels.description', message: 'Join the #matrixhub channel on CNCF Slack to chat with maintainers and users.' }),
+      linkText: translate({ id: 'community.channels.linkText', message: 'Join #matrixhub on CNCF Slack →' }),
+      href: 'https://cloud-native.slack.com/archives/C0A8UKWR8HG',
     },
   ];
 
