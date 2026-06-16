@@ -12,7 +12,7 @@ export function formatStorageSize(value: string | undefined) {
   }
 
   return filesize(numericValue, {
-    standard: 'jedec',
+    standard: 'si',
     round: 1,
   }) as string
 }
