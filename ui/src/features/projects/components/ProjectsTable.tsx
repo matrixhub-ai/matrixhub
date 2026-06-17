@@ -8,6 +8,7 @@ import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
+import { useProjectRole } from '@/features/auth/useProjectRole'
 import {
   DataTable,
   type DataTableProps,
@@ -18,15 +19,13 @@ import { formatDateTime } from '@/shared/utils/date'
 import type { Project } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import type { MRT_ColumnDef } from 'mantine-react-table'
 
-type ProjectRoleMap = Record<string, ProjectRoleType>
-
 function isPublicProject(type?: ProjectType) {
   return type === ProjectType.PROJECT_TYPE_PUBLIC
 }
 
-function canDeleteProject(project: Project, projectRoles?: ProjectRoleMap) {
+function canDeleteProject(project: Project, projectRole?: ProjectRoleType) {
   return !!project.name
-    && projectRoles?.[project.name] === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
+    && projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
 }
 
 type ProjectCellProps = Parameters<NonNullable<MRT_ColumnDef<Project>['Cell']>>[0]
@@ -94,12 +93,11 @@ function ProjectActionsCell({
   const { t } = useTranslation()
   const {
     onDelete,
-    projectRoles,
   } = (table.options.meta as {
     onDelete?: (project: Project) => void
-    projectRoles?: ProjectRoleMap
   } | undefined) ?? {}
-  const disabled = !onDelete || !canDeleteProject(row.original, projectRoles)
+  const projectRole = useProjectRole(row.original.name ?? '')
+  const disabled = !onDelete || !canDeleteProject(row.original, projectRole)
 
   return (
     <Anchor
@@ -118,7 +116,6 @@ function ProjectActionsCell({
 
 export type ProjectsTableProps = Omit<DataTableProps<Project>, 'columns'> & {
   onDelete?: (project: Project) => void
-  projectRoles?: ProjectRoleMap
 }
 
 export function ProjectsTable({
@@ -129,7 +126,6 @@ export function ProjectsTable({
   searchValue,
   onSearchChange,
   onDelete,
-  projectRoles,
   onPageChange,
   toolbarExtra,
   onRefresh,
@@ -187,7 +183,6 @@ export function ProjectsTable({
       tableOptions={{
         meta: {
           onDelete,
-          projectRoles,
         },
       }}
     />
