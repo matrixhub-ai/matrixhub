@@ -12,7 +12,7 @@
     "name": "Registry Name",
     "description": "Description",
     "url": "Target URL",
-    "urlPlaceholder": "http://docker.m.daocloud.io",
+    "urlPlaceholder": "https://hf.m.daocloud.io",
     "username": "Username",
     "usernameHint": "Enter the upstream registry username and access token when pulling private models; robot accounts are supported.",
     "password": "Access Token",
