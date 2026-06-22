@@ -37,6 +37,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/receive"
+	hfds3fs "github.com/matrixhub-ai/hfd/pkg/s3fs"
 	hfdssh "github.com/matrixhub-ai/hfd/pkg/ssh"
 	gitstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 	"github.com/soheilhy/cmux"
@@ -251,7 +252,51 @@ func (server *APIServer) initGitStorage() {
 		gitstorage.WithRootDir(server.config.DataDir),
 	)
 
-	lfsStorage := lfs.NewLocal(storage.LFSDir())
+	// Initialize LFS storage based on configuration
+	var lfsStorage lfs.Storage
+	storageConfig := server.config.APIServer.Storage
+	if storageConfig.Mode == "s3" && storageConfig.S3.Endpoint != "" {
+		s3Config := storageConfig.S3
+
+		// Mount S3 bucket for repositories if enabled
+		if s3Config.Repositories {
+			repositoriesDir := storage.RepositoriesDir()
+			log.Info("mounting S3 bucket for repositories", "bucket", s3Config.Bucket, "path", repositoriesDir)
+			err := hfds3fs.Mount(
+				context.Background(),
+				repositoriesDir,
+				s3Config.Endpoint,
+				s3Config.AccessKey,
+				s3Config.SecretKey,
+				s3Config.Bucket,
+				"/repositories/",
+				s3Config.UsePathStyle,
+			)
+			if err != nil {
+				log.Error("error mounting S3 bucket for repositories", "bucket", s3Config.Bucket, "path", repositoriesDir, "error", err)
+				// Don't exit, continue with local repositories
+			}
+			// Note: In production, you should handle unmount on shutdown
+		}
+
+		signEndpoint := s3Config.SignEndpoint
+		if signEndpoint == "" {
+			signEndpoint = s3Config.Endpoint
+		}
+		lfsStorage = lfs.NewS3(
+			storage.LFSDir(),
+			s3Config.Endpoint,
+			s3Config.AccessKey,
+			s3Config.SecretKey,
+			s3Config.Bucket,
+			s3Config.UsePathStyle,
+			signEndpoint,
+		)
+		log.Info("using S3 storage", "endpoint", s3Config.Endpoint, "bucket", s3Config.Bucket)
+	} else {
+		lfsStorage = lfs.NewLocal(storage.LFSDir())
+		log.Info("using local storage", "path", storage.LFSDir())
+	}
 
 	mirrorSourceFunc := server.gitHooks.mirrorSourceFunc
 	mirrorDestinationFunc := server.gitHooks.mirrorDestinationFunc

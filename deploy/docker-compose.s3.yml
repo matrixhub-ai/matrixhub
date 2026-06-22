@@ -1,0 +1,64 @@
+# S3 storage deployment. Run with: docker compose -f docker-compose.yml -f docker-compose.s3.yml up -d
+services:
+  mysql:
+    image: docker.io/library/mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
+      MYSQL_DATABASE: matrixhub
+      MYSQL_USER: matrixhub
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  s3:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=adminadmin
+      - MINIO_ROOT_PASSWORD=adminadmin
+    entrypoint:
+      - sh
+      - -c
+    command:
+      - |
+        mkdir -p /data/matrixhub && \
+        /usr/bin/docker-entrypoint.sh server /data/ --console-address ":9001"
+    volumes:
+      - ./data/s3:/data/
+    restart: unless-stopped
+
+  matrixhub:
+    # image: ghcr.io/matrixhub-ai/matrixhub:${MATRIXHUB_IMAGE_TAG:-latest}
+    build:
+      context: ../
+      dockerfile: ./deploy/docker/matrixhub/Dockerfile
+    privileged: true
+    working_dir: /workspace
+    command:
+      - /usr/local/bin/matrixhub
+      - apiserver
+      - -c
+      - /etc/matrixhub/config.yaml
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data/tmp:/data/tmp/
+      - ./config/config.s3.yaml:/etc/matrixhub/config.yaml:ro
+    environment:
+      - MATRIXHUB_DATABASE_DSN=matrixhub:${MYSQL_PASSWORD:-changeme}@tcp(mysql:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      s3:
+        condition: service_started
+    restart: unless-stopped
