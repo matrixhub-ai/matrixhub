@@ -1,0 +1,21 @@
+# Codecov configuration.
+# Docs: https://docs.codecov.com/docs/codecov-yaml
+coverage:
+  status:
+    # Patch = coverage of the lines changed in the PR. This is the merge gate:
+    # new/changed code must be covered by tests, or the check fails.
+    patch:
+      default:
+        target: 70%
+        informational: false
+    # Project = overall repo coverage. Kept informational for now so refactors
+    # and code removal don't block PRs or push teams toward padding tests.
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        informational: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  require_changes: true

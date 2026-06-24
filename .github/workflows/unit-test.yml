@@ -45,4 +45,13 @@ jobs:
         continue-on-error: true
 
       - name: Run unit tests
-        run: go test cmd/... internal/... -short -count=1 -v
+        run: go test cmd/... internal/... -short -count=1 -v -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.out
+          flags: unittests
+          # Required for private repos; for a public repo it is optional but recommended.
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
