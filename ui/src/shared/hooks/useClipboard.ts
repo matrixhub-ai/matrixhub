@@ -53,8 +53,8 @@ export function useClipboard({
 
     void (async () => {
       let clipboardError: unknown
-      const isClipboardApiSupported = 'clipboard' in navigator
-      let useLegacy = !isClipboardApiSupported && legacy
+      const isClipboardApiSupported = window.isSecureContext && 'clipboard' in navigator
+      let useLegacy = !isClipboardApiSupported || legacy
 
       if (!useLegacy) {
         try {
