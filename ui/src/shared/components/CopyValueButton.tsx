@@ -1,10 +1,11 @@
 import {
   ActionIcon,
-  CopyButton,
   Tooltip,
 } from '@mantine/core'
 import { IconCopy } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
+
+import { CopyButton } from '@/shared/components/CopyButton'
 
 import type { ReactNode } from 'react'
 

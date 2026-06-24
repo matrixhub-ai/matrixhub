@@ -80,6 +80,8 @@ Reference: `src/features/projects/members/`.
 
 Stable primitives reused across ≥2 features. Same folder shape as a feature (`components/`, `hooks/`, `types/`, `utils/`). Examples that already live here: `DataTable`, `SearchToolbar`, `Pagination`, `ModalWrapper`, `useRouteListState`, `useForm`, `usePayloadModal`.
 
+Use the shared `CopyButton` or `CopyValueButton` for copy actions instead of Mantine's `CopyButton` directly. Both use the shared `useClipboard` hook, which prefers the Clipboard API and keeps a selection-based fallback for internal HTTP deployments.
+
 **Shared table wrapper** is `src/shared/components/DataTable.tsx`. Centralise pagination, loading/empty states, row actions, selection behaviour, and shared styling inside the wrapper — feature tables stay focused on columns, cells, and feature-specific toolbar actions.
 
 Only promote code to `src/shared/` once reuse is clear. Do not pre-emptively abstract.
