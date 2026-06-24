@@ -1,10 +1,10 @@
 ---
-name: Enhancement Request
-about: Suggest an enhancement to the MatrixHub project
+name: Feature
+about: Suggest a new feature or enhancement for the MatrixHub project
 labels: kind/feature
 
 ---
-<!-- Please only use this template for submitting enhancement requests -->
+<!-- Please only use this template for submitting feature requests -->
 
 **What would you like to be added**:
 
@@ -12,10 +12,11 @@ labels: kind/feature
 
 **Completion requirements**:
 
-This enhancement requires the following artifacts:
+This feature requires the following artifacts:
 
 - [ ] Design doc
 - [ ] API change
+- [ ] Test
 - [ ] Docs update
 
 The artifacts should be linked in subsequent comments.
