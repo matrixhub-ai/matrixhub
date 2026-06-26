@@ -6,6 +6,12 @@ sidebar_position: 1
 
 Welcome to **MatrixHub**—an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a **drop-in private replacement for Hugging Face**, purpose-built to accelerate **vLLM** and **SGLang** workloads.
 
+:::tip Live Demo
+Try MatrixHub instantly at **[demo.matrixhub.ai](https://demo.matrixhub.ai/)**—no setup required.
+
+Sign in with the public demo credentials: username `admin`, password `changeme`. The demo is for evaluation only and may be reset at any time.
+:::
+
 ## Why MatrixHub?
 
 MatrixHub streamlines the transition from public model hubs to production-grade infrastructure:

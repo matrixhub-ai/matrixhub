@@ -7,6 +7,12 @@ title: 介绍
 
 欢迎使用 **MatrixHub**——这是一个专为大规模企业级推理而设计的开源、支持私有化部署的 AI 模型中心。它可以作为 **Hugging Face 的私有替代方案** 实现开箱即用的替换，专门用于加速 **vLLM** 和 **SGLang** 等推理工作负载。
 
+:::tip 在线体验
+无需安装，立即访问 **[demo.matrixhub.ai](https://demo.matrixhub.ai/)** 体验 MatrixHub。
+
+使用公开演示账号登录：用户名 `admin`，密码 `changeme`。演示环境仅供评估，数据可能随时被重置。
+:::
+
 ## 为什么选择 MatrixHub？
 
 MatrixHub 简化了从公共模型中心向生产级基础设施过渡的过程：
