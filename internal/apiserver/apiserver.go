@@ -346,7 +346,6 @@ func (server *APIServer) initSSHBackend() {
 	hostKeyPath := server.config.APIServer.SSHHostKeyPath
 
 	storage := server.gitStorage.storage
-	sharedMirror := server.gitStorage.sharedMirror
 	permissionHookFunc := server.gitHooks.permissionHookFunc
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
 	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
@@ -362,9 +361,9 @@ func (server *APIServer) initSSHBackend() {
 		backendssh.WithStorage(storage),
 		backendssh.WithHostKey(hostKeySigner),
 		backendssh.WithPermissionHookFunc(permissionHookFunc),
+		backendssh.WithPreOpenHookFunc(newSSHPreOpenHook(server.services.Model)),
 		backendssh.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendssh.WithPostReceiveHookFunc(postReceiveHookFunc),
-		backendssh.WithMirror(sharedMirror),
 		backendssh.WithLFSURL(server.config.APIServer.HostURL),
 		backendssh.WithBasicAuthValidator(basicAuthValidator),
 		backendssh.WithPublicKeyValidator(publicKeyValidator),
@@ -374,6 +373,25 @@ func (server *APIServer) initSSHBackend() {
 	sshServer := backendssh.NewServer(sshOpts...)
 
 	server.sshServer = sshServer
+}
+
+func newSSHPreOpenHook(modelService model.IModelService) backendssh.PreOpenHookFunc {
+	return func(ctx context.Context, repoName string, write bool) error {
+		if modelService == nil {
+			return nil
+		}
+
+		repoType, project, name, ok := utils.ParseFromRepoName(repoName)
+		if !ok || repoType != "models" {
+			return nil
+		}
+		if write {
+			_, err := modelService.EnsureModel(ctx, project, name)
+			return err
+		}
+
+		return modelService.CheckOrSyncFromRemote(ctx, project, name)
+	}
 }
 
 type Services struct {
