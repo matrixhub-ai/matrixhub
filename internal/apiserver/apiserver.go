@@ -32,7 +32,6 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
-	backendssh "github.com/matrixhub-ai/hfd/pkg/backend/ssh"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
@@ -47,6 +46,7 @@ import (
 	backendhf "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf"
 	backendhttp "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http"
 	backendlfs "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/lfs"
+	backendssh "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/cleanup"
@@ -346,7 +346,6 @@ func (server *APIServer) initSSHBackend() {
 	hostKeyPath := server.config.APIServer.SSHHostKeyPath
 
 	storage := server.gitStorage.storage
-	sharedMirror := server.gitStorage.sharedMirror
 	permissionHookFunc := server.gitHooks.permissionHookFunc
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
 	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
@@ -361,10 +360,11 @@ func (server *APIServer) initSSHBackend() {
 	sshOpts := []backendssh.Option{
 		backendssh.WithStorage(storage),
 		backendssh.WithHostKey(hostKeySigner),
+		backendssh.WithMirror(server.gitStorage.sharedMirror),
+		backendssh.WithServices(server.services.Model),
 		backendssh.WithPermissionHookFunc(permissionHookFunc),
 		backendssh.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendssh.WithPostReceiveHookFunc(postReceiveHookFunc),
-		backendssh.WithMirror(sharedMirror),
 		backendssh.WithLFSURL(server.config.APIServer.HostURL),
 		backendssh.WithBasicAuthValidator(basicAuthValidator),
 		backendssh.WithPublicKeyValidator(publicKeyValidator),

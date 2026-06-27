@@ -87,6 +87,10 @@ type fakeGitRepo struct {
 
 func (f *fakeGitRepo) CreateRepository(context.Context, string, string, string) error { return nil }
 
+func (f *fakeGitRepo) RepositoryExists(context.Context, string, string, string) (bool, error) {
+	return false, nil
+}
+
 func (f *fakeGitRepo) DeleteRepository(context.Context, string, string, string) error { return nil }
 
 func (f *fakeGitRepo) ListRevisions(context.Context, string, string, string) (*git.Revisions, error) {

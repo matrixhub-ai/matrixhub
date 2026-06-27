@@ -138,10 +138,16 @@ type GitRepository struct {
 }
 
 // IGitRepo defines the repository interface for Git operations on models.
+//
+//go:generate go tool mockgen -source=git.go -destination=mocks/git_repo_mock.go -package=mocks
 type IGitRepo interface {
 	// CreateRepository initializes a Git repository.
 	// repoType: "models" or "datasets"
 	CreateRepository(ctx context.Context, repoType, project, name string) error
+
+	// RepositoryExists checks whether a Git repository exists on disk.
+	// repoType: "models" or "datasets"
+	RepositoryExists(ctx context.Context, repoType, project, name string) (bool, error)
 
 	// DeleteRepository removes the Git repository.
 	// repoType: "models" or "datasets"
