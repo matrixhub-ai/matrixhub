@@ -5,14 +5,23 @@ labels: kind/bug
 
 ---
 
-**What happened**:
+**Version**:
+- MatrixHub version:
 
-**What you expected to happen**:
+**Reproduction environment**:
+- URL:
+- OS:
+- Deployment / runtime (e.g. Docker, Kubernetes, local dev):
 
-**How to reproduce it (as minimally and precisely as possible)**:
+**Steps to reproduce**:
+1.
+2.
+3.
 
-**Anything else we need to know?**:
+**Current result**:
 
-**Environment**:
-- MatrixHub version (use `git describe --tags --dirty --always`):
-- Others:
+**Expected result**:
+
+**Verification checklist**:
+- [ ] UT/E2E added or updated
+- [ ] Verify screenshot attached
