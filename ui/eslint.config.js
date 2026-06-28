@@ -256,4 +256,52 @@ export default defineConfig(
       'jsonc/no-comments': 'off',
     },
   },
+
+  // =============================================
+  // Project architecture guardrails
+  // =============================================
+  {
+    files: ['src/shared/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/features/*'],
+              message: 'Shared code must not depend on feature modules. Move the component into features or extract a shared primitive.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/features/**/*.{ts,tsx}', 'src/routes/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@mantine/notifications',
+              message: 'Use NotificationMeta on query/mutation options; global QueryCache/MutationCache owns notifications.',
+            },
+            {
+              name: 'mantine-react-table',
+              importNames: ['MantineReactTable'],
+              message: 'Use the shared DataTable wrapper instead of rendering MantineReactTable directly.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Property[key.name=\'queryKey\'][value.type=\'ArrayExpression\']',
+          message: 'Use a feature query key factory and queryOptions() instead of inline queryKey arrays.',
+        },
+      ],
+    },
+  },
 )

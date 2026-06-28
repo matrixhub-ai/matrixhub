@@ -10,7 +10,6 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { CurrentUser, type CreateAccessTokenRequest } from '@matrixhub/api-ts/v1alpha1/current_user.pb'
 import {
   IconInfoCircle,
   IconKey,
@@ -24,6 +23,7 @@ import z from 'zod'
 
 import { AccessTokenTable } from '@/features/profile/components/AccessTokenTable'
 import { ExpireAtField } from '@/features/profile/components/ExpireAtField'
+import { createAccessTokenMutationOptions } from '@/features/profile/profile.mutation'
 import { profileKeys, useAccessTokens } from '@/features/profile/profile.query'
 import { expireAtSchema } from '@/features/profile/profile.schema.ts'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
@@ -61,11 +61,7 @@ export function AccessTokenPage() {
   const {
     mutate: createToken, isPending: isCreating,
   } = useMutation({
-    mutationFn: (value: CreateAccessTokenRequest) => CurrentUser.CreateAccessToken(value),
-    meta: {
-      successMessage: t('profile.tokenCreated'),
-      invalidates: [profileKeys.accessTokens],
-    },
+    ...createAccessTokenMutationOptions(),
     onSuccess: (res) => {
       setNewToken(res.token ?? '')
       handleCreateClose()
@@ -148,15 +144,14 @@ export function AccessTokenPage() {
           name="name"
           validators={{ onChange: nameSchema }}
         >
-          {({
-            state, handleChange,
-          }) => (
+          {field => (
             <TextInput
               label={t('profile.tokenName')}
               required
-              value={state.value}
-              onChange={e => handleChange(e.currentTarget.value)}
-              error={state.meta.errors[0]?.message}
+              value={field.state.value}
+              onChange={e => field.handleChange(e.currentTarget.value)}
+              onBlur={field.handleBlur}
+              error={fieldError(field)}
             />
           )}
         </form.Field>
@@ -165,6 +160,7 @@ export function AccessTokenPage() {
             <ExpireAtField
               value={field.state.value}
               onChange={field.handleChange}
+              onBlur={field.handleBlur}
               error={fieldError(field)}
             />
           )}

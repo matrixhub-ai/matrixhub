@@ -1,7 +1,15 @@
 /** Shared meta shape for query and mutation notification behavior. */
+export type NotificationMetaResolver<T> = (
+  data: unknown,
+  variables: unknown,
+  context: unknown,
+) => T | undefined
+
 export interface NotificationMeta {
   /** Notification message shown on success */
-  successMessage?: string
+  successMessage?: string | NotificationMetaResolver<string>
+  /** Notification color shown on success */
+  successColor?: string | NotificationMetaResolver<string>
   /** Notification title shown on error */
   errorMessage?: string
   /** Skip all notifications for this query/mutation */
