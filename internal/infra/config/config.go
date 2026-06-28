@@ -108,6 +108,36 @@ type APIServerConfig struct {
 	// Empty means "not configured" and the API returns an empty string so the
 	// UI can hide affected panels.
 	ExternalURL string `yaml:"externalURL"`
+	// Storage is the storage configuration for git/LFS data
+	Storage StorageConfig `yaml:"storage"`
+}
+
+// StorageConfig defines the storage backend configuration
+type StorageConfig struct {
+	// Mode is the storage mode: "local" for filesystem, "s3" for S3-compatible object storage
+	Mode string `yaml:"mode"`
+	// S3 is the S3 storage configuration (used when mode is "s3")
+	S3 S3Config `yaml:"s3"`
+}
+
+// S3Config defines S3-compatible object storage configuration
+type S3Config struct {
+	// Endpoint is the S3 endpoint URL (e.g., http://localhost:9000)
+	Endpoint string `yaml:"endpoint"`
+	// Bucket is the S3 bucket name
+	Bucket string `yaml:"bucket"`
+	// Region is the S3 region
+	Region string `yaml:"region"`
+	// AccessKey is the S3 access key
+	AccessKey string `yaml:"accessKey"`
+	// SecretKey is the S3 secret key
+	SecretKey string `yaml:"secretKey"`
+	// UsePathStyle enables path-style addressing (required for MinIO)
+	UsePathStyle bool `yaml:"usePathStyle"`
+	// SignEndpoint is the endpoint for generating presigned URLs (defaults to Endpoint if empty)
+	SignEndpoint string `yaml:"signEndpoint"`
+	// Repositories enables storing git repositories in S3 using s3fs (requires privileged mode)
+	Repositories bool `yaml:"repositories"`
 }
 
 type UIConfig struct {
