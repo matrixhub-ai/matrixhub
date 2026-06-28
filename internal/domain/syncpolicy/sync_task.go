@@ -76,6 +76,7 @@ func (SyncTask) TableName() string {
 	return "sync_tasks"
 }
 
+//go:generate mockgen -source=sync_task.go -destination=mocks/sync_task_repo_mock.go -package=mocks
 type ISyncTaskRepo interface {
 	CreateSyncTask(ctx context.Context, task *SyncTask) (*SyncTask, error)
 	GetSyncTask(ctx context.Context, id int) (*SyncTask, error)

@@ -126,6 +126,86 @@ Configuration file: `ui/vite.config.ts`
 2. **Dependency Management**: Use `go mod tidy` to organize dependencies
 3. **Configuration Validation**: Config file is automatically validated on startup
 
+### Writing Unit Tests
+
+Backend unit tests follow a single, consistent stack:
+
+- **Mocks**: [`go.uber.org/mock`](https://github.com/uber-go/mock) (`gomock`), generated from domain interfaces with `mockgen`.
+- **Assertions**: [`stretchr/testify/require`](https://github.com/stretchr/testify) (`require` stops the test on the first failed assertion; prefer it over `assert`).
+
+Thanks to the DDD layering, domain services depend only on **interfaces** (ports). To unit-test a service you mock its dependencies and inject them, with **no database or network** involved. Mirror the layout: put external behavior in `internal/repo` adapters so the domain stays mockable.
+
+**Reference example**: [`internal/domain/syncpolicy/sync_policy_service_test.go`](../internal/domain/syncpolicy/sync_policy_service_test.go) (service UT) and [`internal/jobserver/jobserver_test.go`](../internal/jobserver/jobserver_test.go) (mocking services for a background runner).
+
+#### Basic steps
+
+1. **Mark the interface for generation.** Add a `//go:generate` directive next to the interface (ports live in `internal/domain/...`). Mocks are emitted into a `mocks/` subpackage:
+
+```go
+//go:generate mockgen -source=sync_policy.go -destination=mocks/sync_policy_repo_mock.go -package=mocks
+type ISyncPolicyRepo interface {
+    // ...
+}
+```
+
+2. **Generate the mocks** (installs `mockgen` automatically if missing):
+
+```bash
+make generate-mocks   # runs `go generate ./...`
+```
+
+3. **Write the test** in an external `_test` package (e.g. `package syncpolicy_test`) to avoid import cycles with the generated `mocks` package. Construct a controller, inject mocks, set expectations, assert with `require`:
+
+```go
+func TestSyncPolicyService_CreateSyncPolicy(t *testing.T) {
+    ctrl := gomock.NewController(t) // auto-verifies expectations via t.Cleanup
+    repo := mocks.NewMockISyncPolicyRepo(ctrl)
+
+    // Expect exactly one call; gomock fails the test on unexpected/missing calls.
+    repo.EXPECT().CreateSyncPolicy(gomock.Any(), gomock.Any()).Return(nil)
+
+    // Leave unused dependencies nil — only wire what the tested method touches.
+    svc := syncpolicy.NewSyncPolicyService(repo, nil, nil, nil, nil)
+
+    err := svc.CreateSyncPolicy(context.Background(), &syncpolicy.SyncPolicy{
+        TriggerType: syncpolicy.TriggerTypeManual,
+    })
+    require.NoError(t, err)
+}
+```
+
+4. **Run the tests**:
+
+```bash
+go test -count=1 ./internal/domain/syncpolicy/...
+go test ./...                      # whole backend
+```
+
+#### gomock tips
+
+- **Argument matchers**: `gomock.Any()`, `gomock.Eq(v)`, or a literal value. Use literals/`Eq` to assert the exact arguments a method was called with.
+- **Return / capture**: `.Return(...)` for static results; `.DoAndReturn(func(...) {...})` to capture arguments or compute the result dynamically.
+- **Call counts**: expectations default to exactly once. Use `.Times(n)`, `.MinTimes(n)`, `.MaxTimes(n)`, or `.AnyTimes()` — handy for background loops that poll an unpredictable number of times.
+- **Negative assertions**: simply set **no** `EXPECT()` for a method; gomock fails the test if it is called.
+- **Regenerate after changing an interface**: rerun `make generate-mocks` and commit the updated files under `mocks/` (they are generated — never hand-edit).
+
+### Sync policies and jobserver (delayed-job, single replica)
+
+Sync scheduling uses `sync_policies.next_run_at` (milliseconds). The **jobserver** runs in-process with the API server (`internal/jobserver`): it polls due policies, CAS-advances `next_run_at`, then calls `CreatePendingSyncTask` to insert a `sync_tasks` row only (status pending). Git work and `sync_jobs` rows are intended to be handled later by a separate **sync_task** processor (not implemented here yet). There is no separate cron daemon process.
+
+- **Config** (`config.yaml`): `jobServer` — set `enabled: false` to disable inserting pending `sync_tasks` from the poller (manual API `CreateSyncTask` will only bump `next_run_at`). Per-sync-policy tuning (`pollInterval`, `maxConcurrent`, `taskMaxDuration`) lives under `jobServer.syncPolicy`.
+- **Migrations**: scheduling columns (`cron`, `last_run_at`, `next_run_at`, `idx_due`) are in `0_init.up.sql`; apply with `database.migrate: true` or run SQL under `db/migrations/sql/mysql/`.
+- **Cron syntax**: validated with `github.com/robfig/cron/v3` (five fields plus descriptors such as `@daily`). Example: `0 * * * *` (hourly).
+- **Not in this release**: Stop task, heartbeat, reaper, multi-replica fencing (`running_by` / `running_until`).
+
+**Verify jobserver logic (no database required)**:
+
+```bash
+go test -v -count=1 ./internal/jobserver/...
+```
+
+**End-to-end** (requires MySQL + migrated schema + a sync policy with `next_run_at` due): start `go run ./cmd/matrixhub apiserver`, trigger a policy (scheduled cron or `CreateSyncTask` for manual bump), then list `sync_tasks` (pending rows) / watch logs for `jobserver: processor loop start`.
+
 ## Troubleshooting
 
 ### MySQL Connection Failed

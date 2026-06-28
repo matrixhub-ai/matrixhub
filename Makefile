@@ -149,3 +149,14 @@ genproto:
 .PHONY: gen_openapi_sdk
 gen_openapi_sdk:
 	@./scripts/gen_openapi_sdk.sh
+
+# Regenerate gomock mocks from //go:generate directives next to domain interfaces.
+# Run after changing any mocked interface. Requires mockgen on PATH (see install target).
+.PHONY: generate-mocks
+generate-mocks: ## Regenerate gomock mocks (go.uber.org/mock)
+	@command -v mockgen >/dev/null 2>&1 || $(MAKE) install-mockgen
+	go generate ./...
+
+.PHONY: install-mockgen
+install-mockgen: ## Install the mockgen code generator
+	go install go.uber.org/mock/mockgen@latest

@@ -16,142 +16,70 @@ package jobserver
 
 import (
 	"context"
-	"errors"
-	"io"
-	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
-	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
+	syncjobmocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncjob/mocks"
+	syncpolicymocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 	"github.com/matrixhub-ai/matrixhub/internal/jobserver/canceller"
+	logstoremocks "github.com/matrixhub-ai/matrixhub/internal/jobserver/logstore/mocks"
 )
 
-// fakeSyncPolicyService implements syncpolicy.ISyncPolicyService with only ClaimDueSyncPolicies /
-// CreatePendingSyncTask wired for jobserver tests; other methods are stubs.
-type fakeSyncPolicyService struct {
-	mu sync.Mutex
-
-	claimCalls int
-	claimFn    func(ctx context.Context, nowMs int64) ([]job.DueJob, error)
-
-	execCalls    int
-	lastPolicyID int
-	lastTrigger  int
-	execFn       func(ctx context.Context, policyID int, triggerType int) error
-}
-
-func (f *fakeSyncPolicyService) UpdateSyncTask(ctx context.Context, param *syncpolicy.SyncTask) error {
-	return errors.New("not used")
-
-}
-
-func (f *fakeSyncPolicyService) ListSyncTasksByPolicyID(ctx context.Context, policyID int, page, pageSize int, status syncpolicy.SyncTaskStatus) ([]*syncpolicy.SyncTask, int64, error) {
-	return nil, 0, errors.New("not used")
-}
-
-func (f *fakeSyncPolicyService) ClaimDueSyncPolicies(ctx context.Context, nowMs int64) ([]job.DueJob, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	f.claimCalls++
-	if f.claimFn != nil {
-		return f.claimFn(ctx, nowMs)
-	}
-	if f.claimCalls == 1 {
-		return []job.DueJob{{
-			PolicyID:    42,
-			TriggerType: 2,
-			FireAtMs:    nowMs,
-		}}, nil
-	}
-	return nil, nil
-}
-
-func (f *fakeSyncPolicyService) CreatePendingSyncTask(ctx context.Context, policyID int, triggerType int) error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	f.execCalls++
-	f.lastPolicyID = policyID
-	f.lastTrigger = triggerType
-	if f.execFn != nil {
-		return f.execFn(ctx, policyID, triggerType)
-	}
-	return nil
-}
-
-func (f *fakeSyncPolicyService) GetSyncPolicy(context.Context, int) (*syncpolicy.SyncPolicy, error) {
-	return nil, errors.New("not used")
-}
-func (f *fakeSyncPolicyService) CreateSyncPolicy(context.Context, *syncpolicy.SyncPolicy) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncPolicyService) UpdateSyncPolicy(context.Context, *syncpolicy.SyncPolicy) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncPolicyService) DeleteSyncPolicy(context.Context, int) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncPolicyService) ListSyncPolicies(context.Context, int, int, string) ([]*syncpolicy.SyncPolicy, int64, error) {
-	return nil, 0, errors.New("not used")
-}
-func (f *fakeSyncPolicyService) GetSyncTask(context.Context, int) (*syncpolicy.SyncTask, error) {
-	return nil, errors.New("not used")
-}
-func (f *fakeSyncPolicyService) CreateSyncTask(context.Context, *syncpolicy.SyncTask) (*syncpolicy.SyncTask, error) {
-	return nil, errors.New("not used")
-}
-func (f *fakeSyncPolicyService) CreateSyncTaskAndSyncJobs(context.Context, *syncpolicy.SyncPolicy) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncPolicyService) CreateSyncTaskAsync(context.Context, *syncpolicy.SyncPolicy) (*syncpolicy.SyncTask, error) {
-	return nil, errors.New("not used")
-}
-func (f *fakeSyncPolicyService) ClaimPendingSyncTasks(context.Context, int64) ([]job.DueJob, error) {
-	return nil, nil
-}
-func (f *fakeSyncPolicyService) ExecuteSyncTask(context.Context, int) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncPolicyService) ReportTaskStatus(context.Context, int) error {
-	return errors.New("not used")
-}
-
-// fakeSyncJobService implements syncjob.ISyncJobService for jobserver tests.
-type fakeSyncJobService struct{}
-
-func (f *fakeSyncJobService) GetSyncJob(context.Context, int) (*syncjob.SyncJob, error) {
-	return nil, errors.New("not used")
-}
-func (f *fakeSyncJobService) CreateSyncJob(context.Context, *syncjob.SyncJob) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncJobService) UpdateSyncJob(context.Context, *syncjob.SyncJob) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncJobService) ExecuteSyncJob(context.Context, *syncjob.SyncJob) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncJobService) ListSyncJobsByTaskID(context.Context, int, int, int, syncjob.SyncJobStatus, string) ([]*syncjob.SyncJob, int64, error) {
-	return nil, 0, errors.New("not used")
-}
-func (f *fakeSyncJobService) ClaimPendingSyncJobs(context.Context, int64) ([]job.DueJob, error) {
-	return nil, nil
-}
-func (f *fakeSyncJobService) ExecuteSyncJobWithLog(context.Context, int) error {
-	return errors.New("not used")
-}
-func (f *fakeSyncJobService) SetOnJobDone(fn func(ctx context.Context, taskID int) error) {}
-
-// fakeLogStore implements logstore.LogStore for jobserver tests.
-type fakeLogStore struct{}
-
-func (f *fakeLogStore) Writer(int) (io.WriteCloser, error) { return nil, errors.New("not used") }
-func (f *fakeLogStore) Reader(int) (io.ReadCloser, error) { return nil, errors.New("not used") }
-
+// TestJobServer_RunInvokesExecuteForClaimedJob verifies that a sync policy
+// claimed by the poll loop is forwarded to CreatePendingSyncTask.
+//
+// Dependencies are gomock mocks (go.uber.org/mock). The sync-task and sync-job
+// processors also poll on their own loops, so their claim methods are stubbed
+// with AnyTimes() to tolerate the nondeterministic number of background polls.
 func TestJobServer_RunInvokesExecuteForClaimedJob(t *testing.T) {
-	fake := &fakeSyncPolicyService{}
+	ctrl := gomock.NewController(t)
+	syncSvc := syncpolicymocks.NewMockISyncPolicyService(ctrl)
+	syncJobSvc := syncjobmocks.NewMockISyncJobService(ctrl)
+	logStore := logstoremocks.NewMockLogStore(ctrl)
+
+	const (
+		wantPolicyID    = 42
+		wantTriggerType = int(2)
+	)
+
+	// First poll yields one due policy; subsequent polls yield nothing.
+	var claims atomic.Int32
+	syncSvc.EXPECT().
+		ClaimDueSyncPolicies(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, nowMs int64) ([]job.DueJob, error) {
+			if claims.Add(1) == 1 {
+				return []job.DueJob{{
+					ID:          wantPolicyID,
+					PolicyID:    wantPolicyID,
+					TriggerType: wantTriggerType,
+					FireAtMs:    nowMs,
+				}}, nil
+			}
+			return nil, nil
+		}).
+		MinTimes(1)
+
+	// The claimed policy must be turned into a pending sync task at least once.
+	var created atomic.Int32
+	syncSvc.EXPECT().
+		CreatePendingSyncTask(gomock.Any(), wantPolicyID, wantTriggerType).
+		DoAndReturn(func(_ context.Context, _ int, _ int) error {
+			created.Add(1)
+			return nil
+		}).
+		MinTimes(1)
+
+	// Other processors keep polling on their own intervals; accept any number
+	// of empty polls and never return work for them in this test.
+	syncSvc.EXPECT().ClaimPendingSyncTasks(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+	syncJobSvc.EXPECT().ClaimPendingSyncJobs(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+
 	cfg := &config.JobServerConfig{
 		Enabled:       true,
 		ShutdownGrace: 5 * time.Second,
@@ -161,17 +89,15 @@ func TestJobServer_RunInvokesExecuteForClaimedJob(t *testing.T) {
 			TaskMaxDuration: time.Hour,
 		},
 	}
-	js := New(cfg, fake, &fakeSyncJobService{}, &fakeLogStore{}, canceller.NewMemCanceller())
+
+	js := New(cfg, syncSvc, syncJobSvc, logStore, canceller.NewMemCanceller())
+
 	ctx, cancel := context.WithCancel(context.Background())
 	go js.Run(ctx)
 	time.Sleep(350 * time.Millisecond)
 	cancel()
 	js.Shutdown(2 * time.Second)
 
-	fake.mu.Lock()
-	ec, cc := fake.execCalls, fake.claimCalls
-	fake.mu.Unlock()
-	if ec < 1 || cc < 1 {
-		t.Fatalf("expected CreatePendingSyncTask at least once, got execCalls=%d claimCalls=%d", ec, cc)
-	}
+	require.GreaterOrEqual(t, claims.Load(), int32(1), "expected at least one ClaimDueSyncPolicies poll")
+	require.GreaterOrEqual(t, created.Load(), int32(1), "expected at least one CreatePendingSyncTask for the claimed policy")
 }
