@@ -27,7 +27,7 @@ jobs:
       imageTag: ${{ env.tag }}
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.11.1
+        uses: docker/setup-buildx-action@v4.0.0
 
       - name: Getting image tag
         id: tag
