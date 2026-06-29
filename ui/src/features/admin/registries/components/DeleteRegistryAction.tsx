@@ -48,7 +48,10 @@ function DeleteRegistryModal({
       onConfirm={onConfirm}
     >
       <Stack gap="sm">
-        <Text size="sm">
+        <Text
+          size="sm"
+          style={{ wordBreak: 'break-all' }}
+        >
           {t('routes.admin.registries.deleteModal.description', {
             name: getRegistryDisplayName(registry),
           })}
