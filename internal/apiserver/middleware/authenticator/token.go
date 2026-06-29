@@ -30,10 +30,11 @@ import (
 // Use cases : HF CLI, Git HTTP, LFS HTTP
 type TokenAuthenticator struct {
 	tokenRepo user.IAccessTokenRepo
+	userRepo  user.IUserRepo
 }
 
-func NewTokenAuthenticator(tokenRepo user.IAccessTokenRepo) *TokenAuthenticator {
-	return &TokenAuthenticator{tokenRepo: tokenRepo}
+func NewTokenAuthenticator(tokenRepo user.IAccessTokenRepo, userRepo user.IUserRepo) *TokenAuthenticator {
+	return &TokenAuthenticator{tokenRepo: tokenRepo, userRepo: userRepo}
 }
 
 func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
@@ -50,7 +51,11 @@ func (a *TokenAuthenticator) AuthenticateToken(ctx context.Context, _, token str
 		return nil, err
 	}
 	if ak != nil && ak.IsValid(time.Now()) {
-		return user.NewUserIdentity(ak.UserId, ""), nil
+		u, err := a.userRepo.GetUser(ctx, ak.UserId)
+		if err != nil {
+			return nil, err
+		}
+		return user.NewUserIdentity(ak.UserId, u.Username), nil
 	}
 
 	return nil, errors.New("invalid token")

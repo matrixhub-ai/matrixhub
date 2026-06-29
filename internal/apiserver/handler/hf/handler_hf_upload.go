@@ -61,6 +61,9 @@ func commitAuthorName(user authenticate.UserInfo) string {
 	if err == nil && identity.GetName() != "" {
 		return identity.GetName()
 	}
+	if err == nil && identity.GetID() != 0 {
+		return fmt.Sprintf("%d", identity.GetID())
+	}
 	return user.User
 }
 

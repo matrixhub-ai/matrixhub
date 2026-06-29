@@ -224,9 +224,9 @@ type gitAuth struct {
 }
 
 func (server *APIServer) initGitAuth() {
-	basicAuthValidator := middleware.GitBasicAuthAuthn(server.repos.AccessToken, server.repos.Robot)
+	basicAuthValidator := middleware.GitBasicAuthAuthn(server.repos.AccessToken, server.repos.User, server.repos.Robot)
 	publicKeyValidator := middleware.GitPublicKeyAuthn(server.repos.SSHKey, server.repos.User)
-	tokenValidator := middleware.GitHTTPAuthn(server.repos.AccessToken, server.repos.Robot)
+	tokenValidator := middleware.GitHTTPAuthn(server.repos.AccessToken, server.repos.User, server.repos.Robot)
 
 	// TODO: Use a proper secret management solution to manage the token signing secret.
 	// Generating and validating temporary tokens.

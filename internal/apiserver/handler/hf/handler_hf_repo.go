@@ -921,7 +921,7 @@ func (h *Handler) handleSuperSquash(w http.ResponseWriter, r *http.Request) {
 		message = "Super-squash branch '" + rev + "'"
 	}
 
-	if _, err := repo.SuperSquash(r.Context(), rev, message, user.User, user.Email); err != nil {
+	if _, err := repo.SuperSquash(r.Context(), rev, message, commitAuthorName(user), user.Email); err != nil {
 		responseJSON(w, fmt.Errorf("failed to squash repository %q rev %q: %v", ri.RepoName, rev, err), http.StatusInternalServerError)
 		return
 	}

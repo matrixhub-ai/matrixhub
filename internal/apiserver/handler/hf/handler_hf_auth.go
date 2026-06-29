@@ -27,12 +27,13 @@ func (h *Handler) handleWhoami(w http.ResponseWriter, r *http.Request) {
 		responseJSON(w, map[string]string{"error": "Unauthorized"}, http.StatusUnauthorized)
 		return
 	}
+	name := commitAuthorName(userInfo)
 
 	resp := whoamiResponse{
 		Type:          "user",
-		ID:            userInfo.User,
-		Name:          userInfo.User,
-		Fullname:      userInfo.User,
+		ID:            name,
+		Name:          name,
+		Fullname:      name,
 		Email:         userInfo.Email,
 		EmailVerified: false,
 		IsPro:         false,

@@ -22,22 +22,22 @@ import (
 func NewWebAuthenticator(sessionRepo user.ISessionRepo, userRepo user.IUserRepo, tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
 		NewCookieAuthenticator(sessionRepo, userRepo),
-		NewTokenAuthenticator(tokenRepo),
+		NewTokenAuthenticator(tokenRepo, userRepo),
 		NewRobotAuthenticator(robotRepo),
 	)
 }
 
 func NewHfCLIAuthenticator(tokenRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
-		NewTokenAuthenticator(tokenRepo),
+		NewTokenAuthenticator(tokenRepo, userRepo),
 		NewCookieAuthenticator(sessionRepo, userRepo),
 		NewRobotTokenAuthenticator(robotRepo),
 	)
 }
 
-func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
+func NewGitAuthenticator(tokenRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) *MultiAuthenticator {
 	return NewMultiAuthenticator(
-		NewTokenAuthenticator(tokenRepo),
+		NewTokenAuthenticator(tokenRepo, userRepo),
 		NewRobotTokenAuthenticator(robotRepo),
 	)
 }

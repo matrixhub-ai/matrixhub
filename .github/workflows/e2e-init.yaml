@@ -74,7 +74,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v6
         with:
-          go-version: 1.25.0
+          go-version: 1.25.11
 
       - name: Install Tools
         run: |
@@ -86,8 +86,10 @@ jobs:
           chmod 700 get_helm.sh
           ./get_helm.sh
 
-          # Install ginkgo
-          go install github.com/onsi/ginkgo/v2/ginkgo@latest
+          # Install the Ginkgo CLI version pinned by go.mod.  The CLI must
+          # match the library version used by the e2e packages or Ginkgo can
+          # report suite compilation failures.
+          go install github.com/onsi/ginkgo/v2/ginkgo
 
           # Verify tools
           kind version

@@ -27,9 +27,9 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 )
 
-func GitHTTPAuthn(akRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) authenticate.TokenValidatorFunc {
+func GitHTTPAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) authenticate.TokenValidatorFunc {
 	return func(ctx context.Context, token string) (user string, next, ok bool, err error) {
-		auth := authenticator.NewGitAuthenticator(akRepo, robotRepo)
+		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
 		_, identity, err := auth.AuthenticateToken(ctx, "", token)
 		if err != nil {
 			return "", false, false, err
@@ -42,9 +42,9 @@ func GitHTTPAuthn(akRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) auth
 	}
 }
 
-func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) authenticate.BasicAuthValidatorFunc {
+func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) authenticate.BasicAuthValidatorFunc {
 	return func(ctx context.Context, username, password string) (user string, next, ok bool, err error) {
-		auth := authenticator.NewGitAuthenticator(akRepo, robotRepo)
+		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
 		_, identity, err := auth.AuthenticateToken(ctx, username, password)
 		if err != nil {
 			return "", false, false, err
