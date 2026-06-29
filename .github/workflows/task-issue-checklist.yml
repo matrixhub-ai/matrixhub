@@ -25,17 +25,32 @@ jobs:
             }
 
             const body = issue.body ?? '';
-            const marker = '**Completion checklist**:';
-            const startIdx = body.indexOf(marker);
-            if (startIdx === -1) {
+
+            function findChecklistSection(text) {
+              const headerPatterns = [
+                /\*\*Completion checklist\*\*:\s*/i,
+                /\*\*Completion checklist\*\*\s*/i,
+                /^#{1,3}\s+Completion checklist\s*:?\s*$/im,
+              ];
+              for (const pattern of headerPatterns) {
+                const match = text.match(pattern);
+                if (match) {
+                  return text.slice(match.index + match[0].length);
+                }
+              }
+              return null;
+            }
+
+            const afterMarker = findChecklistSection(body);
+            if (afterMarker === null) {
               core.info(`Skipping #${issue.number}: no completion checklist section found.`);
               return;
             }
 
-            const afterMarker = body.slice(startIdx + marker.length);
             const endMarkers = [
               '\nThe artifacts above',
               '\nBefore closing this issue',
+              '\nBefore closing:',
             ];
             let endIdx = afterMarker.length;
             for (const endMarker of endMarkers) {
