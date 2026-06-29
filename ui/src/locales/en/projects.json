@@ -21,6 +21,7 @@
       "proxyOrganization": "Proxy Organization",
       "save": "Save",
       "cancel": "Cancel",
+      "updateSuccess": "Project settings updated",
       "updateError": "Failed to update project settings"
     },
     "membersPage": {

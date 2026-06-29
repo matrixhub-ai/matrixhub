@@ -47,6 +47,7 @@ export function updateProjectMutationOptions() {
     mutationFn: (input: UpdateProjectRequest) =>
       Projects.UpdateProject(input),
     meta: {
+      successMessage: i18n.t('projects.detail.settingsPage.updateSuccess'),
       errorMessage: i18n.t('projects.detail.settingsPage.updateError'),
       invalidates: [projectKeys.all],
     } satisfies NotificationMeta,
