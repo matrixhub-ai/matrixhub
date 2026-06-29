@@ -10,9 +10,9 @@ updates:
       - "dependencies"
       - "automated"
 
-  # Maintain npm dependencies for web
+  # Maintain npm dependencies for ui
   - package-ecosystem: "npm"
-    directory: "/web"
+    directory: "/ui"
     schedule:
       interval: "weekly"
     labels:
