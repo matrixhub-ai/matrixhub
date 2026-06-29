@@ -79,10 +79,14 @@ export function RegistryFormModal({
     },
   })
 
-  const providerOptions = supportedRegistryTypes.map(type => ({
-    value: type,
-    label: t(registryProviderLabelKeys[type] ?? ''),
-  }))
+  const providerOptions = supportedRegistryTypes.map((type) => {
+    const labelKey = registryProviderLabelKeys[type]
+
+    return {
+      value: type,
+      label: labelKey ? t(labelKey) : type,
+    }
+  })
   const isSubmitting = useStore(form.store, state => state.isSubmitting)
 
   const handleTestConnection = async () => {
