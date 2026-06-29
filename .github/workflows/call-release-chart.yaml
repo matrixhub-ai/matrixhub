@@ -115,7 +115,7 @@ jobs:
           ls -la tmp/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4.6.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: chart_package_artifact_${{ needs.get-ref.outputs.ref }}
           path: deploy/charts/tmp/*
