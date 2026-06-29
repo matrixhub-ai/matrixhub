@@ -21,6 +21,7 @@
       "proxyOrganization": "代理组织",
       "save": "保存",
       "cancel": "取消",
+      "updateSuccess": "项目设置已更新",
       "updateError": "更新项目设置失败"
     },
     "membersPage": {
