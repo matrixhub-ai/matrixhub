@@ -142,6 +142,10 @@ type IGitRepo interface {
 	// repoType: "models" or "datasets"
 	CreateRepository(ctx context.Context, repoType, project, name string) error
 
+	// RepositoryExists checks whether a Git repository exists on disk.
+	// repoType: "models" or "datasets"
+	RepositoryExists(ctx context.Context, repoType, project, name string) (bool, error)
+
 	// DeleteRepository removes the Git repository.
 	// repoType: "models" or "datasets"
 	DeleteRepository(ctx context.Context, repoType, project, name string) error
