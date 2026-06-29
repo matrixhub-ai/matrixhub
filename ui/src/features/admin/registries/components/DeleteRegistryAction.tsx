@@ -50,7 +50,7 @@ function DeleteRegistryModal({
       <Stack gap="sm">
         <Text
           size="sm"
-          style={{ wordBreak: 'break-all' }}
+          style={{ overflowWrap: 'anywhere' }}
         >
           {t('routes.admin.registries.deleteModal.description', {
             name: getRegistryDisplayName(registry),
