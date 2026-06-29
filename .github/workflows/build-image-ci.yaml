@@ -77,7 +77,7 @@ jobs:
 
       # ========== main build ==========
       - name: CI Build matrixhub
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v7.1.0
         id: docker_build
         with:
           context: .
