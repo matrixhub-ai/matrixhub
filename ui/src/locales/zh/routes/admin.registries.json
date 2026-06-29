@@ -5,7 +5,8 @@
     "create": "创建目标仓库"
   },
   "provider": {
-    "huggingFace": "Hugging Face"
+    "huggingFace": "Hugging Face",
+    "matrixHub": "MatrixHub"
   },
   "form": {
     "provider": "提供者",

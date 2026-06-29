@@ -4,10 +4,7 @@ import {
   Group,
   Text,
 } from '@mantine/core'
-import {
-  RegistryStatus,
-  RegistryType,
-} from '@matrixhub/api-ts/v1alpha1/registry.pb'
+import { RegistryStatus } from '@matrixhub/api-ts/v1alpha1/registry.pb'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -20,6 +17,7 @@ import { formatDateTime } from '@/shared/utils/date'
 
 import { DeleteRegistryAction } from './DeleteRegistryAction'
 import { EditRegistryAction } from './EditRegistryAction'
+import { registryProviderLabelKeys } from '../registries.form'
 import { getRegistryRowId } from '../registries.utils'
 
 import type { Registry } from '@matrixhub/api-ts/v1alpha1/registry.pb'
@@ -32,12 +30,8 @@ type RegistriesTableProps = Omit<DataTableProps<Registry>, 'columns'>
 function RegistryTypeCell({ row }: RegistryCellProps) {
   const { t } = useTranslation()
   const type = row.original.type
-
-  let label = '-'
-
-  if (type === RegistryType.REGISTRY_TYPE_HUGGINGFACE) {
-    label = t('routes.admin.registries.provider.huggingFace')
-  }
+  const labelKey = type == null ? undefined : registryProviderLabelKeys[type]
+  const label = labelKey ? t(labelKey) : '-'
 
   return <Text size="sm">{label}</Text>
 }

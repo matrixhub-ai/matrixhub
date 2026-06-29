@@ -14,6 +14,14 @@ import type {
 export const REGISTRY_NAME_MAX_LENGTH = 64
 export const REGISTRY_NAME_MIN_LENGTH = 2
 export const REGISTRY_DESCRIPTION_MAX_LENGTH = 50
+export const supportedRegistryTypes = [
+  RegistryType.REGISTRY_TYPE_HUGGINGFACE,
+  RegistryType.REGISTRY_TYPE_MATRIXHUB,
+] as const
+export const registryProviderLabelKeys: Partial<Record<RegistryType, string>> = {
+  [RegistryType.REGISTRY_TYPE_HUGGINGFACE]: 'routes.admin.registries.provider.huggingFace',
+  [RegistryType.REGISTRY_TYPE_MATRIXHUB]: 'routes.admin.registries.provider.matrixHub',
+}
 
 export interface RegistryFormValues {
   type: RegistryType
@@ -104,7 +112,7 @@ export const registryUrlSchema = z
   })
 
 export const createRegistryFormSchema = z.object({
-  type: z.enum([RegistryType.REGISTRY_TYPE_HUGGINGFACE]),
+  type: z.enum(supportedRegistryTypes),
   name: registryNameSchema,
   description: registryDescriptionSchema,
   url: registryUrlSchema,
