@@ -16,13 +16,11 @@ In this test we deploy two Dynamo vLLM workers for `Qwen/Qwen2.5-1.5B-Instruct` 
 
 | Component | Configuration |
 |---|---|
-| Cluster | hydra-demo, 2 nodes |
-| GPU | HAMi vGPU (nvidia.com/vgpu) |
+| GPU | HAMi vGPU |
 | Model | Qwen/Qwen2.5-1.5B-Instruct (~3 GB) |
-| Image | nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.3.0-minimax-m3-dev.1 |
-| ModelExpress | v0.3.0, deployed in `model-express` namespace |
-| MatrixHub | v0.1.0-rc.1, http://10.20.100.66:3001 |
-| Storage mode | `NO_SHARED_STORAGE=1` (no shared filesystem, gRPC streaming) |
+| ModelExpress | v0.3.0 |
+| MatrixHub | self-hosted, Hugging Face-compatible endpoint |
+| Storage mode | `NO_SHARED_STORAGE=1` (gRPC streaming) |
 
 ## How it works
 
@@ -60,15 +58,13 @@ spec:
       replicas: 1
       podTemplate:
         spec:
-          nodeSelector:
-            kubernetes.io/hostname: jxj
           containers:
             - name: main
-              image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.3.0-minimax-m3-dev.1
+              image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:latest
               workingDir: /workspace
               env:
                 - name: HF_ENDPOINT
-                  value: "http://10.20.100.66:3001"
+                  value: "http://<matrixhub-endpoint>"
               command: ["python3", "-m", "dynamo.frontend"]
               args: ["--http-port", "8000"]
               resources:
@@ -83,21 +79,19 @@ spec:
       replicas: 1
       podTemplate:
         spec:
-          nodeSelector:
-            kubernetes.io/hostname: jxj
           containers:
             - name: main
-              image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.3.0-minimax-m3-dev.1
+              image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:latest
               workingDir: /workspace
               env:
                 - name: HF_ENDPOINT
-                  value: "http://10.20.100.66:3001"
+                  value: "http://<matrixhub-endpoint>"
                 - name: VLLM_PLUGINS
                   value: "modelexpress"
                 - name: MODEL_EXPRESS_NO_SHARED_STORAGE
                   value: "1"
                 - name: MODEL_EXPRESS_URL
-                  value: "http://model-express-modelexpress.model-express.svc.cluster.local:8001"
+                  value: "http://<modelexpress-service>:8001"
               command: ["python3", "-m", "dynamo.vllm"]
               args:
                 - --model
