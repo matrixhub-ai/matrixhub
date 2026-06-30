@@ -7,6 +7,7 @@ approvers:
   - samzong
   - yitingdc
   - lsq645599166
+  - yankay
 
 # List of usernames who may use /lgtm
 reviewers:
@@ -24,3 +25,4 @@ reviewers:
   - fkajerry
   - CoderTH
   - shijinye
+  - windsonsea
