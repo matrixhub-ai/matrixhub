@@ -28,6 +28,8 @@ import (
 // SyncJobGenerator generates sync tasks and jobs from a sync policy.
 // The abstraction decouples job generation logic from the database layer,
 // making it testable and extensible for future policy types.
+//
+//go:generate mockgen -source=generator.go -destination=mocks/generator_mock.go -package=mocks
 type SyncJobGenerator interface {
 	Generate(ctx context.Context, policy *SyncPolicy) (*SyncTask, []*syncjob.SyncJob, error)
 }

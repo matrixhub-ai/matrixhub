@@ -17,6 +17,8 @@ package logstore
 import "io"
 
 // LogStore persists and retrieves per-job execution logs.
+//
+//go:generate mockgen -source=logstore.go -destination=mocks/logstore_mock.go -package=mocks
 type LogStore interface {
 	Writer(jobID int) (io.WriteCloser, error)
 	Reader(jobID int) (io.ReadCloser, error)

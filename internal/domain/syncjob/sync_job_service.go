@@ -29,6 +29,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
+//go:generate mockgen -source=sync_job_service.go -destination=mocks/sync_job_service_mock.go -package=mocks
 type ISyncJobService interface {
 	GetSyncJob(ctx context.Context, id int) (*SyncJob, error)
 	CreateSyncJob(ctx context.Context, param *SyncJob) error

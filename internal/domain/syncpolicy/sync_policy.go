@@ -200,6 +200,7 @@ func (p *SyncPolicy) HasWildcardResourceName() bool {
 	return p.RemoteResourceName == "**" || p.RemoteResourceName == "*"
 }
 
+//go:generate mockgen -source=sync_policy.go -destination=mocks/sync_policy_repo_mock.go -package=mocks
 type ISyncPolicyRepo interface {
 	CreateSyncPolicy(ctx context.Context, policy *SyncPolicy) error
 	GetSyncPolicy(ctx context.Context, id int) (*SyncPolicy, error)
