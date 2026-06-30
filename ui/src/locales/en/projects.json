@@ -64,6 +64,11 @@
       "batchRemoveModal": {
         "title": "Batch Remove",
         "message": "Are you sure you want to remove {{count}} members? After removal, these members will no longer have the corresponding permissions for {{projectName}}."
+      },
+      "notifications": {
+        "addError": "Failed to add member",
+        "updateRoleError": "Failed to update member permission",
+        "removeError": "Failed to remove member"
       }
     }
   },

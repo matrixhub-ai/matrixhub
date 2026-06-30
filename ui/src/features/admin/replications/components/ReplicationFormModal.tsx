@@ -23,7 +23,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { registriesQueryOptions } from '@/features/admin/registries/registries.query'
+import { allRegistriesQueryOptions } from '@/features/admin/registries/registries.query'
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { useForm } from '@/shared/hooks/useForm'
@@ -203,10 +203,7 @@ export function ReplicationFormModal({
   const createMutation = useMutation(createReplicationMutationOptions())
   const updateMutation = useMutation(updateReplicationMutationOptions())
   const registriesQuery = useQuery({
-    ...registriesQueryOptions({
-      page: 1,
-      query: '',
-    }),
+    ...allRegistriesQueryOptions(),
     enabled: opened,
   })
 

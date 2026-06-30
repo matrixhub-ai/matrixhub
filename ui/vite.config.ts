@@ -7,6 +7,62 @@ import {
 import svgr from 'vite-plugin-svgr'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
+function manualChunks(id: string) {
+  if (!id.includes('/node_modules/')) {
+    return undefined
+  }
+
+  if (
+    id.includes('/node_modules/mantine-react-table/')
+    || id.includes('/node_modules/@tanstack/table')
+  ) {
+    return 'vendor-tanstack'
+  }
+
+  if (
+    id.includes('/node_modules/react/')
+    || id.includes('/node_modules/react-dom/')
+    || id.includes('/node_modules/scheduler/')
+  ) {
+    return 'vendor-react'
+  }
+
+  if (
+    id.includes('/node_modules/@mantine/')
+    || id.includes('/node_modules/@floating-ui/')
+  ) {
+    return 'vendor-mantine'
+  }
+
+  if (id.includes('/node_modules/@tanstack/')) {
+    return 'vendor-tanstack'
+  }
+
+  if (id.includes('/node_modules/@tabler/icons-react/')) {
+    return 'vendor-icons'
+  }
+
+  if (
+    id.includes('/node_modules/@monaco-editor/')
+    || id.includes('/node_modules/monaco-editor/')
+  ) {
+    return 'vendor-monaco'
+  }
+
+  if (id.includes('/node_modules/diff2html/')) {
+    return 'vendor-diff'
+  }
+
+  if (
+    id.includes('/node_modules/i18next')
+    || id.includes('/node_modules/dayjs/')
+  ) {
+    return 'vendor-i18n'
+  }
+
+  return 'vendor'
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -25,6 +81,13 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       include: ['mantine-react-table'],
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks,
+        },
+      },
     },
     plugins: [
       // Please make sure that '@tanstack/router-plugin' is passed before '@vitejs/plugin-react'
