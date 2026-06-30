@@ -173,8 +173,6 @@ kubectl logs -n dynamo-system -f <c-decode-pod>
 2026-06-30T02:51:38 INFO modelexpress_client: Streaming complete: received 8 files (3098967011 bytes) for model Qwen/Qwen2.5-1.5B-Instruct
 ```
 
-![Worker 1 decode log](images/blog2-c-decode-log.png)
-
 Worker 1 waited 37.8 seconds for ModelExpress to download the model from MatrixHub, then received the files over gRPC streaming in 21.9 seconds.
 
 ## Deploy Worker 2
@@ -200,8 +198,6 @@ kubectl logs -n dynamo-system -f <c2-decode-pod>
 2026-06-30T02:55:00 INFO modelexpress_client: Streaming model Qwen/Qwen2.5-1.5B-Instruct files to "/home/dynamo/.model-express/cache" with chunk size 32768 bytes
 2026-06-30T02:55:23 INFO modelexpress_client: Streaming complete: received 8 files (3098967011 bytes) for model Qwen/Qwen2.5-1.5B-Instruct
 ```
-
-![Worker 2 decode log](images/blog2-c2-decode-log.png)
 
 Worker 2 sees `Model already downloaded` — ModelExpress skips the download entirely and streams directly from its local cache in 22.6 seconds.
 
