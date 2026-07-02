@@ -39,3 +39,14 @@ The user management page contains the following information and operations:
 1. Click **Confirm** to submit.
 
 ![Reset Password](./images/user-reset-password.jpg)
+
+## Delete User
+
+1. Find the target user in the user list and click **Delete** in the **Actions** column.
+1. Click **Delete** to confirm your deletion on the pop-up window.
+
+## Set or Revoke Admin
+
+To set a user as Admin, click **Set Admin** in the **Actions** column.
+
+To cancel a user as Admin, click **Revoke Admin** in the **Actions** column.
