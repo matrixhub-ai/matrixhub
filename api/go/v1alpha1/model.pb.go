@@ -1835,10 +1835,10 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"pagination\"t\n" +
 	"\x0fGetModelRequest\x12!\n" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12>\n" +
-	"\x04name\x18\x02 \x01(\tB*\xfaB'r%\x10\x01Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\"w\n" +
+	"\x04name\x18\x02 \x01(\tB*\xfaB'r%\x10\x01Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\"z\n" +
 	"\x12CreateModelRequest\x12!\n" +
-	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12>\n" +
-	"\x04name\x18\x02 \x01(\tB*\xfaB'r%\x10\x01Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\"\x15\n" +
+	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12A\n" +
+	"\x04name\x18\x02 \x01(\tB-\xfaB*r(\x10\x01\x18\xfb\x01Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\"\x15\n" +
 	"\x13CreateModelResponse\"T\n" +
 	"\x12DeleteModelRequest\x12!\n" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12\x1b\n" +
