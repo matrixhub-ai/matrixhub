@@ -58,7 +58,7 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk add ca-certificates git && \
+    apk add ca-certificates git s3fs-fuse && \
     update-ca-certificates
 
 COPY --from=builder /matrixhub /usr/local/bin/matrixhub

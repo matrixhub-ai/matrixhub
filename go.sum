@@ -240,8 +240,8 @@ github.com/leonelquinteros/gotext v1.5.0 h1:ODY7LzLpZWWSJdAHnzhreOr6cwLXTAmc914F
 github.com/leonelquinteros/gotext v1.5.0/go.mod h1:OCiUVHuhP9LGFBQ1oAmdtNCHJCiHiQA8lf4nAifHkr0=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
-github.com/matrixhub-ai/hfd v0.0.0-20260522103102-73bc92d77d19 h1:OrxRrJPrAnROotcuRpDPmRVmGBMdQlZpvGTlZF5WMBQ=
-github.com/matrixhub-ai/hfd v0.0.0-20260522103102-73bc92d77d19/go.mod h1:SWICq+Zuz3sUe9nHigwRdr8e9cOZOq7MHCjsjIgGcyI=
+github.com/matrixhub-ai/hfd v0.0.0-20260622073022-7b4b945e39d4 h1:ANGcUdDqAwHw0k99RCfRiP5awiZJmqBueUs8Va8WX6s=
+github.com/matrixhub-ai/hfd v0.0.0-20260622073022-7b4b945e39d4/go.mod h1:1ttFYcNAx1YrqcFImxFfmk9xORuGmTNtHtXM0JGpA5g=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
@@ -345,12 +345,12 @@ github.com/ugorji/go/codec v1.3.1 h1:waO7eEiFDwidsBN6agj1vJQ4AG7lh2yqXyOXqhgQuyY
 github.com/ugorji/go/codec v1.3.1/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2Wjqmfxj4=
 github.com/wzshiming/dl v0.0.0-20260427082752-19804485f005 h1:Nac8aZwtkW8GTkxh8mWGF08nVLO6Ze68FWH2I+1BpwI=
 github.com/wzshiming/dl v0.0.0-20260427082752-19804485f005/go.mod h1:jO3MKwJvcFUxlK9Pd8HpQ0YToDWTB61nvklu/NuYPqw=
-github.com/wzshiming/httpseek v0.6.0 h1:RWisrPz5mef1rIp//WXRMlq4m1RN11G9D6YdgtXrkhM=
-github.com/wzshiming/httpseek v0.6.0/go.mod h1:YoZhlLIwNjTBDXIT8NpK5zRjOgZouRXPaBfjVXdqMMs=
+github.com/wzshiming/httpseek v0.6.1 h1:nmrpxl7SNtj8KmmZ8XRMCnKVfOvj1yNAGXNYtPfeRoA=
+github.com/wzshiming/httpseek v0.6.1/go.mod h1:YoZhlLIwNjTBDXIT8NpK5zRjOgZouRXPaBfjVXdqMMs=
 github.com/wzshiming/ioswmr v0.2.0 h1:PWPtSII1hLz/XIhTxUaEQFe8Vwyb/BXXMg5fUKOpnyw=
 github.com/wzshiming/ioswmr v0.2.0/go.mod h1:TwwDyS1wnJG3AvKliA+PPB0kliN3yEjsabtH4o7xySQ=
-github.com/wzshiming/xet v0.0.0-20260515075456-afcac81072aa h1:RWJKY+ZmhVSiBxe6JGg7Kb+Yk5b44p3bnh4IPi5VQU8=
-github.com/wzshiming/xet v0.0.0-20260515075456-afcac81072aa/go.mod h1:AvhOcT0RB0pEwNZvwn5SxGj8MiZBVF6NPHL7OoumYJ8=
+github.com/wzshiming/xet v0.0.0-20260617081805-02c9cfb4deca h1:XPJAxtUWWn2ZsQC/V8toPPEEWINBzscEFQFy6eECUHI=
+github.com/wzshiming/xet v0.0.0-20260617081805-02c9cfb4deca/go.mod h1:oC+etpyWxYsBQPxBfOtX/YWFKFHLkUsYO0c6zv9+Au8=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=
 github.com/xanzy/ssh-agent v0.3.3/go.mod h1:6dzNDKs0J9rVPHPhaGCukekBHKqfl+L3KghI1Bc68Uw=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=

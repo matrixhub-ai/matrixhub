@@ -1,6 +1,6 @@
 # config for local dev env
 debug: true
-migrationPath: ./db/migrations
+migrationPath: /etc/matrixhub/migrations
 log:
   level: debug
 database:
@@ -17,25 +17,16 @@ apiServer:
   port: 3001
   # S3 storage configuration (optional)
   storage:
-    # storage mode: local (local filesystem), s3 (S3-compatible object storage)
-    mode: local
+    mode: s3
     s3:
-      # S3 endpoint URL (e.g., http://localhost:9000)
-      endpoint: ""
-      # S3 bucket name
-      bucket: ""
-      # S3 region
-      region: ""
-      # S3 access key
-      accessKey: ""
-      # S3 secret key
-      secretKey: ""
-      # use path-style addressing (required for MinIO)
+      endpoint: http://s3:9000
+      bucket: matrixhub
+      region: us-east-1
+      accessKey: adminadmin
+      secretKey: adminadmin
       usePathStyle: true
-      # S3 signing endpoint (optional, for presigned URLs)
-      signEndpoint: ""
-      # Store git repositories in S3 using s3fs (requires privileged mode)
-      repositories: false
+      signEndpoint: http://127.0.0.1:9000
+      repositories: true
 
 jobServer:
   enabled: true
