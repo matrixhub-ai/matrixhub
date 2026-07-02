@@ -977,10 +977,10 @@ func (m *CreateModelRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetName()) < 1 {
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 251 {
 		err := CreateModelRequestValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be between 1 and 251 runes, inclusive",
 		}
 		if !all {
 			return err

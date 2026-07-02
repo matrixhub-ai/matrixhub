@@ -110,7 +110,7 @@ message GetModelRequest {
 
 message CreateModelRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
-  string name = 2 [(validate.rules).string = {min_len: 1, not_in: ["models", "datasets", "spaces", "resolve"]}];
+  string name = 2 [(validate.rules).string = {min_len: 1, max_len: 251, not_in: ["models", "datasets", "spaces", "resolve"]}];
 }
 
 message CreateModelResponse {
