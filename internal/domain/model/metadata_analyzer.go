@@ -16,6 +16,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"math"
 	"strings"
@@ -43,6 +44,10 @@ type safetensorsIndex struct {
 	Metadata struct {
 		TotalSize int64 `json:"total_size"`
 	} `json:"metadata"`
+}
+
+type safetensorsTensor struct {
+	Shape []int64 `json:"shape"`
 }
 
 // AnalyzeRepoMetadata converts raw repo files into model-domain metadata.
@@ -74,7 +79,7 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 		}
 	}
 
-	// parameter_count inference only uses config.json + model.safetensors.index.json.
+	// parameter_count inference only uses config.json and safetensors metadata.
 	// README.md is intentionally excluded here because it is descriptive text,
 	// not structured machine metadata.
 	//
@@ -104,6 +109,9 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 		if err := json.Unmarshal(files.SafetensorsIndexJSON, &index); err == nil && index.Metadata.TotalSize > 0 {
 			metadata.ParameterCount = estimateParameterCount(index.Metadata.TotalSize, parameterBytes)
 		}
+	}
+	if metadata.ParameterCount == 0 && len(files.SafetensorsFiles) > 0 {
+		metadata.ParameterCount = countSafetensorsParameters(files.SafetensorsFiles)
 	}
 
 	metadata.Tags = deduplicateClassifiedTags(tags)
@@ -189,4 +197,55 @@ func estimateParameterCount(totalSize, parameterBytes int64) int64 {
 		return 0
 	}
 	return totalSize / parameterBytes
+}
+
+func countSafetensorsParameters(files map[string][]byte) int64 {
+	var total int64
+	for _, content := range files {
+		count, ok := countSafetensorsHeaderParameters(content)
+		if !ok {
+			continue
+		}
+		if count > math.MaxInt64-total {
+			return 0
+		}
+		total += count
+	}
+	return total
+}
+
+func countSafetensorsHeaderParameters(content []byte) (int64, bool) {
+	if len(content) < 8 {
+		return 0, false
+	}
+
+	headerLength := binary.LittleEndian.Uint64(content[:8])
+	if headerLength > uint64(len(content)-8) || headerLength > uint64(math.MaxInt64) {
+		return 0, false
+	}
+
+	var tensors map[string]safetensorsTensor
+	if err := json.Unmarshal(content[8:8+int(headerLength)], &tensors); err != nil {
+		return 0, false
+	}
+
+	var total int64
+	for name, tensor := range tensors {
+		if name == "__metadata__" {
+			continue
+		}
+
+		count := int64(1)
+		for _, dim := range tensor.Shape {
+			if dim < 0 || dim > math.MaxInt64/count {
+				return 0, false
+			}
+			count *= dim
+		}
+		if count > math.MaxInt64-total {
+			return 0, false
+		}
+		total += count
+	}
+	return total, true
 }

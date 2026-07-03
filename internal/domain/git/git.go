@@ -98,6 +98,7 @@ type RepoMetadataFiles struct {
 	ReadmeContent        []byte
 	ConfigJSON           []byte
 	SafetensorsIndexJSON []byte
+	SafetensorsFiles     map[string][]byte
 	Size                 int64
 }
 
