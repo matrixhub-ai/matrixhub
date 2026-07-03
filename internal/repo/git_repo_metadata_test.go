@@ -16,12 +16,17 @@ package repo
 
 import (
 	"context"
+	"encoding/binary"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	hfdstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	modeldomain "github.com/matrixhub-ai/matrixhub/internal/domain/model"
 )
 
 func TestExtractMetadataUsesTreeSize(t *testing.T) {
@@ -63,4 +68,85 @@ func TestExtractMetadataUsesTreeSize(t *testing.T) {
 	if metadata.Size != expectedSize {
 		t.Fatalf("metadata.Size = %d, want tree size %d", metadata.Size, expectedSize)
 	}
+}
+
+func TestExtractMetadataReadsSingleSafetensorsHeader(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(root))
+	repoPath := store.ResolvePath("test-project/test-model")
+	if err := os.MkdirAll(filepath.Dir(repoPath), 0750); err != nil {
+		t.Fatalf("os.MkdirAll() error = %v", err)
+	}
+
+	repo, err := repository.Init(ctx, repoPath, "main")
+	if err != nil {
+		t.Fatalf("repository.Init() error = %v", err)
+	}
+
+	fullSafetensors := buildRepoTestSafetensorsFile(t, map[string][]int64{
+		"model.embed_tokens.weight": {2, 3},
+		"lm_head.weight":            {4, 5},
+	}, 1024*1024)
+
+	if _, err := repo.CreateCommit(ctx, "main", "add model", "Test", "test@example.com", []repository.CommitOperation{
+		{Type: repository.CommitOperationAdd, Path: "config.json", Content: []byte(`{"torch_dtype":"bfloat16"}`)},
+		{Type: repository.CommitOperationAdd, Path: "model.safetensors", Content: fullSafetensors},
+	}, ""); err != nil {
+		t.Fatalf("CreateCommit() error = %v", err)
+	}
+
+	gitRepo := NewGitDB(store, nil)
+	files, err := gitRepo.ExtractMetadata(ctx, "models", "test-project", "test-model")
+	if err != nil {
+		t.Fatalf("ExtractMetadata() error = %v", err)
+	}
+
+	header := files.SafetensorsFiles["model.safetensors"]
+	if len(header) == 0 {
+		t.Fatal("expected model.safetensors header to be extracted")
+	}
+	if len(header) >= len(fullSafetensors) {
+		t.Fatalf("expected only safetensors header, got full file: header=%d full=%d", len(header), len(fullSafetensors))
+	}
+
+	metadata, err := modeldomain.AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
+	}
+	if metadata.ParameterCount != 26 {
+		t.Fatalf("ParameterCount = %d, want 26", metadata.ParameterCount)
+	}
+}
+
+func buildRepoTestSafetensorsFile(t *testing.T, tensors map[string][]int64, payloadSize int) []byte {
+	t.Helper()
+
+	header := map[string]any{
+		"__metadata__": map[string]string{"format": "pt"},
+	}
+	offset := int64(0)
+	for name, shape := range tensors {
+		count := int64(1)
+		for _, dim := range shape {
+			count *= dim
+		}
+		size := count * 2
+		header[name] = map[string]any{
+			"dtype":        "BF16",
+			"shape":        shape,
+			"data_offsets": []int64{offset, offset + size},
+		}
+		offset += size
+	}
+
+	headerBytes, err := json.Marshal(header)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+
+	content := make([]byte, 8+len(headerBytes)+payloadSize)
+	binary.LittleEndian.PutUint64(content[:8], uint64(len(headerBytes)))
+	copy(content[8:], headerBytes)
+	return content
 }
