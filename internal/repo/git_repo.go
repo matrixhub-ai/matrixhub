@@ -16,6 +16,7 @@ package repo
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,7 +38,7 @@ type gitRepo struct {
 	mirror  *mirror.Mirror
 }
 
-const maxSafetensorsHeaderPrefixBytes int64 = 16 * 1024 * 1024
+const maxSafetensorsHeaderBytes uint64 = 64 * 1024 * 1024
 
 type safetensorsIndexFiles struct {
 	WeightMap map[string]string `json:"weight_map"`
@@ -516,34 +517,50 @@ func (g *gitRepo) readBlobBytes(repo *repository.Repository, rev, path string) (
 	return io.ReadAll(rc)
 }
 
-func (g *gitRepo) readBlobPrefix(repo *repository.Repository, rev, path string, limit int64) ([]byte, error) {
+func (g *gitRepo) openBlobContent(repo *repository.Repository, rev, path string) (io.ReadCloser, error) {
 	blob, err := repo.Blob(rev, path)
 	if err != nil {
 		return nil, err
 	}
 
-	var rc io.ReadCloser
 	if ptr, err := blob.LFSPointer(); err == nil && ptr != nil {
 		store := hfdlfs.NewLocal(g.storage.LFSDir())
 		getter, ok := store.(hfdlfs.Getter)
 		if !ok {
 			return nil, fmt.Errorf("lfs storage does not support reads")
 		}
-		rc, _, err = getter.Get(ptr.OID())
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		rc, err = blob.NewReader()
-		if err != nil {
-			return nil, err
-		}
+		rc, _, err := getter.Get(ptr.OID())
+		return rc, err
+	}
+
+	return blob.NewReader()
+}
+
+func (g *gitRepo) readSafetensorsHeader(repo *repository.Repository, rev, path string) ([]byte, error) {
+	rc, err := g.openBlobContent(repo, rev, path)
+	if err != nil {
+		return nil, err
 	}
 	defer func() {
 		_ = rc.Close()
 	}()
 
-	return io.ReadAll(io.LimitReader(rc, limit))
+	var lengthPrefix [8]byte
+	if _, err := io.ReadFull(rc, lengthPrefix[:]); err != nil {
+		return nil, err
+	}
+
+	headerLength := binary.LittleEndian.Uint64(lengthPrefix[:])
+	if headerLength > maxSafetensorsHeaderBytes {
+		return nil, fmt.Errorf("safetensors header too large: %d bytes", headerLength)
+	}
+
+	content := make([]byte, 8+int(headerLength))
+	copy(content[:8], lengthPrefix[:])
+	if _, err := io.ReadFull(rc, content[8:]); err != nil {
+		return nil, err
+	}
+	return content, nil
 }
 
 func loadSafetensorsPathsFromIndex(indexJSON []byte) []string {
@@ -625,12 +642,12 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 	if content, err := g.readBlobBytes(repo, rev, "model.safetensors.index.json"); err == nil {
 		metadata.SafetensorsIndexJSON = content
 		for _, path := range loadSafetensorsPathsFromIndex(content) {
-			if prefix, err := g.readBlobPrefix(repo, rev, path, maxSafetensorsHeaderPrefixBytes); err == nil {
-				metadata.SafetensorsFiles[path] = prefix
+			if header, err := g.readSafetensorsHeader(repo, rev, path); err == nil {
+				metadata.SafetensorsFiles[path] = header
 			}
 		}
-	} else if prefix, err := g.readBlobPrefix(repo, rev, "model.safetensors", maxSafetensorsHeaderPrefixBytes); err == nil {
-		metadata.SafetensorsFiles["model.safetensors"] = prefix
+	} else if header, err := g.readSafetensorsHeader(repo, rev, "model.safetensors"); err == nil {
+		metadata.SafetensorsFiles["model.safetensors"] = header
 	}
 
 	// Compute model content size from the default branch tree. DiskUsage
