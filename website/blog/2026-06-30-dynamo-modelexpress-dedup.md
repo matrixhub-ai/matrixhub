@@ -6,7 +6,7 @@ description: Deploying two Dynamo vLLM workers with ModelExpress on a GPU Kubern
 
 When scaling an inference service to multiple workers, every new worker downloads the full model from the model registry. For a 3 GB model this adds 30–40 seconds per worker; for a 70B model it can be 10+ minutes each.
 
-ModelExpress is a model distribution cache layer in NVIDIA Dynamo. It sits between the workers and the model source (MatrixHub or Hugging Face). The first worker triggers a download into the ModelExpress cache. Every subsequent worker gets the model from that cache — no second download.
+[ModelExpress](https://docs.nvidia.com/dynamo/kubernetes-deployment/model-loading/model-express) is a model distribution cache layer in NVIDIA Dynamo. It sits between the workers and the model source (MatrixHub or Hugging Face). The first worker triggers a download into the ModelExpress cache. Every subsequent worker gets the model from that cache — no second download.
 
 In this test we deploy two Dynamo vLLM workers for `Qwen/Qwen2.5-1.5B-Instruct` (~3 GB) and compare the model acquisition time of the first worker (cache miss) versus the second worker (cache hit).
 
