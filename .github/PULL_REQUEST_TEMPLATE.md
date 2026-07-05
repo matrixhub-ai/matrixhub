@@ -28,9 +28,15 @@ Fixes #
 #### Special notes for your reviewer:
 
 #### Checklist
-<!-- For behavior changes, check the items below. If an item does not apply, leave it unchecked and explain in the reviewer notes above. -->
-- [ ] UT/E2E added or updated
-- [ ] User-facing behavior changes are documented
+<!-- If an item does not apply, leave it unchecked and explain in the reviewer notes above.
+
+Please use the following format for linking documentation below checkbox:
+- [Tech doc]: <link>
+- [Usage]: <link>
+- [Other doc]: <link>
+-->
+- [ ] Tests(ut, e2e) added or updated, or not needed and explained
+- [ ] Docs(tech docs, usage docs) updated, or not needed and explained
 
 #### Does this PR introduce a user-facing change?
 <!--
