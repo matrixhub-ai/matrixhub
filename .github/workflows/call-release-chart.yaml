@@ -15,7 +15,7 @@ on:
         type: string
       submit:
         required: true
-        type: string
+        type: boolean
     outputs:
       artifact:
         description: "Name of chart artifact"
@@ -172,4 +172,3 @@ jobs:
           helm pull oci://ghcr.io/${REPO_OWNER}/${{ env.CHART_NAME }} --version ${{ needs.get-ref.outputs.chart-version }} --destination /tmp/verify
           ls -la /tmp/verify/
           echo "Verification successful!"
-
