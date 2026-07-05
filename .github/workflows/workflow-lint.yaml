@@ -1,0 +1,87 @@
+name: Workflow Lint
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+      - '.github/actions/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+      - '.github/actions/**'
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install actionlint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash -s -- latest
+
+      - name: Run actionlint
+        run: ./actionlint -color -shellcheck=
+
+      - name: Validate action refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          status=0
+
+          while IFS= read -r line; do
+            file=${line%%:*}
+            rest=${line#*:}
+            lineno=${rest%%:*}
+            value=${line#*uses:}
+            value=${value%%#*}
+            value=$(echo "$value" | xargs)
+            value=${value#\"}
+            value=${value%\"}
+            value=${value#\'}
+            value=${value%\'}
+
+            if [[ -z "$value" || "$value" == ./* || "$value" == docker://* ]]; then
+              continue
+            fi
+            if [[ "$value" == *'$'* ]]; then
+              echo "::warning file=${file},line=${lineno}::Skipping dynamic action ref: ${value}"
+              continue
+            fi
+            if [[ "$value" != *@* ]]; then
+              echo "::error file=${file},line=${lineno}::Action ref is missing @ref: ${value}"
+              status=1
+              continue
+            fi
+
+            action_path=${value%@*}
+            ref=${value##*@}
+            owner_repo=$(echo "$action_path" | cut -d/ -f1-2)
+
+            if [[ "$owner_repo" != */* ]]; then
+              echo "::error file=${file},line=${lineno}::Invalid action reference: ${value}"
+              status=1
+              continue
+            fi
+
+            if git ls-remote --exit-code "https://github.com/${owner_repo}.git" "refs/tags/${ref}" >/dev/null 2>&1 ||
+               git ls-remote --exit-code "https://github.com/${owner_repo}.git" "refs/heads/${ref}" >/dev/null 2>&1 ||
+               gh api "repos/${owner_repo}/commits/${ref}" >/dev/null 2>&1 ||
+               gh api "repos/${owner_repo}/releases/tags/${ref}" >/dev/null 2>&1; then
+              echo "OK ${value}"
+            else
+              echo "::error file=${file},line=${lineno}::Cannot resolve action ref: ${value}"
+              status=1
+            fi
+          done < <(grep -RInE '^[[:space:]]*-?[[:space:]]*uses:[[:space:]]*[^[:space:]]+' .github/workflows .github/actions || true)
+
+          exit "$status"

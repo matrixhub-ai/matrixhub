@@ -14,7 +14,7 @@ on:
         type: string
       push:
         required: true
-        type: string
+        type: boolean
     outputs:
       imageTag:
         description: "tag of image ci"
