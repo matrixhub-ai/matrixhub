@@ -23,8 +23,8 @@ Docker Compose is the easiest way to deploy MatrixHub on a standalone virtual ma
 
 ### 1. Fetch Configuration Files
 Download the official deployment compose configurations:
-*   `docker-compose.yaml` (Defines the API server and MySQL container configuration)
-*   `config.yaml` (Configures database DSN, log levels, and local storage bindings)
+*   [`docker-compose.yaml`](https://matrixhub.ai/deploy/docker/docker-compose.yaml) (Defines the API server and MySQL container configuration)
+*   [`config.yaml`](https://matrixhub.ai/deploy/docker/config.yaml) (Configures database DSN, log levels, and local storage bindings)
 
 ### 2. Start the Registry Service
 Ensure both files are in the same directory and execute:
@@ -75,7 +75,7 @@ helm install matrixhub ./deploy/charts/matrixhub \
 ### 1. ClusterIP (Default)
 By default, the service is only exposed within the internal Kubernetes network on port `9527`. To access it externally for diagnostics, establish a port-forward:
 ```bash
-export POD_NAME=$(kubectl get pods --namespace matrixhub -l app=matrixhub-apiserver -o jsonpath="{.items[0].metadata.name}")
+export POD_NAME=$(kubectl get pods --namespace matrixhub -l app=matrixhub -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward $POD_NAME 9527:9527 --namespace matrixhub
 ```
 
