@@ -158,16 +158,18 @@ kubectl logs -n dynamo-system -f <c-decode-pod>
 ```
 
 ```
-2026-06-30T02:50:38 INFO dynamo_llm::hub: Successfully connected to ModelExpress server
-2026-06-30T02:50:38 INFO modelexpress_client: Requesting model: Qwen/Qwen2.5-1.5B-Instruct from provider: HuggingFace
-2026-06-30T02:50:38 INFO modelexpress_client: Model Qwen/Qwen2.5-1.5B-Instruct: Model download in progress
-2026-06-30T02:51:16 INFO modelexpress_client: Model Qwen/Qwen2.5-1.5B-Instruct: Model download completed successfully
-2026-06-30T02:51:16 INFO modelexpress_client: Shared storage disabled, streaming files from server for model Qwen/Qwen2.5-1.5B-Instruct
-2026-06-30T02:51:16 INFO modelexpress_client: Streaming model Qwen/Qwen2.5-1.5B-Instruct files to "/home/dynamo/.model-express/cache" with chunk size 32768 bytes
-2026-06-30T02:51:38 INFO modelexpress_client: Streaming complete: received 8 files (3098967011 bytes) for model Qwen/Qwen2.5-1.5B-Instruct
+2026-07-06T02:28:45 INFO dynamo_llm::hub: Successfully connected to ModelExpress server
+2026-07-06T02:28:45 INFO modelexpress_client: Requesting model: Qwen/Qwen2.5-1.5B-Instruct from provider: HuggingFace
+2026-07-06T02:28:45 INFO modelexpress_client: Model Qwen/Qwen2.5-1.5B-Instruct: Model download in progress
+2026-07-06T02:29:24 INFO modelexpress_client: Model Qwen/Qwen2.5-1.5B-Instruct: Model download completed successfully
+2026-07-06T02:29:24 INFO modelexpress_client: Shared storage disabled, streaming files from server for model Qwen/Qwen2.5-1.5B-Instruct
+2026-07-06T02:29:24 INFO modelexpress_client: Streaming model Qwen/Qwen2.5-1.5B-Instruct files to "/home/dynamo/.model-express/cache" with chunk size 32768 bytes
+2026-07-06T02:29:48 INFO modelexpress_client: Streaming complete: received 8 files (3098967011 bytes) for model Qwen/Qwen2.5-1.5B-Instruct
 ```
 
-Worker 1 waited 37.8 seconds for ModelExpress to download the model from MatrixHub, then received the files over gRPC streaming in 21.9 seconds.
+![Worker 1 decode log](images/blog2-c-decode-log.png)
+
+Worker 1 waited 38.3 seconds for ModelExpress to download the model from MatrixHub, then received the files over gRPC streaming in 24.2 seconds.
 
 ## Deploy Worker 2
 
@@ -185,15 +187,17 @@ kubectl logs -n dynamo-system -f <c2-decode-pod>
 ```
 
 ```
-2026-06-30T02:55:00 INFO dynamo_llm::hub: Successfully connected to ModelExpress server
-2026-06-30T02:55:00 INFO modelexpress_client: Requesting model: Qwen/Qwen2.5-1.5B-Instruct from provider: HuggingFace
-2026-06-30T02:55:00 INFO modelexpress_client: Model Qwen/Qwen2.5-1.5B-Instruct: Model already downloaded
-2026-06-30T02:55:00 INFO modelexpress_client: Shared storage disabled, streaming files from server for model Qwen/Qwen2.5-1.5B-Instruct
-2026-06-30T02:55:00 INFO modelexpress_client: Streaming model Qwen/Qwen2.5-1.5B-Instruct files to "/home/dynamo/.model-express/cache" with chunk size 32768 bytes
-2026-06-30T02:55:23 INFO modelexpress_client: Streaming complete: received 8 files (3098967011 bytes) for model Qwen/Qwen2.5-1.5B-Instruct
+2026-07-06T02:32:35 INFO dynamo_llm::hub: Successfully connected to ModelExpress server
+2026-07-06T02:32:35 INFO modelexpress_client: Requesting model: Qwen/Qwen2.5-1.5B-Instruct from provider: HuggingFace
+2026-07-06T02:32:35 INFO modelexpress_client: Model Qwen/Qwen2.5-1.5B-Instruct: Model already downloaded
+2026-07-06T02:32:35 INFO modelexpress_client: Shared storage disabled, streaming files from server for model Qwen/Qwen2.5-1.5B-Instruct
+2026-07-06T02:32:35 INFO modelexpress_client: Streaming model Qwen/Qwen2.5-1.5B-Instruct files to "/home/dynamo/.model-express/cache" with chunk size 32768 bytes
+2026-07-06T02:32:58 INFO modelexpress_client: Streaming complete: received 8 files (3098967011 bytes) for model Qwen/Qwen2.5-1.5B-Instruct
 ```
 
-Worker 2 sees `Model already downloaded` — ModelExpress skips the download entirely and streams directly from its local cache in 22.6 seconds.
+![Worker 2 decode log](images/blog2-c2-decode-log.png)
+
+Worker 2 sees `Model already downloaded` — ModelExpress skips the download entirely and streams directly from its local cache in 22.8 seconds.
 
 ## Verify the inference service
 
@@ -236,8 +240,8 @@ Both return a normal response:
 
 | | MX → MatrixHub download | gRPC streaming | Total model acquisition |
 |---|---:|---:|---:|
-| Worker 1 (cache miss) | 37.8 s | 21.9 s | **59.7 s** |
-| Worker 2 (cache hit) | 0 s | 22.6 s | **22.6 s** |
+| Worker 1 (cache miss) | 38.3 s | 24.2 s | **62.5 s** |
+| Worker 2 (cache hit) | 0 s | 22.8 s | **22.8 s** |
 
 For comparison, without ModelExpress (Blog 1):
 
@@ -246,13 +250,13 @@ For comparison, without ModelExpress (Blog 1):
 | Public Hugging Face | ~10 min 32 s |
 | MatrixHub direct | 29 s |
 
-Worker 2 saved the full 37.8-second MatrixHub download. With more workers, the saving multiplies: N workers share one download.
+Worker 2 saved the full 38.3-second MatrixHub download. With more workers, the saving multiplies: N workers share one download.
 
 ## Notes
 
-**First-worker overhead.** The first worker through ModelExpress (59.7 s) is slower than a direct MatrixHub download (29 s), because the model passes through an extra gRPC streaming hop (~22 s). ModelExpress pays off when multiple workers need the same model.
+**First-worker overhead.** The first worker through ModelExpress (62.5 s) is slower than a direct MatrixHub download (29 s), because the model passes through an extra gRPC streaming hop (~24 s). ModelExpress pays off when multiple workers need the same model.
 
-**Streaming throughput.** The gRPC streaming stage transfers 3 GB in ~22 seconds (~137 MB/s). The current implementation uses a 32 KB chunk size with about 94,000 iterations. With shared storage (`NO_SHARED_STORAGE=0`), workers can mount the ModelExpress cache directory directly and skip streaming entirely — model acquisition drops to near zero for cached models.
+**Streaming throughput.** The gRPC streaming stage transfers 3 GB in ~23 seconds (~131 MB/s). The current implementation uses a 32 KB chunk size with about 94,000 iterations. With shared storage (`NO_SHARED_STORAGE=0`), workers can mount the ModelExpress cache directory directly and skip streaming entirely — model acquisition drops to near zero for cached models.
 
 **When to use what.**
 
