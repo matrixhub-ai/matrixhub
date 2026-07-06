@@ -51,7 +51,7 @@ jobs:
           echo "Is official release: $(cat $GITHUB_OUTPUT | grep is_official_release)"
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ steps.get_tag.outputs.tag }}
 
