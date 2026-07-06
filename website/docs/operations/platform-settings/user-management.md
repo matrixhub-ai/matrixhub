@@ -20,7 +20,7 @@ The user management page contains the following information and operations:
 | Platform Admin | Indicates whether the user has platform administrator permissions. |
 | Source | The source of the user, supporting **Built-in** or **LDAP**. |
 | Creation Time | The time the user account was created. |
-| Operations | Supports **Set as Admin**, **Cancel Admin**, **Reset Password**, and **Delete**. |
+| Operations | Supports **Create User**, **Set as Admin**, **Cancel Admin**, **Reset Password**, and **Delete**. |
 
 ![User Overview](./images/user-overview.png)
 

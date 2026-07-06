@@ -29,7 +29,7 @@ sidebar_position: 2
 |-----------|-------------|
 | Member Type | Currently supports selecting **User**. |
 | User | The account to be added to the project. |
-| Permission Type | **Admin**: Can manage members and maintain project resources;<br/>**Developer**: Can upload, download, and delete models and datasets;<br/>**Viewer**: Can only view and download models and datasets. |
+| Permission Type | **Admin**: Can manage members and maintain project resources;<br/>**Editor**: Can upload, download, and delete models and datasets;<br/>**Viewer**: Can only view and download models and datasets. |
 
 ## Role Permissions
 
@@ -37,8 +37,8 @@ sidebar_position: 2
 |------|------------------|---------------------------|---------------|
 | Platform Admin | Can view all menus | Can use all platform functions | Highest platform permission |
 | Project Admin | No platform settings menu | Add/edit/remove members, upload/download/delete models and datasets, delete project | Cannot remove themselves from the current project |
-| Project Developer | No platform settings menu | View members, upload/download/delete models and datasets | No member management or project deletion permissions |
-| Project Viewer | No platform settings menu | View members, download models and datasets | No upload, delete, or member management permissions |
+| Project Developer | No platform settings menu | View members, upload/download models and datasets | No permissions to delete models or datasets, manage members, or delete projects |
+| Project Viewer | No platform settings menu | View members, download models and datasets | No permissions to upload or delete models and datasets, or manage members |
 | Regular User (Non-member) | No platform settings menu | Can view and download models/datasets of public projects | Private projects are hidden by default |
 
 ## Visibility Supplement
