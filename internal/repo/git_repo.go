@@ -569,8 +569,10 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 		}
 	}
 
-	// Compute repository size
-	if size, err := repo.DiskUsage(); err == nil {
+	// Compute model content size from the default branch tree. DiskUsage
+	// includes bare Git repository storage overhead, which is not user-visible
+	// model file size.
+	if size, err := repo.TreeSize(rev, ""); err == nil {
 		metadata.Size = size
 	}
 
