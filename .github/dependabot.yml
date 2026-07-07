@@ -9,6 +9,16 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    groups:
+      security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+      all:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
 
   # Maintain npm dependencies for web
   - package-ecosystem: "npm"
@@ -19,7 +29,12 @@ updates:
       - "dependencies"
       - "automated"
     groups:
+      security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
       all:
+        applies-to: "version-updates"
         update-types:
           - "minor"
           - "patch"
@@ -33,7 +48,12 @@ updates:
       - "dependencies"
       - "automated"
     groups:
+      security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
       all:
+        applies-to: "version-updates"
         update-types:
           - "minor"
           - "patch"
@@ -48,7 +68,12 @@ updates:
       - "automated"
     open-pull-requests-limit: 10
     groups:
+      security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
       all:
+        applies-to: "version-updates"
         update-types:
           - "minor"
           - "patch"
@@ -61,3 +86,8 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    groups:
+      security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
