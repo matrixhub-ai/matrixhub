@@ -81,8 +81,13 @@ func NewModelService(modelRepo IModelRepo, labelRepo ILabelRepo, gitRepo git.IGi
 	}
 }
 
+func normalizeModelIdentity(project, name string) (string, string) {
+	return strings.TrimSpace(project), strings.TrimSpace(name)
+}
+
 // CreateModel creates a new model in the system.
 func (s *ModelService) CreateModel(ctx context.Context, project, name string) (*Model, error) {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return nil, errors.New("invalid project")
 	}
@@ -115,6 +120,7 @@ func (s *ModelService) CreateModel(ctx context.Context, project, name string) (*
 
 // GetModel retrieves a model by project and name.
 func (s *ModelService) GetModel(ctx context.Context, project, name string) (*Model, error) {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return nil, errors.New("invalid project")
 	}
@@ -144,6 +150,7 @@ func (s *ModelService) ListModels(ctx context.Context, filter *Filter) ([]*Model
 
 // DeleteModel deletes a model by project and name.
 func (s *ModelService) DeleteModel(ctx context.Context, project, name string) error {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return errors.New("invalid project")
 	}
@@ -171,6 +178,7 @@ func (s *ModelService) ListModelFrameLabels(ctx context.Context) ([]*Label, erro
 
 // ListModelRevisions returns all branches and tags for a model.
 func (s *ModelService) ListModelRevisions(ctx context.Context, project, name string) (*git.Revisions, error) {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return nil, errors.New("invalid project")
 	}
@@ -189,6 +197,7 @@ func (s *ModelService) ListModelRevisions(ctx context.Context, project, name str
 
 // ListModelCommits returns the commit history for a model.
 func (s *ModelService) ListModelCommits(ctx context.Context, project, name, revision string, page, pageSize int) ([]*git.Commit, int64, error) {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return nil, 0, errors.New("invalid project")
 	}
@@ -216,6 +225,7 @@ func (s *ModelService) ListModelCommits(ctx context.Context, project, name, revi
 
 // GetModelCommit returns a specific commit by ID.
 func (s *ModelService) GetModelCommit(ctx context.Context, project, name, commitID string) (*git.Commit, error) {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return nil, errors.New("invalid project")
 	}
@@ -237,6 +247,7 @@ func (s *ModelService) GetModelCommit(ctx context.Context, project, name, commit
 
 // CreateModelCommit creates a new model commit.
 func (s *ModelService) CreateModelCommit(ctx context.Context, project, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error) {
+	project, name = normalizeModelIdentity(project, name)
 	prj, err := s.projectRepo.GetProjectByName(ctx, project)
 	if err != nil {
 		return "", err
@@ -271,6 +282,7 @@ func (s *ModelService) CreateModelCommit(ctx context.Context, project, name, rev
 
 // GetModelTree returns the file tree at a specific revision and path.
 func (s *ModelService) GetModelTree(ctx context.Context, project, name, revision, path string) ([]*git.TreeEntry, error) {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return nil, errors.New("invalid project")
 	}
@@ -289,6 +301,7 @@ func (s *ModelService) GetModelTree(ctx context.Context, project, name, revision
 
 // GetModelBlob returns the content of a file at a specific revision.
 func (s *ModelService) GetModelBlob(ctx context.Context, project, name, revision, path string) (*git.TreeEntry, error) {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return nil, errors.New("invalid project")
 	}
@@ -307,6 +320,7 @@ func (s *ModelService) GetModelBlob(ctx context.Context, project, name, revision
 
 // UpdateModelSetting updates model settings such as the popular flag.
 func (s *ModelService) UpdateModelSetting(ctx context.Context, project, name string, update *SettingUpdate) error {
+	project, name = normalizeModelIdentity(project, name)
 	if project == "" {
 		return errors.New("invalid project")
 	}
@@ -324,6 +338,7 @@ func (s *ModelService) UpdateModelSetting(ctx context.Context, project, name str
 
 // SyncMetadata synchronizes Git repository metadata to the database.
 func (s *ModelService) SyncMetadata(ctx context.Context, project, name string) error {
+	project, name = normalizeModelIdentity(project, name)
 	m, err := s.modelRepo.GetByProjectAndName(ctx, project, name)
 	if err != nil {
 		return fmt.Errorf("model not found: %w", err)
@@ -369,6 +384,7 @@ func (s *ModelService) updateModelLabels(ctx context.Context, modelID int64, tag
 }
 
 func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name string) error {
+	project, name = normalizeModelIdentity(project, name)
 	prj, err := s.projectRepo.GetProjectByName(ctx, project)
 	if err != nil {
 		return err
@@ -421,6 +437,7 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 }
 
 func (s *ModelService) EnsureModel(ctx context.Context, project, name string) (*Model, error) {
+	project, name = normalizeModelIdentity(project, name)
 	model, err := s.modelRepo.GetByProjectAndName(ctx, project, name)
 	if err == nil {
 		return model, nil

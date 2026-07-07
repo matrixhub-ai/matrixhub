@@ -988,6 +988,17 @@ func (m *CreateModelRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if !_CreateModelRequest_Name_Pattern.MatchString(m.GetName()) {
+		err := CreateModelRequestValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9][A-Za-z0-9_.-]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return CreateModelRequestMultiError(errors)
 	}
@@ -1074,6 +1085,8 @@ var _CreateModelRequest_Name_NotInLookup = map[string]struct{}{
 	"spaces":   {},
 	"resolve":  {},
 }
+
+var _CreateModelRequest_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
 // Validate checks the field values on CreateModelResponse with the rules
 // defined in the proto definition for this message. If any rules are
