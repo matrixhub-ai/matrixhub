@@ -24,6 +24,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
+//go:generate go tool mockgen -source=sync_policy_service.go -destination=mocks/sync_policy_service_mock.go -package=mocks
 type ISyncPolicyService interface {
 	GetSyncPolicy(ctx context.Context, id int) (*SyncPolicy, error)
 	CreateSyncPolicy(ctx context.Context, param *SyncPolicy) error
