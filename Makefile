@@ -149,3 +149,9 @@ genproto:
 .PHONY: gen_openapi_sdk
 gen_openapi_sdk:
 	@./scripts/gen_openapi_sdk.sh
+
+# Regenerate gomock mocks from //go:generate directives next to domain interfaces.
+# Run after changing any mocked interface. Uses mockgen pinned in go.mod (tool directive).
+.PHONY: generate-mocks
+generate-mocks: ## Regenerate gomock mocks (go.uber.org/mock)
+	go generate ./...

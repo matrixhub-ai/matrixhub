@@ -16,7 +16,6 @@ package processor
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
@@ -24,12 +23,9 @@ import (
 )
 
 func TestProcessor_ExecuteOnFirstPoll(t *testing.T) {
-	var mu sync.Mutex
-	var executed []int
+	executedCh := make(chan int, 1)
 	execute := func(ctx context.Context, policyID int, triggerType int) error {
-		mu.Lock()
-		executed = append(executed, policyID)
-		mu.Unlock()
+		executedCh <- policyID
 		return nil
 	}
 	pollCalls := 0
@@ -48,14 +44,16 @@ func TestProcessor_ExecuteOnFirstPoll(t *testing.T) {
 	base := newProcessor(ProcessorSyncPolicy, 500*time.Millisecond, 2, 5*time.Second, execute, pollDueFn)
 	ctx, cancel := context.WithCancel(context.Background())
 	base.Start(ctx)
-	time.Sleep(150 * time.Millisecond)
+	select {
+	case policyID := <-executedCh:
+		if policyID != 99 {
+			t.Fatalf("expected execute for policy 99, got %d (pollCalls=%d)", policyID, pollCalls)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("execute not called (pollCalls=%d)", pollCalls)
+	}
 	cancel()
 	base.Wait()
-	mu.Lock()
-	defer mu.Unlock()
-	if len(executed) != 1 || executed[0] != 99 {
-		t.Fatalf("expected single execute for policy 99, got %v (pollCalls=%d)", executed, pollCalls)
-	}
 }
 
 func TestProcessor_WaitReturnsAfterCancel(t *testing.T) {

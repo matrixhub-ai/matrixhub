@@ -8,6 +8,8 @@ on:
       - 'cmd/**'
       - 'internal/**'
       - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
 
   pull_request:
     branches:
@@ -16,6 +18,8 @@ on:
       - 'cmd/**'
       - 'internal/**'
       - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
 
 jobs:
   lint:
@@ -36,3 +40,18 @@ jobs:
       - name: Verify proto generation
         run: |
           ./scripts/verify-proto-gen.sh
+
+      - name: Verify mock generation
+        run: |
+          go generate ./...
+          if [ -n "$(git diff -- '**/mocks/**')" ]; then
+            echo "::error::mock files differ from committed versions"
+            git diff -- '**/mocks/**'
+            exit 1
+          fi
+          untracked=$(git ls-files --others --exclude-standard -- '**/mocks/**')
+          if [ -n "$untracked" ]; then
+            echo "::error::untracked mock files — run make generate-mocks and commit them"
+            echo "$untracked"
+            exit 1
+          fi
