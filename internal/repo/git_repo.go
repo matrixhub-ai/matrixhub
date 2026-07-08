@@ -16,6 +16,8 @@ package repo
 
 import (
 	"context"
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -23,6 +25,7 @@ import (
 	stdpath "path"
 	"strings"
 
+	hfdlfs "github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
@@ -33,6 +36,12 @@ import (
 type gitRepo struct {
 	storage *storage.Storage
 	mirror  *mirror.Mirror
+}
+
+const maxSafetensorsHeaderBytes uint64 = 64 * 1024 * 1024
+
+type safetensorsIndexFiles struct {
+	WeightMap map[string]string `json:"weight_map"`
 }
 
 // NewGitDB creates a new GitRepo instance
@@ -493,6 +502,89 @@ func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepo
 	)
 }
 
+func (g *gitRepo) readBlobBytes(repo *repository.Repository, rev, path string) ([]byte, error) {
+	blob, err := repo.Blob(rev, path)
+	if err != nil {
+		return nil, err
+	}
+	rc, err := blob.NewReader()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = rc.Close()
+	}()
+	return io.ReadAll(rc)
+}
+
+func (g *gitRepo) openBlobContent(repo *repository.Repository, rev, path string) (io.ReadCloser, error) {
+	blob, err := repo.Blob(rev, path)
+	if err != nil {
+		return nil, err
+	}
+
+	if ptr, err := blob.LFSPointer(); err == nil && ptr != nil {
+		store := hfdlfs.NewLocal(g.storage.LFSDir())
+		getter, ok := store.(hfdlfs.Getter)
+		if !ok {
+			return nil, fmt.Errorf("lfs storage does not support reads")
+		}
+		rc, _, err := getter.Get(ptr.OID())
+		return rc, err
+	}
+
+	return blob.NewReader()
+}
+
+func (g *gitRepo) readSafetensorsHeader(repo *repository.Repository, rev, path string) ([]byte, error) {
+	rc, err := g.openBlobContent(repo, rev, path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = rc.Close()
+	}()
+
+	var lengthPrefix [8]byte
+	if _, err := io.ReadFull(rc, lengthPrefix[:]); err != nil {
+		return nil, err
+	}
+
+	headerLength := binary.LittleEndian.Uint64(lengthPrefix[:])
+	if headerLength > maxSafetensorsHeaderBytes {
+		return nil, fmt.Errorf("safetensors header too large: %d bytes", headerLength)
+	}
+
+	content := make([]byte, 8+int(headerLength))
+	copy(content[:8], lengthPrefix[:])
+	if _, err := io.ReadFull(rc, content[8:]); err != nil {
+		return nil, err
+	}
+	return content, nil
+}
+
+func loadSafetensorsPathsFromIndex(indexJSON []byte) []string {
+	var index safetensorsIndexFiles
+	if err := json.Unmarshal(indexJSON, &index); err != nil {
+		return nil
+	}
+
+	seen := make(map[string]struct{})
+	paths := make([]string, 0, len(index.WeightMap))
+	for _, path := range index.WeightMap {
+		path = stdpath.Clean(path)
+		if path == "." || strings.HasPrefix(path, "../") || strings.HasPrefix(path, "/") || !strings.HasSuffix(path, ".safetensors") {
+			continue
+		}
+		if _, ok := seen[path]; ok {
+			continue
+		}
+		seen[path] = struct{}{}
+		paths = append(paths, path)
+	}
+	return paths
+}
+
 // PushToRemote pushes the local repository to the remote registry.
 func (g *gitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitRepository) error {
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
@@ -525,7 +617,7 @@ func (g *gitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitReposi
 
 // ExtractMetadata reads raw metadata-related files from a Git repository.
 func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name string) (*git.RepoMetadataFiles, error) {
-	metadata := &git.RepoMetadataFiles{}
+	metadata := &git.RepoMetadataFiles{SafetensorsFiles: make(map[string][]byte)}
 
 	// Open Git repository
 	gitPath := g.gitPath(repoType, project, name)
@@ -537,36 +629,25 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 	rev := repo.DefaultBranch()
 
 	// Read README.md raw content
-	if blob, err := repo.Blob(rev, "README.md"); err == nil {
-		if rc, err := blob.NewReader(); err == nil {
-			content, err := io.ReadAll(rc)
-			_ = rc.Close()
-			if err == nil {
-				metadata.ReadmeContent = content
-			}
-		}
+	if content, err := g.readBlobBytes(repo, rev, "README.md"); err == nil {
+		metadata.ReadmeContent = content
 	}
 
 	// Read config.json raw content
-	if blob, err := repo.Blob(rev, "config.json"); err == nil {
-		if rc, err := blob.NewReader(); err == nil {
-			content, err := io.ReadAll(rc)
-			_ = rc.Close()
-			if err == nil {
-				metadata.ConfigJSON = content
-			}
-		}
+	if content, err := g.readBlobBytes(repo, rev, "config.json"); err == nil {
+		metadata.ConfigJSON = content
 	}
 
 	// Read model.safetensors.index.json raw content
-	if blob, err := repo.Blob(rev, "model.safetensors.index.json"); err == nil {
-		if rc, err := blob.NewReader(); err == nil {
-			content, err := io.ReadAll(rc)
-			_ = rc.Close()
-			if err == nil {
-				metadata.SafetensorsIndexJSON = content
+	if content, err := g.readBlobBytes(repo, rev, "model.safetensors.index.json"); err == nil {
+		metadata.SafetensorsIndexJSON = content
+		for _, path := range loadSafetensorsPathsFromIndex(content) {
+			if header, err := g.readSafetensorsHeader(repo, rev, path); err == nil {
+				metadata.SafetensorsFiles[path] = header
 			}
 		}
+	} else if header, err := g.readSafetensorsHeader(repo, rev, "model.safetensors"); err == nil {
+		metadata.SafetensorsFiles["model.safetensors"] = header
 	}
 
 	// Compute model content size from the default branch tree. DiskUsage
