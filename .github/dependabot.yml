@@ -9,11 +9,8 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
       all:
         applies-to: "version-updates"
         update-types:
@@ -28,16 +25,31 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
+      mantine:
         patterns:
-          - "*"
-      all:
-        applies-to: "version-updates"
-        update-types:
-          - "minor"
-          - "patch"
+          - "@mantine/*"
+          - "mantine-react-table"
+        update-types: [minor, patch]
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+        update-types: [minor, patch]
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "vite-*"
+          - "rollup"
+        update-types: [minor, patch]
+      lint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+          - "typescript-eslint"
+        update-types: [minor, patch]
 
   # Maintain npm dependencies for website
   - package-ecosystem: "npm"
@@ -47,31 +59,23 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
+      docusaurus:
         patterns:
-          - "*"
-      all:
-        applies-to: "version-updates"
-        update-types:
-          - "minor"
-          - "patch"
+          - "@docusaurus/*"
+        update-types: [minor, patch]
 
   # Maintain GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
       - "dependencies"
       - "automated"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
       all:
         applies-to: "version-updates"
         update-types:
@@ -86,8 +90,4 @@ updates:
     labels:
       - "dependencies"
       - "automated"
-    groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
+    open-pull-requests-limit: 3
