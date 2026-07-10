@@ -1,7 +1,7 @@
 import { Box } from '@mantine/core'
 import Markdown from 'react-markdown'
 
-import 'github-markdown-css/github-markdown.css'
+import 'github-markdown-css/github-markdown-light.css'
 
 interface MarkdownViewerProps {
   content: string
