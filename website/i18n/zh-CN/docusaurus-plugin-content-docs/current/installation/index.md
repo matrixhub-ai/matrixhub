@@ -24,8 +24,8 @@ Docker Compose 是在单台物理机或虚拟机上部署并调试 MatrixHub 最
 
 ### 1. 下载配置文件
 获取官方预配置的部署模板文件：
-*   `docker-compose.yaml` （定义 API 容器服务和 MySQL 容器配置）
-*   `config.yaml` （包含数据库 DSN 字符串、日志过滤级别及本地磁盘路径绑定映射）
+*   [`docker-compose.yaml`](https://matrixhub.ai/zh-CN/deploy/docker/docker-compose.yaml) （定义 API 容器服务和 MySQL 容器配置）
+*   [`config.yaml`](https://matrixhub.ai/zh-CN/deploy/docker/config.yaml) （包含数据库 DSN 字符串、日志过滤级别及本地磁盘路径绑定映射）
 
 ### 2. 启动注册表服务
 确保这两个配置文件放置在同一个目录中，然后执行启动指令：
@@ -76,7 +76,7 @@ helm install matrixhub ./deploy/charts/matrixhub \
 ### 1. 使用 ClusterIP（默认）
 默认情况下，Chart 中的服务暴露类型为 ClusterIP，仅在 Kubernetes 集群内部网络中可访问（默认端口为 `9527`）。若需在本地调试，可通过 port-forward 建立端口转发：
 ```bash
-export POD_NAME=$(kubectl get pods --namespace matrixhub -l app=matrixhub-apiserver -o jsonpath="{.items[0].metadata.name}")
+export POD_NAME=$(kubectl get pods --namespace matrixhub -l app=matrixhub -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward $POD_NAME 9527:9527 --namespace matrixhub
 ```
 
