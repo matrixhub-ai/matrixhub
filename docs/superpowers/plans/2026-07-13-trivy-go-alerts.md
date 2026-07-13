@@ -4,7 +4,7 @@
 
 **Goal:** Remove the legacy PostgreSQL protocol dependency that triggers CVE-2026-32286, retain the already-fixed edwards25519 version, and make the existing HIGH/CRITICAL Trivy SARIF policy effective.
 
-**Architecture:** Keep MatrixHub's MySQL and PostgreSQL behavior unchanged. Align PostgreSQL error inspection with the pgx/v5 driver already used by GORM, then let `go mod tidy` remove the obsolete pgconn/pgproto3 graph. Treat the OpenPGP finding as an unreachable module-level result and filter SARIF by the workflow's declared severities rather than adding a vulnerability ignore.
+**Architecture:** Keep MatrixHub's MySQL and PostgreSQL behavior unchanged. Align PostgreSQL error inspection with the pgx/v5 driver already used by GORM, then let `go mod tidy` remove the obsolete pgconn/pgproto3 packages from the MatrixHub runtime. The modules can remain in the broader module graph because golang-migrate declares them for an unused driver path; the release binary must not contain them. Treat the OpenPGP finding as an unreachable module-level result and filter SARIF by the workflow's declared severities rather than adding a vulnerability ignore.
 
 **Tech Stack:** Go 1.25.12, GORM PostgreSQL/pgx v5, Go modules, Trivy GitHub Action, GitHub SARIF upload.
 
@@ -138,7 +138,7 @@ GO="$HOME/.cache/codex/toolchains/go1.25.12/bin/go"
 "$GO" mod tidy
 ```
 
-Expected: `github.com/jackc/pgx/v5` becomes direct; legacy `github.com/jackc/pgconn` and `github.com/jackc/pgproto3/v2` disappear; edwards25519 remains newer than `v1.1.1`.
+Expected: `github.com/jackc/pgx/v5` becomes direct; legacy `github.com/jackc/pgconn` and `github.com/jackc/pgproto3/v2` disappear from `go.mod`/`go.sum`; edwards25519 remains newer than `v1.1.1`.
 
 - [ ] **Step 2: Verify dependency integrity**
 
@@ -146,13 +146,13 @@ Expected: `github.com/jackc/pgx/v5` becomes direct; legacy `github.com/jackc/pgc
 GO="$HOME/.cache/codex/toolchains/go1.25.12/bin/go"
 "$GO" mod verify
 "$GO" list -m -f '{{.Version}}' filippo.io/edwards25519
-if "$GO" list -m all | rg '^github.com/jackc/(pgconn|pgproto3/v2) '; then
-  echo 'legacy PostgreSQL module still selected'
+if "$GO" list -deps ./cmd/matrixhub | rg '^github.com/jackc/(pgconn|pgproto3/v2)($|/)'; then
+  echo 'legacy PostgreSQL package still linked into MatrixHub'
   exit 1
 fi
 ```
 
-Expected: all modules verify, edwards25519 reports `v1.2.0` or later, and the legacy-module assertion has no match.
+Expected: all modules verify, edwards25519 reports `v1.2.0` or later, and the release command has no dependency on either legacy package tree.
 
 - [ ] **Step 3: Re-run the database tests**
 
