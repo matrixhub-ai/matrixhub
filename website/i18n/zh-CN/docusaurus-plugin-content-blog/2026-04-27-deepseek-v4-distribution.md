@@ -12,7 +12,7 @@ description: 为什么企业环境里的 DeepSeek 落地经常卡在分发层，
 
 我们在内网落地 DeepSeek v4，踩了一堆坑，整理下来，本质其实就三类问题。
 
-<!-- truncate -->
+{/* truncate */}
 
 ## 一、你以为是“下载问题”，其实是架构问题
 

@@ -13,7 +13,7 @@ SGLang、Transformers、vLLM 等工具通常会通过 Hugging Face Hub 协议获
 - SGLang 通过 MatrixHub 的 Hugging Face 兼容接口拉取模型。
 - SGLang 直接从 Hugging Face 拉取模型。
 
-<!-- truncate -->
+{/* truncate */}
 
 ## 准备：在 MatrixHub 中缓存模型
 

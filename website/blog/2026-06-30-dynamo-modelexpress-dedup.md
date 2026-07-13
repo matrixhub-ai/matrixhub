@@ -10,7 +10,7 @@ When scaling an inference service to multiple workers, every new worker download
 
 In this test we deploy two Dynamo vLLM workers for `Qwen/Qwen2.5-1.5B-Instruct` (~3 GB) and compare the model acquisition time of the first worker (cache miss) versus the second worker (cache hit).
 
-<!-- truncate -->
+{/* truncate */}
 
 ## Environment
 

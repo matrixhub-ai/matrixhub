@@ -9,7 +9,7 @@ description: 在带 GPU 的 Kubernetes 集群上让 Dynamo 通过内网 MatrixHu
 - **实验一**：在带 GPU 的 Kubernetes 集群上部署 Dynamo，并使用内网 MatrixHub 拉取模型权重。部署后会得到一个兼容 OpenAI 接口的推理服务，可以对 `qwen3-0.6b` 模型发对话请求。
 - **实验二**：用同样的方式再实验一次，改成从外网 Hugging Face 拉取模型权重，对两次实验的首次下载模型时间作对比。
 
-<!-- truncate -->
+{/* truncate */}
 
 ## 实验一
 
