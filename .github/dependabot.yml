@@ -9,11 +9,8 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
       all:
         applies-to: "version-updates"
         update-types:
@@ -28,16 +25,38 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-      all:
+      mantine:
         applies-to: "version-updates"
-        update-types:
-          - "minor"
-          - "patch"
+        patterns:
+          - "@mantine/*"
+          - "mantine-react-table"
+        update-types: [minor, patch]
+      tanstack:
+        applies-to: "version-updates"
+        patterns:
+          - "@tanstack/*"
+        update-types: [minor, patch]
+      vite:
+        applies-to: "version-updates"
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "vite-*"
+          - "rollup"
+        update-types: [minor, patch]
+      lint:
+        applies-to: "version-updates"
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "@eslint-react/*"
+          - "@stylistic/*"
+          - "@typescript-eslint/*"
+          - "typescript-eslint"
+        update-types: [minor, patch]
 
   # Maintain npm dependencies for website
   - package-ecosystem: "npm"
@@ -47,47 +66,36 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-      all:
+      docusaurus:
         applies-to: "version-updates"
-        update-types:
-          - "minor"
-          - "patch"
+        patterns:
+          - "@docusaurus/*"
+        update-types: [minor, patch]
 
   # Maintain GitHub Actions
   - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    labels:
-      - "dependencies"
-      - "automated"
-    open-pull-requests-limit: 10
-    groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-      all:
-        applies-to: "version-updates"
-        update-types:
-          - "minor"
-          - "patch"
-
-  # Maintain Dockerfile
-  - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
     labels:
       - "dependencies"
       - "automated"
+    open-pull-requests-limit: 5
     groups:
-      security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
+      all:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Maintain the MatrixHub Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/deploy/docker/matrixhub"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "automated"
+    open-pull-requests-limit: 3
