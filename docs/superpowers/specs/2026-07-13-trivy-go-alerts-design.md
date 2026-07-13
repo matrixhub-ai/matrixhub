@@ -20,7 +20,7 @@ The latest upstream `main` already resolves `filippo.io/edwards25519` to `v1.2.0
 
 Replace the legacy `github.com/jackc/pgconn` import in `internal/infra/db/errors.go` with `github.com/jackc/pgx/v5/pgconn`.
 
-The active GORM PostgreSQL driver already uses pgx/v5. Matching its `PgError` type preserves PostgreSQL unique-constraint detection and allows the legacy `github.com/jackc/pgconn` module and its vulnerable `github.com/jackc/pgproto3/v2` dependency to leave the module graph.
+The active GORM PostgreSQL driver already uses pgx/v5. Matching its `PgError` type preserves PostgreSQL unique-constraint detection and removes the legacy `github.com/jackc/pgconn` and vulnerable `github.com/jackc/pgproto3/v2` packages from MatrixHub's release dependencies and binary. The modules remain in the broader selected graph because golang-migrate declares them for an unused driver path.
 
 Add a regression test that passes a pgx/v5 `PgError` with `pgerrcode.UniqueViolation` to `IsUniqueViolationError`. The test must fail against the legacy import before the implementation changes.
 
@@ -36,7 +36,7 @@ Do not add `.trivyignore` entries and do not dismiss high-severity findings glob
 
 - `internal/infra/db/errors.go`: migrate PostgreSQL error matching to pgx/v5.
 - `internal/infra/db/errors_test.go`: add MySQL/PostgreSQL unique-violation regression coverage.
-- `go.mod`, `go.sum`: remove obsolete pgconn/pgproto3 dependencies while retaining the already-fixed edwards25519 version.
+- `go.mod`, `go.sum`: remove obsolete direct pgconn/pgproto3 entries while retaining the already-fixed edwards25519 version.
 - `.github/workflows/call-release-image.yaml`: enforce severity filtering for SARIF output.
 
 ## Verification
@@ -45,7 +45,7 @@ Do not add `.trivyignore` entries and do not dismiss high-severity findings glob
 2. Run `go test ./internal/infra/db -count=1` after the migration.
 3. Run `go mod tidy` and `go mod verify`.
 4. Confirm `filippo.io/edwards25519` still resolves to `v1.1.1` or later; upstream currently selects `v1.2.0`.
-5. Confirm legacy `github.com/jackc/pgconn` and `github.com/jackc/pgproto3/v2` are absent from the selected module graph.
+5. Confirm legacy `github.com/jackc/pgconn` and `github.com/jackc/pgproto3/v2` are absent from MatrixHub's release package dependencies and final binary.
 6. Run `govulncheck ./...`.
 7. Run the relevant Go package tests and record unrelated baseline failures separately.
 8. Validate the workflow YAML and confirm `limit-severities-for-sarif` is enabled on the SARIF-producing Trivy step.
