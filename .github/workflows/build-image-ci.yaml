@@ -27,7 +27,7 @@ jobs:
       imageTag: ${{ env.tag }}
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4.0.0
+        uses: docker/setup-buildx-action@v4.2.0
 
       - name: Getting image tag
         id: tag
@@ -77,7 +77,7 @@ jobs:
 
       # ========== main build ==========
       - name: CI Build matrixhub
-        uses: docker/build-push-action@v7.1.0
+        uses: docker/build-push-action@v7.3.0
         id: docker_build
         with:
           context: .
