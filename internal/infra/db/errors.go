@@ -18,8 +18,8 @@ import (
 	"errors"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func IsUniqueViolationError(err error) bool {
