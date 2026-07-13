@@ -28,15 +28,18 @@ updates:
     open-pull-requests-limit: 5
     groups:
       mantine:
+        applies-to: "version-updates"
         patterns:
           - "@mantine/*"
           - "mantine-react-table"
         update-types: [minor, patch]
       tanstack:
+        applies-to: "version-updates"
         patterns:
           - "@tanstack/*"
         update-types: [minor, patch]
       vite:
+        applies-to: "version-updates"
         patterns:
           - "vite"
           - "@vitejs/*"
@@ -44,9 +47,13 @@ updates:
           - "rollup"
         update-types: [minor, patch]
       lint:
+        applies-to: "version-updates"
         patterns:
           - "eslint"
+          - "eslint-*"
           - "@eslint/*"
+          - "@eslint-react/*"
+          - "@stylistic/*"
           - "@typescript-eslint/*"
           - "typescript-eslint"
         update-types: [minor, patch]
@@ -62,6 +69,7 @@ updates:
     open-pull-requests-limit: 5
     groups:
       docusaurus:
+        applies-to: "version-updates"
         patterns:
           - "@docusaurus/*"
         update-types: [minor, patch]
@@ -82,9 +90,9 @@ updates:
           - "minor"
           - "patch"
 
-  # Maintain Dockerfile
+  # Maintain the MatrixHub Dockerfile
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/deploy/docker/matrixhub"
     schedule:
       interval: "weekly"
     labels:
