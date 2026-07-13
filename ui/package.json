@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^2.8.0",
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^9.39.5",
     "@stylistic/eslint-plugin": "^5.7.1",
     "@tanstack/eslint-plugin-router": "^1.162.0",
     "@tanstack/router-plugin": "^1.168.19",
