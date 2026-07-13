@@ -12,7 +12,7 @@ But if you're operating in an enterprise environment, especially air-gapped or p
 
 During our attempt to deploy DeepSeek v4 in an internal network, we ran into a lot of issues. In the end, they can all be boiled down to three fundamental problems.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## 1. You think it's a download problem, but it's actually an architecture problem
 

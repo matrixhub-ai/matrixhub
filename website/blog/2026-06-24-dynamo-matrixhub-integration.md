@@ -9,7 +9,7 @@ We ran two experiments to measure how much an in-network MatrixHub speeds up the
 - **Experiment 1**: Deploy Dynamo on a GPU Kubernetes cluster and pull model weights from an internal MatrixHub. The result is an OpenAI-compatible inference service that can answer chat requests for the `qwen3-0.6b` model.
 - **Experiment 2**: Repeat the same setup, but pull the weights from public Hugging Face instead, and compare the first-download time of the two runs.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## Experiment 1
 

@@ -13,7 +13,7 @@ In this test, we use `Qwen/Qwen3-0.6B` to compare two startup paths:
 - SGLang pulls model files through MatrixHub's Hugging Face-compatible endpoint.
 - SGLang pulls model files directly from Hugging Face.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## Prepare the model cache in MatrixHub
 
