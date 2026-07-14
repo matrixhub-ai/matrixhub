@@ -16,21 +16,45 @@ package db
 
 import (
 	"errors"
+	"testing"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/stretchr/testify/assert"
 )
 
-func IsUniqueViolationError(err error) bool {
-	var mysqlErr *mysql.MySQLError
-	if errors.As(err, &mysqlErr) {
-		return mysqlErr.Number == 1062
+func TestIsUniqueViolationError(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{
+			name: "mysql unique violation",
+			err:  &mysql.MySQLError{Number: 1062},
+			want: true,
+		},
+		{
+			name: "postgres unique violation",
+			err:  &pgconn.PgError{Code: pgerrcode.UniqueViolation},
+			want: true,
+		},
+		{
+			name: "other database error",
+			err:  &pgconn.PgError{Code: pgerrcode.ForeignKeyViolation},
+			want: false,
+		},
+		{
+			name: "generic error",
+			err:  errors.New("database error"),
+			want: false,
+		},
 	}
 
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == pgerrcode.UniqueViolation
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, IsUniqueViolationError(tt.err))
+		})
 	}
-	return false
 }
