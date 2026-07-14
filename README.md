@@ -54,15 +54,16 @@ Download the Docker Compose files for a released version and start MatrixHub:
 ```bash
 export MATRIXHUB_VERSION=v0.1.1
 
-mkdir -p matrixhub
-cd matrixhub
+mkdir -p matrixhub && cd matrixhub
 
-curl -fL https://raw.githubusercontent.com/matrixhub-ai/matrixhub/${MATRIXHUB_VERSION}/deploy/docker-compose.yml \
+curl -fL \
+  "https://raw.githubusercontent.com/matrixhub-ai/matrixhub/$MATRIXHUB_VERSION/deploy/docker-compose.yml" \
   -o docker-compose.yml
-curl -fL https://raw.githubusercontent.com/matrixhub-ai/matrixhub/${MATRIXHUB_VERSION}/deploy/config.yaml \
+curl -fL \
+  "https://raw.githubusercontent.com/matrixhub-ai/matrixhub/$MATRIXHUB_VERSION/deploy/config.yaml" \
   -o config.yaml
 
-MATRIXHUB_IMAGE_TAG="${MATRIXHUB_VERSION}" docker compose up -d
+MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose up -d
 ```
 
 For a newer stable release, replace `v0.1.1` with the version you want to run.
@@ -111,8 +112,8 @@ Install the chart and expose the service via `NodePort`:
 
 ```bash
 helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
-  --version ${CHART_VERSION} \
-  --namespace ${NAMESPACE} --create-namespace \
+  --version "$CHART_VERSION" \
+  --namespace "$NAMESPACE" --create-namespace \
   --set apiserver.service.type=NodePort
 ```
 
@@ -137,7 +138,7 @@ kubectl get nodes -o wide
 #### Uninstall
 
 ```bash
-helm uninstall matrixhub --namespace ${NAMESPACE}
+helm uninstall matrixhub --namespace "$NAMESPACE"
 ```
 
 This removes resources including the default PVCs created by the chart. To preserve data, use an existing PVC for MatrixHub data and an external database.
