@@ -15,4 +15,5 @@ For a **complex change**, add a design doc here (or an external doc) and get mai
 ## Index
 
 - [Cleanup](./cleanup-design.md)
+- [Jobserver](./jobserver-design.md)
 <!-- Add new design docs here -->

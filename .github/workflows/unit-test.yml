@@ -39,10 +39,5 @@ jobs:
       - name: Install dependencies
         run: pip install huggingface_hub
 
-      # TODO: Fix make verify issues before enabling this check
-      - name: Verify code quality
-        run: make verify
-        continue-on-error: true
-
       - name: Run unit tests
-        run: go test cmd/... internal/... -short -count=1 -v
+        run: make test.unit

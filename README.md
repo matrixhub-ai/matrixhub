@@ -4,18 +4,6 @@
 
 **MatrixHub** is an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a drop-in private replacement for Hugging Face, purpose-built to accelerate **vLLM** and **SGLang** workloads.
 
-## 🌐 Live Demo
-
-Try MatrixHub instantly at **[demo.matrixhub.ai](https://demo.matrixhub.ai/)** — no setup required.
-
-Sign in with the public demo credentials:
-
-| Username | Password |
-| --- | --- |
-| `admin` | `changeme` |
-
-> The demo is for evaluation only and may be reset at any time.
-
 ## 💡 Why MatrixHub?
 
 MatrixHub streamlines the transition from public model hubs to production-grade infrastructure:
@@ -41,122 +29,140 @@ MatrixHub streamlines the transition from public model hubs to production-grade 
 
 ### 🌍 Scalable Infrastructure
 
-* **Storage Agnostic**: Compatible with local file systems, NFS, and S3-compatible backends (MinIO, AWS, etc.).
+* **Flexible Storage**: Supports PVC-backed local file system and NFS storage today, with S3-compatible object storage planned for a future release.
 * **Reliable Replication**: Policy-driven, chunked transfers ensure data consistency even over unstable global networks.
 * **Cloud-Native Design**: Optimized for Kubernetes with official **Helm charts** and horizontal scaling capabilities.
+
+## 🌐 Live Demo
+
+Try MatrixHub instantly at **[demo.matrixhub.ai](https://demo.matrixhub.ai/)** — no setup required.
+
+Sign in with the public demo credentials:
+
+| Username | Password |
+| --- | --- |
+| `admin` | `changeme` |
+
+> The demo is for evaluation only and may be reset at any time.
 
 ## 🚀 Quick Start
 
 ### Docker Compose Deployment
 
-Use Docker Compose with the provided configuration files:
-
-- `website/static/deploy/docker/docker-compose.yaml`
-- `website/static/deploy/docker/config.yaml`
-
-Make sure `docker-compose.yaml` and `config.yaml` are in the same folder, then start the service:
+Download the Docker Compose files for a released version and start MatrixHub:
 
 ```bash
-docker compose -f docker-compose.yaml up -d
+export MATRIXHUB_VERSION=v0.1.1
+
+mkdir -p matrixhub
+cd matrixhub
+
+curl -fL https://raw.githubusercontent.com/matrixhub-ai/matrixhub/${MATRIXHUB_VERSION}/deploy/docker-compose.yml \
+  -o docker-compose.yml
+curl -fL https://raw.githubusercontent.com/matrixhub-ai/matrixhub/${MATRIXHUB_VERSION}/deploy/config.yaml \
+  -o config.yaml
+
+MATRIXHUB_IMAGE_TAG="${MATRIXHUB_VERSION}" docker compose up -d
 ```
 
-Default service endpoint:
+For a newer stable release, replace `v0.1.1` with the version you want to run.
+If port `3001` is already in use, set `MATRIXHUB_HTTP_PORT` before starting the stack, for example `MATRIXHUB_HTTP_PORT=3002`.
+
+Open the MatrixHub web console:
 
 ```text
 http://127.0.0.1:3001
 ```
 
-### Helm (Kubernetes) Deployment
+Sign in with the default local credentials:
 
-MatrixHub provides two Helm installation methods — from a local chart or from the OCI registry.
+| Username | Password |
+| --- | --- |
+| `admin` | `changeme` |
 
-Set the install target first (used in all commands below):
+Change the default password before exposing the instance outside your local machine.
+
+To stop the local stack:
 
 ```bash
-export CHART_VERSION=<chart-version>  
+docker compose down
+```
+
+### Helm (Kubernetes) Deployment
+
+#### Prerequisites
+
+Currently, the Helm chart supports PVC-backed storage for MatrixHub data. S3-compatible object storage is planned for a future release.
+
+Make sure your cluster has a default StorageClass (`kubectl get storageclass`), or explicit storage settings for the PVCs this chart creates. For development clusters without a StorageClass, see [development-only local storage setup](deploy/charts/matrixhub/README.md#development-only-local-storage-setup).
+
+#### Installing the Chart
+
+MatrixHub publishes its Helm chart to GitHub Container Registry (`ghcr.io`) as an OCI artifact.
+
+For a newer stable release, replace `0.1.1` with the chart version you want to run:
+
+```bash
+export CHART_VERSION=0.1.1
 export NAMESPACE=matrixhub
 ```
 
-#### Option A: Install from Local Chart
+Install the chart and expose the service via `NodePort`:
 
 ```bash
-helm install matrixhub ./deploy/charts/matrixhub \
-  --namespace ${NAMESPACE} --create-namespace
-```
-
-#### Option B: Install from OCI Registry
-
-Charts are published to GitHub Container Registry (`ghcr.io`) as OCI artifacts.
-
-```bash
-helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
-  --version ${CHART_VERSION} \
-  --namespace ${NAMESPACE} --create-namespace
-```
-
-#### Expose the Service
-
-Expose it via `NodePort`:
-
-```bash
-helm install matrixhub ./deploy/charts/matrixhub \
-  --namespace ${NAMESPACE} --create-namespace \
-  --set apiserver.service.type=NodePort
-# or with OCI:
 helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
   --version ${CHART_VERSION} \
   --namespace ${NAMESPACE} --create-namespace \
   --set apiserver.service.type=NodePort
 ```
 
-#### Persistent Storage (PVC)
+The default installation uses the cluster's default StorageClass. The MatrixHub data PVC defaults to `50Gi`, and the built-in MySQL PVC defaults to `8Gi`. To change PVC sizes, add `--set apiserver.storage.pvc.size=100Gi` or `--set mysql.persistence.size=20Gi` to the command.
 
-MatrixHub uses PersistentVolumeClaims to persist data. Currently only PVC is supported as the storage backend; S3-compatible storage will be supported in a future release.
+For other storage classes, existing PVCs, and other Helm settings, see the [Helm chart README](deploy/charts/matrixhub/README.md).
 
-By default, the chart creates the following PVCs:
+#### Access the UI
 
-| PVC | Mount Path | Default Size | Purpose |
-|-----|-----------|--------------|---------|
-| `<release>-apiserver-data` | `/data/matrixhub` | `50Gi` | Model artifacts & cache |
-| `<release>-mysql-pv-claim` | `/var/lib/mysql` | `8Gi` | Built-in MySQL data (only when `global.storage.apiserver.builtIn=true`, which is the default) |
+With the `NodePort` installation above, open:
 
-**Customize storage class and size:**
-
-```bash
-helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
-  --version ${CHART_VERSION} \
-  --namespace ${NAMESPACE} --create-namespace \
-  --set apiserver.storage.mode=pvc \
-  --set apiserver.storage.pvc.size=50Gi \
-  --set mysql.persistence.size=20Gi
+```text
+http://<node-ip>:30001
 ```
 
-**Use an existing PVC:**
+Find a node IP with:
 
 ```bash
-helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
-  --version ${CHART_VERSION} \
-  --namespace ${NAMESPACE} --create-namespace \
-  --set apiserver.storage.pvc.existingClaim=my-existing-pvc
+kubectl get nodes -o wide
 ```
 
-## 📚 Docs
+#### Uninstall
+
+```bash
+helm uninstall matrixhub --namespace ${NAMESPACE}
+```
+
+This removes resources including the default PVCs created by the chart. To preserve data, use an existing PVC for MatrixHub data and an external database.
+
+## Contributing and Development
+
+We welcome contributions. 
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for issues, pull requests, reviews, DCO, and release note requirements.
+
+See [Development Guide](docs/development.md) for local setup, testing, and generated code. 
+
+## Community and Support
+
+Join us in [GitHub Discussions](https://github.com/matrixhub-ai/matrixhub/discussions)
+or the [CNCF Slack `#matrixhub`](https://cloud-native.slack.com/archives/C0A8UKWR8HG)
+for questions, ideas, and support.
 
 - [Documentation site](https://matrixhub.ai)
-- [Development guide](docs/development.md)
-- [Release notes (CHANGELOG)](CHANGELOG/README.md)
+- [Roadmap](docs/roadmap.md)
 
-## Project governance
+## Security
 
-- [Release process](docs/release-process.md)
-- [Maintainers](MAINTAINERS.md)
-- [Governance](GOVERNANCE.md)
-- [Security policy](SECURITY.md)
-- [Contributing](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
+Please report vulnerabilities according to [SECURITY.md](SECURITY.md).
 
-## Community, discussion, contribution, and support
+## License
 
-Slack is our primary channel for community discussion, contribution coordination, and support. You can reach the maintainers and community at:
-
-- [Slack](https://cloud-native.slack.com/archives/C0A8UKWR8HG)
+MatrixHub is licensed under the [Apache License 2.0](LICENSE).

@@ -1,4 +1,4 @@
-# Local development. Demo environment additions are in docker-compose.override.yml.
+# Docker Compose deployment. Demo environment additions are in docker-compose.override.yml.
 services:
   mysql:
     image: mysql:8.4
@@ -29,10 +29,10 @@ services:
       - -c
       - /etc/matrixhub/config.yaml
     ports:
-      - "3001:3001"
+      - "${MATRIXHUB_HTTP_PORT:-3001}:3001"
     volumes:
       - ./data/matrixhub:/data/
-      - ../config/config.yaml:/etc/matrixhub/config.yaml:ro
+      - ./config.yaml:/etc/matrixhub/config.yaml:ro
     environment:
       - MATRIXHUB_DATABASE_DSN=matrixhub:${MYSQL_PASSWORD:-changeme}@tcp(mysql:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true
     depends_on:

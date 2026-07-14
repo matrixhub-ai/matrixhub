@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GO_CMD ?= go
-
 GIT_TAG ?= $(shell git describe --tags --dirty --always)
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
@@ -29,6 +27,13 @@ NPM_CONFIG_REGISTRY ?= https://registry.npmjs.org
 GOPROXY ?= https://proxy.golang.org,direct
 HTTP_PROXY ?=
 HTTPS_PROXY ?=
+VITE_APP_API_URL ?= http://127.0.0.1:3001
+LOCAL_CONFIG ?= config/config.yaml
+MATRIXHUB_BASE_URL ?= http://localhost:3001
+UNIT_TEST_COVERAGE_PROFILE ?= coverage.out
+GOLANGCI_LINT_VERSION ?= v2.8.0
+ACTIONLINT_VERSION ?= latest
+GOVULNCHECK_VERSION ?= latest
 
 version_pkg = github.com/matrixhub-ai/matrixhub/pkg/version
 LD_FLAGS += -X '$(version_pkg).GitVersion=$(GIT_TAG)'
@@ -54,11 +59,7 @@ all: help
 
 .PHONY: help
 help: ## Display this help.
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-24s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-.PHONY: lint-fix
-lint-fix: ## Run golangci-lint with --fix option
-	$(GO_CMD) run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0 run --fix
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9.-]+:.*?##/ { printf "  \033[36m%-24s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 .PHONY: image-build
 image-build: ## Build the MatrixHub image
@@ -82,7 +83,7 @@ website/build: website
 	make -C website build
 
 .PHONY: serve-website
-serve-website: ## Run documentation website locally
+serve-website: ## Serve built documentation website locally
 	make -C website serve
 
 .PHONY: clean
@@ -90,15 +91,71 @@ clean: ## Clean all build artifacts
 	rm -rf bin
 	make -C website clean
 
-.PHONY: local-run-web
-local-run-web: ## Run web frontend locally
-	cd ui && pnpm i && pnpm dev
+.PHONY: local-run-ui
+local-run-ui: ## Run frontend UI locally
+	cd ui && pnpm i && VITE_APP_API_URL="$(VITE_APP_API_URL)" pnpm dev
+
+.PHONY: local-build-ui
+local-build-ui: ## Build UI for local API serving
+	cd ui && pnpm i && pnpm build
 
 .PHONY: local-run-api
 local-run-api: ## Serve the API only
 	go run ./cmd/matrixhub apiserver
 
-##@ E2E Testing
+.PHONY: local-run
+local-run: ## Run MatrixHub locally (web + API)
+	$(MAKE) -j2 local-run-api local-run-ui
+
+.PHONY: local-run-built-ui
+local-run-built-ui: local-build-ui ## Build UI and run API server serving it
+	go run ./cmd/matrixhub apiserver -c $(LOCAL_CONFIG)
+
+##@ Verification
+
+.PHONY: verify
+verify: verify.go verify.ui verify.workflow verify.govulncheck ## Run locally runnable CI static checks
+
+.PHONY: verify.go
+verify.go: lint verify.mocks ## Run Go lint and mock generation checks
+
+.PHONY: lint
+lint: ## Run golangci-lint
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run
+
+.PHONY: lint-fix
+lint-fix: ## Run golangci-lint with --fix option
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run --fix
+
+.PHONY: verify.mocks
+verify.mocks: ## Verify generated gomock files
+	bash ./scripts/verify-mocks.sh
+
+.PHONY: verify.ui
+verify.ui: ## Run UI lint, typecheck, and build
+	cd ui && pnpm install --frozen-lockfile
+	cd ui && pnpm run lint
+	cd ui && pnpm run typecheck
+	cd ui && pnpm run build
+
+.PHONY: verify.workflow
+verify.workflow: ## Run GitHub Actions workflow lint checks
+	go run github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION) -color -shellcheck=
+	bash ./scripts/verify-action-refs.sh
+
+.PHONY: verify.govulncheck
+verify.govulncheck: ## Run Go vulnerability reachability checks
+	go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
+
+##@ Testing
+
+.PHONY: test.unit
+test.unit: ## Run all unit tests
+	bash ./scripts/unit-test.sh
+
+.PHONY: test.unit.coverage
+test.unit.coverage: ## Run all unit tests with coverage
+	COVERAGE=true COVERAGE_PROFILE="$(UNIT_TEST_COVERAGE_PROFILE)" bash ./scripts/unit-test.sh
 
 .PHONY: deploy.kind-cluster
 deploy.kind-cluster: ## Setup KIND cluster
@@ -114,7 +171,7 @@ kind.setup: deploy.kind-cluster deploy.matrixhub ## Setup KIND cluster and deplo
 .PHONY: test.e2e
 test.e2e: ## Run E2E tests locally (requires running MatrixHub)
 	$(eval level ?= "smoke")
-	@bash ./scripts/run-test.sh $(level) smoke $(MATRIXHUB_BASE_URL)
+	MATRIXHUB_BASE_URL="$(MATRIXHUB_BASE_URL)" bash ./scripts/run-test.sh $(level)
 
 .PHONY: test.e2e.kind
 test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)

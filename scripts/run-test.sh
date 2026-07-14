@@ -27,8 +27,8 @@ cd "${PROJECT_ROOT}"
 # Test level: smoke, all
 TEST_LEVEL=${1:-"smoke"}
 
-# Base URL from environment or default to localhost:9527 (for local dev)
-MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL:-http://localhost:9527}"
+# Base URL from environment or default local API server.
+MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL:-http://localhost:3001}"
 
 echo "================================================"
 echo "MatrixHub E2E Test Runner"

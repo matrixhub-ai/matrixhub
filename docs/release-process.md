@@ -68,7 +68,10 @@ Typical flow:
 3. Tag `vX.Y.Z` on the RC commit (promotion) or on a later `main` commit (if additional fixes landed).
 4. Continue development on `main`; cut `vX.Y.(Z+1)` for patch fixes.
 
-A **release branch** (for example `release/0.1`) is **not** required for the first GA or for routine releases from `main`. Create one only when you need a [cherry-pick patch release](#cherry-pick-patch-release) that excludes new features already on `main`.
+A **release branch** named `release-<minor>` (for example `release-0.1` for the
+v0.1 line) is **not** required for the first GA or for routine releases from
+`main`. Create one only when you need a [cherry-pick patch release](#cherry-pick-patch-release)
+that excludes new features already on `main`.
 
 ## Automated release pipeline
 
@@ -310,25 +313,25 @@ If it does not exist yet:
 
 ```bash
 git fetch origin --tags
-git checkout -b release/0.1 v0.1.0
-git push origin release/0.1
+git checkout -b release-0.1 v0.1.0
+git push origin release-0.1
 ```
 
 ##### Cherry-pick fixes
 
 ```bash
-git checkout release/0.1
+git checkout release-0.1
 git cherry-pick <SHA>   # repeat for each fix
-git push origin release/0.1
+git push origin release-0.1
 ```
 
-Open a PR into `release/0.1` when cherry-picks need review.
+Open a PR into `release-0.1` when cherry-picks need review.
 
 ##### Tag patch release
 
 ```bash
-git checkout release/0.1
-git pull origin release/0.1
+git checkout release-0.1
+git pull origin release-0.1
 git tag v0.1.1
 git push origin v0.1.1
 ```

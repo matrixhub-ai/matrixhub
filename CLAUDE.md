@@ -1,4 +1,4 @@
 # Claude Entry
 
-Read `AGENTS.md` first and follow it as the authoritative collaboration and architecture rules for this repository.
-
+Read `AGENTS.md` first. Follow `docs/architecture.md` as the authoritative
+backend architecture guide for this repository.
