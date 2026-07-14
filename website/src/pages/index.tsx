@@ -8,7 +8,7 @@ import {
   Database,
   Network,
   ArrowRight,
-  Github,
+  Code,
   Lock,
   Rocket,
   ShieldCheck,
@@ -193,7 +193,7 @@ export default function Home(): React.ReactElement {
                     href="https://github.com/matrixhub-ai/matrixhub"
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-[#161b22] hover:bg-[#21262d] text-white border border-slate-700 rounded-lg font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 hover:text-white hover:no-underline hover:border-slate-600"
                   >
-                    <Github size={20} /> <Translate id="homepage.hero.github">View on GitHub</Translate>
+                    <Code size={20} /> <Translate id="homepage.hero.github">View on GitHub</Translate>
                   </a>
                 </div>
               </div>
