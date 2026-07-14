@@ -29,7 +29,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: mkdir -p ${{ env.DEPLOY_PATH }} /root/matrixhub/config
+          script: mkdir -p ${{ env.DEPLOY_PATH }}
 
       - name: Sync configs to ECS
         uses: appleboy/scp-action@v0.1.7
@@ -38,7 +38,7 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           # Preserve directory structure so files land at the correct paths under /root/matrixhub
-          source: "deploy/docker-compose.yml,deploy/docker-compose.override.yml,deploy/nginx.conf,config/config.yaml"
+          source: "deploy/docker-compose.yml,deploy/docker-compose.override.yml,deploy/nginx.conf,deploy/config.yaml"
           target: /root/matrixhub
           strip_components: 0
 
@@ -53,9 +53,6 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             IMAGE_TAG="${{ github.event.inputs.image_tag }}"
             echo "[$(date '+%F %T')] === deploy start (tag: ${IMAGE_TAG}) ==="
-
-            # Patch migrationPath to use the path baked into the image
-            sed -i 's|^migrationPath: \./db/migrations|migrationPath: /etc/matrixhub/migrations|' /root/matrixhub/config/config.yaml
 
             # Create .env with random passwords on first deploy; only update image tag on subsequent runs
             if [ ! -f .env ]; then
