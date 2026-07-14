@@ -1,5 +1,49 @@
 # MatrixHub v0.1.x release notes
 
+## v0.1.1
+
+MatrixHub **v0.1.1** is a patch release on the v0.1 line. It prepares a Compose-oriented runtime config next to `docker-compose.yml` so install docs can download both files from the same release tag.
+
+### Downloads
+
+#### Container image
+
+```
+ghcr.io/matrixhub-ai/matrixhub:v0.1.1
+```
+
+Verify signature (optional):
+
+```bash
+cosign verify ghcr.io/matrixhub-ai/matrixhub:v0.1.1 \
+  --certificate-identity-regexp='.*' \
+  --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+```
+
+#### Helm chart (OCI)
+
+```bash
+export CHART_VERSION=0.1.1
+export NAMESPACE=matrixhub
+
+helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
+  --version "${CHART_VERSION}" \
+  --namespace "${NAMESPACE}" \
+  --create-namespace
+```
+
+### Changelog since v0.1.0
+
+#### Feature
+
+- Added `deploy/config.yaml` beside `deploy/docker-compose.yml` so Docker Compose setups can curl both artifacts from the same release tag and start with fewer manual config steps. (#814, @yitingdc)
+
+### Upgrade notes
+
+No breaking changes from **v0.1.0**. Existing deployments can keep their current config. New Compose installs may use the shipped `deploy/config.yaml` as the starting point (see upcoming README install steps).
+
+---
+
 ## v0.1.0
 
 MatrixHub **v0.1.0** is the first official release. It matches the code shipped in `v0.1.0-rc.1` and delivers the **V0 / M0–M1 baseline** described in the [roadmap](../docs/roadmap.md): a self-hosted, Hugging Face–compatible model registry for private inference clusters.

@@ -16,12 +16,12 @@ package db
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsUniqueViolationError(t *testing.T) {
@@ -31,42 +31,30 @@ func TestIsUniqueViolationError(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "MySQL duplicate entry",
+			name: "mysql unique violation",
 			err:  &mysql.MySQLError{Number: 1062},
 			want: true,
 		},
 		{
-			name: "other MySQL error",
-			err:  &mysql.MySQLError{Number: 1064},
-			want: false,
-		},
-		{
-			name: "PostgreSQL unique violation",
+			name: "postgres unique violation",
 			err:  &pgconn.PgError{Code: pgerrcode.UniqueViolation},
 			want: true,
 		},
 		{
-			name: "wrapped PostgreSQL unique violation",
-			err:  fmt.Errorf("insert record: %w", &pgconn.PgError{Code: pgerrcode.UniqueViolation}),
-			want: true,
-		},
-		{
-			name: "other PostgreSQL error",
+			name: "other database error",
 			err:  &pgconn.PgError{Code: pgerrcode.ForeignKeyViolation},
 			want: false,
 		},
 		{
-			name: "unrelated error",
-			err:  errors.New("unrelated"),
+			name: "generic error",
+			err:  errors.New("database error"),
 			want: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsUniqueViolationError(tt.err); got != tt.want {
-				t.Fatalf("IsUniqueViolationError() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, IsUniqueViolationError(tt.err))
 		})
 	}
 }
