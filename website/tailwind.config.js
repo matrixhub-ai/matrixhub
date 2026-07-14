@@ -62,8 +62,5 @@ module.exports = {
     },
   },
   plugins: [],
-  corePlugins: {
-    preflight: false, // Disable preflight to avoid conflict with Docusaurus styling
-  },
   darkMode: ['class', '[data-theme="dark"]'], // Support Docusaurus dark mode
 }
