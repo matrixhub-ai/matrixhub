@@ -1,21 +1,21 @@
 # Local Development Guide
 
 This document describes how to run MatrixHub frontend and backend services locally.
+For backend package boundaries and dependency rules, see
+[Architecture Guide](architecture.md).
 
 ## Prerequisites
 
 - Go 1.23+
-- Node.js 18+
+- Node.js 18+ for the app UI; Node.js 20+ for the documentation website
 - pnpm 8+
 - Docker
 
-## Quick Start
+## Local Development
 
-### Local Development
+Start with MySQL, then choose the frontend mode that matches your work.
 
-If you need to modify code and debug locally, you can start services manually.
-
-#### 1. Start MySQL Database
+### 1. Start MySQL
 
 ```bash
 docker run -d \
@@ -28,83 +28,234 @@ docker run -d \
   mysql:8.4
 ```
 
-#### 2. Configure Environment Variables
+### 2. Configure the Backend Database DSN
 
 ```bash
 export MATRIXHUB_DATABASE_DSN="matrixhub:changeme@tcp(127.0.0.1:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true"
 ```
 
-#### 3. Start Backend Service
+### Option A: Backend-focused Development With Built UI
+
+Use this when changing backend code and you only need a working UI. The UI is
+built once and served by the Go API server from the same origin.
+
+Make sure the selected config points `ui.staticDir` to the built frontend:
+
+```yaml
+ui:
+  staticDir: ./ui/dist
+```
+
+Build the frontend:
+
+```bash
+cd ui
+pnpm install
+pnpm build
+cd ..
+```
+
+Start the backend from the repository root:
+
+```bash
+go run ./cmd/matrixhub apiserver -c config/config.yaml
+```
+
+If you keep environment-specific values in a local config file, pass that config
+file explicitly:
+
+```bash
+go run ./cmd/matrixhub apiserver -c config/config-local.yaml
+```
+
+Make shortcuts:
+
+```bash
+make local-run-built-ui
+LOCAL_CONFIG=config/config-local.yaml make local-run-built-ui
+```
+
+Open http://localhost:3001.
+
+### Option B: Full-stack Development
+
+Use this when changing frontend code or when you need Vite hot reload.
+
+Start the backend from the repository root:
 
 ```bash
 # Use default config file
 go run ./cmd/matrixhub apiserver
-
 # Or specify config file
-go run ./cmd/matrixhub apiserver -c config/dev-config.yaml
+go run ./cmd/matrixhub apiserver -c config/config.yaml
 ```
 
-#### 4. Start Frontend Service
+Start the frontend dev server in another terminal:
 
 ```bash
 cd ui
-pnpm install  # Install dependencies on first run
-pnpm dev
+pnpm install # Install dependencies on first run
+VITE_APP_API_URL=http://127.0.0.1:3001 pnpm dev
 ```
 
-The frontend dev server will start at http://localhost:5173 and automatically proxy API requests to the backend.
+If your backend uses a different address or port, point `VITE_APP_API_URL` to
+that address instead.
 
-## Using Makefile
+Open http://localhost:5173.
 
-The project provides convenient Makefile commands:
-
-**⚠️ Important**: Before using `local-run` and `local-run-api` commands, **you must start MySQL database first**.
+Make shortcuts:
 
 ```bash
-# 1. Start MySQL database (if not already running)
-docker run -d \
-  --name matrixhub-mysql \
-  -e MYSQL_ROOT_PASSWORD=password \
-  -e MYSQL_DATABASE=matrixhub \
-  -e MYSQL_USER=matrixhub \
-  -e MYSQL_PASSWORD=changeme \
-  -p 3306:3306 \
-  mysql:8.4
-
-# 2. Run locally (frontend + backend)
-make local-run
-
-# Or run separately:
-make local-run-api   # Run backend API server only
-make local-run-web   # Run frontend only
+make local-run       # Start backend and frontend dev server together
+make local-run-api   # Start backend only
+make local-run-ui    # Start frontend dev server only
 ```
 
-**Tips**:
-- `local-run-web` does not depend on MySQL and can run independently
-- `local-run-api` and `local-run` require MySQL to be running
-- If environment variables are not configured, ensure the database DSN in `config/config.yaml` is correct
+## Documentation Website Local Development
 
-## Configuration
+The documentation website lives in `website/` and uses Docusaurus.
 
-### Environment Variables
+For active documentation development with hot reload:
 
-`config.yaml` supports configuring database connection via environment variables:
+```bash
+cd website
+npm install
+npm run start
+```
+
+Open http://localhost:3000.
+
+To preview the production build locally:
+
+```bash
+cd website
+npm install
+npm run build
+npm run serve
+```
+
+Make shortcuts:
+
+```bash
+make -C website build
+make serve-website
+```
+
+## Static Checks
+
+Run the locally runnable CI static checks from the repository root:
+
+```bash
+make verify
+```
+
+For focused runs while iterating:
+
+```bash
+make verify.go
+make verify.ui
+make verify.workflow
+make verify.govulncheck
+```
+
+`make verify.go` runs Go lint plus mock generation consistency checks.
+`make verify.ui` runs ESLint, TypeScript type checking, and the UI build.
+`make verify.workflow` runs GitHub Actions workflow linting and action reference
+validation. `make verify.govulncheck` checks reachable Go vulnerabilities.
+GitHub CodeQL analysis still runs in CI and is not included in `make verify`.
+
+To auto-fix supported Go lint/import formatting issues:
+
+```bash
+make lint-fix
+```
+
+## Unit Tests
+
+Run all unit tests from the repository root:
+
+```bash
+make test.unit
+```
+
+`make test.unit` temporarily excludes `./internal/apiserver/handler/hf`; 
+add that package back after the HF handler tests are fixed.
+
+Run unit tests with coverage:
+
+```bash
+make test.unit.coverage
+```
+
+For focused package runs while iterating:
+
+```bash
+go test -count=1 ./internal/domain/syncpolicy/...
+```
+
+The Makefile delegates package selection to `scripts/unit-test.sh`, where the
+default package list is defined. Override `UNIT_TEST_PKGS` to include new
+unit-test package roots:
+
+```bash
+UNIT_TEST_PKGS="./cmd/... ./internal/... ./pkg/..." make test.unit
+```
+
+Override `UNIT_TEST_EXCLUDE_PKGS` to change the temporary exclusions:
+
+```bash
+UNIT_TEST_EXCLUDE_PKGS= make test.unit
+```
+
+When interfaces change, regenerate mocks before running or committing tests:
+
+```bash
+make generate-mocks
+```
+
+## End-to-End Tests
+
+E2E tests live under `test/e2e_apiserver` and run against a live MatrixHub API
+server. Start MySQL and the backend API server first; the frontend UI does not
+need to be running.
+
+Known issue: E2E tests modify the target MatrixHub database and `dataDir`, and
+the current cleanup does not guarantee that database rows or filesystem data are
+restored to their original state. Use a disposable local database and data
+directory, not a shared or important environment.
 
 ```bash
 export MATRIXHUB_DATABASE_DSN="matrixhub:changeme@tcp(127.0.0.1:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true"
+go run ./cmd/matrixhub apiserver -c config/config.yaml
 ```
 
-### Frontend Proxy Configuration
+Then run E2E tests from another terminal:
 
-The frontend is configured with Vite proxy, which automatically forwards `/api/*` and `/apis/*` requests to the backend server (http://127.0.0.1:3001) in development mode, no additional configuration needed.
+```bash
+make test.e2e
+```
 
-Configuration file: `ui/vite.config.ts`
+`make test.e2e` runs E2E tests against
+`MATRIXHUB_BASE_URL=http://localhost:3001` by default. The default level is
+`smoke`; currently `smoke` and `all` run the same E2E package set with different
+timeouts. Override the level or base URL when needed:
 
-## Accessing the Application
+```bash
+level=all make test.e2e
+MATRIXHUB_BASE_URL=http://localhost:3002 make test.e2e
+```
 
-- **Frontend UI**: http://localhost:5173
-- **Backend API**: http://localhost:3001
-- **API Health Check**: http://localhost:3001/health
+The E2E runner invokes the `ginkgo` CLI. If it is not installed:
+
+```bash
+go install github.com/onsi/ginkgo/v2/ginkgo@v2.22.1
+```
+
+For a KIND-based E2E environment:
+
+```bash
+make test.e2e.kind
+```
 
 ## Development Tips
 
@@ -174,19 +325,8 @@ func TestSyncPolicyService_CreateSyncPolicy(t *testing.T) {
 }
 ```
 
-4. **Run the tests**:
-
-```bash
-# Single package
-go test -count=1 ./internal/domain/syncpolicy/...
-go test -count=1 ./internal/jobserver/...
-
-# All backend unit tests (matches CI; excludes e2e under test/)
-go test -short -count=1 ./cmd/... ./internal/...
-
-# go test ./... also runs test/e2e_apiserver/... and requires a running
-# apiserver + MySQL. For e2e, use: make test.e2e
-```
+4. **Run the relevant unit tests.** See [Unit Tests](#unit-tests) for local
+commands.
 
 #### gomock tips
 
@@ -196,23 +336,6 @@ go test -short -count=1 ./cmd/... ./internal/...
 - **Negative assertions**: simply set **no** `EXPECT()` for a method; gomock fails the test if it is called.
 - **Regenerate after changing an interface**: rerun `make generate-mocks` and commit the updated files under `mocks/` (they are generated — never hand-edit).
 - **Dependabot bumps `go.uber.org/mock`**: the `tool` directive keeps `mockgen` in sync automatically. CI re-runs `go generate` and fails if `mocks/` drifts. If that happens, check out the Dependabot branch, run `make generate-mocks`, commit any `mocks/` diff, and push.
-
-### Sync policies and jobserver (delayed-job, single replica)
-
-Sync scheduling uses `sync_policies.next_run_at` (milliseconds). The **jobserver** runs in-process with the API server (`internal/jobserver`): the **sync_policy** processor polls due policies, CAS-advances `next_run_at`, then calls `CreatePendingSyncTask` to insert a `sync_tasks` row (status pending). A separate **sync_task** processor claims pending tasks and calls `ExecuteSyncTask` to generate `sync_jobs` rows; the **sync_job** processor then runs the git work. There is no separate cron daemon process.
-
-- **Config** (`config.yaml`): `jobServer` — set `enabled: false` to disable inserting pending `sync_tasks` from the poller (manual API `CreateSyncTask` will only bump `next_run_at`). Per-sync-policy tuning (`pollInterval`, `maxConcurrent`, `taskMaxDuration`) lives under `jobServer.syncPolicy`.
-- **Migrations**: scheduling columns (`cron`, `last_run_at`, `next_run_at`, `idx_due`) are in `0_init.up.sql`; apply with `database.migrate: true` or run SQL under `db/migrations/sql/mysql/`.
-- **Cron syntax**: validated with `github.com/robfig/cron/v3` (five fields plus descriptors such as `@daily`). Example: `0 * * * *` (hourly).
-- **Not in this release**: Stop task, heartbeat, reaper, multi-replica fencing (`running_by` / `running_until`).
-
-**Verify jobserver logic (no database required)**:
-
-```bash
-go test -v -count=1 ./internal/jobserver/...
-```
-
-**End-to-end** (requires MySQL + migrated schema + a sync policy with `next_run_at` due): start `go run ./cmd/matrixhub apiserver`, trigger a policy (scheduled cron or `CreateSyncTask` for manual bump), then list `sync_tasks` (pending rows) / watch logs for `jobserver: processor loop start`.
 
 ## Troubleshooting
 
