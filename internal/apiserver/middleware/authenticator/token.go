@@ -42,7 +42,7 @@ func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) 
 }
 
 func (a *TokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, error) {
-	if token == "" || !strings.HasPrefix(token, utils.TokenPrefix) {
+	if token == "" || !strings.HasPrefix(token, utils.TokenPrefix) || len(token) == len(utils.TokenPrefix) {
 		return nil, nil
 	}
 	ak, err := a.tokenRepo.GetByTokenHash(ctx, utils.Sha256Hex(token))

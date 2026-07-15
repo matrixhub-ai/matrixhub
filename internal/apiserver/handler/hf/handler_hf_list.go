@@ -113,11 +113,39 @@ type repoEntry struct {
 	repoPath string // absolute path to the .git directory
 }
 
+// isSafePathComponent reports whether component is a single, non-traversing path component.
+func isSafePathComponent(component string) bool {
+	if component == "" || component == "." || component == ".." {
+		return false
+	}
+	if filepath.IsAbs(component) {
+		return false
+	}
+	return !strings.ContainsAny(component, `/\\`)
+}
+
 // discoverRepos walks the base directory and returns all valid repository entries,
 // applying namespace-level filters (author, skipping non-model prefixes).
 func discoverRepos(baseDir string, isModel bool, author string) []repoEntry {
 	if author != "" {
-		return discoverReposInNamespace(filepath.Join(baseDir, author), author)
+		if !isSafePathComponent(author) {
+			return nil
+		}
+
+		nsPath := filepath.Join(baseDir, author)
+		absBaseDir, err := filepath.Abs(baseDir)
+		if err != nil {
+			return nil
+		}
+		absNsPath, err := filepath.Abs(nsPath)
+		if err != nil {
+			return nil
+		}
+		if !strings.HasPrefix(absNsPath, absBaseDir+string(os.PathSeparator)) && absNsPath != absBaseDir {
+			return nil
+		}
+
+		return discoverReposInNamespace(nsPath, author)
 	}
 	namespaces, err := os.ReadDir(baseDir)
 	if err != nil {
