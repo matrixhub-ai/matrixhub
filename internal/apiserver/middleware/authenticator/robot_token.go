@@ -40,7 +40,7 @@ func (a *RobotTokenAuthenticator) Authenticate(ctx context.Context, r *http.Requ
 }
 
 func (a *RobotTokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, error) {
-	if token == "" || !strings.HasPrefix(token, utils.RobotTokenPrefix) {
+	if token == "" || !strings.HasPrefix(token, utils.RobotTokenPrefix) || len(token) == len(utils.RobotTokenPrefix) {
 		return nil, nil
 	}
 

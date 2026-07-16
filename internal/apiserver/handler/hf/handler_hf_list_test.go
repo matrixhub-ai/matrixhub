@@ -22,6 +22,29 @@ import (
 	"testing"
 )
 
+func TestIsSafePathComponent(t *testing.T) {
+	tests := []struct {
+		component string
+		safe      bool
+	}{
+		{component: "alice", safe: true},
+		{component: "user.name", safe: true},
+		{component: "", safe: false},
+		{component: ".", safe: false},
+		{component: "..", safe: false},
+		{component: "../alice", safe: false},
+		{component: "alice/../bob", safe: false},
+		{component: "/tmp", safe: false},
+		{component: `\\tmp`, safe: false},
+	}
+
+	for _, tt := range tests {
+		if got := isSafePathComponent(tt.component); got != tt.safe {
+			t.Errorf("isSafePathComponent(%q) = %t, want %t", tt.component, got, tt.safe)
+		}
+	}
+}
+
 func TestHandleListModelsEmpty(t *testing.T) {
 	server, _ := setupTestServer(t)
 	endpoint := server.URL
