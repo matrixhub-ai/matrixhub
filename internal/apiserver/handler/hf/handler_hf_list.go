@@ -124,24 +124,47 @@ func isSafePathComponent(component string) bool {
 	return !strings.ContainsAny(component, `/\\`)
 }
 
+// resolveContainedPath resolves a safe path component below root and rejects
+// paths that escape root, including through symbolic links.
+func resolveContainedPath(root, component string) (string, error) {
+	if !isSafePathComponent(component) {
+		return "", fmt.Errorf("invalid path component %q", component)
+	}
+
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return "", err
+	}
+	resolvedRoot, err := filepath.EvalSymlinks(absRoot)
+	if err != nil {
+		return "", err
+	}
+
+	absPath, err := filepath.Abs(filepath.Join(root, component))
+	if err != nil {
+		return "", err
+	}
+	resolvedPath, err := filepath.EvalSymlinks(absPath)
+	if err != nil {
+		return "", err
+	}
+
+	rel, err := filepath.Rel(resolvedRoot, resolvedPath)
+	if err != nil {
+		return "", err
+	}
+	if filepath.IsAbs(rel) || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return "", fmt.Errorf("path %q escapes root %q", component, root)
+	}
+	return resolvedPath, nil
+}
+
 // discoverRepos walks the base directory and returns all valid repository entries,
 // applying namespace-level filters (author, skipping non-model prefixes).
 func discoverRepos(baseDir string, isModel bool, author string) []repoEntry {
 	if author != "" {
-		if !isSafePathComponent(author) {
-			return nil
-		}
-
-		nsPath := filepath.Join(baseDir, author)
-		absBaseDir, err := filepath.Abs(baseDir)
+		nsPath, err := resolveContainedPath(baseDir, author)
 		if err != nil {
-			return nil
-		}
-		absNsPath, err := filepath.Abs(nsPath)
-		if err != nil {
-			return nil
-		}
-		if !strings.HasPrefix(absNsPath, absBaseDir+string(os.PathSeparator)) && absNsPath != absBaseDir {
 			return nil
 		}
 
