@@ -63,7 +63,11 @@ function mergeDeep(
   sourcePath: string,
   parentKey: string,
 ) {
-  for (const key in source) {
+  for (const key of Object.keys(source)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      continue
+    }
+
     const keyPath = parentKey ? `${parentKey}.${key}` : key
     const targetVal = target[key]
     const sourceVal = source[key]
