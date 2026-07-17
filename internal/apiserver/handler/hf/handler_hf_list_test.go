@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -42,6 +44,44 @@ func TestIsSafePathComponent(t *testing.T) {
 		if got := isSafePathComponent(tt.component); got != tt.safe {
 			t.Errorf("isSafePathComponent(%q) = %t, want %t", tt.component, got, tt.safe)
 		}
+	}
+}
+
+func TestResolveContainedPath(t *testing.T) {
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, "namespace"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	resolved, err := resolveContainedPath(root, "namespace")
+	if err != nil {
+		t.Fatalf("resolveContainedPath() error = %v", err)
+	}
+	want, err := filepath.EvalSymlinks(filepath.Join(root, "namespace"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resolved != want {
+		t.Fatalf("resolveContainedPath() = %q, want %q", resolved, want)
+	}
+
+	for _, relativePath := range []string{"../outside", "namespace/../../outside"} {
+		if _, err := resolveContainedPath(root, relativePath); err == nil {
+			t.Errorf("resolveContainedPath(%q) succeeded, want containment error", relativePath)
+		}
+	}
+}
+
+func TestResolveContainedPathRejectsExternalSymlink(t *testing.T) {
+	root := t.TempDir()
+	external := t.TempDir()
+	link := filepath.Join(root, "namespace")
+	if err := os.Symlink(external, link); err != nil {
+		t.Skipf("cannot create symlink: %v", err)
+	}
+
+	if _, err := resolveContainedPath(root, "namespace"); err == nil {
+		t.Fatal("resolveContainedPath() followed external symlink")
 	}
 }
 

@@ -65,7 +65,15 @@ func GenerateUserToken() (raw, hash string, err error) {
 	return GenerateToken(TokenPrefix)
 }
 
+// Sha256Hex returns a lookup digest for an API or robot token.
+//
+// The input is not a user password. Tokens are generated from 24 random bytes
+// (192 bits of entropy) and this fast hash is used only for exact-match
+// database lookups. Basic Auth uses its password field to transport these
+// tokens in the token authentication protocol. User passwords are hashed with
+// bcrypt in internal/infra/crypto and must not be passed to this function.
 func Sha256Hex(s string) string {
+	// codeql[go/weak-sensitive-data-hashing]
 	sum := sha256.Sum256([]byte(s))
 	return fmt.Sprintf("%x", sum)
 }
