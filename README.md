@@ -1,6 +1,7 @@
 # MatrixHub
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/matrixhub-ai/matrixhub)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13641/badge)](https://www.bestpractices.dev/projects/13641)
 
 **MatrixHub** is an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a drop-in private replacement for Hugging Face, purpose-built to accelerate **vLLM** and **SGLang** workloads.
 
