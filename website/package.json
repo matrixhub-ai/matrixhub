@@ -29,7 +29,7 @@
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
-    "@tailwindcss/postcss": "^4.3.2",
+    "@tailwindcss/postcss": "^4.3.3",
     "postcss": "^8.5.19",
     "tailwindcss": "^4.3.2",
     "typescript": "~7.0.2"
