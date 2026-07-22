@@ -5,9 +5,13 @@ on:
   push:
     branches:
       - main
+      - 'release/*'
+      - 'release-*'
   pull_request:
     branches:
       - main
+      - 'release/*'
+      - 'release-*'
   schedule:
     - cron: '0 8 * * 1'
 

@@ -4,11 +4,15 @@ on:
   push:
     branches:
       - main
+      - 'release/*'
+      - 'release-*'
     paths:
       - website/**
   pull_request:
     branches:
       - main
+      - 'release/*'
+      - 'release-*'
     paths:
       - website/**
 
