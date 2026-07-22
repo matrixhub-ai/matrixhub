@@ -94,6 +94,13 @@ jobs:
           helm version
           ginkgo version
 
+      - name: Map matrixhub.local for API coverage
+        # Go's http.ProxyFromEnvironment bypasses loopback hosts, so the e2e
+        # client must reach the service via a non-loopback hostname for the
+        # mitmproxy recorder to capture traffic. The recorder runs on the host
+        # network and shares this /etc/hosts entry.
+        run: echo "127.0.0.1 matrixhub.local" | sudo tee -a /etc/hosts
+
       - name: Run E2E Test
         id: run_e2e
         continue-on-error: false
@@ -101,7 +108,8 @@ jobs:
           make test.e2e.kind -e E2E_CLUSTER_NAME=${{ env.CLUSTER_NAME }} \
               -e E2E_MATRIXHUB_IMAGE=ghcr.io/${{ env.IMAGE_REPO_LOWER }}/matrixhub-ci:${{ inputs.image_tag }} \
               -e E2E_KIND_IMAGE_TAG=${{ inputs.k8s_version }} \
-              -e E2E_LABELS="${{ inputs.e2e_labels }}"
+              -e E2E_LABELS="${{ inputs.e2e_labels }}" \
+              -e E2E_API_COVERAGE=true
       - name: Cleanup Kind Cluster
         if: always()
         run: |

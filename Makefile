@@ -169,8 +169,8 @@ deploy.matrixhub: ## Deploy MatrixHub to KIND cluster
 kind.setup: deploy.kind-cluster deploy.matrixhub ## Setup KIND cluster and deploy MatrixHub
 
 .PHONY: test.e2e
-test.e2e: ## Run E2E tests locally (requires running MatrixHub). Set E2E_LABELS to filter (e.g. E2E_LABELS=smoke); empty runs all.
-	MATRIXHUB_BASE_URL="$(MATRIXHUB_BASE_URL)" bash ./scripts/run-test.sh "$(E2E_LABELS)"
+test.e2e: ## Run E2E tests locally (requires running MatrixHub). Set E2E_LABELS to filter (e.g. E2E_LABELS=smoke); empty runs all. Set E2E_API_COVERAGE=true for the mitmproxy coverage report.
+	E2E_API_COVERAGE="$(E2E_API_COVERAGE)" MATRIXHUB_BASE_URL="$(MATRIXHUB_BASE_URL)" bash ./scripts/run-test.sh "$(E2E_LABELS)"
 
 .PHONY: test.e2e.kind
 test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
@@ -183,12 +183,16 @@ test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
 	@echo "  E2E_KIND_IMAGE_TAG  = $${E2E_KIND_IMAGE_TAG:-v1.32.3}"
 	@echo "  E2E_MATRIXHUB_IMAGE = $${E2E_MATRIXHUB_IMAGE:-ghcr.io/matrixhub-ai/matrixhub:latest}"
 	@echo "  E2E_LABELS          = $${E2E_LABELS:-<all>}"
+	@echo "  E2E_API_COVERAGE    = $(E2E_API_COVERAGE)"
 	@echo ""
 	@echo "Step 1: Setting up KIND cluster and deploying MatrixHub..."
 	$(MAKE) kind.setup
 	@echo ""
 	@echo "Step 2: Running E2E tests..."
-	MATRIXHUB_BASE_URL="http://localhost:30001" $(MAKE) test.e2e E2E_LABELS="$(E2E_LABELS)"
+	@# Coverage needs a non-loopback host so Go routes through mitmproxy;
+	@# matrixhub.local must resolve to the NodePort host (see e2e-init.yaml).
+	MATRIXHUB_BASE_URL="http://$(if $(filter true,$(E2E_API_COVERAGE)),matrixhub.local,localhost):30001" \
+		$(MAKE) test.e2e E2E_LABELS="$(E2E_LABELS)" E2E_API_COVERAGE="$(E2E_API_COVERAGE)"
 	@echo ""
 	@echo "To cleanup, run:"
 	@echo "  kind delete cluster --name=$${E2E_CLUSTER_NAME:-matrixhub-e2e}"
