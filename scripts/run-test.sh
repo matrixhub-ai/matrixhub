@@ -24,8 +24,9 @@ PROJECT_ROOT="${SCRIPT_DIR}/.."
 # Change to project root directory
 cd "${PROJECT_ROOT}"
 
-# Test level: smoke, all
-TEST_LEVEL=${1:-"smoke"}
+# Ginkgo label filter expression (e.g. "smoke", or comma-separated labels).
+# Empty or "all" runs every test (no filter). Passed to `ginkgo --label-filter`.
+LABEL_FILTER=${1:-}
 
 # Base URL from environment or default local API server.
 MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL:-http://localhost:3001}"
@@ -33,7 +34,7 @@ MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL:-http://localhost:3001}"
 echo "================================================"
 echo "MatrixHub E2E Test Runner"
 echo "================================================"
-echo "Test Level: ${TEST_LEVEL}"
+echo "Label filter: ${LABEL_FILTER:-<all>}"
 echo "Base URL:   ${MATRIXHUB_BASE_URL}"
 echo "================================================"
 
@@ -73,21 +74,15 @@ echo ""
 
 export MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL}"
 
-case ${TEST_LEVEL} in
-    "smoke")
-        echo "Running smoke tests..."
-        ginkgo -v --timeout=10m ./test/e2e_apiserver/...
-        ;;
-    "all")
-        echo "Running all E2E tests..."
-        ginkgo -v --timeout=20m ./test/e2e_apiserver/...
-        ;;
-    *)
-        echo "Unknown test level: ${TEST_LEVEL}"
-        echo "Supported levels: smoke, all"
-        exit 1
-        ;;
-esac
+# Empty or "all" => run every test (no label filter).
+# Otherwise pass the expression straight to ginkgo's --label-filter.
+if [ -z "${LABEL_FILTER}" ] || [ "${LABEL_FILTER}" = "all" ]; then
+    echo "Running all E2E tests..."
+    ginkgo -v --timeout=20m ./test/e2e_apiserver/...
+else
+    echo "Running E2E tests with label filter: ${LABEL_FILTER}"
+    ginkgo -v --timeout=20m --label-filter "${LABEL_FILTER}" ./test/e2e_apiserver/...
+fi
 
 echo ""
 echo "================================================"

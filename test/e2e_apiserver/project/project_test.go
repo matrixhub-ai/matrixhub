@@ -40,7 +40,7 @@ var _ = Describe("Project", Label("project"), func() {
 	})
 
 	Context("CreateProject API", func() {
-		It("should create a project successfully", Label("L00001"), func() {
+		It("should create a project successfully", Label("L00001", "smoke"), func() {
 			projectName := tools.GenerateTestProjectName("project")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("Creating project: %v\n", projectName)

@@ -49,7 +49,7 @@ var _ = Describe("Robot", Label("robot"), func() {
 	// 1. CreateRobotAccount API
 	// ═══════════════════════════════════════════════════════════
 	Context("CreateRobotAccount API", func() {
-		It("should create a robot account and return a non-empty token", Label("R00001"), func() {
+		It("should create a robot account and return a non-empty token", Label("R00001", "smoke"), func() {
 			name := generateRobotName("rb-create")
 			resp, _, err := robotsApi.RobotsCreateRobotAccount(ctx, v1alpha1robot.V1alpha1CreateRobotAccountRequest{
 				Name:        name,

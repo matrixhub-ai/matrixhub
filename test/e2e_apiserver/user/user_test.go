@@ -40,7 +40,7 @@ var _ = Describe("User", Label("user"), func() {
 	// 1. CreateUser API
 	// ═══════════════════════════════════════════════════════════
 	Context("CreateUser API", func() {
-		It("should create a regular user successfully", Label("U00001"), func() {
+		It("should create a regular user successfully", Label("U00001", "smoke"), func() {
 			username := tools.GenerateTestUsername("u-create")
 			_, _, err := usersApi.UsersCreateUser(ctx, v1alpha1user.V1alpha1CreateUserRequest{
 				Username: username,
