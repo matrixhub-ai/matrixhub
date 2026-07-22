@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Model settings
 
-Only members with **admin** permissions can edit the **Model settings** tab.
+Only members with **admin** or **project admin** permissions can edit the **Model settings** tab.
 
 ![Model Settings](./images/model-setting.jpg)
 
@@ -28,9 +28,7 @@ Only members with **admin** permissions can edit the **Model settings** tab.
 
 1. Open the target model’s detail page and switch to **Model settings** .
 
-1. Click **Delete model** .
-
-1. In the confirmation dialog, enter the project name and confirm deletion.
+1. Enter the project name/model name in the field to delete the model.
 
 :::warning
 
