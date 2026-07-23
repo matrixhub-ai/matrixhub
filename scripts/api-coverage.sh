@@ -143,6 +143,25 @@ function api_coverage::_emit() {
     fi
 }
 
+# Convert a "covered/total" fraction into a percentage string, or "N/A".
+# swagger-coverage's "Partial coverage %" is the share of operations in the
+# partial state (Empty+Partial+Full sum to 100%), NOT a coverage ratio -- a
+# fully-covered module reports 0% partial. The meaningful figure is the
+# condition coverage ratio from the "Conditions: X/Y" line.
+function api_coverage::_pct() {
+    local frac="$1" num den
+    case "${frac}" in
+        */*)
+            num="${frac%%/*}"; den="${frac##*/}"
+            if [ -n "${den}" ] && [ "${den}" != "0" ]; then
+                awk -v n="${num}" -v d="${den}" 'BEGIN{ printf "%.1f%%", (n*100)/d }'
+                return
+            fi
+            ;;
+    esac
+    echo "N/A"
+}
+
 # Compute coverage from recorded traffic and print a Markdown report.
 function api_coverage::report() {
     local container="${API_COVERAGE_CONTAINER}"
@@ -162,15 +181,17 @@ function api_coverage::report() {
     local merged_output
     merged_output=$(docker exec "${container}" swagger-coverage-commandline \
         -i /data/records/ -c /data/result/ -s /merged_swagger.json | grep INFO)
-    local merged_conditions merged_partial
+    local merged_conditions
     merged_conditions=$(echo "${merged_output}" | grep "Conditions:" | awk '{print $NF}')
-    merged_partial=$(echo "${merged_output}" | grep "Partial coverage" | awk '{print $7}' | tr -d '\n')
 
     api_coverage::_emit "## E2E API Coverage"
     api_coverage::_emit ""
-    api_coverage::_emit "| Module | Conditions | Partial Coverage |"
+    api_coverage::_emit "Coverage is the share of swagger-coverage _conditions_ (status codes,"
+    api_coverage::_emit "required params, etc.) exercised by the recorded traffic."
+    api_coverage::_emit ""
+    api_coverage::_emit "| Module | Conditions | Coverage |"
     api_coverage::_emit "| --- | --- | --- |"
-    api_coverage::_emit "| **total** | ${merged_conditions:-N/A} | ${merged_partial:-N/A}% |"
+    api_coverage::_emit "| **total** | ${merged_conditions:-N/A} | $(api_coverage::_pct "${merged_conditions}") |"
 
     # Per-module figures, one swagger spec at a time, sorted by coverage desc.
     local results=()
@@ -180,22 +201,24 @@ function api_coverage::report() {
         local filename
         filename=$(basename "${swagger_file}" .swagger.json)
         docker cp "${swagger_file}" "${container}:/${filename}" >/dev/null 2>&1 || continue
-        local output conditions partial
+        local output conditions covered total pct
         output=$(docker exec "${container}" swagger-coverage-commandline \
             -i /data/records/ -c /data/result/ -s "/${filename}" | grep INFO)
         conditions=$(echo "${output}" | grep "Conditions:" | awk '{print $NF}')
-        partial=$(echo "${output}" | grep "Partial coverage" | awk '{print $7}' | tr -d '\n')
-        if [ "${conditions}" != "0/0" ] && [ -n "${partial}" ]; then
-            results+=("${partial}|${filename}|${conditions}")
-        fi
+        [ "${conditions}" = "0/0" ] && continue
+        covered="${conditions%%/*}"; total="${conditions##*/}"
+        [ -n "${total}" ] && [ "${total}" != "0" ] || continue
+        # Sort key: coverage ratio scaled to an integer (covered*10000/total).
+        pct=$(awk -v n="${covered}" -v d="${total}" 'BEGIN{ printf "%06d", (n*10000)/d }')
+        results+=("${pct}|${filename}|${conditions}")
     done < <(find "${API_COVERAGE_OPENAPI_DIR}" -type f -name "*.swagger.json")
 
     local sorted
     IFS=$'\n' sorted=($(printf '%s\n' "${results[@]}" | sort -t'|' -k1,1nr)); unset IFS
     local row
     for row in "${sorted[@]}"; do
-        IFS='|' read -r partial filename conditions <<< "${row}"
-        api_coverage::_emit "| ${filename} | ${conditions:-N/A} | ${partial:-N/A}% |"
+        IFS='|' read -r _ filename conditions <<< "${row}"
+        api_coverage::_emit "| ${filename} | ${conditions:-N/A} | $(api_coverage::_pct "${conditions}") |"
     done
 
     # Tested endpoints / case points recorded during the run.
