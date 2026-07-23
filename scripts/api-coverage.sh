@@ -98,6 +98,18 @@ function api_coverage::start() {
     export HTTP_PROXY="${http_proxy}"
     export HTTPS_PROXY="${https_proxy}"
 
+    # Only the test's API traffic should traverse the recorder. Everything the Go
+    # toolchain needs (module proxy, checksum db) must bypass it, or `ginkgo`'s
+    # compile step fails to download modules through mitmproxy. Bypass loopback
+    # and the Go module infrastructure, including whatever hosts GOPROXY/GOSUMDB
+    # point at.
+    local go_bypass="localhost,127.0.0.1,::1,proxy.golang.org,sum.golang.org,goproxy.cn,goproxy.io,storage.googleapis.com"
+    local gp
+    gp="$(go env GOPROXY GOSUMDB 2>/dev/null | tr ',' '\n' \
+        | sed -nE 's#^[a-z]+://([^/:]+).*#\1#p' | paste -sd, - 2>/dev/null)"
+    export no_proxy="${no_proxy:+${no_proxy},}${go_bypass}${gp:+,${gp}}"
+    export NO_PROXY="${no_proxy}"
+
     api_coverage::merge_swagger "${API_COVERAGE_OPENAPI_DIR}" "${API_COVERAGE_MERGED_SWAGGER}" || return 1
 
     docker create -e MITMPROXY_PORT="${port}" --network host \
@@ -107,7 +119,19 @@ function api_coverage::start() {
         || echo "api-coverage: failed to copy merged swagger into container" >&2
     docker start "${API_COVERAGE_CONTAINER}" >/dev/null
 
+    # Wait until mitmdump is actually accepting connections; otherwise the first
+    # proxied requests race the container start and get "connection refused".
+    local i
+    for i in $(seq 1 30); do
+        if (exec 3<>"/dev/tcp/127.0.0.1/${port}") 2>/dev/null; then
+            exec 3>&- 3<&- 2>/dev/null || true
+            break
+        fi
+        sleep 1
+    done
+
     echo "api-coverage: recorder started on ${http_proxy} (container ${API_COVERAGE_CONTAINER})"
+    echo "api-coverage: no_proxy=${no_proxy}"
 }
 
 # Emit a line either to $GITHUB_STEP_SUMMARY (rendered on the run page) or stdout.
@@ -122,6 +146,18 @@ function api_coverage::_emit() {
 # Compute coverage from recorded traffic and print a Markdown report.
 function api_coverage::report() {
     local container="${API_COVERAGE_CONTAINER}"
+
+    # swagger-coverage-commandline throws a NullPointerException on an empty
+    # record set, so short-circuit when nothing was captured (e.g. the suite
+    # failed to compile/run) rather than surfacing a Java stack trace.
+    local record_count
+    record_count=$(docker exec "${container}" sh -c 'ls -1 /data/records/ 2>/dev/null | wc -l' | tr -d ' ')
+    if [ -z "${record_count}" ] || [ "${record_count}" -eq 0 ]; then
+        api_coverage::_emit "## E2E API Coverage"
+        api_coverage::_emit ""
+        api_coverage::_emit "_No API traffic was recorded (the suite may have failed before making requests)._"
+        return 0
+    fi
 
     local merged_output
     merged_output=$(docker exec "${container}" swagger-coverage-commandline \
