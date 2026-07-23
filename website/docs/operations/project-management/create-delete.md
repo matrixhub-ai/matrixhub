@@ -33,7 +33,7 @@ Deleting a project cannot be undone. Please ensure you have backed up models and
 
 | Parameter | Description |
 |-----------|-------------|
-| Project Name | Only supports lowercase letters, numbers, and hyphens (`-`); must start and end with a letter or number. |
+| Project Name | Supports uppercase and lowercase letters, numbers, and hyphens (`-`); must start and end with a letter or number. |
 | Visibility | **Public**: Other users can see this project in Project Management.<br/>**Private**: Visible only to project members. |
 | Proxy project | Check this to enable proxy access via the target registry. |
 | Target registry | Required for proxy projects (e.g., Hugging Face). |
@@ -51,5 +51,5 @@ Deleting a project cannot be undone. Please ensure you have backed up models and
 
 | Type | Examples |
 |------|----------|
-| Valid Names | `test-project1`, `t1`, `1test2`, `test-project`, `test`, `12` |
-| Invalid Names | `t`, `-test`, `test 01`, `test%123`, `test*123`, `test~01`, `test@#$^&*()+=01`, `1test-`, `Test` |
+| Valid Names | `test-project1`, `t1`, `1test2`, `test-project`, `test`, `Test`, `12` |
+| Invalid Names | `t`, `-test`, `test 01`, `test%123`, `test*123`, `test~01`, `test@#$^&*()+=01`, `1test-` |
