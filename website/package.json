@@ -30,7 +30,7 @@
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
     "@tailwindcss/postcss": "^4.3.2",
-    "postcss": "^8.5.19",
+    "postcss": "^8.5.20",
     "tailwindcss": "^4.3.2",
     "typescript": "~7.0.2"
   },
