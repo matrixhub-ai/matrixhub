@@ -20,7 +20,7 @@
     "description": "The label for category 'Concepts' in sidebar 'tutorialSidebar'"
   },
   "sidebar.tutorialSidebar.category.Guides": {
-    "message": "指南",
+    "message": "操作指南",
     "description": "The label for category 'Guides' in sidebar 'tutorialSidebar'"
   },
   "sidebar.tutorialSidebar.category.Integrations": {

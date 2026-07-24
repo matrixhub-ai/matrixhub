@@ -19,7 +19,15 @@ const sidebars: SidebarsConfig = {
     'getting-started/index',
     'installation/index',
     'concepts/index',
-    'guides/index',
+    {
+      type: 'category',
+      label: 'Guides',
+      items: [
+        'guides/mirror-from-huggingface',
+        'guides/use-with-vllm',
+        'guides/index',
+      ],
+    },
     'integrations/index',
     {
       type: 'category',
