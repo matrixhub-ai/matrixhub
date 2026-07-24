@@ -3,5 +3,7 @@
   "username": "Username",
   "password": "Password",
   "rememberMe": "Remember me",
-  "submit": "Log in"
+  "submit": "Log in",
+  "error": "Failed to log in",
+  "logoutError": "Failed to log out"
 }

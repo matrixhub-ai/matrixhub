@@ -19,6 +19,17 @@ export function getErrorMessage(error: unknown): string {
   return String(error)
 }
 
+function resolveNotificationMetaValue(
+  value: string | ((data: unknown, variables: unknown, context: unknown) => string | undefined) | undefined,
+  data: unknown,
+  variables: unknown,
+  context: unknown,
+) {
+  return typeof value === 'function'
+    ? value(data, variables, context)
+    : value
+}
+
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
@@ -36,17 +47,29 @@ export const queryClient = new QueryClient({
     },
   }),
   mutationCache: new MutationCache({
-    onSuccess: (_data, _variables, _context, mutation) => {
+    onSuccess: (data, variables, context, mutation) => {
       const meta = mutation.meta as NotificationMeta | undefined
 
       if (meta?.skipNotification) {
         return
       }
 
-      if (meta?.successMessage) {
+      const successMessage = resolveNotificationMetaValue(
+        meta?.successMessage,
+        data,
+        variables,
+        context,
+      )
+
+      if (successMessage) {
         notifications.show({
-          message: meta.successMessage,
-          color: 'green',
+          message: successMessage,
+          color: resolveNotificationMetaValue(
+            meta?.successColor,
+            data,
+            variables,
+            context,
+          ) ?? 'green',
         })
       }
 

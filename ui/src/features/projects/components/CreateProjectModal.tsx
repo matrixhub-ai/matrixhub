@@ -6,11 +6,11 @@ import {
   Switch,
   TextInput,
 } from '@mantine/core'
-import { Registries } from '@matrixhub/api-ts/v1alpha1/registry.pb'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useEffectEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { allRegistriesQueryOptions } from '@/features/admin/registries/registries.query'
 import { useCurrentUser } from '@/features/auth/auth.query'
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel.tsx'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
@@ -63,8 +63,7 @@ export function CreateProjectModal({
 
   // Fetch registries for the dropdown when proxy is enabled
   const registriesQuery = useQuery({
-    queryKey: ['registries', 'list'],
-    queryFn: () => Registries.ListRegistries({ pageSize: -1 }),
+    ...allRegistriesQueryOptions(),
     enabled: opened,
   })
 
@@ -111,6 +110,7 @@ export function CreateProjectModal({
               mt={4}
               label={t('projects.createModal.public')}
               checked={field.state.value}
+              onBlur={field.handleBlur}
               onChange={e => field.handleChange(e.currentTarget.checked)}
             />
           )}
@@ -135,6 +135,7 @@ export function CreateProjectModal({
                     ? t('projects.createModal.proxyEnabled')
                     : t('projects.createModal.proxyDisabled')}
                   checked={field.state.value}
+                  onBlur={field.handleBlur}
                   onChange={(e) => {
                     field.handleChange(e.currentTarget.checked)
                     if (!e.currentTarget.checked) {
@@ -175,6 +176,7 @@ export function CreateProjectModal({
                       <TextInput
                         placeholder={t('projects.createModal.organizationPlaceholder')}
                         value={field.state.value ?? ''}
+                        onBlur={field.handleBlur}
                         onChange={e => field.handleChange(e.currentTarget.value)}
                         error={fieldError(field)}
                       />

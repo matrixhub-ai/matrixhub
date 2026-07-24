@@ -24,6 +24,13 @@ function requireUserId(id?: number) {
 
 type UserSysAdminMutationInput = Pick<SetUserSysAdminRequest, 'id'>
 
+interface BatchDeleteUsersResult {
+  partial: boolean
+  successCount: number
+  failureCount: number
+  failed: PromiseRejectedResult[]
+}
+
 function userSysAdminMutationOptions({
   sysadminFlag,
   successMessage,
@@ -108,7 +115,7 @@ export function deleteUserMutationOptions() {
 
 export function batchDeleteUsersMutationOptions() {
   return mutationOptions({
-    mutationFn: async (users: readonly User[]) => {
+    mutationFn: async (users: readonly User[]): Promise<BatchDeleteUsersResult> => {
       if (users.length === 0) {
         throw new Error(i18n.t('routes.admin.users.errors.noUsersSelected'))
       }
@@ -146,6 +153,17 @@ export function batchDeleteUsersMutationOptions() {
       }
     },
     meta: {
+      successMessage: (data) => {
+        const result = data as BatchDeleteUsersResult
+
+        return result.partial
+          ? i18n.t('routes.admin.users.notifications.batchDeletePartialError', {
+              successCount: result.successCount,
+              failureCount: result.failureCount,
+            })
+          : i18n.t('routes.admin.users.notifications.batchDeleteSuccess')
+      },
+      successColor: data => ((data as BatchDeleteUsersResult).partial ? 'yellow' : 'green'),
       errorMessage: i18n.t('routes.admin.users.notifications.batchDeleteError'),
       invalidates: [adminUserKeys.lists()],
     } satisfies NotificationMeta,
