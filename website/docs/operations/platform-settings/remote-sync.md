@@ -37,7 +37,7 @@ A policy can be triggered manually or scheduled with a cron expression. Each run
     | Scenario | Reference Configuration |
     |----------|-------------------------|
     | Pull a single model from a remote registry | Sync Rule: Pull<br />Source Registry: `matrixhub-remote`<br />Resource Name: `Qwen/Qwen3-0.6B`<br />Resource Type: Model<br />Target Project: `demo`<br />Trigger Mode: Manual<br />Bandwidth Limit: `-1` |
-    | Pull models from a remote registry in batch | Sync Rule: Pull<br />Source Registry: `matrixhub-remote`<br />Resource Name: `Qwen/**`<br />Resource Type: Model<br />Target Project: `demo`<br />Trigger Mode: Scheduled<br />Bandwidth Limit: `1024 Kbps` |
+    | Pull models from a remote registry in batch | Sync Rule: Pull<br />Source Registry: `matrixhub-remote`<br />Resource Name: `Qwen/**`<br />Resource Type: Model<br />Target Project: `demo`<br />Trigger Mode: Scheduled<br />Cron: `0 0 * * *`<br />Bandwidth Limit: `1024 Kbps` |
     | Push a local model to a remote registry | Sync Rule: Push<br />Target Registry: `matrixhub-remote`<br />Resource Name: `demo/Qwen3-0.6B`<br />Resource Type: Model<br />Target Project: `test-org`<br />Trigger Mode: Manual<br />Bandwidth Limit: `-1` |
 
 1. Click **Confirm** to create the policy. After creation, you can **Sync**, **Edit**, **Enable/Disable**, or **Delete** the policy from the list.
