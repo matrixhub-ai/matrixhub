@@ -40,7 +40,7 @@ var _ = Describe("Project", Label("project"), func() {
 	})
 
 	Context("CreateProject API", func() {
-		It("should create a project successfully", Label("L00001", "smoke"), func() {
+		It("should create a project successfully", Label("P00001", "smoke"), func() {
 			projectName := tools.GenerateTestProjectName("project")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("Creating project: %v\n", projectName)
@@ -56,7 +56,7 @@ var _ = Describe("Project", Label("project"), func() {
 			_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
 		})
 
-		It("should fail to create a project with empty name", Label("L00002"), func() {
+		It("should fail to create a project with empty name", Label("P00002"), func() {
 			_, _, err := projectsApi.ProjectsCreateProject(ctx, v1alpha1project.V1alpha1CreateProjectRequest{
 				Name: "",
 			})
@@ -65,7 +65,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("Error creating project with empty name: %v\n", err)
 		})
 
-		It("should create project with valid name - alphanumeric and hyphen", Label("L00018"), func() {
+		It("should create project with valid name - alphanumeric and hyphen", Label("P00018"), func() {
 			validNames := []string{
 				tools.GenerateTestProjectName("test-project"),
 				tools.GenerateTestProjectName("t1"),
@@ -88,7 +88,7 @@ var _ = Describe("Project", Label("project"), func() {
 			}
 		})
 
-		It("should fail to create project with invalid name", Label("L00019"), func() {
+		It("should fail to create project with invalid name", Label("P00019"), func() {
 			invalidNames := []string{
 				"t",        // too short (less than 2 chars)
 				"-test",    // starts with hyphen
@@ -111,7 +111,7 @@ var _ = Describe("Project", Label("project"), func() {
 			}
 		})
 
-		It("should create public project successfully", Label("L00020"), func() {
+		It("should create public project successfully", Label("P00020"), func() {
 			projectName := tools.GenerateTestProjectName("public-project")
 			projectType := v1alpha1project.PUBLIC_V1alpha1ProjectType
 
@@ -129,7 +129,7 @@ var _ = Describe("Project", Label("project"), func() {
 			_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
 		})
 
-		It("should create private project successfully", Label("L00021"), func() {
+		It("should create private project successfully", Label("P00021"), func() {
 			projectName := tools.GenerateTestProjectName("private-project")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
@@ -147,7 +147,7 @@ var _ = Describe("Project", Label("project"), func() {
 			_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
 		})
 
-		It("should fail to create duplicate project name", Label("L00022"), func() {
+		It("should fail to create duplicate project name", Label("P00022"), func() {
 			projectName := tools.GenerateTestProjectName("duplicate-test")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
@@ -171,7 +171,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("Duplicate project error: %v\n", err)
 		})
 
-		It("should treat project names as case-sensitive", Label("L00046"), func() {
+		It("should treat project names as case-sensitive", Label("P00046"), func() {
 			lowerName := tools.GenerateTestProjectName("case-sensitive")
 			upperName := strings.ToUpper(lowerName[:1]) + lowerName[1:]
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
@@ -195,7 +195,7 @@ var _ = Describe("Project", Label("project"), func() {
 			}()
 		})
 
-		It("should fail to create project with unspecified type", Label("L00045"), func() {
+		It("should fail to create project with unspecified type", Label("P00045"), func() {
 			projectName := tools.GenerateTestProjectName("unspecified-type")
 			unspecifiedType := v1alpha1project.UNSPECIFIED_V1alpha1ProjectType
 
@@ -210,7 +210,7 @@ var _ = Describe("Project", Label("project"), func() {
 	})
 
 	Context("GetProject API", func() {
-		It("should get an existing project", Label("L00003"), func() {
+		It("should get an existing project", Label("P00003"), func() {
 			projectName := tools.GenerateTestProjectName("project")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("Get project test: %v\n", projectName)
@@ -232,7 +232,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("Get response: name=%v\n", getResp.Name)
 		})
 
-		It("should fail to get a non-existent project", Label("L00004"), func() {
+		It("should fail to get a non-existent project", Label("P00004"), func() {
 			_, _, err := projectsApi.ProjectsGetProject(ctx, "non-existent-project-xyz")
 			Expect(err).To(HaveOccurred())
 
@@ -241,7 +241,7 @@ var _ = Describe("Project", Label("project"), func() {
 	})
 
 	Context("ListProjects API", func() {
-		It("should list projects successfully", Label("L00005"), func() {
+		It("should list projects successfully", Label("P00005"), func() {
 			projectName := tools.GenerateTestProjectName("project")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("List projects test: %v\n", projectName)
@@ -277,7 +277,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("List response: found %d projects\n", len(listResp.Projects))
 		})
 
-		It("should filter projects by name", Label("L00006"), func() {
+		It("should filter projects by name", Label("P00006"), func() {
 			projectName := tools.GenerateTestProjectName("filter-test")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
@@ -305,7 +305,7 @@ var _ = Describe("Project", Label("project"), func() {
 	})
 
 	Context("DeleteProject API", func() {
-		It("should delete an existing project", Label("L00007"), func() {
+		It("should delete an existing project", Label("P00007"), func() {
 			projectName := tools.GenerateTestProjectName("delete-test")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			GinkgoWriter.Printf("Delete project test: %v\n", projectName)
@@ -328,7 +328,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("Delete response: success\n")
 		})
 
-		It("should fail to delete a non-existent project", Label("L00008"), func() {
+		It("should fail to delete a non-existent project", Label("P00008"), func() {
 			_, _, err := projectsApi.ProjectsDeleteProject(ctx, "non-existent-project-xyz")
 			Expect(err).To(HaveOccurred())
 
@@ -337,7 +337,7 @@ var _ = Describe("Project", Label("project"), func() {
 	})
 
 	Context("UpdateProject API", func() {
-		It("should update project type from public to private", Label("L00023"), func() {
+		It("should update project type from public to private", Label("P00023"), func() {
 			projectName := tools.GenerateTestProjectName("update-test")
 			publicType := v1alpha1project.PUBLIC_V1alpha1ProjectType
 			privateType := v1alpha1project.PRIVATE_V1alpha1ProjectType
@@ -366,7 +366,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("Update project type response: success\n")
 		})
 
-		It("should update project type from private to public", Label("L00024"), func() {
+		It("should update project type from private to public", Label("P00024"), func() {
 			projectName := tools.GenerateTestProjectName("update-test-private")
 			privateType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 			publicType := v1alpha1project.PUBLIC_V1alpha1ProjectType
@@ -413,7 +413,7 @@ var _ = Describe("Project", Label("project"), func() {
 			_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
 		})
 
-		It("should list project members", Label("L00009"), func() {
+		It("should list project members", Label("P00009"), func() {
 			listResp, _, err := projectsApi.ProjectsListProjectMembers(ctx, projectName, &v1alpha1project.ProjectsApiProjectsListProjectMembersOpts{
 				Page:     optional.NewInt32(1),
 				PageSize: optional.NewInt32(10),
@@ -424,7 +424,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("List members response: found %d members\n", len(listResp.Members))
 		})
 
-		It("should add a member with viewer role", Label("L00010"), func() {
+		It("should add a member with viewer role", Label("P00010"), func() {
 			memberID, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("viewer"), "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
 			memberType := v1alpha1project.USER_V1alpha1MemberType
@@ -465,7 +465,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should add a member with editor role", Label("L00025"), func() {
+		It("should add a member with editor role", Label("P00025"), func() {
 			memberID, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("editor"), "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
 			memberType := v1alpha1project.USER_V1alpha1MemberType
@@ -506,7 +506,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should add a member with admin role", Label("L00026"), func() {
+		It("should add a member with admin role", Label("P00026"), func() {
 			memberID, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("admin"), "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
 			memberType := v1alpha1project.USER_V1alpha1MemberType
@@ -547,7 +547,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should fail to add duplicate member to project", Label("L00027"), func() {
+		It("should fail to add duplicate member to project", Label("P00027"), func() {
 			memberID, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("duplicate"), "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
 			memberType := v1alpha1project.USER_V1alpha1MemberType
@@ -579,7 +579,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should update member role from viewer to editor", Label("L00011"), func() {
+		It("should update member role from viewer to editor", Label("P00011"), func() {
 			memberID, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("role-update"), "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
 			memberType := v1alpha1project.USER_V1alpha1MemberType
@@ -628,7 +628,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should remove single member from project", Label("L00012"), func() {
+		It("should remove single member from project", Label("P00012"), func() {
 			memberID, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("remove"), "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
 			memberType := v1alpha1project.USER_V1alpha1MemberType
@@ -664,7 +664,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("Remove member response: success\n")
 		})
 
-		It("should batch remove members from project", Label("L00028"), func() {
+		It("should batch remove members from project", Label("P00028"), func() {
 			member1, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("batch1"), "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
 			member2, _, err := tools.CreateUserAndLoginWithID(tools.GenerateTestUsername("batch2"), "Test@123456", false)
@@ -725,7 +725,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should list members with pagination", Label("L00030"), func() {
+		It("should list members with pagination", Label("P00030"), func() {
 			// Add multiple members
 			memberType := v1alpha1project.USER_V1alpha1MemberType
 			role := v1alpha1project.VIEWER_V1alpha1ProjectRoleType
@@ -801,7 +801,7 @@ var _ = Describe("Project", Label("project"), func() {
 		})
 
 		Context("Platform-level permission", func() {
-			It("should deny normal user from creating users", Label("L00035"), func() {
+			It("should deny normal user from creating users", Label("P00035"), func() {
 				viewerUserApi := tools.CreateUserClientWithCookie(viewerCookie)
 				_, _, err := viewerUserApi.UsersCreateUser(ctx, v1alpha1user.V1alpha1CreateUserRequest{
 					Username: "should-not-be-created",
@@ -839,14 +839,14 @@ var _ = Describe("Project", Label("project"), func() {
 				_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
 			})
 
-			It("should allow viewer to get project details", Label("L00036"), func() {
+			It("should allow viewer to get project details", Label("P00036"), func() {
 				viewerProjectApi := tools.CreateProjectClientWithCookie(viewerCookie)
 				getResp, _, err := viewerProjectApi.ProjectsGetProject(ctx, projectName)
 				Expect(err).NotTo(HaveOccurred(), "Viewer member should be able to get project")
 				Expect(getResp.Name).To(Equal(projectName))
 			})
 
-			It("should deny viewer from updating project", Label("L00037"), func() {
+			It("should deny viewer from updating project", Label("P00037"), func() {
 				viewerProjectApi := tools.CreateProjectClientWithCookie(viewerCookie)
 				privateType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := viewerProjectApi.ProjectsUpdateProject(ctx, projectName, v1alpha1project.ProjectsUpdateProjectBody{
@@ -856,14 +856,14 @@ var _ = Describe("Project", Label("project"), func() {
 				GinkgoWriter.Printf("Viewer correctly denied updating project: %v\n", err)
 			})
 
-			It("should deny viewer from deleting project", Label("L00038"), func() {
+			It("should deny viewer from deleting project", Label("P00038"), func() {
 				viewerProjectApi := tools.CreateProjectClientWithCookie(viewerCookie)
 				_, _, err := viewerProjectApi.ProjectsDeleteProject(ctx, projectName)
 				Expect(err).To(HaveOccurred(), "Viewer should not be able to delete project")
 				GinkgoWriter.Printf("Viewer correctly denied deleting project: %v\n", err)
 			})
 
-			It("should deny viewer from managing members", Label("L00039"), func() {
+			It("should deny viewer from managing members", Label("P00039"), func() {
 				viewerProjectApi := tools.CreateProjectClientWithCookie(viewerCookie)
 				memberType := v1alpha1project.USER_V1alpha1MemberType
 				editorRole := v1alpha1project.EDITOR_V1alpha1ProjectRoleType
@@ -904,14 +904,14 @@ var _ = Describe("Project", Label("project"), func() {
 				_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
 			})
 
-			It("should deny editor from deleting project", Label("L00040"), func() {
+			It("should deny editor from deleting project", Label("P00040"), func() {
 				editorProjectApi := tools.CreateProjectClientWithCookie(editorCookie)
 				_, _, err := editorProjectApi.ProjectsDeleteProject(ctx, projectName)
 				Expect(err).To(HaveOccurred(), "Editor should not be able to delete project")
 				GinkgoWriter.Printf("Editor correctly denied deleting project: %v\n", err)
 			})
 
-			It("should deny editor from managing members", Label("L00041"), func() {
+			It("should deny editor from managing members", Label("P00041"), func() {
 				editorProjectApi := tools.CreateProjectClientWithCookie(editorCookie)
 				memberType := v1alpha1project.USER_V1alpha1MemberType
 				viewerRole := v1alpha1project.VIEWER_V1alpha1ProjectRoleType
@@ -953,7 +953,7 @@ var _ = Describe("Project", Label("project"), func() {
 				_, _, _ = projectsApi.ProjectsDeleteProject(ctx, projectName)
 			})
 
-			It("should allow project admin to manage members", Label("L00042"), func() {
+			It("should allow project admin to manage members", Label("P00042"), func() {
 				projAdminProjectApi := tools.CreateProjectClientWithCookie(projAdminCookie)
 
 				// Add viewer as member
@@ -976,7 +976,7 @@ var _ = Describe("Project", Label("project"), func() {
 				GinkgoWriter.Printf("Project admin successfully managed members\n")
 			})
 
-			It("should allow project admin to update project", Label("L00043"), func() {
+			It("should allow project admin to update project", Label("P00043"), func() {
 				projAdminProjectApi := tools.CreateProjectClientWithCookie(projAdminCookie)
 				privateType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 				_, _, err := projAdminProjectApi.ProjectsUpdateProject(ctx, projectName, v1alpha1project.ProjectsUpdateProjectBody{
@@ -986,7 +986,7 @@ var _ = Describe("Project", Label("project"), func() {
 				GinkgoWriter.Printf("Project admin successfully updated project\n")
 			})
 
-			It("should allow project admin to delete project", Label("L00044"), func() {
+			It("should allow project admin to delete project", Label("P00044"), func() {
 				projAdminProjectApi := tools.CreateProjectClientWithCookie(projAdminCookie)
 				_, _, err := projAdminProjectApi.ProjectsDeleteProject(ctx, projectName)
 				Expect(err).NotTo(HaveOccurred(), "Project admin should be able to delete project")
@@ -994,7 +994,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should allow any logged-in user to list and create projects", Label("L00031"), func() {
+		It("should allow any logged-in user to list and create projects", Label("P00031"), func() {
 			viewerProjectApi := tools.CreateProjectClientWithCookie(viewerCookie)
 
 			// Any logged-in user should be able to list projects
@@ -1019,7 +1019,7 @@ var _ = Describe("Project", Label("project"), func() {
 			GinkgoWriter.Printf("Normal user successfully listed and created projects\n")
 		})
 
-		It("should allow project admin to add members", Label("L00032"), func() {
+		It("should allow project admin to add members", Label("P00032"), func() {
 			projectName := tools.GenerateTestProjectName("perm-test")
 			projectType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
@@ -1059,7 +1059,7 @@ var _ = Describe("Project", Label("project"), func() {
 			})
 		})
 
-		It("should deny non-member access to private project", Label("L00033"), func() {
+		It("should deny non-member access to private project", Label("P00033"), func() {
 			projectName := tools.GenerateTestProjectName("private-test")
 			privateType := v1alpha1project.PRIVATE_V1alpha1ProjectType
 
