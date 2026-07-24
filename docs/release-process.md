@@ -327,6 +327,13 @@ git push origin release-0.1
 
 Open a PR into `release-0.1` when cherry-picks need review.
 
+> **CI parity:** PRs (and pushes) to a `release/*` branch run the same gating CI as
+> `main` — Unit tests, Go Lint, govulncheck, CodeQL, Workflow Lint, and Website tests,
+> subject to their path filters. Cherry-pick PRs into a release branch **must be green
+> under these same checks as `main`** before merge, so the commit you tag from the
+> release line is CI-green. The workflows list `main`, `release/*`, and `release-*` in
+> their `branches` filters; keep any new gating workflow aligned with this pattern.
+
 ##### Tag patch release
 
 ```bash
