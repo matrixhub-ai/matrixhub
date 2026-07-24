@@ -36,7 +36,7 @@ var _ = Describe("SyncPolicy CRUD APIs", Label("sync-policy"), func() {
 	})
 
 	Context("Create and Get", func() {
-		It("should create a pull-base policy and retrieve it", Label("SP0001"), func() {
+		It("should create a pull-base policy and retrieve it", Label("SP0001", "smoke"), func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			defer cancel()
 

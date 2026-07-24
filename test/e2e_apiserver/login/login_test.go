@@ -90,7 +90,7 @@ var _ = Describe("Login", Label("login"), func() {
 	// 1. Login API
 	// ═══════════════════════════════════════════════════════════
 	Context("Login API", func() {
-		It("should login successfully with valid admin credentials", Label("L00001"), func() {
+		It("should login successfully with valid admin credentials", Label("L00001", "smoke"), func() {
 			_, httpResp, err := newLoginApi().LoginLogin(ctx, v1alpha1login.V1alpha1LoginRequest{
 				Username: tools.DefaultAdminUsername,
 				Password: tools.DefaultAdminPassword,

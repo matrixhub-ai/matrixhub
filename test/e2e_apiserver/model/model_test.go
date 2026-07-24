@@ -83,7 +83,7 @@ var _ = Describe("Model", Label("model"), func() {
 		})
 
 		// --- CreateModel ---
-		It("should create a model successfully", Label("M00003"), func() {
+		It("should create a model successfully", Label("M00003", "smoke"), func() {
 			modelName := tools.GenerateTestModelName("model")
 
 			_, _, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{

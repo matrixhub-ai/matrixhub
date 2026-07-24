@@ -100,7 +100,8 @@ jobs:
         run: |
           make test.e2e.kind -e E2E_CLUSTER_NAME=${{ env.CLUSTER_NAME }} \
               -e E2E_MATRIXHUB_IMAGE=ghcr.io/${{ env.IMAGE_REPO_LOWER }}/matrixhub-ci:${{ inputs.image_tag }} \
-              -e E2E_KIND_IMAGE_TAG=${{ inputs.k8s_version }}
+              -e E2E_KIND_IMAGE_TAG=${{ inputs.k8s_version }} \
+              -e E2E_LABELS="${{ inputs.e2e_labels }}"
       - name: Cleanup Kind Cluster
         if: always()
         run: |

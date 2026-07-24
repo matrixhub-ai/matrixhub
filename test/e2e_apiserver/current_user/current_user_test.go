@@ -75,7 +75,7 @@ var _ = Describe("CurrentUser", Label("current-user"), func() {
 	// 1. GetCurrentUser API
 	// ═══════════════════════════════════════════════════════════
 	Context("GetCurrentUser API", func() {
-		It("should return the correct identity for the logged-in user", Label("CU00001"), func() {
+		It("should return the correct identity for the logged-in user", Label("CU00001", "smoke"), func() {
 			resp, _, err := currentUserApi.CurrentUserGetCurrentUser(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.Username).To(Equal(username))
