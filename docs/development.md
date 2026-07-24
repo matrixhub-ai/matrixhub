@@ -236,14 +236,24 @@ make test.e2e
 ```
 
 `make test.e2e` runs E2E tests against
-`MATRIXHUB_BASE_URL=http://localhost:3001` by default. The default level is
-`smoke`; currently `smoke` and `all` run the same E2E package set with different
-timeouts. Override the level or base URL when needed:
+`MATRIXHUB_BASE_URL=http://localhost:3001` by default and runs **all** tests.
+
+### Selecting tests with labels
+
+Every suite is tagged with [ginkgo labels](https://onsi.github.io/ginkgo/#spec-labels).
+`E2E_LABELS` is passed straight to `ginkgo --label-filter`; leaving it empty (or
+`all`) runs everything. A curated `smoke` label marks one core happy-path case
+per module for a fast sanity sweep:
 
 ```bash
-level=all make test.e2e
+make test.e2e                       # run all tests (default)
+E2E_LABELS=smoke make test.e2e      # smoke sweep only
+E2E_LABELS='model || project' make test.e2e   # any ginkgo label expression
 MATRIXHUB_BASE_URL=http://localhost:3002 make test.e2e
 ```
+
+In CI the label is chosen automatically: PRs that touch `test/**` run the full
+suite, others run `smoke` (see `.github/workflows/auto-pr-ci.yaml`).
 
 The E2E runner invokes the `ginkgo` CLI. If it is not installed:
 
@@ -256,6 +266,22 @@ For a KIND-based E2E environment:
 ```bash
 make test.e2e.kind
 ```
+
+### API coverage report
+
+Setting `E2E_API_COVERAGE=true` routes all e2e API traffic through a mitmproxy
+recorder container and prints a per-module coverage report (in CI it is written
+to the GitHub Actions run summary). It requires Docker.
+
+```bash
+E2E_API_COVERAGE=true make test.e2e.kind
+```
+
+Note: the e2e HTTP client honors `http_proxy`/`https_proxy`, but Go's
+`http.ProxyFromEnvironment` bypasses `localhost` and loopback IPs. The coverage
+path therefore reaches the service via the non-loopback hostname
+`matrixhub.local` (mapped to the NodePort host); a loopback `MATRIXHUB_BASE_URL`
+records nothing and the runner warns when that happens.
 
 ## Development Tips
 

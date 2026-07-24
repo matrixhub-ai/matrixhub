@@ -74,17 +74,51 @@ echo ""
 
 export MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL}"
 
-# Empty or "all" => run every test (no label filter).
-# Otherwise pass the expression straight to ginkgo's --label-filter.
-if [ -z "${LABEL_FILTER}" ] || [ "${LABEL_FILTER}" = "all" ]; then
-    echo "Running all E2E tests..."
-    ginkgo -v --timeout=20m ./test/e2e_apiserver/...
-else
-    echo "Running E2E tests with label filter: ${LABEL_FILTER}"
-    ginkgo -v --timeout=20m --label-filter "${LABEL_FILTER}" ./test/e2e_apiserver/...
+# Optional: record all API traffic through a mitmproxy container and print an
+# API-coverage report. Opt-in so plain local runs need no docker/mitmproxy.
+E2E_API_COVERAGE="${E2E_API_COVERAGE:-false}"
+if [ "${E2E_API_COVERAGE}" = "true" ]; then
+    # Go's http.ProxyFromEnvironment bypasses "localhost" and loopback IPs, so a
+    # loopback base URL is never routed through the proxy and nothing is
+    # recorded. Warn loudly rather than emit a silently-empty report.
+    case "${MATRIXHUB_BASE_URL}" in
+        *localhost*|*127.0.0.1*|*\[::1\]*)
+            echo "WARNING: E2E_API_COVERAGE=true but MATRIXHUB_BASE_URL (${MATRIXHUB_BASE_URL}) is loopback."
+            echo "         Go bypasses the proxy for loopback hosts, so no API traffic will be recorded."
+            echo "         Point MATRIXHUB_BASE_URL at a non-loopback hostname (e.g. http://matrixhub.local:PORT)."
+            ;;
+    esac
+    # shellcheck source=scripts/api-coverage.sh
+    source "${SCRIPT_DIR}/api-coverage.sh"
+    api_coverage::start
+    trap 'api_coverage::stop' EXIT
+fi
+
+# Run the suite. Empty or "all" => run every test (no label filter); otherwise
+# pass the expression straight to ginkgo's --label-filter.
+run_ginkgo() {
+    if [ -z "${LABEL_FILTER}" ] || [ "${LABEL_FILTER}" = "all" ]; then
+        echo "Running all E2E tests..."
+        ginkgo -v --timeout=20m ./test/e2e_apiserver/...
+    else
+        echo "Running E2E tests with label filter: ${LABEL_FILTER}"
+        ginkgo -v --timeout=20m --label-filter "${LABEL_FILTER}" ./test/e2e_apiserver/...
+    fi
+}
+
+# Keep ginkgo's exit status but still emit the coverage report afterwards.
+set +e
+run_ginkgo
+GINKGO_RC=$?
+set -e
+
+if [ "${E2E_API_COVERAGE}" = "true" ]; then
+    api_coverage::report || echo "api-coverage: report generation failed" >&2
 fi
 
 echo ""
 echo "================================================"
 echo "E2E Test Complete!"
 echo "================================================"
+
+exit ${GINKGO_RC}
