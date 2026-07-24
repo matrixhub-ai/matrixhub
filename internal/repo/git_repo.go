@@ -163,6 +163,11 @@ func (g *gitRepo) CreateRepository(ctx context.Context, repoType, project, name 
 	return nil
 }
 
+// RepositoryExists checks whether a Git repository exists on disk.
+func (g *gitRepo) RepositoryExists(ctx context.Context, repoType, project, name string) (bool, error) {
+	return repository.IsRepository(g.gitPath(repoType, project, name)), nil
+}
+
 // DeleteRepository removes the Git repository
 func (g *gitRepo) DeleteRepository(ctx context.Context, repoType, project, name string) error {
 	gitPath := g.gitPath(repoType, project, name)

@@ -74,6 +74,8 @@ type SettingUpdate struct {
 }
 
 // IModelRepo defines the repository interface for model operations.
+//
+//go:generate go tool mockgen -source=model.go -destination=mocks/model_repo_mock.go -package=mocks
 type IModelRepo interface {
 	// Create creates a new model in the database.
 	Create(ctx context.Context, m *Model) (*Model, error)
