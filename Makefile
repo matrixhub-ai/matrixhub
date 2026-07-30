@@ -79,12 +79,9 @@ image-build: ## Build the MatrixHub image
 image-push: ## Build and push the MatrixHub image
 	$(MAKE) image-build PUSH=--push
 
-website/build: website
-	make -C website build
-
 .PHONY: serve-website
-serve-website: ## Serve built documentation website locally
-	make -C website serve
+serve-website: ## Start the dev server with HMR (hot reload).
+	make -C website start
 
 .PHONY: clean
 clean: ## Clean all build artifacts
