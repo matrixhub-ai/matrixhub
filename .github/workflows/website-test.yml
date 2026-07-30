@@ -37,7 +37,12 @@ jobs:
         run: |
           cd website
           npm install
-      
+
+      - name: Check for orphaned assets
+        run: |
+          cd website
+          npm run find-orphan-files
+
       - name: Run tests
         run: |
           cd website
