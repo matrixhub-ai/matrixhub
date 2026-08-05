@@ -1,12 +1,12 @@
 import {
   Button, Checkbox, Flex, Group, PasswordInput, ScrollArea, Stack, Text, TextInput, rem,
 } from '@mantine/core'
-import { Login, type LoginRequest } from '@matrixhub/api-ts/v1alpha1/login.pb'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import LogoIcon from '@/assets/svgs/logo.svg?react'
+import { loginMutationOptions } from '@/features/login/login.mutation'
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
 import { useForm } from '@/shared/hooks/useForm'
 
@@ -17,7 +17,7 @@ export function LoginPage() {
   const {
     mutate: handleLogin, isPending: isLoggingIn,
   } = useMutation({
-    mutationFn: (values: LoginRequest) => Login.Login(values),
+    ...loginMutationOptions(),
     onSuccess: () => {
       navigate({ to: '/' })
     },
@@ -75,6 +75,7 @@ export function LoginPage() {
                 size="md"
                 name={field.name}
                 value={field.state.value}
+                onBlur={field.handleBlur}
                 onChange={e => field.handleChange(e.target.value)}
               />
             )}
@@ -91,6 +92,7 @@ export function LoginPage() {
                 size="md"
                 name={field.name}
                 value={field.state.value}
+                onBlur={field.handleBlur}
                 onChange={e => field.handleChange(e.target.value)}
               />
             )}
@@ -101,6 +103,7 @@ export function LoginPage() {
               <Checkbox
                 name={field.name}
                 checked={field.state.value}
+                onBlur={field.handleBlur}
                 onChange={e => field.handleChange(e.target.checked)}
                 label={t('login.rememberMe')}
                 style={{ alignSelf: 'flex-start' }}

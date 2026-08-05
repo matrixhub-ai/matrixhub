@@ -95,6 +95,7 @@ export function EditRoleModal({
               data={roleOptions}
               value={field.state.value || null}
               onChange={value => field.handleChange(value ?? '')}
+              onBlur={field.handleBlur}
               error={fieldError(field)}
             />
           )}

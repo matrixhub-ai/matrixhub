@@ -14,6 +14,7 @@ export const adminUserKeys = {
   all: ['admin', 'users'] as const,
   lists: () => [...adminUserKeys.all, 'list'] as const,
   list: (search: UsersSearch) => [...adminUserKeys.lists(), search] as const,
+  allUsers: () => [...adminUserKeys.lists(), 'all'] as const,
 }
 
 export function usersQueryOptions(search: UsersSearch) {
@@ -24,6 +25,23 @@ export function usersQueryOptions(search: UsersSearch) {
         page: search.page,
         pageSize: DEFAULT_USERS_PAGE_SIZE,
         search: search.query,
+      })
+
+      return {
+        users: response.users ?? [],
+        pagination: response.pagination,
+      }
+    },
+  })
+}
+
+export function allUsersQueryOptions() {
+  return queryOptions({
+    queryKey: adminUserKeys.allUsers(),
+    queryFn: async () => {
+      const response = await Users.ListUsers({
+        page: 1,
+        pageSize: -1,
       })
 
       return {

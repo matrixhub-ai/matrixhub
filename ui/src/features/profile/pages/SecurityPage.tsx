@@ -4,13 +4,14 @@ import {
   Stack,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { CurrentUser } from '@matrixhub/api-ts/v1alpha1/current_user.pb'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
+import { resetPasswordMutationOptions } from '@/features/profile/profile.mutation'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { useForm } from '@/shared/hooks/useForm'
+import { fieldError } from '@/shared/utils/form'
 
 interface FormValues {
   oldPassword: string
@@ -57,14 +58,7 @@ export function SecurityPage() {
   const {
     mutate: resetPassword, isPending,
   } = useMutation({
-    mutationFn: (value: FormValues) =>
-      CurrentUser.ResetPassword({
-        oldPassword: value.oldPassword,
-        newPassword: value.newPassword,
-      }),
-    meta: {
-      successMessage: t('profile.passwordChanged'),
-    },
+    ...resetPasswordMutationOptions(),
     onSuccess: () => {
       handleClose()
     },
@@ -78,7 +72,10 @@ export function SecurityPage() {
       onSubmit: formSchema,
     },
     onSubmit: ({ value }) => {
-      resetPassword(value)
+      resetPassword({
+        oldPassword: value.oldPassword,
+        newPassword: value.newPassword,
+      })
     },
   })
 
@@ -117,15 +114,14 @@ export function SecurityPage() {
             name="oldPassword"
             validators={{ onChange: fieldSchemas.oldPassword }}
           >
-            {({
-              state, handleChange,
-            }) => (
+            {field => (
               <PasswordInput
                 label={t('profile.oldPassword')}
                 required
-                value={state.value}
-                onChange={e => handleChange(e.currentTarget.value)}
-                error={state.meta.errors[0]?.message}
+                value={field.state.value}
+                onChange={e => field.handleChange(e.currentTarget.value)}
+                onBlur={field.handleBlur}
+                error={fieldError(field)}
               />
             )}
           </Field>
@@ -133,15 +129,14 @@ export function SecurityPage() {
             name="newPassword"
             validators={{ onChange: fieldSchemas.newPassword }}
           >
-            {({
-              state, handleChange,
-            }) => (
+            {field => (
               <PasswordInput
                 label={t('profile.newPassword')}
                 required
-                value={state.value}
-                onChange={e => handleChange(e.currentTarget.value)}
-                error={state.meta.errors[0]?.message}
+                value={field.state.value}
+                onChange={e => field.handleChange(e.currentTarget.value)}
+                onBlur={field.handleBlur}
+                error={fieldError(field)}
               />
             )}
           </Field>
@@ -149,15 +144,14 @@ export function SecurityPage() {
             name="confirmNewPassword"
             validators={{ onChange: fieldSchemas.confirmNewPassword }}
           >
-            {({
-              state, handleChange,
-            }) => (
+            {field => (
               <PasswordInput
                 label={t('profile.confirmNewPassword')}
                 required
-                value={state.value}
-                onChange={e => handleChange(e.currentTarget.value)}
-                error={state.meta.errors[0]?.message}
+                value={field.state.value}
+                onChange={e => field.handleChange(e.currentTarget.value)}
+                onBlur={field.handleBlur}
+                error={fieldError(field)}
               />
             )}
           </Field>

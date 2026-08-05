@@ -99,6 +99,7 @@ export function CreateSshKeyModal({
           <ExpireAtField
             value={field.state.value}
             onChange={field.handleChange}
+            onBlur={field.handleBlur}
             error={fieldError(field)}
           />
         )}

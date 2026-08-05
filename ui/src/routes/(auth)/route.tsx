@@ -9,7 +9,6 @@ import {
   UnstyledButton,
   rem,
 } from '@mantine/core'
-import { Login } from '@matrixhub/api-ts/v1alpha1/login.pb'
 import {
   IconChevronDown as ArrowDownIcon,
   IconCube as ModelIcon,
@@ -34,6 +33,7 @@ import { useTranslation } from 'react-i18next'
 import LogoIcon from '@/assets/svgs/logo.svg?react'
 import { CurrentUserContext } from '@/context/current-user-context.tsx'
 import { currentUserQueryOptions } from '@/features/auth/auth.query'
+import { logoutMutationOptions } from '@/features/login/login.mutation'
 import { queryClient } from '@/queryClient'
 import { Route as ModelsRoute } from '@/routes/(auth)/(app)/models'
 import { Route as CreateModelRoute } from '@/routes/(auth)/(app)/models/new'
@@ -194,7 +194,7 @@ function AccountMenu() {
   const {
     mutate: logout,
   } = useMutation({
-    mutationFn: () => Login.Logout({}),
+    ...logoutMutationOptions(),
     onSuccess: () => {
       queryClient.clear()
       window.location.reload()

@@ -14,13 +14,15 @@
       "title": "导入 SSH 公钥",
       "name": "SSH 公钥名称",
       "publicKey": "导入公钥",
-      "success": "SSH 公钥导入成功"
+      "success": "SSH 公钥导入成功",
+      "error": "SSH 公钥导入失败"
     },
     "delete": {
       "action": "删除",
       "title": "删除",
       "confirm": "确认删除 SSH 公钥 {{name}} 吗？删除此公钥后，此公钥立即失效。",
-      "success": "SSH 公钥删除成功"
+      "success": "SSH 公钥删除成功",
+      "error": "SSH 公钥删除失败"
     },
     "status": {
       "SSH_KEY_STATUS_VALID": "有效",
@@ -36,6 +38,7 @@
   "confirmNewPassword": "确认新密码",
   "passwordMismatch": "两次密码不一致",
   "passwordChanged": "密码修改成功",
+  "passwordChangeError": "密码修改失败",
   "createToken": "创建密钥",
   "newTokenName": "密钥名称",
   "tokenName": "名称",
@@ -52,8 +55,10 @@
   "deleteToken": "删除密钥",
   "deleteTokenConfirm": "确认删除密钥 {{name}} 吗？此操作不可撤销。",
   "tokenCreated": "密钥创建成功",
+  "tokenCreateError": "密钥创建失败",
   "validity": "有效期",
   "tokenDeleted": "密钥删除成功",
+  "tokenDeleteError": "密钥删除失败",
   "expireNever": "永久",
   "expireCustom": "自定义",
   "expireTime": "过期时间",

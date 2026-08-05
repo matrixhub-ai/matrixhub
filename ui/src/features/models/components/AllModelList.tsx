@@ -11,9 +11,9 @@ import { getRouteApi } from '@tanstack/react-router'
 import { startTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ModelCard } from '@/features/models/components/ModelCard'
 import { catalogModelsQueryOptions } from '@/features/models/models.query'
 import { Pagination } from '@/shared/components/Pagination'
-import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
 import { SearchToolbar } from '@/shared/components/SearchToolbar'
 import {

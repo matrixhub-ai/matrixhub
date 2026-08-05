@@ -11,12 +11,14 @@ const defaultExpireAt = () => dayjs().add(1, 'day').format('YYYY-MM-DD')
 interface ExpireAtFieldProps {
   value: string
   onChange: (value: string) => void
+  onBlur?: () => void
   error?: string
 }
 
 export function ExpireAtField({
   value,
   onChange,
+  onBlur,
   error,
 }: ExpireAtFieldProps) {
   const { t } = useTranslation()
@@ -59,6 +61,7 @@ export function ExpireAtField({
           highlightToday
           required
           onChange={next => onChange(next ?? '')}
+          onBlur={onBlur}
           error={error}
         />
       )}

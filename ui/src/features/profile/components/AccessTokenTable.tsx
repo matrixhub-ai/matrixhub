@@ -5,14 +5,12 @@ import {
   Text,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import {
-  CurrentUser, AccessTokenStatus, type AccessToken,
-} from '@matrixhub/api-ts/v1alpha1/current_user.pb'
+import { AccessTokenStatus, type AccessToken } from '@matrixhub/api-ts/v1alpha1/current_user.pb'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { profileKeys } from '@/features/profile/profile.query'
+import { deleteAccessTokenMutationOptions } from '@/features/profile/profile.mutation'
 import { formatExpiredAt } from '@/features/profile/profile.utils.ts'
 import { DataTable, type DataTableRowActionsProps } from '@/shared/components/DataTable'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
@@ -76,11 +74,7 @@ export function AccessTokenTable({ tokens }: AccessTokenTableProps) {
   const {
     mutate: deleteToken, isPending: isDeleting,
   } = useMutation({
-    mutationFn: () => CurrentUser.DeleteAccessToken({ id: deletingToken?.id }),
-    meta: {
-      successMessage: t('profile.tokenDeleted'),
-      invalidates: [profileKeys.accessTokens],
-    },
+    ...deleteAccessTokenMutationOptions(),
     onSuccess: () => {
       closeDelete()
       setDeletingToken(null)
@@ -95,6 +89,14 @@ export function AccessTokenTable({ tokens }: AccessTokenTableProps) {
   const handleDeleteClose = () => {
     closeDelete()
     setDeletingToken(null)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (deletingToken?.id == null) {
+      return
+    }
+
+    deleteToken(deletingToken.id)
   }
 
   const columns: MRT_ColumnDef<AccessToken>[] = [
@@ -136,7 +138,7 @@ export function AccessTokenTable({ tokens }: AccessTokenTableProps) {
         title={t('profile.deleteToken')}
         opened={deleteOpened}
         onClose={handleDeleteClose}
-        onConfirm={() => deleteToken()}
+        onConfirm={handleDeleteConfirm}
         confirmLoading={isDeleting}
       >
         <Text size="sm">
