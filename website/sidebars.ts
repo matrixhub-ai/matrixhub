@@ -16,7 +16,6 @@ const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro',
     'overview/index',
-    'concepts/index',
     'getting-started/index',
     'installation/index',
     {
