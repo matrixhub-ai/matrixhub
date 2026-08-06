@@ -4,53 +4,52 @@ sidebar_position: 1
 
 # Overview
 
-MatrixHub is an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a drop-in private replacement for Hugging Face, purpose-built to accelerate **vLLM** and **SGLang** workloads.
+MatrixHub is an open-source, self-hosted, Hugging Face-compatible model hub for enterprise inference infrastructure.
 
-This section provides a high-level overview of the MatrixHub project, its scope, roadmap, and operational success criteria.
+## Target Users
 
-## Key Target Workflows
+- 🏗️ **Platform Engineers**: Operate enterprise AI infrastructure.
+- 📦 **ML Infrastructure Teams**: Manage internal model distribution.
+- 🛡️ **AI Operations Teams**: Own release control, audit, and replication.
+- 🔬 **Research Teams**: Work in isolated or regulated environments.
 
-To stay focused on what enterprise operations actually need, MatrixHub targets four essential workflows:
+## Use Cases
 
-*   **Intranet Inference Acceleration** — Pull-once, serve-all caching for large model fan-out on local GPU clusters to eliminate external bandwidth bottlenecks.
-*   **Air-Gapped Model Transfer** — Controlled export and import pipelines to safely ferry approved models into isolated and highly regulated networks.
-*   **Enterprise Model Asset Governance** — Tag locking, promotion, audit trails, and CI/CD-friendly access control to ensure consistency from training to production.
-*   **Cross-Region Distribution** — Policy-driven, chunked, and resumable replication between geographical data centers.
+- 🚀 **Intranet Inference Acceleration**: Cache models once and distribute them efficiently across internal GPU clusters.
+- 🔐 **Air-Gapped Model Delivery**: Transfer approved models into isolated or regulated environments.
+- 📦 **Enterprise Model Governance**: Control releases, audit activity, and manage model versions from development to production.
+- 🌍 **Multi-Region Replication**: Replicate models between data centers with resumable transfers.
 
-## Current Focus & Scope
+## Key Capabilities
 
-We prioritize reliability and performance for large-model distribution and Hugging Face–compatible access, alongside Kubernetes/Helm deployment ergonomics.
+### 🚀 Model Distribution
 
-### Project Roadmap & Milestones
+- **Hugging Face-Compatible Access**: Point `HF_ENDPOINT` to MatrixHub to use `hf download` and `hf upload`, and connect inference engines such as vLLM, SGLang, and Dynamo.
+- **On-Demand Proxy Cache**: Cache public Hugging Face models on first request.
+- **Repository Workflows**: Create and manage model repositories.
 
-The project's evolution is divided into clear operational milestones:
+### 🛡️ Access and Project Management
 
-1.  **Milestone 0: Private Hub Baseline**
-    *   Basic repository CRUD operations.
-    *   Support for local and S3-compatible storage.
-    *   API token authentication and a minimal Web UI.
-    *   Hugging Face-compatible read path for core client libraries.
-2.  **Milestone 1: Enterprise Distribution Baseline**
-    *   Transparent proxy caching mode.
-    *   Project and namespace isolation.
-    *   Audit logging.
-    *   Air-gapped export/import workflows.
-    *   Initial replication engine supporting chunked transfer and resume.
-3.  **Milestone 2: Production Governance**
-    *   Granular Role-Based Access Control (RBAC).
-    *   Tag locking and release promotion workflows.
-    *   Storage quotas and automatic cleanup policies.
-    *   LDAP, OIDC, and SSO identity integrations.
-    *   Malware scanning and model integrity signing.
-4.  **Milestone 3: Inference-Native Acceleration**
-    *   Distribution optimization for GPU startup storms (P2P distribution, etc.).
-    *   Deep Kubernetes-native integrations with vLLM and SGLang.
-    *   Exploratory net-loading streaming directly to GPU weights.
+- **Project Isolation**: Organize repositories by project and permissions.
+- **Authentication and Roles**: Manage users, roles, tokens, and robot accounts.
+- **Git Access**: Access repositories through Git, Git LFS, and HTTP.
 
-## Success Criteria
+### 🌍 Deployment and Replication
 
-We measure the success of MatrixHub by how well it simplifies operations:
-*   Inference clients can switch to MatrixHub with zero code changes (by simply redirecting `HF_ENDPOINT`).
-*   A large internal GPU cluster can boot a 70B+ model without saturating external network links.
-*   An air-gapped organization can move approved models through a safe, controlled import/export pipeline.
-*   A production team can treat models as governed, immutable release artifacts rather than loose files.
+- **Replication Policies**: Run manual or scheduled pull and push synchronization, with a foundation for resumable transfers.
+- **Flexible Storage**: Use local PVC or NFS storage.
+- **Deployment Options**: Deploy with Docker Compose or Kubernetes Helm charts.
+
+For planned capabilities, see the [MatrixHub roadmap](https://github.com/matrixhub-ai/matrixhub/blob/main/ROADMAP.md).
+
+## Live Demo
+
+Try MatrixHub instantly at **[demo.matrixhub.ai](https://demo.matrixhub.ai/)**—no setup required.
+
+Sign in with the public demo credentials: username `admin`, password `changeme`. The demo is for evaluation only, resets every six hours, and may also be reset during maintenance.
+
+## Getting Started
+
+MatrixHub is easy to deploy using **Docker Compose** or **Kubernetes**. The entire infrastructure is open source and free for the community.
+
+👉 **Ready to get started?** Follow the [Getting Started guide](../getting-started/) to deploy MatrixHub and begin using it.

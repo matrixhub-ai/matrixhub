@@ -4,7 +4,7 @@
 
 MatrixHub is an open-source, self-hosted, Hugging Face–compatible model hub for enterprise inference infrastructure.
 
-## Four Key workflows we target
+## Four Key Workflows We Target
 
 - **Intranet inference acceleration** — pull-once, serve-all caching for large model fan-out on GPU clusters
 - **Air-gapped model transfer** — controlled export and import of approved models into isolated networks
@@ -28,13 +28,13 @@ MatrixHub is an open-source, self-hosted, Hugging Face–compatible model hub fo
 
 ### Phase 2: Inference-Native Acceleration and Ecosystem Integration
 
-- S3-compatible backends support for Large-file storage
-- XET support for Large-file download
+- S3-compatible backends support for large-file storage
+- XET support for large-file download
 - Reliability and performance for large-model distribution
 - Visibility into in-progress uploads and downloads
 - P2P pre-warm acceleration across nodes via Dragonfly
 - Preset recommended models with Hugging Face mirror support
-- Ecosystem documentation and examples for MatrixHub Integration with vLLM, SGLang, llm-d, Dynamo, ModelExpress, and the Kubernetes ecosystem
+- Ecosystem documentation and examples for MatrixHub integration with vLLM, SGLang, llm-d, Dynamo, ModelExpress, and the Kubernetes ecosystem
 - Run:ai Model Streamer support, with MatrixHub as the governed, streamer-friendly model source for vLLM
 
 ### Phase 3: Enterprise Feature Expansion and Production Governance
@@ -56,7 +56,7 @@ MatrixHub is an open-source, self-hosted, Hugging Face–compatible model hub fo
 - ModelScope compatibility where strategically useful
 - OCI artifact packaging for models
 - More P2P distribution approach for startup storms
-- More Direct-to-GPU loading patterns (NetLoader-style) approach
+- More direct-to-GPU loading patterns (NetLoader-style) approach
 - Kubernetes-native acceleration components for vLLM and SGLang
 - Automatic upstream mirror selection based on geography or latency
 - Deeper integration with inference-serving ecosystems

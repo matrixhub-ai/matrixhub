@@ -14,9 +14,7 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
  */
 const sidebars: SidebarsConfig = {
   tutorialSidebar: [
-    'intro',
     'overview/index',
-    'concepts/index',
     'getting-started/index',
     'installation/index',
     {
