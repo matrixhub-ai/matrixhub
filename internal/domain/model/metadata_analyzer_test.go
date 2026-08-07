@@ -95,6 +95,51 @@ func TestAnalyzeRepoMetadataPrefersSafetensorsIndexTotalSize(t *testing.T) {
 	}
 }
 
+func TestAnalyzeRepoMetadataEstimatesFromSafetensorsSizes(t *testing.T) {
+	// No index and no readable header: all that is left is the size recorded in
+	// the LFS pointer. Sizes are Qwen2.5-0.5B's, whose real count is 494032768.
+	files := &git.RepoMetadataFiles{
+		ConfigJSON: []byte(`{"torch_dtype": "bfloat16"}`),
+		SafetensorsSizes: map[string]int64{
+			"model.safetensors": 988097824,
+		},
+	}
+
+	metadata, err := AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
+	}
+
+	if metadata.ParameterCount != 494048912 {
+		t.Fatalf("ParameterCount = %d, want 494048912", metadata.ParameterCount)
+	}
+}
+
+func TestAnalyzeRepoMetadataPrefersHeadersOverSafetensorsSizes(t *testing.T) {
+	files := &git.RepoMetadataFiles{
+		ConfigJSON: []byte(`{"torch_dtype": "bfloat16"}`),
+		SafetensorsFiles: map[string][]byte{
+			"model.safetensors": buildSafetensorsFile(t, map[string][]int64{
+				"model.embed_tokens.weight": {2, 3},
+				"lm_head.weight":            {4, 5},
+			}),
+		},
+		SafetensorsSizes: map[string]int64{
+			"model.safetensors": 988097824,
+		},
+	}
+
+	metadata, err := AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
+	}
+
+	// The exact header scan wins; the pointer-size estimate is only a fallback.
+	if metadata.ParameterCount != 26 {
+		t.Fatalf("ParameterCount = %d, want 26", metadata.ParameterCount)
+	}
+}
+
 func buildSafetensorsFile(t *testing.T, tensors map[string][]int64) []byte {
 	t.Helper()
 

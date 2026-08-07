@@ -113,6 +113,12 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 	if metadata.ParameterCount == 0 && len(files.SafetensorsFiles) > 0 {
 		metadata.ParameterCount = countSafetensorsParameters(files.SafetensorsFiles)
 	}
+	if metadata.ParameterCount == 0 && len(files.SafetensorsSizes) > 0 {
+		// Last resort: the weights themselves were unreachable, so estimate from
+		// the sizes recorded in their LFS pointers. Same arithmetic as the index
+		// path above, just a different source for the total byte count.
+		metadata.ParameterCount = estimateParameterCount(sumSafetensorsSizes(files.SafetensorsSizes), parameterBytes)
+	}
 
 	metadata.Tags = deduplicateClassifiedTags(tags)
 	return metadata, nil
@@ -197,6 +203,17 @@ func estimateParameterCount(totalSize, parameterBytes int64) int64 {
 		return 0
 	}
 	return totalSize / parameterBytes
+}
+
+func sumSafetensorsSizes(sizes map[string]int64) int64 {
+	var total int64
+	for _, size := range sizes {
+		if size <= 0 || size > math.MaxInt64-total {
+			return 0
+		}
+		total += size
+	}
+	return total
 }
 
 func countSafetensorsParameters(files map[string][]byte) int64 {
