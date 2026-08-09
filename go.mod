@@ -8,7 +8,7 @@ require (
 	github.com/antihax/optional v1.0.0
 	github.com/envoyproxy/protoc-gen-validate v1.3.3
 	github.com/gin-gonic/gin v1.12.0
-	github.com/go-git/go-git/v5 v5.19.1
+	github.com/go-git/go-git/v5 v5.19.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
