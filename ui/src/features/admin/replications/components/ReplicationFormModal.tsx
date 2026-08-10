@@ -302,7 +302,7 @@ export function ReplicationFormModal({
     <ModalWrapper
       opened={opened}
       onClose={onClose}
-      size="sm"
+      size="md"
       closeOnClickOutside={false}
       title={mode === 'create'
         ? t('routes.admin.replications.createModal.title')
