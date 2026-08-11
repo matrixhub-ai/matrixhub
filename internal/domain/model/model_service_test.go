@@ -59,6 +59,33 @@ func newProxyRepoMocks(ctrl *gomock.Controller) (*projectmocks.MockIProjectRepo,
 	return projectRepo, registryRepo
 }
 
+func TestModelService_CreateModelCreatesRecordWhenRepositoryAlreadyExists(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	wantErr := errors.New("model not found")
+	want := &model.Model{Name: "model", ProjectName: "proj"}
+
+	gomock.InOrder(
+		modelRepo.EXPECT().
+			GetByProjectAndName(ctx, "proj", "model").
+			Return(nil, wantErr),
+		gitRepo.EXPECT().
+			RepositoryExists(ctx, "models", "proj", "model").
+			Return(true, nil),
+		modelRepo.EXPECT().
+			Create(ctx, &model.Model{Name: "model", ProjectName: "proj"}).
+			Return(want, nil),
+	)
+
+	service := model.NewModelService(modelRepo, nil, gitRepo, nil, nil)
+	got, err := service.CreateModel(ctx, "proj", "model")
+
+	require.NoError(t, err)
+	require.Same(t, want, got)
+}
+
 func TestModelService_EnsureModelReturnsExistingModel(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
