@@ -52,5 +52,17 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    preview: {
+      proxy: {
+        '/api': {
+          target: env.VITE_APP_API_URL,
+        },
+        '/_assets_proxy_': {
+          target: env.VITE_APP_API_URL,
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/_assets_proxy_\//, ''),
+        },
+      },
+    },
   }
 })

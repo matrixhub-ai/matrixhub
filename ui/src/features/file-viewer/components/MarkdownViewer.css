@@ -1,0 +1,68 @@
+/* Shiki code blocks inside the markdown body */
+.markdown-body pre.shiki {
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 85%;
+  line-height: 1.45;
+}
+
+.markdown-body pre.shiki code {
+  padding: 0;
+  background: transparent;
+  white-space: pre;
+}
+
+/*
+ * GitHub-style alerts restyled to match Hugging Face model pages:
+ * no title/icon row — tinted background, colored text, 4px left border.
+ * Colors follow HF (Tailwind emerald / sky / amber / purple / red).
+ */
+.markdown-body .markdown-alert {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-left: 4px solid;
+}
+
+.markdown-body .markdown-alert > .markdown-alert-title {
+  display: none;
+}
+
+.markdown-body .markdown-alert > p {
+  color: inherit;
+}
+
+.markdown-body .markdown-alert.markdown-alert-tip {
+  border-left-color: #10b981;
+  background-color: rgb(236 253 245 / 0.5);
+  color: #047857;
+}
+
+.markdown-body .markdown-alert.markdown-alert-note {
+  border-left-color: #0ea5e9;
+  background-color: rgb(240 249 255 / 0.5);
+  color: #0369a1;
+}
+
+.markdown-body .markdown-alert.markdown-alert-important {
+  border-left-color: #a855f7;
+  background-color: rgb(250 245 255 / 0.5);
+  color: #7e22ce;
+}
+
+.markdown-body .markdown-alert.markdown-alert-warning {
+  border-left-color: #f59e0b;
+  background-color: rgb(255 251 235 / 0.5);
+  color: #b45309;
+}
+
+.markdown-body .markdown-alert.markdown-alert-caution {
+  border-left-color: #ef4444;
+  background-color: rgb(254 242 242 / 0.5);
+  color: #b91c1c;
+}
+
+.markdown-body .markdown-alert a {
+  color: inherit;
+  text-decoration: underline;
+}
