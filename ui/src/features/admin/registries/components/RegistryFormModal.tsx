@@ -103,7 +103,7 @@ export function RegistryFormModal({
         ? t('routes.admin.registries.createModal.title')
         : t('routes.admin.registries.editModal.title')}
       footer={(
-        <Group justify="flex-end" gap="md">
+        <Group justify="flex-end" gap="md" wrap="nowrap">
           <Button
             variant="white"
             color="gray"
