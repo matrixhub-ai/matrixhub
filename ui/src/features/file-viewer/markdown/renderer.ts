@@ -1,31 +1,25 @@
 import DOMPurify from 'dompurify'
-import MarkdownIt from 'markdown-it'
+import MarkdownItAsync from 'markdown-it-async'
 import MarkdownItGitHubAlerts from 'markdown-it-github-alerts'
 
 import type { HighlighterCore } from 'shiki/core'
 
-type Renderer = InstanceType<typeof MarkdownIt>
+type Renderer = ReturnType<typeof MarkdownItAsync>
 
 /**
- * Languages we can highlight, loaded on demand — only the grammars actually
- * used by the document being rendered are fetched (cpp alone is ~800 kB).
+ * Grammar loaders keyed by fence language. Loaded lazily by the async
+ * highlight callback — only grammars actually used by the document being
+ * rendered are fetched (cpp alone is ~800 kB).
  */
 const LANG_LOADERS: Record<string, () => Promise<unknown>> = {
   bash: () => import('@shikijs/langs/bash'),
   shell: () => import('@shikijs/langs/shell'),
-  sh: () => import('@shikijs/langs/bash'),
-  zsh: () => import('@shikijs/langs/bash'),
   python: () => import('@shikijs/langs/python'),
-  py: () => import('@shikijs/langs/python'),
   javascript: () => import('@shikijs/langs/javascript'),
-  js: () => import('@shikijs/langs/javascript'),
   typescript: () => import('@shikijs/langs/typescript'),
-  ts: () => import('@shikijs/langs/typescript'),
   json: () => import('@shikijs/langs/json'),
   yaml: () => import('@shikijs/langs/yaml'),
-  yml: () => import('@shikijs/langs/yaml'),
   markdown: () => import('@shikijs/langs/markdown'),
-  md: () => import('@shikijs/langs/markdown'),
   go: () => import('@shikijs/langs/go'),
   rust: () => import('@shikijs/langs/rust'),
   c: () => import('@shikijs/langs/c'),
@@ -36,7 +30,6 @@ const LANG_LOADERS: Record<string, () => Promise<unknown>> = {
   css: () => import('@shikijs/langs/css'),
   diff: () => import('@shikijs/langs/diff'),
   docker: () => import('@shikijs/langs/docker'),
-  dockerfile: () => import('@shikijs/langs/docker'),
   toml: () => import('@shikijs/langs/toml'),
   ini: () => import('@shikijs/langs/ini'),
 }
@@ -63,17 +56,6 @@ export function stripFrontmatter(content: string): string {
   return match ? content.slice(match[0].length) : content
 }
 
-/** Fence languages referenced by the document (```lang). */
-function collectFenceLangs(content: string): string[] {
-  const langs = new Set<string>()
-
-  for (const match of content.matchAll(/^\s*(?:```|~~~)\s*([\w+-]+)/gm)) {
-    langs.add(match[1].toLowerCase())
-  }
-
-  return [...langs]
-}
-
 async function getHighlighter(): Promise<HighlighterCore> {
   highlighterPromise ??= (async () => {
     const [{ createHighlighterCore }, { createJavaScriptRegexEngine }] = await Promise.all([
@@ -94,26 +76,35 @@ async function getHighlighter(): Promise<HighlighterCore> {
   return highlighterPromise
 }
 
-/** Load the grammars used by `content` (unknown languages fall back to plain text). */
-async function loadLangsFor(highlighter: HighlighterCore, content: string): Promise<void> {
-  const loaded = new Set(highlighter.getLoadedLanguages())
-  const wanted = collectFenceLangs(content)
-    .filter(lang => !loaded.has(LANG_ALIASES[lang] ?? lang) && lang in LANG_LOADERS)
+/** Resolve a fence language to a loaded grammar, fetching it on demand. */
+async function resolveLang(highlighter: HighlighterCore, lang: string): Promise<string> {
+  const canonical = LANG_ALIASES[lang.toLowerCase()] ?? lang.toLowerCase()
 
-  await Promise.all(wanted.map(async (lang) => {
-    const mod = await LANG_LOADERS[lang]() as { default: Parameters<HighlighterCore['loadLanguage']>[0] }
+  if (highlighter.getLoadedLanguages().includes(canonical)) {
+    return canonical
+  }
 
-    await highlighter.loadLanguage(mod.default)
-  }))
+  const loader = LANG_LOADERS[canonical]
+
+  if (!loader) {
+    return 'text'
+  }
+
+  const mod = await loader() as { default: Parameters<HighlighterCore['loadLanguage']>[0] }
+
+  await highlighter.loadLanguage(mod.default)
+
+  return canonical
 }
 
-function createRenderer(highlighter: HighlighterCore): Renderer {
-  const md = new MarkdownIt({
+function createRenderer(): Renderer {
+  const md = MarkdownItAsync({
     html: true,
     linkify: true,
-    highlight: (code, lang) => {
-      const canonical = LANG_ALIASES[lang] ?? lang
-      const language = highlighter.getLoadedLanguages().includes(canonical) ? canonical : 'text'
+    warnOnSyncRender: true,
+    highlight: async (code, lang) => {
+      const highlighter = await getHighlighter()
+      const language = await resolveLang(highlighter, lang)
 
       return highlighter.codeToHtml(code, {
         lang: language,
@@ -144,13 +135,9 @@ function createRenderer(highlighter: HighlighterCore): Renderer {
 
 /** Render markdown to sanitized HTML (GitHub-flavored: alerts, autolinks, Shiki-highlighted code). */
 export async function renderMarkdown(content: string): Promise<string> {
-  const highlighter = await getHighlighter()
-  const source = stripFrontmatter(content)
-
-  await loadLangsFor(highlighter, source)
-  rendererPromise ??= Promise.resolve(createRenderer(highlighter))
+  rendererPromise ??= Promise.resolve(createRenderer())
   const md = await rendererPromise
-  const html = md.render(source)
+  const html = await md.renderAsync(stripFrontmatter(content))
 
   return DOMPurify.sanitize(html, { ADD_ATTR: ['target'] })
 }
