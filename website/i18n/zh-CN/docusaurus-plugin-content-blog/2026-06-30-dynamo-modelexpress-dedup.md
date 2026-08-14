@@ -1,6 +1,6 @@
 ---
 slug: /dynamo-modelexpress-dedup
-title: 使用 ModelExpress 消除 Dynamo Worker 的重复模型下载
+title: Dynamo 多 Worker 模型加载：用 ModelExpress 避免重复下载
 description: 在 GPU Kubernetes 集群中为两个 Dynamo vLLM Worker 部署 ModelExpress，对比第一个 Worker 的缓存未命中与第二个 Worker 的缓存命中，验证后者会跳过模型下载并直接从 ModelExpress 缓存获取文件。
 ---
 
