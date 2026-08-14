@@ -10,14 +10,31 @@ description: 在双节点环境中验证 MatrixHub 与 ModelExpress GPU-to-GPU P
 
 本文记录 Runtime 构建、关键 DGD 配置和跨节点 GPU-to-GPU P2P 验证过程；随后再用 Hugging Face/MatrixHub × 直拉/P2P 四组实验解释每一阶段的实际耗时。
 
-```text
-模型仓库                  Source Worker               Target Worker
---------                  -------------               -------------
-Hugging Face ─┐
-              ├─> 本地模型文件 ─> Source GPU ─RDMA─> Target GPU ─> 推理服务
-MatrixHub ────┘
-     ^                  模型文件分发                  GPU 权重传输
-     |                    MatrixHub                  ModelExpress P2P
+```mermaid
+flowchart TD
+    ENDPOINT["模型文件 Endpoint<br/>Hugging Face 镜像或 MatrixHub"]
+
+    subgraph SOURCE["Source Worker"]
+        direction TB
+        CACHE["本地模型文件"]
+        SGPU["Source GPU<br/>加载模型权重"]
+        CACHE --> SGPU
+    end
+
+    MX[("ModelExpress Server<br/>Metadata Backend：Kubernetes CRD")]
+
+    subgraph TARGET["Target Worker"]
+        direction TB
+        DISCOVER["发现 Ready Source"]
+        TGPU["Target GPU<br/>接收权重"]
+        SERVE["推理服务"]
+        DISCOVER --> TGPU --> SERVE
+    end
+
+    ENDPOINT -->|"模型文件"| CACHE
+    SGPU -. "发布 P2P Metadata" .-> MX
+    MX -. "返回 Ready Source 信息" .-> DISCOVER
+    SGPU ==>|"GPU 权重 · ModelExpress P2P<br/>NIXL · UCX · RDMA"| TGPU
 ```
 
 {/* truncate */}
@@ -171,9 +188,9 @@ Source 日志应依次出现以下信号：
 1. 完成模型文件准备。
 2. 从磁盘加载权重。
 3. 开始注册 312 个 GPU Tensor。
-4. 完成 15.24 GB Tensor 注册。
+4. 开始发布 312 个 Tensor。
 5. 输出 `Published P2P metadata`。
-6. Worker 进入 Ready。
+6. `MxModelLoader` 完成加载。
 
 本次 E4 记录中，Source 的 `Time spent downloading weights` 为 143.336599 秒，随后从磁盘读取权重耗时 5.36 秒，并注册、发布了 312 个 Tensor，共 15.24 GB。
 

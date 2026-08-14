@@ -10,14 +10,31 @@ Starting a new inference worker involves two different data movements: model fil
 
 This article records the runtime build, essential DGD configuration, and cross-node GPU-to-GPU P2P validation. It then uses four scenarios—Hugging Face/MatrixHub × direct/P2P—to explain the time spent in each stage.
 
-```text
-Model repository          Source worker                Target worker
-----------------          -------------                -------------
-Hugging Face ─┐
-              ├─> local model files ─> source GPU ─RDMA─> target GPU ─> inference
-MatrixHub ────┘
-     ^                  file distribution              GPU-weight transfer
-     |                       MatrixHub                  ModelExpress P2P
+```mermaid
+flowchart TD
+    ENDPOINT["Model-file endpoint<br/>Hugging Face mirror or MatrixHub"]
+
+    subgraph SOURCE["Source worker"]
+        direction TB
+        CACHE["Local model files"]
+        SGPU["Source GPU<br/>Load model weights"]
+        CACHE --> SGPU
+    end
+
+    MX[("ModelExpress Server<br/>Metadata backend: Kubernetes CRD")]
+
+    subgraph TARGET["Target worker"]
+        direction TB
+        DISCOVER["Discover ready source"]
+        TGPU["Target GPU<br/>Receive weights"]
+        SERVE["Inference service"]
+        DISCOVER --> TGPU --> SERVE
+    end
+
+    ENDPOINT -->|"Model files"| CACHE
+    SGPU -. "Publish P2P metadata" .-> MX
+    MX -. "Return ready-source information" .-> DISCOVER
+    SGPU ==>|"GPU weights · ModelExpress P2P<br/>NIXL · UCX · RDMA"| TGPU
 ```
 
 {/* truncate */}
@@ -171,9 +188,9 @@ The source log should show these signals in order:
 1. Model-file preparation completes.
 2. Weights load from disk.
 3. Registration begins for 312 GPU tensors.
-4. Registration completes for 15.24 GB.
+4. Publishing begins for 312 tensors.
 5. `Published P2P metadata` appears.
-6. The worker becomes Ready.
+6. `MxModelLoader` completes.
 
 In the recorded E4 run, source `Time spent downloading weights` was 143.336599 seconds. Reading the weights from disk then took 5.36 seconds, after which the source registered and published 312 tensors totaling 15.24 GB.
 
