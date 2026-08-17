@@ -1201,7 +1201,31 @@ func (m *RefreshRobotAccountTokenRequest) validate(all bool) error {
 
 	// no validation rules for AutoGenerate
 
-	// no validation rules for Token
+	if m.GetToken() != "" {
+
+		if l := utf8.RuneCountInString(m.GetToken()); l < 8 || l > 20 {
+			err := RefreshRobotAccountTokenRequestValidationError{
+				field:  "Token",
+				reason: "value length must be between 8 and 20 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_RefreshRobotAccountTokenRequest_Token_Pattern.MatchString(m.GetToken()) {
+			err := RefreshRobotAccountTokenRequestValidationError{
+				field:  "Token",
+				reason: "value does not match regex pattern \"(?s)^.*(?:[A-Z].*[a-z].*[0-9]|[A-Z].*[0-9].*[a-z]|[a-z].*[A-Z].*[0-9]|[a-z].*[0-9].*[A-Z]|[0-9].*[A-Z].*[a-z]|[0-9].*[a-z].*[A-Z])\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return RefreshRobotAccountTokenRequestMultiError(errors)
@@ -1283,6 +1307,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RefreshRobotAccountTokenRequestValidationError{}
+
+var _RefreshRobotAccountTokenRequest_Token_Pattern = regexp.MustCompile("(?s)^.*(?:[A-Z].*[a-z].*[0-9]|[A-Z].*[0-9].*[a-z]|[a-z].*[A-Z].*[0-9]|[a-z].*[0-9].*[A-Z]|[0-9].*[A-Z].*[a-z]|[0-9].*[a-z].*[A-Z])")
 
 // Validate checks the field values on RefreshRobotAccountTokenResponse with
 // the rules defined in the proto definition for this message. If any rules

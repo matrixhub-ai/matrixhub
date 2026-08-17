@@ -126,7 +126,12 @@ message UpdateRobotAccountResponse {}
 message RefreshRobotAccountTokenRequest {
   uint32 id = 1;
   bool auto_generate = 2;
-  string token = 3;
+  string token = 3 [(validate.rules).string = {
+    min_len: 8,
+    max_len: 20,
+    pattern: "(?s)^.*(?:[A-Z].*[a-z].*[0-9]|[A-Z].*[0-9].*[a-z]|[a-z].*[A-Z].*[0-9]|[a-z].*[0-9].*[A-Z]|[0-9].*[A-Z].*[a-z]|[0-9].*[a-z].*[A-Z])",
+    ignore_empty: true
+  }];
 }
 
 message RefreshRobotAccountTokenResponse {

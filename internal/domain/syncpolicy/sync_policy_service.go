@@ -180,10 +180,12 @@ func (sps *SyncPolicyService) CreatePendingSyncTask(ctx context.Context, policyI
 }
 
 // CreateSyncTaskAsync creates a pending sync task for async processing by syncTaskProcessor.
+// It only serves the user-initiated "sync now" API, so the task is always recorded as
+// manually triggered, regardless of the trigger type configured on the policy.
 func (sps *SyncPolicyService) CreateSyncTaskAsync(ctx context.Context, policy *SyncPolicy) (*SyncTask, error) {
 	task := &SyncTask{
 		SyncPolicyID: policy.ID,
-		TriggerType:  policy.TriggerType,
+		TriggerType:  TriggerTypeManual,
 		Status:       SyncTaskStatusPending,
 	}
 	return sps.syncTaskRepo.CreateSyncTask(ctx, task)

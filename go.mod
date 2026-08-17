@@ -1,6 +1,6 @@
 module github.com/matrixhub-ai/matrixhub
 
-go 1.25.12
+go 1.25.13
 
 require (
 	github.com/alexedwards/scs/mysqlstore v0.0.0-20251002162104-209de6e426de

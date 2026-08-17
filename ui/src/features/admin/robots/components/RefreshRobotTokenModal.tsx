@@ -16,6 +16,8 @@ import { fieldError } from '@/shared/utils/form.ts'
 
 import { refreshRobotAccountTokenMutationOptions } from '../robot.mutation.ts'
 import {
+  ROBOT_TOKEN_MAX_LENGTH,
+  ROBOT_TOKEN_MIN_LENGTH,
   refreshRobotTokenFormDefaults,
   refreshRobotTokenSchema,
   type RefreshRobotTokenFormValues,
@@ -153,7 +155,12 @@ export function RefreshRobotTokenModal({
                   <PasswordInput
                     required
                     autoComplete="new-password"
+                    maxLength={ROBOT_TOKEN_MAX_LENGTH}
                     label={t('routes.admin.robots.refreshTokenModal.token')}
+                    description={t('routes.admin.robots.refreshTokenModal.tokenHint', {
+                      min: ROBOT_TOKEN_MIN_LENGTH,
+                      max: ROBOT_TOKEN_MAX_LENGTH,
+                    })}
                     value={field.state.value ?? ''}
                     onChange={event => field.handleChange(event.currentTarget.value)}
                     onBlur={field.handleBlur}
@@ -182,6 +189,7 @@ export function RefreshRobotTokenModal({
                   <PasswordInput
                     required
                     autoComplete="new-password"
+                    maxLength={ROBOT_TOKEN_MAX_LENGTH}
                     label={t('routes.admin.robots.refreshTokenModal.confirmToken')}
                     value={field.state.value ?? ''}
                     onChange={event => field.handleChange(event.currentTarget.value)}

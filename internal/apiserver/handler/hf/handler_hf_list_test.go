@@ -85,6 +85,43 @@ func TestResolveContainedPathRejectsExternalSymlink(t *testing.T) {
 	}
 }
 
+func TestDiscoverReposInNamespaceRejectsUnsafeNamespace(t *testing.T) {
+	root := t.TempDir()
+
+	for _, namespace := range []string{"", ".", "..", "../outside", "namespace/../outside", "/tmp", `\\tmp`} {
+		if entries := discoverReposInNamespace(root, namespace); len(entries) != 0 {
+			t.Errorf("discoverReposInNamespace(%q) returned %d entries, want none", namespace, len(entries))
+		}
+	}
+}
+
+func TestDiscoverReposInNamespace(t *testing.T) {
+	root := t.TempDir()
+	repoPath := filepath.Join(root, "namespace", "model.git")
+	if err := os.MkdirAll(repoPath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repoPath, "HEAD"), []byte("ref: refs/heads/main\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries := discoverReposInNamespace(root, "namespace")
+	if len(entries) != 1 {
+		t.Fatalf("discoverReposInNamespace() returned %d entries, want 1", len(entries))
+	}
+	if entries[0].fullName != "namespace/model" {
+		t.Errorf("fullName = %q, want %q", entries[0].fullName, "namespace/model")
+	}
+	resolvedNamespace, err := filepath.EvalSymlinks(filepath.Join(root, "namespace"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantRepoPath := filepath.Join(resolvedNamespace, "model.git")
+	if entries[0].repoPath != wantRepoPath {
+		t.Errorf("repoPath = %q, want %q", entries[0].repoPath, wantRepoPath)
+	}
+}
+
 func TestHandleListModelsEmpty(t *testing.T) {
 	server, _ := setupTestServer(t)
 	endpoint := server.URL

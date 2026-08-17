@@ -59,11 +59,10 @@ import type {
 
 const BANDWIDTH_MIN = -1
 const BANDWIDTH_MAX = 1048576
-const INLINE_FIELD_LABEL_WIDTH = 80
-
+// The inline label column width is locale-dependent and lives in the CSS module
+// (`--inline-field-label-width`), so all three fields share one aligned column.
 const inlineFieldProps = {
   variant: 'unstyled' as const,
-  leftSectionWidth: INLINE_FIELD_LABEL_WIDTH,
   leftSectionProps: {
     className: classes.inlineFieldSection,
   },
@@ -302,7 +301,7 @@ export function ReplicationFormModal({
     <ModalWrapper
       opened={opened}
       onClose={onClose}
-      size="sm"
+      size="md"
       closeOnClickOutside={false}
       title={mode === 'create'
         ? t('routes.admin.replications.createModal.title')

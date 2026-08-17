@@ -129,3 +129,33 @@ func TestSyncPolicyService_ClaimDueSyncPolicies(t *testing.T) {
 		require.Nil(t, jobs)
 	})
 }
+
+func TestSyncPolicyService_CreateSyncTaskAsync(t *testing.T) {
+	ctx := context.Background()
+
+	// A user-initiated sync must be recorded as manually triggered even when the
+	// policy itself is configured to run on a schedule.
+	t.Run("task on a scheduled policy is recorded as manually triggered", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		taskRepo := mocks.NewMockISyncTaskRepo(ctrl)
+
+		taskRepo.EXPECT().
+			CreateSyncTask(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, task *syncpolicy.SyncTask) (*syncpolicy.SyncTask, error) {
+				require.Equal(t, syncpolicy.TriggerTypeManual, task.TriggerType)
+				require.Equal(t, syncpolicy.SyncTaskStatusPending, task.Status)
+				require.Equal(t, 7, task.SyncPolicyID)
+				return task, nil
+			})
+
+		svc := syncpolicy.NewSyncPolicyService(nil, taskRepo, nil, nil, nil)
+		task, err := svc.CreateSyncTaskAsync(ctx, &syncpolicy.SyncPolicy{
+			ID:          7,
+			TriggerType: syncpolicy.TriggerTypeScheduled,
+			Cron:        "0 * * * *",
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, syncpolicy.TriggerTypeManual, task.TriggerType)
+	})
+}

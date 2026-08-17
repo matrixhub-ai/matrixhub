@@ -56,11 +56,13 @@
     "description": "You can click confirm to randomly generate a new token, or manually specify a new token.",
     "manualSwitch": "Enable this to manually specify the new token",
     "token": "New Token",
+    "tokenHint": "{{min}}-{{max}} characters, with at least 1 uppercase letter, 1 lowercase letter and 1 number",
     "confirmToken": "Confirm Token",
     "submit": "Refresh Token",
     "copyDescription": "The new token is shown only once. Copy it now and store it safely.",
     "validation": {
       "tokenRequired": "New token is required",
+      "tokenComplexity": "Token must contain at least 1 uppercase letter, 1 lowercase letter and 1 number",
       "confirmTokenRequired": "Please confirm the new token",
       "tokenMismatch": "The two tokens do not match"
     }

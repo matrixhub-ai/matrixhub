@@ -45,6 +45,10 @@ export const createRobotAccountFormSchema = (t: TFunction) => z.object({
   }
 })
 
+export const ROBOT_TOKEN_MIN_LENGTH = 8
+export const ROBOT_TOKEN_MAX_LENGTH = 20
+export const ROBOT_TOKEN_COMPLEXITY_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/
+
 export const refreshRobotTokenFormDefaults = {
   autoGenerate: true,
   token: '',
@@ -54,6 +58,23 @@ export const refreshRobotTokenFormDefaults = {
 function t(key: string, args: Record<string, unknown> = {}) {
   return i18n.getFixedT(i18n.resolvedLanguage ?? i18n.language)(key, args)
 }
+
+export const robotTokenSchema = z.string()
+  .min(ROBOT_TOKEN_MIN_LENGTH, {
+    error: () => t('common.validation.minLength', {
+      min: ROBOT_TOKEN_MIN_LENGTH,
+      field: t('routes.admin.robots.refreshTokenModal.token'),
+    }),
+  })
+  .max(ROBOT_TOKEN_MAX_LENGTH, {
+    error: () => t('common.validation.maxLength', {
+      max: ROBOT_TOKEN_MAX_LENGTH,
+      field: t('routes.admin.robots.refreshTokenModal.token'),
+    }),
+  })
+  .regex(ROBOT_TOKEN_COMPLEXITY_PATTERN, {
+    error: () => t('routes.admin.robots.refreshTokenModal.validation.tokenComplexity'),
+  })
 
 export const refreshRobotTokenSchema = z.object({
   autoGenerate: z.boolean(),
@@ -70,6 +91,16 @@ export const refreshRobotTokenSchema = z.object({
       message: t('routes.admin.robots.refreshTokenModal.validation.tokenRequired'),
       path: ['token'],
     })
+  } else {
+    const result = robotTokenSchema.safeParse(value.token)
+
+    if (!result.success) {
+      result.error.issues.forEach(issue => ctx.addIssue({
+        code: 'custom',
+        message: issue.message,
+        path: ['token'],
+      }))
+    }
   }
 
   if (!value.confirmToken) {
