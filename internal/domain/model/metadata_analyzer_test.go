@@ -115,17 +115,20 @@ func TestAnalyzeRepoMetadataEstimatesFromSafetensorsSizes(t *testing.T) {
 	}
 }
 
-func TestAnalyzeRepoMetadataPrefersHeadersOverSafetensorsSizes(t *testing.T) {
+func TestAnalyzeRepoMetadataCombinesHeadersAndSafetensorsSizes(t *testing.T) {
+	// A partly-fetched sharded model with no index total_size: one shard's header
+	// was readable, the other only yielded its LFS pointer size. Counting just the
+	// readable shard would report a fraction of the real parameter count.
 	files := &git.RepoMetadataFiles{
 		ConfigJSON: []byte(`{"torch_dtype": "bfloat16"}`),
 		SafetensorsFiles: map[string][]byte{
-			"model.safetensors": buildSafetensorsFile(t, map[string][]int64{
+			"model-00001-of-00002.safetensors": buildSafetensorsFile(t, map[string][]int64{
 				"model.embed_tokens.weight": {2, 3},
 				"lm_head.weight":            {4, 5},
 			}),
 		},
 		SafetensorsSizes: map[string]int64{
-			"model.safetensors": 988097824,
+			"model-00002-of-00002.safetensors": 1024,
 		},
 	}
 
@@ -134,9 +137,9 @@ func TestAnalyzeRepoMetadataPrefersHeadersOverSafetensorsSizes(t *testing.T) {
 		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
 	}
 
-	// The exact header scan wins; the pointer-size estimate is only a fallback.
-	if metadata.ParameterCount != 26 {
-		t.Fatalf("ParameterCount = %d, want 26", metadata.ParameterCount)
+	// 26 exact from the header, plus 1024 bytes of bfloat16 weights.
+	if metadata.ParameterCount != 26+512 {
+		t.Fatalf("ParameterCount = %d, want %d", metadata.ParameterCount, 26+512)
 	}
 }
 

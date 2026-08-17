@@ -119,6 +119,41 @@ func TestExtractMetadataReadsSingleSafetensorsHeader(t *testing.T) {
 	}
 }
 
+func TestCollectSafetensorsFileSkipsReadWhenBudgetSpent(t *testing.T) {
+	ctx := context.Background()
+	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	repo := initRepoTestRepository(t, ctx, store)
+
+	lfsPointer := []byte("version https://git-lfs.github.com/spec/v1\n" +
+		"oid sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n" +
+		"size 1024\n")
+
+	if _, err := repo.CreateCommit(ctx, "main", "add model", "Test", "test@example.com", []repository.CommitOperation{
+		{Type: repository.CommitOperationAdd, Path: "model.safetensors", Content: lfsPointer},
+	}, ""); err != nil {
+		t.Fatalf("CreateCommit() error = %v", err)
+	}
+
+	// A spent budget means an earlier read already blocked on an upstream
+	// download. Opening another tee cache blob would promote it to a foreground
+	// download for a read that cannot finish, so only the pointer size is taken.
+	spentCtx, cancel := context.WithCancel(ctx)
+	cancel()
+
+	metadata := &git.RepoMetadataFiles{
+		SafetensorsFiles: make(map[string][]byte),
+		SafetensorsSizes: make(map[string]int64),
+	}
+	NewGitDB(store, nil).(*gitRepo).collectSafetensorsFile(spentCtx, repo, "main", "model.safetensors", metadata)
+
+	if len(metadata.SafetensorsFiles) != 0 {
+		t.Fatalf("SafetensorsFiles = %v, want no header read", metadata.SafetensorsFiles)
+	}
+	if got := metadata.SafetensorsSizes["model.safetensors"]; got != 1024 {
+		t.Fatalf("SafetensorsSizes[model.safetensors] = %d, want 1024", got)
+	}
+}
+
 func TestExtractMetadataFallsBackToLFSPointerSize(t *testing.T) {
 	ctx := context.Background()
 	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))

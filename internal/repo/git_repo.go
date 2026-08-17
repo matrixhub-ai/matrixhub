@@ -24,7 +24,6 @@ import (
 	"os"
 	stdpath "path"
 	"strings"
-	"sync"
 	"time"
 
 	hfdlfs "github.com/matrixhub-ai/hfd/pkg/lfs"
@@ -42,11 +41,13 @@ type gitRepo struct {
 
 const maxSafetensorsHeaderBytes uint64 = 64 * 1024 * 1024
 
-// safetensorsHeaderReadTimeout bounds a single safetensors header read. A read
+// safetensorsHeaderReadBudget bounds the time one metadata extraction may spend
+// reading safetensors headers, across all files rather than per file. A read
 // served by the mirror tee cache blocks until the upstream download reaches the
-// header bytes, so metadata extraction must not wait on it indefinitely: it runs
-// inline on the proxy sync path that git and Hugging Face clients wait for.
-const safetensorsHeaderReadTimeout = 10 * time.Second
+// header bytes, so extraction must not wait on it indefinitely: it runs inline on
+// the proxy sync path that git and Hugging Face clients wait for. A shared budget
+// also keeps a sharded model from multiplying the wait by its shard count.
+const safetensorsHeaderReadBudget = 10 * time.Second
 
 type safetensorsIndexFiles struct {
 	Metadata struct {
@@ -569,10 +570,16 @@ func (g *gitRepo) openBlobContent(repo *repository.Repository, rev, path string)
 // to the size recorded in its LFS pointer when the header cannot be read. The
 // fallback keeps a parameter count derivable for proxy repositories whose
 // weights have not been fetched yet.
+//
+// Once the read budget is spent the header read is skipped entirely: opening a
+// tee cache blob promotes it to a foreground download, which is not worth paying
+// for a read that is about to time out anyway.
 func (g *gitRepo) collectSafetensorsFile(ctx context.Context, repo *repository.Repository, rev, path string, metadata *git.RepoMetadataFiles) {
-	if header, err := g.readSafetensorsHeader(ctx, repo, rev, path); err == nil {
-		metadata.SafetensorsFiles[path] = header
-		return
+	if ctx.Err() == nil {
+		if header, err := g.readSafetensorsHeader(ctx, repo, rev, path); err == nil {
+			metadata.SafetensorsFiles[path] = header
+			return
+		}
 	}
 	if size, ok := lfsPointerSize(repo, rev, path); ok {
 		metadata.SafetensorsSizes[path] = size
@@ -598,46 +605,43 @@ func lfsPointerSize(repo *repository.Repository, rev, path string) (int64, bool)
 	return size, true
 }
 
+type safetensorsHeaderResult struct {
+	header []byte
+	err    error
+}
+
+// readSafetensorsHeader reads the header of a safetensors file, giving up when ctx
+// is done. A tee cache reader blocks until the upstream download produces the
+// bytes and observes neither ctx nor Close, so the read runs on its own goroutine
+// and is abandoned rather than cancelled. That goroutine owns rc and closes it
+// when the read returns, which happens at the latest when the download ends.
 func (g *gitRepo) readSafetensorsHeader(ctx context.Context, repo *repository.Repository, rev, path string) ([]byte, error) {
 	rc, err := g.openBlobContent(repo, rev, path)
 	if err != nil {
 		return nil, err
 	}
 
-	var closeOnce sync.Once
-	closeReader := func() {
-		closeOnce.Do(func() {
-			_ = rc.Close()
-		})
-	}
-	defer closeReader()
-
-	ctx, cancel := context.WithTimeout(ctx, safetensorsHeaderReadTimeout)
-	defer cancel()
-
-	// A tee cache reader blocks until the upstream download produces the bytes
-	// and does not observe ctx on its own, so closing it is what unblocks a read
-	// that is waiting on a stalled download.
-	done := make(chan struct{})
-	defer close(done)
+	result := make(chan safetensorsHeaderResult, 1)
 	go func() {
-		select {
-		case <-ctx.Done():
-			closeReader()
-		case <-done:
-		}
+		defer func() {
+			_ = rc.Close()
+		}()
+		header, err := readSafetensorsHeaderFrom(rc)
+		result <- safetensorsHeaderResult{header: header, err: err}
 	}()
 
-	readErr := func(err error) error {
-		if ctxErr := ctx.Err(); ctxErr != nil {
-			return fmt.Errorf("read safetensors header %s: %w", path, ctxErr)
-		}
-		return err
+	select {
+	case res := <-result:
+		return res.header, res.err
+	case <-ctx.Done():
+		return nil, fmt.Errorf("read safetensors header %s: %w", path, ctx.Err())
 	}
+}
 
+func readSafetensorsHeaderFrom(r io.Reader) ([]byte, error) {
 	var lengthPrefix [8]byte
-	if _, err := io.ReadFull(rc, lengthPrefix[:]); err != nil {
-		return nil, readErr(err)
+	if _, err := io.ReadFull(r, lengthPrefix[:]); err != nil {
+		return nil, err
 	}
 
 	headerLength := binary.LittleEndian.Uint64(lengthPrefix[:])
@@ -647,28 +651,23 @@ func (g *gitRepo) readSafetensorsHeader(ctx context.Context, repo *repository.Re
 
 	content := make([]byte, 8+int(headerLength))
 	copy(content[:8], lengthPrefix[:])
-	if _, err := io.ReadFull(rc, content[8:]); err != nil {
-		return nil, readErr(err)
+	if _, err := io.ReadFull(r, content[8:]); err != nil {
+		return nil, err
 	}
 	return content, nil
 }
 
-// indexTotalSize returns the metadata.total_size recorded in a safetensors
-// index, or 0 when the index does not carry one.
-func indexTotalSize(indexJSON []byte) int64 {
+// parseSafetensorsIndex decodes a safetensors index, returning the zero value
+// when the JSON cannot be read.
+func parseSafetensorsIndex(indexJSON []byte) safetensorsIndexFiles {
 	var index safetensorsIndexFiles
 	if err := json.Unmarshal(indexJSON, &index); err != nil {
-		return 0
+		return safetensorsIndexFiles{}
 	}
-	return index.Metadata.TotalSize
+	return index
 }
 
-func loadSafetensorsPathsFromIndex(indexJSON []byte) []string {
-	var index safetensorsIndexFiles
-	if err := json.Unmarshal(indexJSON, &index); err != nil {
-		return nil
-	}
-
+func (index safetensorsIndexFiles) safetensorsPaths() []string {
 	seen := make(map[string]struct{})
 	paths := make([]string, 0, len(index.WeightMap))
 	for _, path := range index.WeightMap {
@@ -741,6 +740,11 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 		metadata.ConfigJSON = content
 	}
 
+	// Header reads share one deadline: they can block on an upstream download, and
+	// this runs inline on the sync path that git and Hugging Face clients wait for.
+	headerCtx, cancelHeaderReads := context.WithTimeout(ctx, safetensorsHeaderReadBudget)
+	defer cancelHeaderReads()
+
 	// Read model.safetensors.index.json raw content
 	if content, err := g.readBlobBytes(repo, rev, "model.safetensors.index.json"); err == nil {
 		metadata.SafetensorsIndexJSON = content
@@ -748,13 +752,13 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 		// model domain prefers it over scanning shards. Reading shard headers
 		// anyway would promote every shard to a foreground LFS download to
 		// produce a result that is never used.
-		if indexTotalSize(content) <= 0 {
-			for _, path := range loadSafetensorsPathsFromIndex(content) {
-				g.collectSafetensorsFile(ctx, repo, rev, path, metadata)
+		if index := parseSafetensorsIndex(content); index.Metadata.TotalSize <= 0 {
+			for _, path := range index.safetensorsPaths() {
+				g.collectSafetensorsFile(headerCtx, repo, rev, path, metadata)
 			}
 		}
 	} else {
-		g.collectSafetensorsFile(ctx, repo, rev, "model.safetensors", metadata)
+		g.collectSafetensorsFile(headerCtx, repo, rev, "model.safetensors", metadata)
 	}
 
 	// Compute model content size from the default branch tree. DiskUsage

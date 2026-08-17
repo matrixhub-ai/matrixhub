@@ -110,14 +110,16 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 			metadata.ParameterCount = estimateParameterCount(index.Metadata.TotalSize, parameterBytes)
 		}
 	}
-	if metadata.ParameterCount == 0 && len(files.SafetensorsFiles) > 0 {
-		metadata.ParameterCount = countSafetensorsParameters(files.SafetensorsFiles)
-	}
-	if metadata.ParameterCount == 0 && len(files.SafetensorsSizes) > 0 {
-		// Last resort: the weights themselves were unreachable, so estimate from
-		// the sizes recorded in their LFS pointers. Same arithmetic as the index
-		// path above, just a different source for the total byte count.
-		metadata.ParameterCount = estimateParameterCount(sumSafetensorsSizes(files.SafetensorsSizes), parameterBytes)
+	if metadata.ParameterCount == 0 {
+		// Header scans are exact but only cover files whose weights were readable.
+		// Files that fell back to the size recorded in their LFS pointer are
+		// estimated from that size instead, using the same arithmetic as the index
+		// path above. The two sets are disjoint — the git layer records each file
+		// as one or the other — so counting both is what keeps a partly-fetched
+		// sharded model from reporting only the shards it could read.
+		exact := countSafetensorsParameters(files.SafetensorsFiles)
+		estimated := estimateParameterCount(sumSafetensorsSizes(files.SafetensorsSizes), parameterBytes)
+		metadata.ParameterCount = addParameterCounts(exact, estimated)
 	}
 
 	metadata.Tags = deduplicateClassifiedTags(tags)
@@ -203,6 +205,15 @@ func estimateParameterCount(totalSize, parameterBytes int64) int64 {
 		return 0
 	}
 	return totalSize / parameterBytes
+}
+
+// addParameterCounts adds two parameter counts, returning 0 when either is
+// invalid or the sum would overflow. 0 means "unknown" throughout this file.
+func addParameterCounts(a, b int64) int64 {
+	if a < 0 || b < 0 || a > math.MaxInt64-b {
+		return 0
+	}
+	return a + b
 }
 
 func sumSafetensorsSizes(sizes map[string]int64) int64 {
