@@ -16,6 +16,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 
@@ -38,7 +39,17 @@ func (s *sshKeyRepo) ListSSHKeys(ctx context.Context, userId int) (sks []*user.S
 }
 
 func (s *sshKeyRepo) CreateSSHKey(ctx context.Context, key user.SSHKey) error {
-	return s.db.WithContext(ctx).Create(&key).Error
+	return createSSHKey(s.db.WithContext(ctx), &key)
+}
+
+func createSSHKey(tx *gorm.DB, key *user.SSHKey) error {
+	if err := tx.Create(key).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return user.ErrSSHKeyAlreadyExists
+		}
+		return err
+	}
+	return nil
 }
 
 func (s *sshKeyRepo) DeleteSSHKey(ctx context.Context, userId, id int) error {

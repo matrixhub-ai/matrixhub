@@ -258,6 +258,38 @@ var _ = Describe("CurrentUser", Label("current-user"), func() {
 			})
 			Expect(err).To(HaveOccurred(), "duplicate SSH public key fingerprint must be rejected")
 		})
+
+		It("should reject re-importing an expired SSH public key without changing the record", Label("CU00015B"), func() {
+			publicKey := generateSSHPublicKey()
+			expiredAt := fmt.Sprintf("%d", time.Now().Add(-time.Hour).Unix())
+			_, _, err := currentUserApi.CurrentUserCreateSSHKey(ctx, v1alpha1current_user.V1alpha1CreateSshKeyRequest{
+				Name:      "e2e-expired-ssh-key",
+				PublicKey: publicKey,
+				ExpireAt:  expiredAt,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			before, _, err := currentUserApi.CurrentUserListSSHKeys(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(before.Items).To(HaveLen(1))
+			originalID := before.Items[0].Id
+			originalCreatedAt := before.Items[0].CreatedAt
+
+			validUntil := fmt.Sprintf("%d", time.Now().Add(time.Hour).Unix())
+			_, _, err = currentUserApi.CurrentUserCreateSSHKey(ctx, v1alpha1current_user.V1alpha1CreateSshKeyRequest{
+				Name:      "e2e-reimported-ssh-key",
+				PublicKey: publicKey,
+				ExpireAt:  validUntil,
+			})
+			Expect(err).To(HaveOccurred(), "an expired key must continue to reserve its fingerprint")
+
+			after, _, err := currentUserApi.CurrentUserListSSHKeys(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(after.Items).To(HaveLen(1))
+			Expect(after.Items[0].Id).To(Equal(originalID))
+			Expect(after.Items[0].CreatedAt).To(Equal(originalCreatedAt))
+			Expect(after.Items[0].Name).To(Equal("e2e-expired-ssh-key"))
+			Expect(after.Items[0].ExpireAt).To(Equal(expiredAt))
+		})
 	})
 
 	// ═══════════════════════════════════════════════════════════
@@ -309,4 +341,3 @@ var _ = Describe("CurrentUser", Label("current-user"), func() {
 		})
 	})
 })
-
