@@ -36,6 +36,7 @@ const LANG_LOADERS: Record<string, () => Promise<unknown>> = {
 
 /** Map fence aliases to the canonical grammar name Shiki registers. */
 const LANG_ALIASES: Record<string, string> = {
+  'c++': 'cpp',
   sh: 'bash',
   zsh: 'bash',
   py: 'python',
