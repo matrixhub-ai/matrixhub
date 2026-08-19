@@ -157,6 +157,44 @@ func (mr *MockISyncJobServiceMockRecorder) UpdateSyncJob(ctx, param any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSyncJob", reflect.TypeOf((*MockISyncJobService)(nil).UpdateSyncJob), ctx, param)
 }
 
+// MockMetadataSyncer is a mock of MetadataSyncer interface.
+type MockMetadataSyncer struct {
+	ctrl     *gomock.Controller
+	recorder *MockMetadataSyncerMockRecorder
+	isgomock struct{}
+}
+
+// MockMetadataSyncerMockRecorder is the mock recorder for MockMetadataSyncer.
+type MockMetadataSyncerMockRecorder struct {
+	mock *MockMetadataSyncer
+}
+
+// NewMockMetadataSyncer creates a new mock instance.
+func NewMockMetadataSyncer(ctrl *gomock.Controller) *MockMetadataSyncer {
+	mock := &MockMetadataSyncer{ctrl: ctrl}
+	mock.recorder = &MockMetadataSyncerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMetadataSyncer) EXPECT() *MockMetadataSyncerMockRecorder {
+	return m.recorder
+}
+
+// SyncMetadata mocks base method.
+func (m *MockMetadataSyncer) SyncMetadata(ctx context.Context, project, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SyncMetadata", ctx, project, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SyncMetadata indicates an expected call of SyncMetadata.
+func (mr *MockMetadataSyncerMockRecorder) SyncMetadata(ctx, project, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncMetadata", reflect.TypeOf((*MockMetadataSyncer)(nil).SyncMetadata), ctx, project, name)
+}
+
 // MockLogStore is a mock of LogStore interface.
 type MockLogStore struct {
 	ctrl     *gomock.Controller

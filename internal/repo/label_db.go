@@ -117,3 +117,33 @@ func (l *labelDB) UpdateModelLabels(ctx context.Context, modelID int64, labelIDs
 		return nil
 	})
 }
+
+// UpdateDatasetLabels replaces all label associations for a dataset.
+func (l *labelDB) UpdateDatasetLabels(ctx context.Context, datasetID int64, labelIDs []int) error {
+	return l.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Delete old associations
+		if err := tx.Exec(
+			"DELETE FROM datasets_labels WHERE dataset_id = ?",
+			datasetID,
+		).Error; err != nil {
+			return fmt.Errorf("failed to delete old labels: %w", err)
+		}
+
+		// Insert new associations
+		if len(labelIDs) > 0 {
+			type datasetLabel struct {
+				DatasetID int64 `gorm:"column:dataset_id"`
+				LabelID   int   `gorm:"column:label_id"`
+			}
+			rows := make([]datasetLabel, len(labelIDs))
+			for i, id := range labelIDs {
+				rows[i] = datasetLabel{DatasetID: datasetID, LabelID: id}
+			}
+			if err := tx.Table("datasets_labels").CreateInBatches(rows, 100).Error; err != nil {
+				return fmt.Errorf("failed to insert new labels: %w", err)
+			}
+		}
+
+		return nil
+	})
+}

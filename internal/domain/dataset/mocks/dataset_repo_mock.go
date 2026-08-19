@@ -116,3 +116,17 @@ func (mr *MockIDatasetRepoMockRecorder) ListAllPaths(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllPaths", reflect.TypeOf((*MockIDatasetRepo)(nil).ListAllPaths), ctx)
 }
+
+// UpdateMetadata mocks base method.
+func (m *MockIDatasetRepo) UpdateMetadata(ctx context.Context, datasetID int64, update *dataset.MetadataUpdate) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMetadata", ctx, datasetID, update)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMetadata indicates an expected call of UpdateMetadata.
+func (mr *MockIDatasetRepoMockRecorder) UpdateMetadata(ctx, datasetID, update any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockIDatasetRepo)(nil).UpdateMetadata), ctx, datasetID, update)
+}
