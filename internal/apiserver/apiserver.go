@@ -278,6 +278,15 @@ func (server *APIServer) initGitStorage() {
 	mirrorDestinationFunc := server.gitHooks.mirrorDestinationFunc
 	mirrorRefFilterFunc := server.gitHooks.mirrorRefFilterFunc
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
+	// The mirror is built before the git hooks are wired up, so bind the
+	// post-receive hook lazily instead of capturing a nil function here.
+	postReceiveHookFunc := func(ctx context.Context, repoName string, updates []receive.RefUpdate) error {
+		fn := server.gitHooks.postReceiveHookFunc
+		if fn == nil {
+			return nil
+		}
+		return fn(ctx, repoName, updates)
+	}
 
 	sharedMirror := mirror.NewMirror(
 		mirror.WithMirrorSourceFunc(mirrorSourceFunc),
