@@ -243,7 +243,7 @@ Both return a normal response:
 | Worker 1 (cache miss) | 38.3 s | 24.2 s | **62.5 s** |
 | Worker 2 (cache hit) | 0 s | 22.8 s | **22.8 s** |
 
-For comparison, without ModelExpress (Blog 1):
+For comparison, without ModelExpress, see [Blog 1: Dynamo with MatrixHub](https://matrixhub.ai/blog/dynamo-matrixhub-integration). Blog 1 uses `Qwen/Qwen3-0.6B`, while this experiment uses `Qwen/Qwen2.5-1.5B-Instruct`, so the following figures provide context rather than a direct timing comparison.
 
 | Source | Model acquisition |
 |---|---:|
