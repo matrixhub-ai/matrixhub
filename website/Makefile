@@ -15,13 +15,21 @@
 node_modules: package.json
 	npm install
 
+# Start the dev server with HMR (hot reload).
+.PHONY: start
+start: node_modules
+	npm run start
+
+# Build the static site (production).
 build: node_modules src
 	npm run build
 
+# Serve the pre-built static site (production).
 .PHONY: serve
-serve: node_modules
+serve: build
 	npm run serve
 
+# Clean build artifacts
 .PHONY: clean
 clean:
-	rm -rf build
+	npm run clear
