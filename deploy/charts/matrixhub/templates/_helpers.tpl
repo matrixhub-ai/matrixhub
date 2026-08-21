@@ -109,20 +109,6 @@ MySQL secret name
 {{- end }}
 
 {{- /*
-MySQL PVC name
-*/}}
-{{- define "matrixhub.mysql.pvcName" -}}
-{{- printf "%s-mysql-pv-claim" (include "matrixhub.fullname" .) }}
-{{- end }}
-
-{{- /*
-MySQL init ConfigMap name
-*/}}
-{{- define "matrixhub.mysql.initConfigMapName" -}}
-{{- printf "%s-mysql-initdb-config" (include "matrixhub.fullname" .) }}
-{{- end }}
-
-{{- /*
 Image pull secrets
 */}}
 {{- define "matrixhub.imagePullSecrets" -}}
@@ -140,7 +126,5 @@ Database DSN
 {{- .Values.apiserver.database.dsn }}
 {{- else if eq .Values.apiserver.database.driver "mysql" }}
 {{- printf "matrixhub:%s@tcp(%s-mysql:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true" .Values.mysql.rootPassword (include "matrixhub.fullname" .) }}
-{{- else if eq .Values.apiserver.database.driver "postgres" }}
-{{- printf "user=matrixhub password=%s host=%s-mysql port=5432 dbname=matrixhub sslmode=disable" .Values.mysql.rootPassword (include "matrixhub.fullname" .) }}
 {{- end }}
 {{- end }}
