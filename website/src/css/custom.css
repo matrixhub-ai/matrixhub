@@ -791,6 +791,45 @@ html:hover::-webkit-scrollbar-thumb:hover {
 }
 
 /* ==========================================
+   Enterprise Blog Article
+   ========================================== */
+.enterprise-blog img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #334155;
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);
+}
+
+.enterprise-blog p:has(> img) {
+  margin-block: 1.5rem 2rem;
+}
+
+.enterprise-blog [role="tabpanel"] p:has(> img) {
+  margin-bottom: 0;
+}
+
+.enterprise-blog .tabs-container {
+  margin-block: 1.25rem 2rem;
+}
+
+.enterprise-blog .theme-admonition {
+  margin-block: 1.5rem 2rem;
+}
+
+.enterprise-blog .docusaurus-mermaid-container {
+  margin-block: 1.5rem 2rem;
+  padding: 1rem;
+  overflow-x: auto;
+  background: #161b22;
+  border: 1px solid #334155;
+  border-radius: 0.75rem;
+}
+
+/* ==========================================
    Responsive Design Fixes
    ========================================== */
 @media screen and (max-width: 1200px) {
@@ -839,6 +878,11 @@ html:hover::-webkit-scrollbar-thumb:hover {
 }
 
 @media screen and (max-width: 480px) {
+  .enterprise-blog img,
+  .enterprise-blog .docusaurus-mermaid-container {
+    border-radius: 0.5rem;
+  }
+
   .hero-title {
     font-size: 2rem;
   }
