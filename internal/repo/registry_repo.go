@@ -96,3 +96,12 @@ func (r *RegistryRepo) PingRegistry(ctx context.Context, reg registry.Registry) 
 
 	return resp.StatusCode, resp.Status, nil
 }
+
+func (r *RegistryRepo) GetRegistryByName(ctx context.Context, name string) (*registry.Registry, error) {
+	var reg registry.Registry
+	err := r.db.WithContext(ctx).Where("name = ?", name).First(&reg).Error
+	if err != nil {
+		return nil, err
+	}
+	return &reg, nil
+}
