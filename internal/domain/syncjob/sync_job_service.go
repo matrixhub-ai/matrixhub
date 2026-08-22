@@ -21,6 +21,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
@@ -43,14 +44,27 @@ type ISyncJobService interface {
 	SetOnJobDone(fn func(ctx context.Context, taskID int) error)
 }
 
+// resourceTypeDataset is the sync job resource type for datasets; every other
+// value is handled as a model.
+const resourceTypeDataset = "dataset"
+
+// MetadataSyncer refreshes the database metadata (README, size, labels) of a
+// resource from its on-disk Git repository.
+type MetadataSyncer interface {
+	SyncMetadata(ctx context.Context, project, name string) error
+}
+
 type SyncJobService struct {
-	syncJobRepo  ISyncJobRepo
-	registryRepo registry.IRegistryRepo
-	projectRepo  project.IProjectRepo
-	modelRepo    model.IModelRepo
-	gitRepo      git.IGitRepo
-	logStore     LogStore
-	onJobDone    func(ctx context.Context, taskID int) error
+	syncJobRepo   ISyncJobRepo
+	registryRepo  registry.IRegistryRepo
+	projectRepo   project.IProjectRepo
+	modelRepo     model.IModelRepo
+	datasetRepo   dataset.IDatasetRepo
+	gitRepo       git.IGitRepo
+	modelMetadata MetadataSyncer
+	datasetMeta   MetadataSyncer
+	logStore      LogStore
+	onJobDone     func(ctx context.Context, taskID int) error
 }
 
 type LogStore interface {
@@ -58,14 +72,17 @@ type LogStore interface {
 	Reader(jobID int) (io.ReadCloser, error)
 }
 
-func NewSyncJobService(srepo ISyncJobRepo, rrepo registry.IRegistryRepo, prepo project.IProjectRepo, mrepo model.IModelRepo, grepo git.IGitRepo, logStore LogStore) ISyncJobService {
+func NewSyncJobService(srepo ISyncJobRepo, rrepo registry.IRegistryRepo, prepo project.IProjectRepo, mrepo model.IModelRepo, dsrepo dataset.IDatasetRepo, grepo git.IGitRepo, modelMeta, datasetMeta MetadataSyncer, logStore LogStore) ISyncJobService {
 	return &SyncJobService{
-		syncJobRepo:  srepo,
-		registryRepo: rrepo,
-		projectRepo:  prepo,
-		modelRepo:    mrepo,
-		gitRepo:      grepo,
-		logStore:     logStore,
+		syncJobRepo:   srepo,
+		registryRepo:  rrepo,
+		projectRepo:   prepo,
+		modelRepo:     mrepo,
+		datasetRepo:   dsrepo,
+		gitRepo:       grepo,
+		modelMetadata: modelMeta,
+		datasetMeta:   datasetMeta,
+		logStore:      logStore,
 	}
 }
 
@@ -257,27 +274,8 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 			}
 		}
 	}
-	mod, _ := sjs.modelRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
-	if mod != nil {
-		if logWriter != nil {
-			_, _ = fmt.Fprintf(logWriter, "[INFO] model exists, pulling from remote\n")
-		}
-	} else {
-		if logWriter != nil {
-			_, _ = fmt.Fprintf(logWriter, "[INFO] model not found, creating model record and cloning from remote\n")
-		}
-		mod = &model.Model{
-			Name:        syncJob.ResourceName,
-			ProjectID:   prj.ID,
-			ProjectName: syncJob.ProjectName,
-		}
-
-		if _, err = sjs.modelRepo.Create(ctx, mod); err != nil {
-			return err
-		}
-		if logWriter != nil {
-			_, _ = fmt.Fprintf(logWriter, "[INFO] created model record (id=%d)\n", mod.ID)
-		}
+	if err = sjs.ensureLocalResource(ctx, syncJob, prj, logWriter); err != nil {
+		return err
 	}
 
 	if err = sjs.gitRepo.PullFromRemote(ctx, gr); err != nil {
@@ -287,16 +285,101 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 		_, _ = fmt.Fprintf(logWriter, "[INFO] pull completed\n")
 	}
 
+	// Git content alone is not enough: README, size and labels live in the
+	// database and are only refreshed by an explicit metadata sync.
+	if err = sjs.syncResourceMetadata(ctx, syncJob); err != nil {
+		return err
+	}
+	if logWriter != nil {
+		_, _ = fmt.Fprintf(logWriter, "[INFO] metadata refreshed\n")
+	}
+
 	if logWriter != nil {
 		_, _ = fmt.Fprintf(logWriter, "[INFO] job completed successfully\n")
 	}
 	return nil
 }
 
+// ensureLocalResource creates the local database record for the synced
+// resource when it does not exist yet.
+func (sjs *SyncJobService) ensureLocalResource(ctx context.Context, syncJob *SyncJob, prj *project.Project, logWriter io.Writer) error {
+	if syncJob.ResourceType == resourceTypeDataset {
+		ds, _ := sjs.datasetRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
+		if ds != nil {
+			if logWriter != nil {
+				_, _ = fmt.Fprintf(logWriter, "[INFO] dataset exists, pulling from remote\n")
+			}
+			return nil
+		}
+		if logWriter != nil {
+			_, _ = fmt.Fprintf(logWriter, "[INFO] dataset not found, creating dataset record and cloning from remote\n")
+		}
+		created, err := sjs.datasetRepo.Create(ctx, &dataset.Dataset{
+			Name:        syncJob.ResourceName,
+			ProjectID:   prj.ID,
+			ProjectName: syncJob.ProjectName,
+		})
+		if err != nil {
+			return err
+		}
+		if logWriter != nil {
+			_, _ = fmt.Fprintf(logWriter, "[INFO] created dataset record (id=%d)\n", created.ID)
+		}
+		return nil
+	}
+
+	mod, _ := sjs.modelRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
+	if mod != nil {
+		if logWriter != nil {
+			_, _ = fmt.Fprintf(logWriter, "[INFO] model exists, pulling from remote\n")
+		}
+		return nil
+	}
+	if logWriter != nil {
+		_, _ = fmt.Fprintf(logWriter, "[INFO] model not found, creating model record and cloning from remote\n")
+	}
+	created, err := sjs.modelRepo.Create(ctx, &model.Model{
+		Name:        syncJob.ResourceName,
+		ProjectID:   prj.ID,
+		ProjectName: syncJob.ProjectName,
+	})
+	if err != nil {
+		return err
+	}
+	if logWriter != nil {
+		_, _ = fmt.Fprintf(logWriter, "[INFO] created model record (id=%d)\n", created.ID)
+	}
+	return nil
+}
+
+// syncResourceMetadata refreshes the database metadata of the synced resource
+// from the freshly pulled Git repository.
+func (sjs *SyncJobService) syncResourceMetadata(ctx context.Context, syncJob *SyncJob) error {
+	syncer := sjs.modelMetadata
+	if syncJob.ResourceType == resourceTypeDataset {
+		syncer = sjs.datasetMeta
+	}
+	if syncer == nil {
+		return nil
+	}
+	if err := syncer.SyncMetadata(ctx, syncJob.ProjectName, syncJob.ResourceName); err != nil {
+		return fmt.Errorf("sync metadata for %s %s/%s: %w",
+			syncJob.ResourceType, syncJob.ProjectName, syncJob.ResourceName, err)
+	}
+	return nil
+}
+
 func (sjs *SyncJobService) executePushJob(ctx context.Context, syncJob *SyncJob, reg *registry.Registry, logWriter io.Writer) error {
-	mod, err := sjs.modelRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
-	if err != nil || mod == nil {
-		return fmt.Errorf("local model %s/%s not found: %w", syncJob.ProjectName, syncJob.ResourceName, err)
+	if syncJob.ResourceType == resourceTypeDataset {
+		ds, err := sjs.datasetRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
+		if err != nil || ds == nil {
+			return fmt.Errorf("local dataset %s/%s not found: %w", syncJob.ProjectName, syncJob.ResourceName, err)
+		}
+	} else {
+		mod, err := sjs.modelRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName)
+		if err != nil || mod == nil {
+			return fmt.Errorf("local model %s/%s not found: %w", syncJob.ProjectName, syncJob.ResourceName, err)
+		}
 	}
 
 	gr := &git.GitRepository{
@@ -320,7 +403,7 @@ func (sjs *SyncJobService) executePushJob(ctx context.Context, syncJob *SyncJob,
 	if logWriter != nil {
 		_, _ = fmt.Fprintf(logWriter, "[INFO] pushing to remote registry\n")
 	}
-	if err = sjs.gitRepo.PushToRemote(ctx, gr); err != nil {
+	if err := sjs.gitRepo.PushToRemote(ctx, gr); err != nil {
 		return err
 	}
 	if logWriter != nil {

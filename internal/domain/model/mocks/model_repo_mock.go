@@ -228,6 +228,20 @@ func (mr *MockILabelRepoMockRecorder) ListByCategoryAndScope(ctx, category, scop
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByCategoryAndScope", reflect.TypeOf((*MockILabelRepo)(nil).ListByCategoryAndScope), ctx, category, scope)
 }
 
+// UpdateDatasetLabels mocks base method.
+func (m *MockILabelRepo) UpdateDatasetLabels(ctx context.Context, datasetID int64, labelIDs []int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateDatasetLabels", ctx, datasetID, labelIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateDatasetLabels indicates an expected call of UpdateDatasetLabels.
+func (mr *MockILabelRepoMockRecorder) UpdateDatasetLabels(ctx, datasetID, labelIDs any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDatasetLabels", reflect.TypeOf((*MockILabelRepo)(nil).UpdateDatasetLabels), ctx, datasetID, labelIDs)
+}
+
 // UpdateModelLabels mocks base method.
 func (m *MockILabelRepo) UpdateModelLabels(ctx context.Context, modelID int64, labelIDs []int) error {
 	m.ctrl.T.Helper()

@@ -182,7 +182,28 @@ func (server *APIServer) initGitHooks() {
 		return false, nil
 	}
 
+	// Refresh database metadata (README, size, labels) after repository content
+	// changed. Metadata lives in the database, so without this a pushed or
+	// mirrored repository shows up with an empty description and zero size.
+	// Failures must not abort the push or the mirror sync, so they are logged only.
 	postReceiveHookFunc := func(ctx context.Context, repoName string, updates []receive.RefUpdate) error {
+		repoType, project, name, ok := utils.ParseFromRepoName(repoName)
+		if !ok {
+			return nil
+		}
+
+		var err error
+		switch repoType {
+		case "models":
+			err = server.services.Model.SyncMetadata(ctx, project, name)
+		case "datasets":
+			err = server.services.Dataset.SyncMetadata(ctx, project, name)
+		default:
+			return nil
+		}
+		if err != nil {
+			log.Warnw("sync metadata after receive failed", "repo", repoName, "error", err)
+		}
 		return nil
 	}
 
@@ -257,7 +278,15 @@ func (server *APIServer) initGitStorage() {
 	mirrorDestinationFunc := server.gitHooks.mirrorDestinationFunc
 	mirrorRefFilterFunc := server.gitHooks.mirrorRefFilterFunc
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
-	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
+	// The mirror is built before the git hooks are wired up, so bind the
+	// post-receive hook lazily instead of capturing a nil function here.
+	postReceiveHookFunc := func(ctx context.Context, repoName string, updates []receive.RefUpdate) error {
+		fn := server.gitHooks.postReceiveHookFunc
+		if fn == nil {
+			return nil
+		}
+		return fn(ctx, repoName, updates)
+	}
 
 	sharedMirror := mirror.NewMirror(
 		mirror.WithMirrorSourceFunc(mirrorSourceFunc),
@@ -422,7 +451,10 @@ func (server *APIServer) initHandlersServicesRepos() {
 		repos.Registry,
 		repos.Project,
 		repos.Model,
+		repos.Dataset,
 		repos.Git,
+		modelService,
+		datasetService,
 		logStore,
 	)
 

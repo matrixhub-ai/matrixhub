@@ -118,4 +118,7 @@ type ILabelRepo interface {
 
 	// UpdateModelLabels replaces all label associations for a model.
 	UpdateModelLabels(ctx context.Context, modelID int64, labelIDs []int) error
+
+	// UpdateDatasetLabels replaces all label associations for a dataset.
+	UpdateDatasetLabels(ctx context.Context, datasetID int64, labelIDs []int) error
 }

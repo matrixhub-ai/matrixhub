@@ -37,6 +37,12 @@ type Dataset struct {
 	UpdatedAt     time.Time     `json:"updatedAt" db:"updated_at"`
 }
 
+// MetadataUpdate contains optional fields for updating dataset metadata.
+type MetadataUpdate struct {
+	ReadmeContent *string
+	Size          *int64
+}
+
 // IDatasetRepo defines the repository interface for dataset database operations.
 //
 //go:generate go tool mockgen -source=dataset.go -destination=mocks/dataset_repo_mock.go -package=mocks
@@ -52,6 +58,9 @@ type IDatasetRepo interface {
 
 	// Delete removes a dataset from the database by its project and name.
 	Delete(ctx context.Context, project, name string) error
+
+	// UpdateMetadata updates selected metadata fields for a dataset.
+	UpdateMetadata(ctx context.Context, datasetID int64, update *MetadataUpdate) error
 
 	// ListAllPaths returns all valid dataset paths (project/name format).
 	ListAllPaths(ctx context.Context) ([]string, error)
