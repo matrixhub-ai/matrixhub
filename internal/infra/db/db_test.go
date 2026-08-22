@@ -14,23 +14,11 @@
 
 package db
 
-import (
-	"errors"
+import "testing"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
-)
-
-func IsUniqueViolationError(err error) bool {
-	var mysqlErr *mysql.MySQLError
-	if errors.As(err, &mysqlErr) {
-		return mysqlErr.Number == 1062
+func TestGORMConfigTranslatesErrors(t *testing.T) {
+	config := newGORMConfig()
+	if !config.TranslateError {
+		t.Fatal("TranslateError must be enabled")
 	}
-
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == pgerrcode.UniqueViolation
-	}
-	return false
 }

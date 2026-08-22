@@ -35,7 +35,7 @@ func New(config Config) (*gorm.DB, error) {
 		panic(fmt.Errorf("not support storage driver: %s", config.Driver))
 	}
 
-	db, err := gorm.Open(dialector, &gorm.Config{DisableAutomaticPing: true})
+	db, err := gorm.Open(dialector, newGORMConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -51,4 +51,11 @@ func New(config Config) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func newGORMConfig() *gorm.Config {
+	return &gorm.Config{
+		DisableAutomaticPing: true,
+		TranslateError:       true,
+	}
 }
