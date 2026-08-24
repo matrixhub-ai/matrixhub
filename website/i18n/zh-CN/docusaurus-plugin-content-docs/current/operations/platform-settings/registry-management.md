@@ -22,7 +22,7 @@ sidebar_position: 3
 
     ![创建仓库](./images/repo-create.jpg)
 
-1. 根据您的实际环境，填写 **仓库名称**、**目标 URL**、**认证信息** 和 **证书验证** 等字段（详见下方的**配置参数**）。
+1. 根据您的实际环境，填写 **仓库源名称**、**仓库源基础 URL**、**认证信息** 和 **证书验证** 等字段（详见下方的**配置参数**）。
 
 1. 点击 **确认** 完成创建。创建完成后，您可以在列表中对仓库进行 **编辑** 或 **删除**；已创建的仓库可用作 **远程同步** 页面中的 **源仓库**。
 
@@ -31,8 +31,8 @@ sidebar_position: 3
 | 参数 | 描述 |
 |-----------|-------------|
 | 提供商 | 上游协议或平台类型，如 **Hugging Face**、**ModelScope** 或其他支持的源。 |
-| 名称 | 当前连接配置的显示名称，建议使用易于识别的别名（如 `HF-Official`、`HF-Mirror`）。 |
-| 目标 URL | 上游服务的入口地址。示例：`https://huggingface.co`、`https://hf-mirror.com`。 |
+| 仓库源名称 | 当前连接配置的显示名称，建议使用易于识别的别名（如 `HF-Official`、`HF-Mirror`）。 |
+| 仓库源基础 URL | 上游平台、镜像服务或 MatrixHub 实例的基础地址，不要填写具体模型或仓库路径。<br />✅ `https://huggingface.co`、`https://hf-mirror.com`、`http://<matrixhub-host>:<port>`<br />❌ `https://huggingface.co/Qwen/Qwen3-32B`、`https://github.com/<owner>/<repo>` |
 | 用户名 | 用于访问上游私有资源的账号标识；对于公共资源，根据界面要求可留空。 |
 | 密码 / Token | 与用户名对应的密码或访问令牌。在 Hugging Face 场景中，通常在此处输入 Access Token。 |
 | 验证远程证书 | 如果勾选，将验证远程 TLS 证书。如果远程源使用自签名或不受信任的证书，您可以根据环境策略取消勾选。 |

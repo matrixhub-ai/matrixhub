@@ -10,10 +10,25 @@
   },
   "form": {
     "provider": "Provider",
-    "name": "Registry Name",
+    "name": "Registry Source Name",
     "description": "Description",
-    "url": "Target URL",
-    "urlPlaceholder": "https://hf.m.daocloud.io",
+    "url": "Registry Base URL",
+    "urlHint": {
+      "huggingFace": "Enter the base address of the upstream platform or mirror service, not a specific model or repository path. Examples: https://huggingface.co, https://hf-mirror.com",
+      "matrixHub": "Enter the base address of the MatrixHub instance, not a specific project or model path. Example: http://<matrixhub-host>:<port>"
+    },
+    "urlDescription": {
+      "huggingFace": "Base address of the upstream platform or mirror service",
+      "matrixHub": "Base address of the MatrixHub instance"
+    },
+    "urlPlaceholder": {
+      "huggingFace": "https://huggingface.co",
+      "matrixHub": "http://<matrixhub-host>:<port>"
+    },
+    "urlRepositoryWarning": {
+      "huggingFace": "This looks like a specific repository address. Enter the base address of the platform or mirror service instead, e.g. https://huggingface.co",
+      "matrixHub": "This looks like a specific repository address. Enter the base address of the MatrixHub instance instead, e.g. http://<matrixhub-host>:<port>"
+    },
     "username": "Username",
     "usernameHint": "Enter the upstream registry username and access token when pulling private models; robot accounts are supported.",
     "password": "Access Token",
@@ -57,9 +72,15 @@
     "title": "Delete Registry",
     "description": "Are you sure you want to delete registry {{name}}?"
   },
+  "switchProviderModal": {
+    "title": "Switch Provider",
+    "description": "The current URL has been modified and may not apply after switching providers. Keep it?",
+    "clearAndSwitch": "Clear and Switch",
+    "keepAndSwitch": "Keep and Switch"
+  },
   "validation": {
     "nameLength": "Registry name must be {{min}}-{{max}} characters",
-    "urlRequired": "Target URL is required",
+    "urlRequired": "Registry base URL is required",
     "urlInvalid": "Please enter a valid URL"
   },
   "notifications": {

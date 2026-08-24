@@ -10,10 +10,25 @@
   },
   "form": {
     "provider": "提供者",
-    "name": "仓库名称",
+    "name": "仓库源名称",
     "description": "描述",
-    "url": "目标 URL",
-    "urlPlaceholder": "https://hf.m.daocloud.io",
+    "url": "仓库源基础 URL",
+    "urlHint": {
+      "huggingFace": "请输入上游平台或镜像服务的基础地址，不要填写具体模型或仓库路径。示例：https://huggingface.co、https://hf-mirror.com",
+      "matrixHub": "请输入 MatrixHub 实例的基础地址，不要填写具体项目或模型路径。示例：http://<matrixhub-host>:<port>"
+    },
+    "urlDescription": {
+      "huggingFace": "请输入上游平台或镜像服务的基础地址",
+      "matrixHub": "请输入 MatrixHub 实例的基础地址"
+    },
+    "urlPlaceholder": {
+      "huggingFace": "https://huggingface.co",
+      "matrixHub": "http://<matrixhub-host>:<port>"
+    },
+    "urlRepositoryWarning": {
+      "huggingFace": "检测到该地址可能是具体仓库地址，请填写平台或镜像服务的基础地址，例如：https://huggingface.co",
+      "matrixHub": "检测到该地址可能是具体仓库地址，请填写 MatrixHub 实例的基础地址，例如：http://<matrixhub-host>:<port>"
+    },
     "username": "用户名",
     "usernameHint": "若拉取目标仓库中的私密模型，请输入目标仓库的用户名和访问密钥，支持机器人账号。",
     "password": "访问密钥",
@@ -57,9 +72,15 @@
     "title": "删除目标仓库",
     "description": "确定要删除目标仓库 {{name}} 吗？"
   },
+  "switchProviderModal": {
+    "title": "切换提供者",
+    "description": "当前 URL 已被修改，切换提供者后可能不适用。是否保留？",
+    "clearAndSwitch": "清空并切换",
+    "keepAndSwitch": "保留并切换"
+  },
   "validation": {
     "nameLength": "名称长度需在{{min}}-{{max}}字符之间",
-    "urlRequired": "请输入目标 URL",
+    "urlRequired": "请输入仓库源基础 URL",
     "urlInvalid": "请输入有效的 URL"
   },
   "notifications": {

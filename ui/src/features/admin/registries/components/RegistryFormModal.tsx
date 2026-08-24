@@ -5,12 +5,15 @@ import {
   PasswordInput,
   Select,
   Stack,
+  Text,
   TextInput,
   Textarea,
 } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { RegistryType } from '@matrixhub/api-ts/v1alpha1/registry.pb'
 import { useStore } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
@@ -24,7 +27,11 @@ import {
   buildUpdateRegistryRequest,
   createRegistryFormSchema,
   editRegistryFormSchema,
+  getRegistryDefaultUrl,
   getRegistryFormValues,
+  getRegistryUrlCopyKeys,
+  isRegistryUrlPristine,
+  isLikelyRepositoryUrl,
   REGISTRY_DESCRIPTION_MAX_LENGTH,
   registryProviderLabelKeys,
   registryDescriptionSchema,
@@ -88,6 +95,69 @@ export function RegistryFormModal({
     }
   })
   const isSubmitting = useStore(form.store, state => state.isSubmitting)
+  const [pendingType, setPendingType] = useState<RegistryType | null>(null)
+  const [
+    switchConfirmOpened,
+    {
+      open: openSwitchConfirm,
+      close: closeSwitchConfirm,
+    },
+  ] = useDisclosure(false)
+
+  const applyProviderChange = (nextType: RegistryType, nextUrl: string) => {
+    form.setFieldValue('type', nextType)
+    form.setFieldValue('url', nextUrl)
+
+    /* Switching providers rewrites the URL on the user's behalf, so the field
+    starts over as untouched instead of complaining about the value it just got. */
+    form.setFieldMeta('url', meta => ({
+      ...meta,
+      isTouched: false,
+      isDirty: false,
+      errors: [],
+      errorMap: {},
+    }))
+  }
+
+  const handleProviderChange = (nextType: RegistryType) => {
+    const currentValues = form.state.values
+
+    if (nextType === currentValues.type) {
+      return
+    }
+
+    /* Only a user-customized URL is worth a confirmation prompt;
+    an untouched one is replaced with the new provider default silently. */
+    if (isRegistryUrlPristine(currentValues.url, currentValues.type)) {
+      applyProviderChange(nextType, getRegistryDefaultUrl(nextType))
+
+      return
+    }
+
+    setPendingType(nextType)
+    openSwitchConfirm()
+  }
+
+  const closeProviderSwitchConfirm = () => {
+    closeSwitchConfirm()
+    setPendingType(null)
+  }
+
+  const handleKeepUrlAndSwitch = () => {
+    if (pendingType != null) {
+      applyProviderChange(pendingType, form.state.values.url)
+    }
+
+    closeProviderSwitchConfirm()
+  }
+
+  const handleClearUrlAndSwitch = () => {
+    if (pendingType != null) {
+      applyProviderChange(pendingType, getRegistryDefaultUrl(pendingType))
+    }
+
+    closeProviderSwitchConfirm()
+  }
 
   const handleTestConnection = async () => {
     await pingMutation.mutateAsync(buildPingRegistryRequest(form.state.values))
@@ -155,7 +225,7 @@ export function RegistryFormModal({
               withAsterisk
               data={providerOptions}
               value={field.state.value}
-              onChange={value => field.handleChange(
+              onChange={value => handleProviderChange(
                 (value as RegistryType | null) ?? RegistryType.REGISTRY_TYPE_HUGGINGFACE,
               )}
               onBlur={field.handleBlur}
@@ -202,22 +272,51 @@ export function RegistryFormModal({
           )}
         </form.Field>
 
-        <form.Field
-          name="url"
-          validators={{ onChange: registryUrlSchema }}
-        >
-          {field => (
-            <TextInput
-              label={t('routes.admin.registries.form.url')}
-              withAsterisk
-              placeholder={t('routes.admin.registries.form.urlPlaceholder')}
-              value={field.state.value}
-              onChange={event => field.handleChange(event.currentTarget.value)}
-              onBlur={field.handleBlur}
-              error={fieldError(field)}
-            />
-          )}
-        </form.Field>
+        <form.Subscribe selector={state => state.values.type}>
+          {(type) => {
+            const urlCopyKeys = getRegistryUrlCopyKeys(type)
+
+            return (
+              <form.Field
+                name="url"
+                validators={{ onChange: registryUrlSchema }}
+              >
+                {field => (
+                  <TextInput
+                    label={(
+                      <FieldHintLabel
+                        label={t('routes.admin.registries.form.url')}
+                        hint={t(urlCopyKeys.hint)}
+                      />
+                    )}
+                    withAsterisk
+                    placeholder={t(urlCopyKeys.placeholder)}
+                    description={(
+                      <>
+                        {t(urlCopyKeys.description)}
+                        {isLikelyRepositoryUrl(field.state.value) && (
+                          <Text
+                            component="span"
+                            display="block"
+                            inherit
+                            c="yellow.7"
+                          >
+                            {t(urlCopyKeys.repositoryUrlWarning)}
+                          </Text>
+                        )}
+                      </>
+                    )}
+                    inputWrapperOrder={['label', 'input', 'description', 'error']}
+                    value={field.state.value}
+                    onChange={event => field.handleChange(event.currentTarget.value)}
+                    onBlur={field.handleBlur}
+                    error={fieldError(field)}
+                  />
+                )}
+              </form.Field>
+            )
+          }}
+        </form.Subscribe>
 
         <form.Field name="username">
           {field => (
@@ -263,6 +362,45 @@ export function RegistryFormModal({
           )}
         </form.Field>
       </Stack>
+
+      {switchConfirmOpened && (
+        <ModalWrapper
+          opened
+          onClose={closeProviderSwitchConfirm}
+          type="info"
+          size="sm"
+          title={t('routes.admin.registries.switchProviderModal.title')}
+          footer={(
+            <Group justify="flex-end" gap="md">
+              <Button
+                color="default"
+                variant="subtle"
+                fw={400}
+                onClick={closeProviderSwitchConfirm}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                variant="outline"
+                fw={400}
+                onClick={handleClearUrlAndSwitch}
+              >
+                {t('routes.admin.registries.switchProviderModal.clearAndSwitch')}
+              </Button>
+              <Button
+                fw={400}
+                onClick={handleKeepUrlAndSwitch}
+              >
+                {t('routes.admin.registries.switchProviderModal.keepAndSwitch')}
+              </Button>
+            </Group>
+          )}
+        >
+          <Text size="sm">
+            {t('routes.admin.registries.switchProviderModal.description')}
+          </Text>
+        </ModalWrapper>
+      )}
     </ModalWrapper>
   )
 }

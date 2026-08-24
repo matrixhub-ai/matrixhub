@@ -22,7 +22,7 @@ Registry Management is used to configure the platform's connection information f
 
     ![Create Registry](./images/repo-create.jpg)
 
-1. Fill in fields such as **Registry Name**, **Target URL**, **Authentication Information**, and **Certificate Verification** according to your actual environment (see the **Configuration Parameters** below for details).
+1. Fill in fields such as **Registry Source Name**, **Registry Base URL**, **Authentication Information**, and **Certificate Verification** according to your actual environment (see the **Configuration Parameters** below for details).
 
 1. Click **Confirm** to complete the creation. After creation, you can **Edit** or **Delete** the registry in the list; created registries can be used as the **Source Registry** on the **Remote Synchronization** page.
 
@@ -31,8 +31,8 @@ Registry Management is used to configure the platform's connection information f
 | Parameter | Description |
 |-----------|-------------|
 | Provider | The upstream protocol or platform type, such as **Hugging Face**, **ModelScope**, or other supported sources. |
-| Name | The display name of the current connection configuration, an identifiable alias is recommended (e.g., `HF-Official`, `HF-Mirror`). |
-| Target URL | The entry address of the upstream service. Example: `https://huggingface.co`, `https://hf-mirror.com`. |
+| Registry Source Name | The display name of the current connection configuration, an identifiable alias is recommended (e.g., `HF-Official`, `HF-Mirror`). |
+| Registry Base URL | The base address of the upstream platform, mirror service, or MatrixHub instance — not a specific model or repository path.<br />✅ `https://huggingface.co`, `https://hf-mirror.com`, `http://<matrixhub-host>:<port>`<br />❌ `https://huggingface.co/Qwen/Qwen3-32B`, `https://github.com/<owner>/<repo>` |
 | Username | The account identifier used to access upstream private resources; can be left blank for public resources depending on the interface requirements. |
 | Password / Token | The password or access token corresponding to the username. In the Hugging Face scenario, you usually enter the Access Token here. |
 | Verify Remote Certificate | If checked, it verifies the remote TLS certificate. If the remote source uses a self-signed or untrusted certificate, you can uncheck it depending on your environment's policy. |
