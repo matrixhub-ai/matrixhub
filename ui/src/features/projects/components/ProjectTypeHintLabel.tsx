@@ -14,6 +14,31 @@ const PROJECT_PERMISSION_DOC_URL = '/docs/operations/project-management/members/
 
 const DROPDOWN_WIDTH = 360
 
+/**
+ * Anchor that appends an external-link icon after the translated label.
+ *
+ * The icon cannot be an empty placeholder tag in the translation string:
+ * Trans clones the mapped element with the tag's own children, so a
+ * `<1></1>` placeholder renders as nothing.
+ */
+function PermissionDocLink({ children }: { children?: ReactNode }) {
+  const { t } = useTranslation()
+
+  return (
+    <Anchor
+      href={t('common.docs', { doc: PROJECT_PERMISSION_DOC_URL })}
+      target="_blank"
+      rel="noopener noreferrer"
+      inherit
+      c="blue.4"
+    >
+      {children}
+      {' '}
+      <IconExternalLink size={14} />
+    </Anchor>
+  )
+}
+
 interface ProjectTypeHintLabelProps {
   label: ReactNode
 }
@@ -76,17 +101,7 @@ export function ProjectTypeHintLabel({ label }: ProjectTypeHintLabelProps) {
             <List.Item>
               <Trans
                 i18nKey="projects.typeHint.permission"
-                components={[
-                  <Anchor
-                    key="doc"
-                    href={t('common.docs', { doc: PROJECT_PERMISSION_DOC_URL })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    inherit
-                    c="blue.4"
-                  />,
-                  <IconExternalLink key="external" size={14} />,
-                ]}
+                components={[<PermissionDocLink key="doc" />]}
               />
             </List.Item>
           </List>
