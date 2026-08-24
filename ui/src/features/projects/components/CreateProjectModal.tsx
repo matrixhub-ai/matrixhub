@@ -29,6 +29,7 @@ import { createProjectMutationOptions } from '../projects.mutation'
 import {
   organizationSchema, projectNameSchema, registryIdSchema,
 } from '../projects.schema'
+import { ProjectTypeHintLabel } from './ProjectTypeHintLabel'
 
 import type { MantineSize } from '@mantine/core'
 import type { ReactNode } from 'react'
@@ -171,7 +172,9 @@ export function CreateProjectModal({
         )}
       </form.Field>
 
-      <Input.Wrapper label={t('projects.createModal.typeLabel')}>
+      <Input.Wrapper
+        label={<ProjectTypeHintLabel label={t('projects.createModal.typeLabel')} />}
+      >
         <form.Field name="isPublic">
           {field => (
             <Checkbox
