@@ -1,6 +1,7 @@
 import {
   Anchor, Group, HoverCard, List, Text,
 } from '@mantine/core'
+import { IconExternalLink } from '@tabler/icons-react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import IconQuestion from '@/assets/svgs/question.svg?react'
@@ -84,6 +85,7 @@ export function ProjectTypeHintLabel({ label }: ProjectTypeHintLabelProps) {
                     inherit
                     c="blue.4"
                   />,
+                  <IconExternalLink key="external" size={14} />,
                 ]}
               />
             </List.Item>
