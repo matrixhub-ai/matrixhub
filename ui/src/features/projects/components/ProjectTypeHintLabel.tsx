@@ -34,7 +34,7 @@ function PermissionDocLink({ children }: { children?: ReactNode }) {
     >
       {children}
       {' '}
-      <IconExternalLink size={14} />
+      <IconExternalLink size={14} style={{ verticalAlign: '-0.2em' }} />
     </Anchor>
   )
 }
