@@ -182,7 +182,7 @@ With the functional path established, place the direct and P2P records in one ta
 | Source model acquisition endpoint | Hugging Face mirror | MatrixHub | Hugging Face mirror | MatrixHub |
 | Target weight source | Target-local model files | Target-local model files | Source GPU | Source GPU |
 | Source model-file preparation | 4,382.20 s | 144.579 s | 4,161.32 s | 143.34 s |
-| Target model-file download | 4,247.68 s | 150.718 s | Not applicable | Not applicable |
+| Target model-file download | 4,247.68 s | 150.718 s | 0s (not needed) | 0s (not needed) |
 | Source GPU loading | 20.88 s | 28.22 s | `MxModelLoader` 159.36 s | `MxModelLoader` 152.70 s |
 | Target GPU loading | 32.46 s | 69.05 s | `MxModelLoader` 3.41 s | `MxModelLoader` 3.13 s |
 | P2P tensors / data | None | None | 312 / 15.24 GB | 312 / 15.24 GB |
@@ -193,7 +193,7 @@ The table expresses two complementary facts.
 
 First, MatrixHub successfully served the model to both nodes. In the archived runs on the same source node, model-file preparation took 4,382.20 seconds through the Hugging Face mirror and 144.579 seconds through MatrixHub. The exact ratio depends on the network, upstream state, and cache conditions, but the result demonstrates the value of placing model distribution close to the inference cluster.
 
-Second, the P2P scenarios did not repeat the weight-file download on the target. They received 15.24 GB of weights from a ready source GPU instead. In E4, the complete target `MxModelLoader` stage took 3.13 seconds and inference then passed.
+Second, the P2P scenarios did not repeat the weight-file download on the target (the "Target model-file download" step can be treated as 0s). They received 15.24 GB of weights from a ready source GPU instead. In E4, the complete target `MxModelLoader` stage took 3.13 seconds and inference then passed.
 
 ## Conclusion
 
@@ -202,7 +202,7 @@ MatrixHub and ModelExpress P2P are not competing choices. They serve adjacent st
 | Situation | Recommended path |
 |---|---|
 | First replica or no ready source | Download from an in-cluster MatrixHub cache |
-| Scale-out while a compatible source is ready | Use ModelExpress P2P from the source GPU |
+| Scale-out while a source is ready and an RDMA path is available | Use ModelExpress P2P from the source GPU |
 | No RDMA-capable path | Use MatrixHub direct download |
 | Air-gapped or controlled model supply | Use MatrixHub as the governed model source |
 | Need to evaluate startup performance | Measure file preparation, GPU loading, and end-to-end readiness separately |

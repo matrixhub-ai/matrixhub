@@ -182,7 +182,7 @@ curl -sS http://127.0.0.1:8000/v1/chat/completions \
 | Source 模型获取 Endpoint | Hugging Face 镜像 | MatrixHub | Hugging Face 镜像 | MatrixHub |
 | Target 权重来源 | Target 本地模型文件 | Target 本地模型文件 | Source GPU | Source GPU |
 | Source 模型文件准备 | 4,382.20 s | 144.579 s | 4,161.32 s | 143.34 s |
-| Target 模型文件下载 | 4,247.68 s | 150.718 s | 不适用 | 不适用 |
+| Target 模型文件下载 | 4,247.68 s | 150.718 s | 0s(不需要) | 0s(不需要) |
 | Source GPU 加载 | 20.88 s | 28.22 s | `MxModelLoader` 159.36 s | `MxModelLoader` 152.70 s |
 | Target GPU 加载 | 32.46 s | 69.05 s | `MxModelLoader` 3.41 s | `MxModelLoader` 3.13 s |
 | P2P 张量数 / 数据量 | 无 | 无 | 312 / 15.24 GB | 312 / 15.24 GB |
@@ -193,7 +193,7 @@ curl -sS http://127.0.0.1:8000/v1/chat/completions \
 
 第一，MatrixHub 在两个节点上都成功完成了模型文件供应。在同一 Source 节点的归档记录中，经 Hugging Face 镜像准备模型文件耗时 4,382.20 秒，经 MatrixHub 则为 144.579 秒。具体倍数取决于实际网络、上游状态和缓存条件，但这组结果体现了将模型分发服务部署在推理集群附近的价值。
 
-第二，P2P 场景不再让 Target 重复下载权重文件，而是从 Ready Source GPU 接收 15.24 GB 权重。在 E4 中，Target 的完整 `MxModelLoader` 阶段为 3.13 秒，随后推理验证通过。
+第二，P2P 场景不再让 Target 重复下载权重文件（「Target 模型文件下载」这一步可视为 0s），而是从 Ready Source GPU 接收 15.24 GB 权重。在 E4 中，Target 的完整 `MxModelLoader` 阶段为 3.13 秒，随后推理验证通过。
 
 ## 结论
 
@@ -202,7 +202,7 @@ MatrixHub 与 ModelExpress P2P 不是竞争关系，而是模型就绪链路中�
 | 场景 | 建议路径 |
 |---|---|
 | 第一个副本，或当前没有 Ready Source | 从集群内 MatrixHub 缓存下载 |
-| 已有兼容的 Ready Source，需要继续扩容 | 使用 ModelExpress P2P 从 Source GPU 获取权重 |
+| 已有 Ready Source，且集群有可用的 RDMA 通道，需要继续扩容 | 使用 ModelExpress P2P 从 Source GPU 获取权重 |
 | 集群没有可用的 RDMA 通道 | 使用 MatrixHub 直拉 |
 | 离线环境或需要受控的模型供应 | 使用 MatrixHub 作为统一模型源 |
 | 需要评估启动性能 | 分开测量文件准备、GPU 加载和端到端就绪耗时 |
