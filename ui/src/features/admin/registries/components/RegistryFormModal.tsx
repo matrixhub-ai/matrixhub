@@ -300,6 +300,7 @@ export function RegistryFormModal({
                             display="block"
                             inherit
                             c="yellow.7"
+                            mt="xs"
                           >
                             {t(urlCopyKeys.repositoryUrlWarning)}
                           </Text>
@@ -307,6 +308,7 @@ export function RegistryFormModal({
                       </>
                     )}
                     inputWrapperOrder={['label', 'input', 'description', 'error']}
+                    styles={{ error: { marginTop: 'var(--mantine-spacing-xs)' } }}
                     value={field.state.value}
                     onChange={event => field.handleChange(event.currentTarget.value)}
                     onBlur={field.handleBlur}
