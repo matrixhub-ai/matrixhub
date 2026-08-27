@@ -368,10 +368,10 @@ export function RegistryFormModal({
           opened
           onClose={closeProviderSwitchConfirm}
           type="info"
-          size="sm"
+          size="md"
           title={t('routes.admin.registries.switchProviderModal.title')}
           footer={(
-            <Group justify="flex-end" gap="md">
+            <Group justify="flex-end" gap="md" wrap="nowrap">
               <Button
                 color="default"
                 variant="subtle"
