@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Operations',
       items: [
+        'operations/login-logout/index',
         {
           type: 'category',
           label: 'Model Repository',
