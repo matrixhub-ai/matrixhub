@@ -95,7 +95,7 @@ var _ = Describe("SyncPolicy Manual Pull", Label("sync-policy", "git"), func() {
 		for _, job := range jobsResp.SyncJobs {
 			Expect(job.Status).NotTo(BeNil())
 			Expect(*job.Status).NotTo(Equal(v1alpha1.UNSPECIFIED_V1alpha1SyncJobStatus))
-			Expect(*job.Status).NotTo(Equal(v1alpha1.V1alpha1SyncJobStatus("SYNC_JOB_STATUS_PENDING")))
+			Expect(*job.Status).NotTo(Equal(v1alpha1.PENDING_V1alpha1SyncJobStatus))
 			Expect(*job.Status).NotTo(Equal(v1alpha1.RUNNING_V1alpha1SyncJobStatus))
 
 			// Query job log

@@ -26,10 +26,12 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
 )
 
-// Discovery implements registrydiscovery.Discovery for the HuggingFace Hub.
+// Discovery implements registrydiscovery.Discovery for HuggingFace-compatible
+// registries. It has no built-in host: the API base always comes from the
+// registry being synced, so a registry pointed at a mirror or an air-gapped
+// proxy is discovered against that host and never against a default one.
 type Discovery struct {
-	baseURL string
-	client  *http.Client
+	client *http.Client
 }
 
 // Option configures a Discovery.
@@ -45,8 +47,7 @@ func WithTimeout(d time.Duration) Option {
 // New creates a new HF Discovery with sensible defaults.
 func New(opts ...Option) *Discovery {
 	d := &Discovery{
-		baseURL: "https://huggingface.co",
-		client:  &http.Client{Timeout: 60 * time.Second},
+		client: &http.Client{Timeout: 60 * time.Second},
 	}
 	for _, o := range opts {
 		o(d)
@@ -54,14 +55,35 @@ func New(opts ...Option) *Discovery {
 	return d
 }
 
-// ListRepositories queries the HuggingFace Hub API and returns matching repositories.
+// endpointBase returns the API base for a registry. A registry without a URL is
+// an error rather than a fallback to some default host: the sync path fails on
+// such a registry too, and silently substituting another host would send the
+// registry's credential to somewhere the operator never configured.
+func endpointBase(reg *registry.Registry) (string, error) {
+	if reg == nil {
+		return "", fmt.Errorf("hf discovery: no registry given")
+	}
+	base := strings.TrimSuffix(reg.URL, "/")
+	if base == "" {
+		return "", fmt.Errorf("hf discovery: registry %q (id=%d) has no URL configured", reg.Name, reg.ID)
+	}
+	return base, nil
+}
+
+// ListRepositories queries the registry's HuggingFace-compatible API and returns
+// matching repositories.
 func (d *Discovery) ListRepositories(ctx context.Context, reg *registry.Registry, filter registrydiscovery.Filter) ([]registrydiscovery.RemoteRepository, error) {
+	base, err := endpointBase(reg)
+	if err != nil {
+		return nil, err
+	}
+
 	endpoint := "/api/models"
 	if filter.ResourceType == "dataset" {
 		endpoint = "/api/datasets"
 	}
 
-	u := fmt.Sprintf("%s%s?author=%s&limit=100", d.baseURL, endpoint, filter.Namespace)
+	u := fmt.Sprintf("%s%s?author=%s&limit=100", base, endpoint, filter.Namespace)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, fmt.Errorf("build hf request: %w", err)

@@ -25,11 +25,13 @@ import {
 export interface CreateProjectModalProps {
   opened: boolean
   onClose: () => void
+  onCreated?: (projectName: string) => void | Promise<void>
 }
 
 export function CreateProjectModal({
   opened,
   onClose,
+  onCreated,
 }: CreateProjectModalProps) {
   const { t } = useTranslation()
   const mutation = useMutation(createProjectMutationOptions())
@@ -45,6 +47,7 @@ export function CreateProjectModal({
     },
     onSubmit: async ({ value }) => {
       await mutation.mutateAsync(value)
+      await onCreated?.(value.name)
       onClose()
     },
   })

@@ -45,14 +45,26 @@ i18n
     },
   })
 
+// Keep the document language in sync so `:lang()` / `html[lang]` selectors can
+// adapt layout to the active locale (e.g. inline label column widths).
+function setDocumentLanguage(lang: SupportedLanguage) {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  document.documentElement.lang = lang
+}
+
 const initialLanguage = normalizeLanguage(i18n.language) ?? DEFAULT_LANGUAGE
 
 setDayjsLocale(initialLanguage)
+setDocumentLanguage(initialLanguage)
 
 i18n.on('languageChanged', (lng) => {
   const normalized = normalizeLanguage(lng) ?? DEFAULT_LANGUAGE
 
   setDayjsLocale(normalized)
+  setDocumentLanguage(normalized)
   const bundles = loadLocale(normalized)
 
   let resourceBundle: Record<string, unknown> = {}

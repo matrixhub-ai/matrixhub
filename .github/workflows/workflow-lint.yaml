@@ -4,12 +4,14 @@ on:
   pull_request:
     branches:
       - main
+      - 'release-*'
     paths:
       - '.github/workflows/**'
       - '.github/actions/**'
   push:
     branches:
       - main
+      - 'release-*'
     paths:
       - '.github/workflows/**'
       - '.github/actions/**'

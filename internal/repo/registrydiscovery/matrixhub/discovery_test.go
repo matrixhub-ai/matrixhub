@@ -188,6 +188,31 @@ func TestDiscovery_ListRepositories_HTTPError(t *testing.T) {
 	}
 }
 
+// A registry with no URL must fail loudly rather than producing a request
+// against a relative path and an opaque transport error.
+func TestDiscovery_ListRepositories_NoRegistryURL(t *testing.T) {
+	d := New()
+
+	for _, tt := range []struct {
+		name string
+		reg  *registry.Registry
+	}{
+		{name: "empty url", reg: &registry.Registry{ID: 7, Name: "internal-hub"}},
+		{name: "url of only a slash", reg: &registry.Registry{ID: 8, Name: "internal-hub", URL: "/"}},
+		{name: "nil registry", reg: nil},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := d.ListRepositories(context.Background(), tt.reg, registrydiscovery.Filter{
+				Namespace:    "google",
+				ResourceType: "model",
+			})
+			if err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+}
+
 func TestDiscovery_ListRepositories_EmptyResult(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, &v1alpha1.ListModelsResponse{

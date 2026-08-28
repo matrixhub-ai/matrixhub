@@ -18,4 +18,5 @@ const (
 	SUCCEEDED_V1alpha1SyncJobStatus V1alpha1SyncJobStatus = "SYNC_JOB_STATUS_SUCCEEDED"
 	FAILED_V1alpha1SyncJobStatus V1alpha1SyncJobStatus = "SYNC_JOB_STATUS_FAILED"
 	STOPPED_V1alpha1SyncJobStatus V1alpha1SyncJobStatus = "SYNC_JOB_STATUS_STOPPED"
+	PENDING_V1alpha1SyncJobStatus V1alpha1SyncJobStatus = "SYNC_JOB_STATUS_PENDING"
 )

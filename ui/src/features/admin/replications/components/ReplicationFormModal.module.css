@@ -1,7 +1,21 @@
+/* Shared width for the inline label column, so the three inline fields stay
+   aligned. Sized per locale to the longest label in that locale: English
+   "Resource Types" measures ~103px, Chinese labels are 4 characters (~56px);
+   both add the section's 16px inline padding on each side. Labels that still
+   overflow truncate with a tooltip. */
 .inlineFieldWrapper {
+  --inline-field-label-width: 140px;
+  /* Mantine derives both the section width and the input's inline padding from
+     this variable, so overriding it here keeps the two in step. */
+  --input-left-section-width: var(--inline-field-label-width);
+
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--app-size-radius-mmd);
   overflow: hidden;
+}
+
+:global(html[lang^='zh']) .inlineFieldWrapper {
+  --inline-field-label-width: 90px;
 }
 
 .inlineFieldInput {
@@ -25,5 +39,6 @@
 
 .inlineFieldSectionLabel {
   min-width: 80px;
+  max-width: 100%;
   width: auto;
 }

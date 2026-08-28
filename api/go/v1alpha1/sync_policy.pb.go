@@ -235,6 +235,9 @@ const (
 	SyncJobStatus_SYNC_JOB_STATUS_SUCCEEDED   SyncJobStatus = 2
 	SyncJobStatus_SYNC_JOB_STATUS_FAILED      SyncJobStatus = 3
 	SyncJobStatus_SYNC_JOB_STATUS_STOPPED     SyncJobStatus = 4
+	// Jobs are created in this state and claimed by the job server, so it is
+	// observable through ListSyncJobs. It mirrors SYNC_TASK_STATUS_PENDING.
+	SyncJobStatus_SYNC_JOB_STATUS_PENDING SyncJobStatus = 5
 )
 
 // Enum value maps for SyncJobStatus.
@@ -245,6 +248,7 @@ var (
 		2: "SYNC_JOB_STATUS_SUCCEEDED",
 		3: "SYNC_JOB_STATUS_FAILED",
 		4: "SYNC_JOB_STATUS_STOPPED",
+		5: "SYNC_JOB_STATUS_PENDING",
 	}
 	SyncJobStatus_value = map[string]int32{
 		"SYNC_JOB_STATUS_UNSPECIFIED": 0,
@@ -252,6 +256,7 @@ var (
 		"SYNC_JOB_STATUS_SUCCEEDED":   2,
 		"SYNC_JOB_STATUS_FAILED":      3,
 		"SYNC_JOB_STATUS_STOPPED":     4,
+		"SYNC_JOB_STATUS_PENDING":     5,
 	}
 )
 
@@ -2444,13 +2449,14 @@ const file_v1alpha1_sync_policy_proto_rawDesc = "" +
 	"\x1aSYNC_TASK_STATUS_SUCCEEDED\x10\x02\x12\x1b\n" +
 	"\x17SYNC_TASK_STATUS_FAILED\x10\x03\x12\x1c\n" +
 	"\x18SYNC_TASK_STATUS_STOPPED\x10\x04\x12\x1c\n" +
-	"\x18SYNC_TASK_STATUS_PENDING\x10\x05*\xa5\x01\n" +
+	"\x18SYNC_TASK_STATUS_PENDING\x10\x05*\xc2\x01\n" +
 	"\rSyncJobStatus\x12\x1f\n" +
 	"\x1bSYNC_JOB_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17SYNC_JOB_STATUS_RUNNING\x10\x01\x12\x1d\n" +
 	"\x19SYNC_JOB_STATUS_SUCCEEDED\x10\x02\x12\x1a\n" +
 	"\x16SYNC_JOB_STATUS_FAILED\x10\x03\x12\x1b\n" +
-	"\x17SYNC_JOB_STATUS_STOPPED\x10\x042\xb5\x10\n" +
+	"\x17SYNC_JOB_STATUS_STOPPED\x10\x04\x12\x1b\n" +
+	"\x17SYNC_JOB_STATUS_PENDING\x10\x052\xb5\x10\n" +
 	"\n" +
 	"SyncPolicy\x12\x92\x01\n" +
 	"\x10ListSyncPolicies\x12+.matrixhub.v1alpha1.ListSyncPoliciesRequest\x1a,.matrixhub.v1alpha1.ListSyncPoliciesResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1alpha1/sync-policies\x12\x9a\x01\n" +

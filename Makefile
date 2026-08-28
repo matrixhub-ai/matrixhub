@@ -30,6 +30,14 @@ HTTPS_PROXY ?=
 VITE_APP_API_URL ?= http://127.0.0.1:3001
 LOCAL_CONFIG ?= config/config.yaml
 MATRIXHUB_BASE_URL ?= http://localhost:3001
+# URL by which MatrixHub server components reach MatrixHub itself. Needed by
+# E2E tests that register the deployment as its own remote registry; unlike
+# MATRIXHUB_BASE_URL it is resolved inside the deployment, not by the test
+# process. Tests that need it skip when it is empty.
+MATRIXHUB_SELF_URL ?=
+# In-cluster Service address for the KIND deployment (see scripts/deploy-matrixhub.sh:
+# release and namespace are both "matrixhub", service port is apiserver.service.port).
+E2E_KIND_SELF_URL ?= http://matrixhub.matrixhub.svc.cluster.local:9527
 UNIT_TEST_COVERAGE_PROFILE ?= coverage.out
 GOLANGCI_LINT_VERSION ?= v2.8.0
 ACTIONLINT_VERSION ?= latest
@@ -170,7 +178,7 @@ kind.setup: deploy.kind-cluster deploy.matrixhub ## Setup KIND cluster and deplo
 
 .PHONY: test.e2e
 test.e2e: ## Run E2E tests locally (requires running MatrixHub). Set E2E_LABELS to filter (e.g. E2E_LABELS=smoke); empty runs all. Set E2E_API_COVERAGE=true for the mitmproxy coverage report.
-	E2E_API_COVERAGE="$(E2E_API_COVERAGE)" MATRIXHUB_BASE_URL="$(MATRIXHUB_BASE_URL)" bash ./scripts/run-test.sh "$(E2E_LABELS)"
+	E2E_API_COVERAGE="$(E2E_API_COVERAGE)" MATRIXHUB_BASE_URL="$(MATRIXHUB_BASE_URL)" MATRIXHUB_SELF_URL="$(MATRIXHUB_SELF_URL)" bash ./scripts/run-test.sh "$(E2E_LABELS)"
 
 .PHONY: test.e2e.kind
 test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
@@ -184,6 +192,7 @@ test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
 	@echo "  E2E_MATRIXHUB_IMAGE = $${E2E_MATRIXHUB_IMAGE:-ghcr.io/matrixhub-ai/matrixhub:latest}"
 	@echo "  E2E_LABELS          = $${E2E_LABELS:-<all>}"
 	@echo "  E2E_API_COVERAGE    = $(E2E_API_COVERAGE)"
+	@echo "  E2E_KIND_SELF_URL   = $(E2E_KIND_SELF_URL)"
 	@echo ""
 	@echo "Step 1: Setting up KIND cluster and deploying MatrixHub..."
 	$(MAKE) kind.setup
@@ -191,8 +200,11 @@ test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
 	@echo "Step 2: Running E2E tests..."
 	@# Coverage needs a non-loopback host so Go routes through mitmproxy;
 	@# matrixhub.local must resolve to the NodePort host (see e2e-init.yaml).
+	@# MATRIXHUB_SELF_URL is resolved inside the cluster, so it is the Service
+	@# address rather than the NodePort the test process uses.
 	MATRIXHUB_BASE_URL="http://$(if $(filter true,$(E2E_API_COVERAGE)),matrixhub.local,localhost):30001" \
-		$(MAKE) test.e2e E2E_LABELS="$(E2E_LABELS)" E2E_API_COVERAGE="$(E2E_API_COVERAGE)"
+		$(MAKE) test.e2e E2E_LABELS="$(E2E_LABELS)" E2E_API_COVERAGE="$(E2E_API_COVERAGE)" \
+			MATRIXHUB_SELF_URL="$(E2E_KIND_SELF_URL)"
 	@echo ""
 	@echo "To cleanup, run:"
 	@echo "  kind delete cluster --name=$${E2E_CLUSTER_NAME:-matrixhub-e2e}"

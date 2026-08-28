@@ -458,8 +458,8 @@ inventing a new layout.
 ### MySQL Connection Failed
 
 ```bash
-# Check MySQL container status
-docker ps | grep matrixhub-mysql
+# Check the MySQL container, including stopped containers
+docker ps -a --filter name=matrixhub-mysql
 
 # View MySQL logs
 docker logs matrixhub-mysql
@@ -474,7 +474,8 @@ If ports are occupied, you can modify:
 
 **Backend Port**:
 
-Modify `apiServer.port` in `config.yaml`
+Change `apiServer.port` in the configuration file passed to the backend, such
+as `config/config.yaml`.
 
 **Frontend Port**:
 ```bash
@@ -482,27 +483,37 @@ cd ui
 pnpm dev --port 3000
 ```
 
+### API Server Health Check
+
+```bash
+curl -i http://localhost:3001/healthz
+```
+
+A running API server returns `HTTP 200` with `OK` in the response body. If you
+changed `apiServer.port`, use the same port in this command.
+
 ### Dependency Issues
 
 **Go Dependencies**:
 ```bash
-go mod tidy
+go mod verify
 go mod download
 ```
+
+`go mod tidy` modifies `go.mod` and `go.sum`; use it after intentionally adding
+or removing dependencies, not as a routine cache repair command.
 
 **Frontend Dependencies**:
 ```bash
 cd ui
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
-### Generate HTTP Client SDK
-
-When swagger API definitions change, regenerate the HTTP client SDK for testing:
+If `node_modules` is inconsistent, remove only that directory and reinstall
+from the lockfile:
 
 ```bash
-make gen_openapi_sdk
+cd ui
+rm -rf node_modules
+pnpm install --frozen-lockfile
 ```
-
-Output: `test/client` directory.

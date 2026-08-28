@@ -116,7 +116,6 @@ vLLM 日志确认本次运行的下载权重下载耗时：
 运行脚本记录以下内容：
 
 - 从提交部署清单到 Pod 创建的时间；
-- 从容器启动到 Pod Ready 的时间，作为最接近模型加载阶段的指标；
 - Pod Ready 时间；
 - Deployment 完成滚动发布的总时间；
 - 经 EPP Service 的推理请求验证结果；
@@ -147,10 +146,10 @@ INFO [weight_utils.py:922] Filesystem type for checkpoints: OVERLAY. Checkpoint 
 
 下表为每个场景三次运行的平均值。
 
-| 来源 | Pod 创建 (s) | 权重下载 (s) | 下载速率 (MB/s) | 容器启动到 Ready (s) | Pod Ready (s) | 滚动发布完成 (s) | 推理验证 |
-|---|---:|---:|---:|---:|---:|---:|---|
-| Hugging Face 直连 | 1 | 521.4 | 118.9 | 738 | 722 | 751 | 通过 |
-| MatrixHub 缓存命中 | 1 | 144.6 | 428.8 | 385 | 373 | 397 | 通过 |
+| 来源 | Pod 创建 (s) | 权重下载 (s) | 下载速率 (MB/s) | Pod Ready (s) | 滚动发布完成 (s) | 推理验证 |
+|---|---:|---:|---:|---:|---:|---|
+| Hugging Face 直连 | 1 | 521.4 | 118.9 | 722 | 751 | 通过 |
+| MatrixHub 缓存命中 | 1 | 144.6 | 428.8 | 373 | 397 | 通过 |
 
 对比：
 
@@ -158,7 +157,6 @@ INFO [weight_utils.py:922] Filesystem type for checkpoints: OVERLAY. Checkpoint 
 |---|---:|---:|---|
 | 权重下载耗时 | 521.4 s | 144.6 s | 减少 376.8 s（3.6× 加速） |
 | 下载速率 | 118.9 MB/s | 428.8 MB/s | 提升 3.6× |
-| 容器启动到 Ready | 738 s | 385 s | 减少 353 s（47.8%） |
 | Pod Ready | 722 s | 373 s | 减少 349 s（48.3%） |
 | 滚动发布总时长 | 751 s | 397 s | 减少 354 s（47.1%） |
 

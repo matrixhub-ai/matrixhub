@@ -12,6 +12,13 @@
     },
     "recommend": "Recommended Models",
     "allModels": "All Models",
+    "noRecommended": "No recommended models",
+    "emptyTitle": "No models yet",
+    "emptyDescription": "Create a model repository, then upload model files to get started.",
+    "create": "Create Model",
+    "uploadGuide": "Learn how to upload models",
+    "loadFailed": "Failed to load models",
+    "retry": "Retry",
     "viewMore": "View More",
     "collapse": "Collapse"
   },
@@ -69,6 +76,9 @@
     "modelNameHelper": "Supports letters, numbers, underscore, hyphen, and dot. Must start with a letter or number.",
     "submit": "Create Model",
     "uploadTip": "After creating the model, you can upload files using the command line.",
+    "createProject": "Create Project",
+    "emptyProjectTitle": "No projects yet",
+    "emptyProjectDescription": "Create a project first. It will be selected automatically.",
     "modelNameInvalid": "Invalid model name format",
     "success": "Model created successfully",
     "error": "Failed to create model"

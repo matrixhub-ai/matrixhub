@@ -116,7 +116,6 @@ And the corresponding `metrics.md`:
 The runner records:
 
 - time from manifest application to Pod creation;
-- time from container start to Pod Ready as the closest model-loading interval;
 - time to Pod Ready;
 - total Deployment rollout time;
 - inference verification through the EPP Service;
@@ -149,10 +148,10 @@ The following results come from one actual execution. Each scenario ran three ti
 
 Values below are averages over three runs per scenario.
 
-| Source | Pod created (s) | Weight download (s) | Download rate (MB/s) | Container start to Ready (s) | Pod Ready (s) | Rollout completed (s) | Inference |
-|---|---:|---:|---:|---:|---:|---:|---|
-| Hugging Face direct | 1 | 521.4 | 118.9 | 738 | 722 | 751 | passed |
-| MatrixHub cache hit | 1 | 144.6 | 428.8 | 385 | 373 | 397 | passed |
+| Source | Pod created (s) | Weight download (s) | Download rate (MB/s) | Pod Ready (s) | Rollout completed (s) | Inference |
+|---|---:|---:|---:|---:|---:|---|
+| Hugging Face direct | 1 | 521.4 | 118.9 | 722 | 751 | passed |
+| MatrixHub cache hit | 1 | 144.6 | 428.8 | 373 | 397 | passed |
 
 Comparison:
 
@@ -160,7 +159,6 @@ Comparison:
 |---|---:|---:|---|
 | Weight download | 521.4 s | 144.6 s | −376.8 s (3.6× faster) |
 | Download rate | 118.9 MB/s | 428.8 MB/s | 3.6× |
-| Container start to Ready | 738 s | 385 s | −353 s (47.8%) |
 | Pod Ready | 722 s | 373 s | −349 s (48.3%) |
 | Total rollout time | 751 s | 397 s | −354 s (47.1%) |
 

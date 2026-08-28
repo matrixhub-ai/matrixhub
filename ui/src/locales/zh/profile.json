@@ -9,6 +9,8 @@
     "expireAt": "过期时间",
     "importedAt": "导入时间",
     "emptyTitle": "暂无 SSH 公钥数据",
+    "hint": "在导入 SSH 公钥前，你需要",
+    "generateHint": "生成 SSH 公钥",
     "create": {
       "button": "导入 SSH 公钥",
       "title": "导入 SSH 公钥",

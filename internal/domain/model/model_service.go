@@ -96,8 +96,14 @@ func (s *ModelService) CreateModel(ctx context.Context, project, name string) (*
 		return nil, errors.New("model already exists")
 	}
 
-	if err := s.gitRepo.CreateRepository(ctx, "models", project, name); err != nil {
+	repositoryExists, err := s.gitRepo.RepositoryExists(ctx, "models", project, name)
+	if err != nil {
 		return nil, err
+	}
+	if !repositoryExists {
+		if err := s.gitRepo.CreateRepository(ctx, "models", project, name); err != nil {
+			return nil, err
+		}
 	}
 
 	return s.createModelRecord(ctx, project, name)

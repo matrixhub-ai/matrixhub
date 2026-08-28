@@ -95,6 +95,54 @@ func TestAnalyzeRepoMetadataPrefersSafetensorsIndexTotalSize(t *testing.T) {
 	}
 }
 
+func TestAnalyzeRepoMetadataEstimatesFromSafetensorsSizes(t *testing.T) {
+	// No index and no readable header: all that is left is the size recorded in
+	// the LFS pointer. Sizes are Qwen2.5-0.5B's, whose real count is 494032768.
+	files := &git.RepoMetadataFiles{
+		ConfigJSON: []byte(`{"torch_dtype": "bfloat16"}`),
+		SafetensorsSizes: map[string]int64{
+			"model.safetensors": 988097824,
+		},
+	}
+
+	metadata, err := AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
+	}
+
+	if metadata.ParameterCount != 494048912 {
+		t.Fatalf("ParameterCount = %d, want 494048912", metadata.ParameterCount)
+	}
+}
+
+func TestAnalyzeRepoMetadataCombinesHeadersAndSafetensorsSizes(t *testing.T) {
+	// A partly-fetched sharded model with no index total_size: one shard's header
+	// was readable, the other only yielded its LFS pointer size. Counting just the
+	// readable shard would report a fraction of the real parameter count.
+	files := &git.RepoMetadataFiles{
+		ConfigJSON: []byte(`{"torch_dtype": "bfloat16"}`),
+		SafetensorsFiles: map[string][]byte{
+			"model-00001-of-00002.safetensors": buildSafetensorsFile(t, map[string][]int64{
+				"model.embed_tokens.weight": {2, 3},
+				"lm_head.weight":            {4, 5},
+			}),
+		},
+		SafetensorsSizes: map[string]int64{
+			"model-00002-of-00002.safetensors": 1024,
+		},
+	}
+
+	metadata, err := AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
+	}
+
+	// 26 exact from the header, plus 1024 bytes of bfloat16 weights.
+	if metadata.ParameterCount != 26+512 {
+		t.Fatalf("ParameterCount = %d, want %d", metadata.ParameterCount, 26+512)
+	}
+}
+
 func buildSafetensorsFile(t *testing.T, tensors map[string][]int64) []byte {
 	t.Helper()
 

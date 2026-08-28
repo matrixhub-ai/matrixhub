@@ -56,11 +56,13 @@
     "description": "您可以直接点击确定按钮来随机生成新的令牌，或者手动为其指定一个新的令牌。",
     "manualSwitch": "开启此项以便手动指定新令牌",
     "token": "新令牌",
+    "tokenHint": "长度 {{min}}-{{max}} 个字符，且至少包含一个大写字母、一个小写字母和一个数字",
     "confirmToken": "确认令牌",
     "submit": "刷新令牌",
     "copyDescription": "新令牌仅展示一次，请立即复制并妥善保存。",
     "validation": {
       "tokenRequired": "请输入新令牌",
+      "tokenComplexity": "令牌至少需包含一个大写字母、一个小写字母和一个数字",
       "confirmTokenRequired": "请再次输入新令牌",
       "tokenMismatch": "两次输入的令牌不一致"
     }

@@ -1,5 +1,5 @@
 import {
-  Box, Collapse, Group, Text, UnstyledButton,
+  Alert, Box, Button, Collapse, Group, Text, UnstyledButton,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconChevronDown } from '@tabler/icons-react'
@@ -25,6 +25,8 @@ export function HotModelList() {
     } = {},
     isLoading,
     isPending,
+    isLoadingError,
+    refetch,
   } = useQuery(catalogModelsQueryOptions({
     ...search,
     page: 1,
@@ -64,12 +66,28 @@ export function HotModelList() {
       </Group>
 
       <Box miw={780} maw={1380}>
-        <ResourceCardGrid
-          loading={isLoading || isPending}
-          skeletonCount={4}
-        >
-          {cardElements.slice(0, 4)}
-        </ResourceCardGrid>
+        {isLoadingError
+          ? (
+              <Alert color="red" title={t('model.list.loadFailed')}>
+                <Button
+                  mt="sm"
+                  size="xs"
+                  variant="light"
+                  onClick={() => void refetch()}
+                >
+                  {t('model.list.retry')}
+                </Button>
+              </Alert>
+            )
+          : (
+              <ResourceCardGrid
+                loading={isLoading || isPending}
+                skeletonCount={4}
+                emptyTitle={t('model.list.noRecommended')}
+              >
+                {cardElements.slice(0, 4)}
+              </ResourceCardGrid>
+            )}
         <Collapse in={opened}>
           <Box pt="lg">
             <ResourceCardGrid>

@@ -1,5 +1,14 @@
-import { Button } from '@mantine/core'
+import {
+  Alert,
+  Anchor,
+  Button,
+  Stack,
+} from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import {
+  IconExternalLink,
+  IconInfoCircle,
+} from '@tabler/icons-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +20,8 @@ import { profileKeys, sshKeysQueryOptions } from '@/features/profile/profile.que
 
 import type { SSHKey } from '@matrixhub/api-ts/v1alpha1/current_user.pb'
 
+const SSH_KEY_DOC_URL = '/docs/operations/profile/ssh-key/'
+
 export function SshKeysPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -21,6 +32,7 @@ export function SshKeysPage() {
 
   const [createOpened, createHandlers] = useDisclosure(false)
   const [deleteOpened, deleteHandlers] = useDisclosure(false)
+  const [hintVisible, setHintVisible] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<SSHKey | null>(null)
 
   const handleDelete = (key: SSHKey) => {
@@ -38,7 +50,30 @@ export function SshKeysPage() {
   }
 
   return (
-    <>
+    <Stack gap="sm">
+      <Alert
+        hidden={!hintVisible}
+        icon={<IconInfoCircle size={20} />}
+        variant="light"
+        color="cyan"
+        withCloseButton
+        onClose={() => setHintVisible(false)}
+        styles={{ icon: { marginRight: 6 } }}
+      >
+        {t('profile.sshKey.hint')}
+        {' '}
+        <Anchor
+          href={t('common.docs', { doc: SSH_KEY_DOC_URL })}
+          target="_blank"
+          rel="noopener noreferrer"
+          inherit
+        >
+          {t('profile.sshKey.generateHint')}
+          {' '}
+          <IconExternalLink size={14} />
+        </Anchor>
+      </Alert>
+
       <SshKeysTable
         data={data?.items ?? []}
         onDelete={handleDelete}
@@ -66,6 +101,6 @@ export function SshKeysPage() {
         opened={deleteOpened}
         onClose={handleDeleteClose}
       />
-    </>
+    </Stack>
   )
 }

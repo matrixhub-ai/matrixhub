@@ -964,11 +964,11 @@ const file_v1alpha1_robot_proto_rawDesc = "" +
 	"\rproject_scope\x18\a \x01(\x0e2,.matrixhub.v1alpha1.RobotAccountProjectScopeR\fprojectScope\x12\x1f\n" +
 	"\vexpire_days\x18\b \x01(\x05R\n" +
 	"expireDays\"\x1c\n" +
-	"\x1aUpdateRobotAccountResponse\"l\n" +
+	"\x1aUpdateRobotAccountResponse\"\x83\x02\n" +
 	"\x1fRefreshRobotAccountTokenRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12#\n" +
-	"\rauto_generate\x18\x02 \x01(\bR\fautoGenerate\x12\x14\n" +
-	"\x05token\x18\x03 \x01(\tR\x05token\"8\n" +
+	"\rauto_generate\x18\x02 \x01(\bR\fautoGenerate\x12\xaa\x01\n" +
+	"\x05token\x18\x03 \x01(\tB\x93\x01\xfaB\x8f\x01r\x8c\x01\x10\b\x18\x142\x82\x01(?s)^.*(?:[A-Z].*[a-z].*[0-9]|[A-Z].*[0-9].*[a-z]|[a-z].*[A-Z].*[0-9]|[a-z].*[0-9].*[A-Z]|[0-9].*[A-Z].*[a-z]|[0-9].*[a-z].*[A-Z])\xd0\x01\x01R\x05token\"8\n" +
 	" RefreshRobotAccountTokenResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token*i\n" +
 	"\x18RobotAccountProjectScope\x12(\n" +

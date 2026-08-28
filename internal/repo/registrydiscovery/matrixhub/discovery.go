@@ -45,7 +45,13 @@ func New() *Discovery {
 
 // ListRepositories discovers remote repositories on a MatrixHub registry.
 func (d *Discovery) ListRepositories(ctx context.Context, reg *registry.Registry, filter registrydiscovery.Filter) ([]registrydiscovery.RemoteRepository, error) {
+	if reg == nil {
+		return nil, fmt.Errorf("matrixhub discovery: no registry given")
+	}
 	base := strings.TrimSuffix(reg.URL, "/")
+	if base == "" {
+		return nil, fmt.Errorf("matrixhub discovery: registry %q (id=%d) has no URL configured", reg.Name, reg.ID)
+	}
 
 	if filter.ResourceType == "dataset" {
 		return d.listDatasets(ctx, base, reg, filter)

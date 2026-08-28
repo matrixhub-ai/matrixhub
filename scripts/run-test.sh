@@ -31,11 +31,17 @@ LABEL_FILTER=${1:-}
 # Base URL from environment or default local API server.
 MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL:-http://localhost:3001}"
 
+# URL by which MatrixHub reaches itself, resolved inside the deployment rather
+# than by the test process. No default: tests that need it skip when it is
+# empty, which is safer than guessing an address the server cannot route to.
+MATRIXHUB_SELF_URL="${MATRIXHUB_SELF_URL:-}"
+
 echo "================================================"
 echo "MatrixHub E2E Test Runner"
 echo "================================================"
 echo "Label filter: ${LABEL_FILTER:-<all>}"
 echo "Base URL:   ${MATRIXHUB_BASE_URL}"
+echo "Self URL:   ${MATRIXHUB_SELF_URL:-<unset, self-registry tests skipped>}"
 echo "================================================"
 
 # Step 1: Wait for service to be ready
@@ -73,6 +79,7 @@ echo "Running E2E tests..."
 echo ""
 
 export MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL}"
+export MATRIXHUB_SELF_URL="${MATRIXHUB_SELF_URL}"
 
 # Optional: record all API traffic through a mitmproxy container and print an
 # API-coverage report. Opt-in so plain local runs need no docker/mitmproxy.

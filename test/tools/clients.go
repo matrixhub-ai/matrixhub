@@ -25,6 +25,13 @@ import (
 // Environment variable names
 const (
 	EnvMatrixHubBaseURL = "MATRIXHUB_BASE_URL" // HTTP base URL (e.g., http://localhost:3001)
+	// EnvMatrixHubSelfURL is the URL by which MatrixHub reaches itself, for
+	// tests that make the deployment act as its own remote registry. It is not
+	// the same as EnvMatrixHubBaseURL: that one is resolved by the test process,
+	// whereas this one is resolved by the server components — under KIND the
+	// test talks to a NodePort on the host while the job server has to go
+	// through the in-cluster Service.
+	EnvMatrixHubSelfURL = "MATRIXHUB_SELF_URL"
 )
 
 // Default values
@@ -53,6 +60,14 @@ func GetBaseURL() string {
 		}
 	}
 	return baseURL
+}
+
+// GetSelfURL returns the URL by which MatrixHub server components can reach
+// MatrixHub itself, or "" when it has not been configured. Tests that need it
+// should skip rather than fall back to GetBaseURL: that URL is only valid from
+// the test process, and using it would make the server silently fail to connect.
+func GetSelfURL() string {
+	return os.Getenv(EnvMatrixHubSelfURL)
 }
 
 // GenerateTestProjectName generates a unique project name for testing

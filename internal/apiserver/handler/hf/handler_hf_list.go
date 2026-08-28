@@ -163,12 +163,7 @@ func resolveContainedPath(root, component string) (string, error) {
 // applying namespace-level filters (author, skipping non-model prefixes).
 func discoverRepos(baseDir string, isModel bool, author string) []repoEntry {
 	if author != "" {
-		nsPath, err := resolveContainedPath(baseDir, author)
-		if err != nil {
-			return nil
-		}
-
-		return discoverReposInNamespace(nsPath, author)
+		return discoverReposInNamespace(baseDir, author)
 	}
 	namespaces, err := os.ReadDir(baseDir)
 	if err != nil {
@@ -186,13 +181,26 @@ func discoverRepos(baseDir string, isModel bool, author string) []repoEntry {
 		if isModel && (nsName == "datasets" || nsName == "spaces") {
 			continue
 		}
-		entries = append(entries, discoverReposInNamespace(filepath.Join(baseDir, nsName), nsName)...)
+		entries = append(entries, discoverReposInNamespace(baseDir, nsName)...)
 	}
 	return entries
 }
 
 // discoverReposInNamespace returns all valid repository entries within a single namespace directory.
-func discoverReposInNamespace(nsPath, nsName string) []repoEntry {
+func discoverReposInNamespace(baseDir, nsName string) []repoEntry {
+	// Keep the user-controlled namespace as a local path component, then resolve
+	// it beneath the trusted repositories directory before accessing the file system.
+	if !filepath.IsLocal(nsName) {
+		return nil
+	}
+	if !isSafePathComponent(nsName) {
+		return nil
+	}
+	nsPath, err := resolveContainedPath(baseDir, nsName)
+	if err != nil {
+		return nil
+	}
+
 	repos, err := os.ReadDir(nsPath)
 	if err != nil {
 		return nil

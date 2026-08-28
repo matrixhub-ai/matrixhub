@@ -449,6 +449,7 @@
           },
           {
             "name": "status",
+            "description": " - SYNC_JOB_STATUS_PENDING: Jobs are created in this state and claimed by the job server, so it is\nobservable through ListSyncJobs. It mirrors SYNC_TASK_STATUS_PENDING.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -457,7 +458,8 @@
               "SYNC_JOB_STATUS_RUNNING",
               "SYNC_JOB_STATUS_SUCCEEDED",
               "SYNC_JOB_STATUS_FAILED",
-              "SYNC_JOB_STATUS_STOPPED"
+              "SYNC_JOB_STATUS_STOPPED",
+              "SYNC_JOB_STATUS_PENDING"
             ],
             "default": "SYNC_JOB_STATUS_UNSPECIFIED"
           },
@@ -937,9 +939,11 @@
         "SYNC_JOB_STATUS_RUNNING",
         "SYNC_JOB_STATUS_SUCCEEDED",
         "SYNC_JOB_STATUS_FAILED",
-        "SYNC_JOB_STATUS_STOPPED"
+        "SYNC_JOB_STATUS_STOPPED",
+        "SYNC_JOB_STATUS_PENDING"
       ],
-      "default": "SYNC_JOB_STATUS_UNSPECIFIED"
+      "default": "SYNC_JOB_STATUS_UNSPECIFIED",
+      "description": " - SYNC_JOB_STATUS_PENDING: Jobs are created in this state and claimed by the job server, so it is\nobservable through ListSyncJobs. It mirrors SYNC_TASK_STATUS_PENDING."
     },
     "v1alpha1SyncPolicyItem": {
       "type": "object",

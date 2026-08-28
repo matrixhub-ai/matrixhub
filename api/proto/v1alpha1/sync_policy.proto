@@ -285,6 +285,9 @@ enum SyncJobStatus {
   SYNC_JOB_STATUS_SUCCEEDED = 2;
   SYNC_JOB_STATUS_FAILED = 3;
   SYNC_JOB_STATUS_STOPPED = 4;
+  // Jobs are created in this state and claimed by the job server, so it is
+  // observable through ListSyncJobs. It mirrors SYNC_TASK_STATUS_PENDING.
+  SYNC_JOB_STATUS_PENDING = 5;
 }
 
 message ListSyncJobsRequest {

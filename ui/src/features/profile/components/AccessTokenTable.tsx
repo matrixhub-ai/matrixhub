@@ -22,9 +22,13 @@ import type {
   MRT_ColumnDef,
   MRT_Row,
 } from 'mantine-react-table'
+import type { ReactNode } from 'react'
 
 interface AccessTokenTableProps {
   tokens: AccessToken[]
+  fetching?: boolean
+  onRefresh?: () => void
+  toolbarExtra?: ReactNode
 }
 
 const StatusCell = ({ row }: { row: MRT_Row<AccessToken> }) => {
@@ -66,7 +70,9 @@ const ActionCell = ({
   )
 }
 
-export function AccessTokenTable({ tokens }: AccessTokenTableProps) {
+export function AccessTokenTable({
+  tokens, fetching, onRefresh, toolbarExtra,
+}: AccessTokenTableProps) {
   const { t } = useTranslation()
   const [deleteOpened, {
     open: openDelete, close: closeDelete,
@@ -124,6 +130,9 @@ export function AccessTokenTable({ tokens }: AccessTokenTableProps) {
       <DataTable
         columns={columns}
         data={tokens}
+        fetching={fetching}
+        onRefresh={onRefresh}
+        toolbarExtra={toolbarExtra}
         enableRowActions
         renderRowActions={ActionCell}
         tableOptions={{

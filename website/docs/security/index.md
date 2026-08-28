@@ -4,56 +4,43 @@ sidebar_position: 1
 
 # Security
 
-This guide outlines the built-in security, authentication, authorization, and compliance features engineered within MatrixHub to safeguard enterprise AI model assets.
+This guide covers MatrixHub's current project-level access isolation, personal and robot credentials, and role-based access control.
 
 ---
 
 ## 🔒 1. Multi-Tenant Project Isolation
 
-MatrixHub segregates all resources into logical boundaries called **Workspace Projects**.
-*   **Encapsulated Credentials**: API tokens, user memberships, and repository permissions are scoped strictly within the project. A token belonging to `project-a` cannot download or even query model metadata stored inside `project-b`.
-*   **Network Segregation**: Allows mapping local GPU clusters to specific Projects, ensuring compute nodes only access approved weights.
+MatrixHub uses a **Project** as the boundary for model resources and permissions.
+
+*   **Project Visibility**: All users can view and pull models from public projects. Private projects are available only to project members and platform administrators. Pushing and deleting still require the appropriate project role.
+*   **Personal Access Tokens**: Represent the owning user, are not bound to a single project, and use that user's access scope and role permissions in each project.
+*   **Robot Accounts**: Project permissions can apply to all projects or selected projects. In selected-project mode, the configured project permissions apply only within those projects; existing read-only access to public projects is unaffected.
+
+Configuration references: [Create and Delete Projects](../operations/project-management/create-delete.md) and [Personal Access Tokens](../operations/profile/access-token.md).
 
 ---
 
-## 👤 2. Authentication & Identity Providers (SSO)
+## 🛡️ 2. Fine-Grained Role-Based Access Control (RBAC)
 
-We integrate seamlessly with standard enterprise user directories to ensure unified credential management:
-*   **LDAP / Active Directory**: Authenticate engineers and administrators using their standard corporate user directory.
-*   **OIDC / OAuth 2.0**: Integrate single-sign-on (SSO) providers (e.g. Okta, Keycloak, Ping Identity) to manage dashboard access securely.
+MatrixHub separates **platform-level roles** from **project-level roles**. A platform administrator (`admin`) has global platform permissions, while access to models within a project is controlled by three project roles:
 
----
+| Role | Permission Scope |
+| :--- | :--- |
+| **Project Viewer** | View the project and member list, and view and pull models. Cannot push or delete models or manage project members. |
+| **Project Editor** | Includes Project Viewer permissions and can push models. Cannot delete models or manage project members. |
+| **Project Admin** | Includes Project Editor permissions and can add or remove members, change member roles, update project settings, and delete models and the project. |
+| **Platform Admin (`admin`)** | Can use platform administration features and perform all operations within every project. |
 
-## 🛡️ 3. Fine-Grained Role-Based Access Control (RBAC)
+Every user who can sign in to MatrixHub can create a project and automatically becomes the Project Admin of that project. Members cannot remove themselves from the current project.
 
-Access control inside projects is managed through three predefined functional roles:
-
-| Project Role | Allowed Actions | Typical Assignment |
-| :--- | :--- | :--- |
-| **Owner** | Full admin control, invite/delete members, delete repositories, configure replication sync links. | Platform Engineers, Devops Leads |
-| **Manager** | Upload weights, download models, edit repository descriptions, commit and toggle tag locks. | ML Engineers, Algorithm Researchers |
-| **Reporter** | Read-only access to query metadata and download cached/locked model weights. | Automated GPU Compute Nodes, CI pipelines |
+Configuration reference: [Project Members and Roles](../operations/project-management/members.md).
 
 ---
 
-## 📋 4. Compliance Audits & Trail Logging
+## 🚧 3. Planned Security Capabilities
 
-To satisfy strict regulatory audits (SOC2, ISO 27001, financial guidelines), MatrixHub records an **immutable audit trail** for all system-level and API-level events.
+The following capabilities are not available in the current release and are listed in the [MatrixHub Roadmap](https://github.com/matrixhub-ai/matrixhub/blob/main/ROADMAP.md):
 
-Every log entry captures:
-*   **Who**: The authenticated user or API token ID.
-*   **What**: The exact action (e.g., `model.upload`, `tag.lock`, `token.create`).
-*   **Where**: Client IP address and geographical metadata.
-*   **When**: Highly accurate cryptographic timestamp.
-
-Audit logs cannot be modified or deleted by project Managers or Reporters, providing reliable forensic trails.
-
----
-
-## 🦠 5. Malware Scanning & Code Integrity Checks
-
-AI models (especially standard PyTorch pickle serializations) can act as arbitrary code execution vectors. 
-
-MatrixHub integrates active vulnerability scanning:
-*   **Malicious Code Scan**: Automatically scans uploaded weights (Safetensors and pickle checkpoints) upon upload to detect malicious system calls or payloads.
-*   **Cryptographic Model Signing**: Generates cryptographic signatures for approved weights. Compute servers automatically verify these signatures upon fetching, rejecting any tampered weights.
+*   LDAP, OIDC, or SSO integration
+*   Audit logging
+*   Malicious model content scanning, model signing, and signature verification

@@ -291,6 +291,69 @@ func TestSyncJobGenerator_Generate_Wildcard(t *testing.T) {
 	}
 }
 
+// The registry loaded for the policy carries the URL operators configure when
+// they point a registry at a mirror or proxy. It must reach the discovery
+// unchanged, otherwise discovery matches against a different host than the one
+// the sync jobs subsequently pull from.
+func TestSyncJobGenerator_Generate_Wildcard_PassesRegistryToDiscovery(t *testing.T) {
+	reg := &registry.Registry{
+		ID:             1,
+		Type:           "REGISTRY_TYPE_HUGGINGFACE",
+		URL:            "https://hf-mirror.example.com",
+		CredentialType: registry.CredentialTypeBasic,
+		AuthInfo:       `{"username":"token","password":"secret"}`,
+	}
+	mockRepo := &mockRegistryRepo{registry: reg}
+	mockDisc := &mockDiscovery{
+		repos: []registrydiscovery.RemoteRepository{
+			{Namespace: "google", Name: "bert-base", ResourceType: "model"},
+		},
+	}
+	g := NewSyncJobGenerator(mockRepo, map[string]registrydiscovery.Discovery{
+		registrydiscovery.ProviderHuggingFace: mockDisc,
+	})
+
+	policy := &SyncPolicy{
+		ID:                 1,
+		PolicyType:         SyncPolicyTypePull,
+		TriggerType:        TriggerTypeManual,
+		RegistryID:         1,
+		RemoteProjectName:  "google",
+		RemoteResourceName: "*",
+		LocalProjectName:   "myproject",
+		ResourceTypes:      "model,dataset",
+	}
+
+	if _, _, err := g.Generate(t.Context(), policy); err != nil {
+		t.Fatalf("Generate() error = %v", err)
+	}
+
+	if len(mockDisc.gotRegistries) != 2 {
+		t.Fatalf("discovery called %d times, want 2 (one per resource type)", len(mockDisc.gotRegistries))
+	}
+	for i, got := range mockDisc.gotRegistries {
+		if got == nil {
+			t.Fatalf("call %d: discovery received a nil registry", i)
+		}
+		if got.URL != reg.URL {
+			t.Errorf("call %d: registry URL = %q, want %q", i, got.URL, reg.URL)
+		}
+		if got.AuthInfo != reg.AuthInfo {
+			t.Errorf("call %d: registry AuthInfo = %q, want %q", i, got.AuthInfo, reg.AuthInfo)
+		}
+	}
+
+	wantTypes := []string{"model", "dataset"}
+	for i, want := range wantTypes {
+		if mockDisc.gotFilters[i].ResourceType != want {
+			t.Errorf("call %d: filter.ResourceType = %q, want %q", i, mockDisc.gotFilters[i].ResourceType, want)
+		}
+		if mockDisc.gotFilters[i].Namespace != "google" {
+			t.Errorf("call %d: filter.Namespace = %q, want google", i, mockDisc.gotFilters[i].Namespace)
+		}
+	}
+}
+
 func TestSyncJobGenerator_Generate_PushBaseWildcard(t *testing.T) {
 	// push base with wildcard should still use static matching
 	g := NewSyncJobGenerator(nil, nil)
@@ -356,9 +419,16 @@ func (m *mockRegistryRepo) PingRegistry(ctx context.Context, r registry.Registry
 type mockDiscovery struct {
 	repos []registrydiscovery.RemoteRepository
 	err   error
+
+	// gotRegistries records the registry passed on each call, so tests can assert
+	// the configured registry (URL, credential) actually reaches the discovery.
+	gotRegistries []*registry.Registry
+	gotFilters    []registrydiscovery.Filter
 }
 
 func (m *mockDiscovery) ListRepositories(ctx context.Context, reg *registry.Registry, filter registrydiscovery.Filter) ([]registrydiscovery.RemoteRepository, error) {
+	m.gotRegistries = append(m.gotRegistries, reg)
+	m.gotFilters = append(m.gotFilters, filter)
 	if m.err != nil {
 		return nil, m.err
 	}

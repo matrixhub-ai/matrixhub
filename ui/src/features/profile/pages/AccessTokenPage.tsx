@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   Alert,
   Button,
   Flex,
@@ -14,7 +13,6 @@ import { CurrentUser, type CreateAccessTokenRequest } from '@matrixhub/api-ts/v1
 import {
   IconInfoCircle,
   IconKey,
-  IconRefresh,
 } from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -114,27 +112,19 @@ export function AccessTokenPage() {
         </Alert>
       )}
 
-      <Group justify="flex-end" gap={16}>
-        <ActionIcon
-          variant="transparent"
-          loading={isFetching}
-          onClick={handleRefresh}
-          aria-label="refresh"
-          c="gray.6"
-          size={24}
-        >
-          <IconRefresh />
-        </ActionIcon>
-        <Button
-          leftSection={<IconKey size={16} />}
-          onClick={openCreate}
-          size="xs"
-        >
-          {t('profile.createToken')}
-        </Button>
-      </Group>
-
-      <AccessTokenTable tokens={tokens} />
+      <AccessTokenTable
+        tokens={tokens}
+        fetching={isFetching}
+        onRefresh={handleRefresh}
+        toolbarExtra={(
+          <Button
+            leftSection={<IconKey size={16} />}
+            onClick={openCreate}
+          >
+            {t('profile.createToken')}
+          </Button>
+        )}
+      />
 
       <ModalWrapper
         title={t('profile.createToken')}
