@@ -17,7 +17,7 @@ MatrixHub 以**项目 (Project)** 作为模型资源和权限边界。
 *   **个人访问令牌**：代表所属用户，不绑定单一项目，使用时沿用该用户在各项目中的访问范围和角色权限。
 *   **机器人账号**：项目权限可作用于全部项目或指定项目。选择指定项目时，所配置的项目权限仅在这些项目内生效；公开项目原有的只读访问规则不受影响。
 
-配置参考：[创建与删除项目](../operations/project-management/create-delete.md)、[个人访问令牌](../operations/profile/access-token.md)。
+配置参考：[创建与删除项目](../operations/project-management/create-delete.md)、[个人访问令牌](../operations/profile/access-token.md)和[机器人账号](../operations/platform-settings/robot-accounts.md)。
 
 ---
 
