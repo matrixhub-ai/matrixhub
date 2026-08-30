@@ -269,5 +269,29 @@ var _ = Describe("Login", Label("login"), func() {
 				_ = tools.DeleteUser(idB)
 			}
 		})
+
+		It("should keep a second session valid when the first session logs out", Label("L00013"), func() {
+			username := tools.GenerateTestUsername("login-multi-session")
+			password := "Test@123456"
+			userID, cookieA, err := tools.CreateUserAndLoginWithID(username, password, false)
+			Expect(err).NotTo(HaveOccurred())
+			DeferCleanup(func() {
+				_ = tools.DeleteUser(int64(userID))
+			})
+
+			cookieB, err := tools.LoginUser(username, password)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cookieB).NotTo(Equal(cookieA))
+
+			_, _, err = newLoginApiWithCookie(cookieA).LoginLogout(ctx, v1alpha1login.V1alpha1LogoutRequest{})
+			Expect(err).NotTo(HaveOccurred())
+
+			_, _, err = tools.CreateCurrentUserClientWithCookie(cookieA).CurrentUserGetCurrentUser(ctx)
+			Expect(err).To(HaveOccurred(), "the logged-out session must be invalid")
+
+			currentUser, _, err := tools.CreateCurrentUserClientWithCookie(cookieB).CurrentUserGetCurrentUser(ctx)
+			Expect(err).NotTo(HaveOccurred(), "logging out one device must not invalidate another session")
+			Expect(currentUser.Username).To(Equal(username))
+		})
 	})
 })

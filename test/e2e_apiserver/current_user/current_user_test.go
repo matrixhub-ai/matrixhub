@@ -177,7 +177,7 @@ var _ = Describe("CurrentUser", Label("current-user"), func() {
 	// ═══════════════════════════════════════════════════════════
 	// 3. SSH Key API
 	// ═══════════════════════════════════════════════════════════
-	Context("SSH Key API", func() {
+	Context("SSH Key API", Label("ssh-key"), func() {
 		It("should return an empty list when no SSH keys exist", Label("CU00009"), func() {
 			resp, _, err := currentUserApi.CurrentUserListSSHKeys(ctx)
 			Expect(err).NotTo(HaveOccurred())
@@ -190,6 +190,14 @@ var _ = Describe("CurrentUser", Label("current-user"), func() {
 				PublicKey: generateSSHPublicKey(),
 			})
 			Expect(err).NotTo(HaveOccurred())
+
+			listResp, _, err := currentUserApi.CurrentUserListSSHKeys(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(listResp.Items).To(HaveLen(1))
+			Expect(listResp.Items[0].Name).To(Equal("e2e-ssh-key"))
+			Expect(listResp.Items[0].Status).NotTo(BeNil())
+			Expect(*listResp.Items[0].Status).To(Equal(v1alpha1current_user.VALID_V1alpha1SshKeyStatus))
+			Expect(listResp.Items[0].ExpireAt).To(BeEmpty())
 		})
 
 		It("should fail to create an SSH key with an empty name", Label("CU00011"), func() {
@@ -290,6 +298,66 @@ var _ = Describe("CurrentUser", Label("current-user"), func() {
 			Expect(after.Items[0].Name).To(Equal("e2e-expired-ssh-key"))
 			Expect(after.Items[0].ExpireAt).To(Equal(expiredAt))
 		})
+
+		It("should create an SSH key with a future expiry date", Label("CU00020"), func() {
+			expireAt := fmt.Sprintf("%d", time.Now().Add(24*time.Hour).Unix())
+			_, _, err := currentUserApi.CurrentUserCreateSSHKey(ctx, v1alpha1current_user.V1alpha1CreateSshKeyRequest{
+				Name:      "e2e-future-ssh-key",
+				PublicKey: generateSSHPublicKey(),
+				ExpireAt:  expireAt,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			listResp, _, err := currentUserApi.CurrentUserListSSHKeys(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(listResp.Items).To(HaveLen(1))
+			Expect(listResp.Items[0].ExpireAt).To(Equal(expireAt))
+			Expect(listResp.Items[0].Status).NotTo(BeNil())
+			Expect(*listResp.Items[0].Status).To(Equal(v1alpha1current_user.VALID_V1alpha1SshKeyStatus))
+		})
+
+		It("should report an expired SSH key", Label("CU00021"), func() {
+			expireAt := fmt.Sprintf("%d", time.Now().Add(-time.Hour).Unix())
+			_, _, err := currentUserApi.CurrentUserCreateSSHKey(ctx, v1alpha1current_user.V1alpha1CreateSshKeyRequest{
+				Name:      "e2e-expired-ssh-key",
+				PublicKey: generateSSHPublicKey(),
+				ExpireAt:  expireAt,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			listResp, _, err := currentUserApi.CurrentUserListSSHKeys(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(listResp.Items).To(HaveLen(1))
+			Expect(listResp.Items[0].Status).NotTo(BeNil())
+			Expect(*listResp.Items[0].Status).To(Equal(v1alpha1current_user.EXPIRED_V1alpha1SshKeyStatus))
+		})
+
+		It("should not let one user delete another user's SSH key", Label("CU00022"), func() {
+			otherUsername := tools.GenerateTestUsername("cu-ssh-owner")
+			otherID, otherCookie, err := tools.CreateUserAndLoginWithID(otherUsername, password, false)
+			Expect(err).NotTo(HaveOccurred())
+			DeferCleanup(func() {
+				_ = tools.DeleteUser(int64(otherID))
+			})
+
+			otherAPI := tools.CreateCurrentUserClientWithCookie(otherCookie)
+			_, _, err = otherAPI.CurrentUserCreateSSHKey(ctx, v1alpha1current_user.V1alpha1CreateSshKeyRequest{
+				Name:      "other-user-ssh-key",
+				PublicKey: generateSSHPublicKey(),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			otherKeys, _, err := otherAPI.CurrentUserListSSHKeys(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(otherKeys.Items).To(HaveLen(1))
+
+			_, _, err = currentUserApi.CurrentUserDeleteSSHKey(ctx, otherKeys.Items[0].Id)
+			Expect(err).NotTo(HaveOccurred())
+
+			otherKeys, _, err = otherAPI.CurrentUserListSSHKeys(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(otherKeys.Items).To(HaveLen(1), "the key owner must retain the key")
+		})
 	})
 
 	// ═══════════════════════════════════════════════════════════
@@ -303,6 +371,11 @@ var _ = Describe("CurrentUser", Label("current-user"), func() {
 				NewPassword: newPassword,
 			})
 			Expect(err).NotTo(HaveOccurred())
+
+			// Password changes increment the user's session version. The session
+			// used for the reset must therefore be rejected on the next request.
+			_, _, err = currentUserApi.CurrentUserGetCurrentUser(ctx)
+			Expect(err).To(HaveOccurred(), "password reset must invalidate existing sessions")
 
 			// Verify the new password works for login.
 			_, err = tools.LoginUser(username, newPassword)

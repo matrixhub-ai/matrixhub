@@ -16,10 +16,13 @@ package robot_test
 
 import (
 	"context"
+	"crypto/tls"
+	"net/http"
 	"strings"
 
 	"github.com/antihax/optional"
 	v1alpha1robot "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/robot"
+	v1alpha1user "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/user"
 	"github.com/matrixhub-ai/matrixhub/test/tools"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -32,6 +35,33 @@ const robotPrefix = "robot$"
 // generateRobotName returns a unique robot name (without prefix) for each test.
 func generateRobotName(prefix string) string {
 	return tools.GenerateTestUsername(prefix)
+}
+
+func robotStatus(status v1alpha1robot.V1alpha1RobotAccountStatus) *v1alpha1robot.V1alpha1RobotAccountStatus {
+	return &status
+}
+
+func newRobotUsersAPI() *v1alpha1user.UsersApiService {
+	cfg := &v1alpha1user.Configuration{
+		BasePath: tools.GetBaseURL(),
+		DefaultHeader: map[string]string{
+			"Content-Type": "application/json",
+		},
+		HTTPClient: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec G402
+				Proxy:           http.ProxyFromEnvironment,
+			},
+		},
+	}
+	return v1alpha1user.NewAPIClient(cfg).UsersApi
+}
+
+func robotAuthContext(username, token string) context.Context {
+	return context.WithValue(context.Background(), v1alpha1user.ContextBasicAuth, v1alpha1user.BasicAuth{
+		UserName: username,
+		Password: token,
+	})
 }
 
 var _ = Describe("Robot", Label("robot"), func() {
@@ -272,6 +302,7 @@ var _ = Describe("Robot", Label("robot"), func() {
 		It("should update the robot description successfully", Label("R00010"), func() {
 			_, _, err := robotsApi.RobotsUpdateRobotAccount(ctx, robotID, v1alpha1robot.RobotsUpdateRobotAccountBody{
 				Description: "updated description",
+				Status:      robotStatus(v1alpha1robot.ENABLED_V1alpha1RobotAccountStatus),
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -283,9 +314,9 @@ var _ = Describe("Robot", Label("robot"), func() {
 		})
 
 		It("should update the robot to never-expire when expire_days is set to 0", Label("R00011"), func() {
-			// First create with expiry.
 			_, _, err := robotsApi.RobotsUpdateRobotAccount(ctx, robotID, v1alpha1robot.RobotsUpdateRobotAccountBody{
 				ExpireDays: 0,
+				Status:     robotStatus(v1alpha1robot.ENABLED_V1alpha1RobotAccountStatus),
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -357,10 +388,124 @@ var _ = Describe("Robot", Label("robot"), func() {
 			})
 			Expect(err).To(HaveOccurred(), "refreshing token for non-existent robot must return an error")
 		})
+
+		It("should accept a valid manually specified token", Label("R00016"), func() {
+			manualToken := "RobotToken9x"
+			resp, _, err := robotsApi.RobotsRefreshRobotAccountToken(ctx, robotID, v1alpha1robot.RobotsRefreshRobotAccountTokenBody{
+				AutoGenerate: false,
+				Token:        manualToken,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.Token).To(Equal(manualToken))
+		})
 	})
 
 	// ═══════════════════════════════════════════════════════════
-	// 5. DeleteRobotAccount API
+	// 5. Robot token authentication and status lifecycle
+	// ═══════════════════════════════════════════════════════════
+	Context("Robot token authentication", func() {
+		var (
+			robotName    string
+			robotID      int64
+			initialToken string
+			usersAPI     *v1alpha1user.UsersApiService
+		)
+
+		BeforeEach(func() {
+			robotName = generateRobotName("rb-auth")
+			createResp, _, err := robotsApi.RobotsCreateRobotAccount(ctx, v1alpha1robot.V1alpha1CreateRobotAccountRequest{
+				Name:                robotName,
+				PlatformPermissions: []string{"user.create"},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			initialToken = createResp.Token
+
+			listResp, _, err := robotsApi.RobotsListRobotAccounts(ctx, &v1alpha1robot.RobotsApiRobotsListRobotAccountsOpts{
+				Search: optional.NewString(robotPrefix + robotName),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			for _, rb := range listResp.Items {
+				if rb.Name == robotPrefix+robotName {
+					robotID = rb.Id
+					break
+				}
+			}
+			Expect(robotID).NotTo(BeZero())
+			usersAPI = newRobotUsersAPI()
+		})
+
+		AfterEach(func() {
+			if robotID != 0 {
+				_, _, _ = robotsApi.RobotsDeleteRobotAccount(ctx, robotID)
+			}
+		})
+
+		createUser := func(token, prefix string) (string, error) {
+			username := tools.GenerateTestUsername(prefix)
+			_, _, err := usersAPI.UsersCreateUser(
+				robotAuthContext(robotPrefix+robotName, token),
+				v1alpha1user.V1alpha1CreateUserRequest{
+					Username: username,
+					Password: "Test@123456",
+				},
+			)
+			return username, err
+		}
+
+		cleanupUser := func(username string) {
+			userID, err := tools.GetUserIDByUsername(username)
+			if err == nil {
+				_ = tools.DeleteUser(userID)
+			}
+		}
+
+		It("should authenticate with the generated token and enforce token validity", Label("R00017"), func() {
+			createdUsername, err := createUser(initialToken, "rb-auth-ok")
+			Expect(err).NotTo(HaveOccurred())
+			DeferCleanup(cleanupUser, createdUsername)
+
+			_, err = createUser("wrong-robot-token", "rb-auth-bad")
+			Expect(err).To(HaveOccurred(), "an invalid robot token must be rejected")
+		})
+
+		It("should invalidate the old token after refresh", Label("R00018"), func() {
+			refreshResp, _, err := robotsApi.RobotsRefreshRobotAccountToken(ctx, robotID, v1alpha1robot.RobotsRefreshRobotAccountTokenBody{
+				AutoGenerate: true,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = createUser(initialToken, "rb-old-token")
+			Expect(err).To(HaveOccurred(), "the previous token must stop working immediately")
+
+			createdUsername, err := createUser(refreshResp.Token, "rb-new-token")
+			Expect(err).NotTo(HaveOccurred())
+			DeferCleanup(cleanupUser, createdUsername)
+		})
+
+		It("should disable and re-enable API access", Label("R00019"), func() {
+			_, _, err := robotsApi.RobotsUpdateRobotAccount(ctx, robotID, v1alpha1robot.RobotsUpdateRobotAccountBody{
+				Status:              robotStatus(v1alpha1robot.DISABLED_V1alpha1RobotAccountStatus),
+				PlatformPermissions: []string{"user.create"},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = createUser(initialToken, "rb-disabled")
+			Expect(err).To(HaveOccurred(), "a disabled robot must not authenticate")
+
+			_, _, err = robotsApi.RobotsUpdateRobotAccount(ctx, robotID, v1alpha1robot.RobotsUpdateRobotAccountBody{
+				Status:              robotStatus(v1alpha1robot.ENABLED_V1alpha1RobotAccountStatus),
+				PlatformPermissions: []string{"user.create"},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			createdUsername, err := createUser(initialToken, "rb-enabled")
+			Expect(err).NotTo(HaveOccurred())
+			DeferCleanup(cleanupUser, createdUsername)
+		})
+	})
+
+	// ═══════════════════════════════════════════════════════════
+	// 6. DeleteRobotAccount API
 	// ═══════════════════════════════════════════════════════════
 	Context("DeleteRobotAccount API", func() {
 		It("should delete a robot account and make it inaccessible", Label("R00015"), func() {
@@ -391,4 +536,3 @@ var _ = Describe("Robot", Label("robot"), func() {
 		})
 	})
 })
-

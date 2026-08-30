@@ -269,10 +269,16 @@ var _ = Describe("User", Label("user"), func() {
 
 		It("should allow admin to reset another user's password", Label("U00012"), func() {
 			newPassword := "NewTest@654321"
-			_, _, err := usersApi.UsersResetUserPassword(ctx, userID, v1alpha1user.UsersResetUserPasswordBody{
+			oldCookie, err := tools.LoginUser(username, "Test@123456")
+			Expect(err).NotTo(HaveOccurred())
+
+			_, _, err = usersApi.UsersResetUserPassword(ctx, userID, v1alpha1user.UsersResetUserPasswordBody{
 				Password: newPassword,
 			})
 			Expect(err).NotTo(HaveOccurred())
+
+			_, _, err = tools.CreateCurrentUserClientWithCookie(oldCookie).CurrentUserGetCurrentUser(ctx)
+			Expect(err).To(HaveOccurred(), "admin password reset must invalidate the user's existing sessions")
 
 			// Verify the new password works for login.
 			_, err = tools.LoginUser(username, newPassword)
@@ -351,8 +357,12 @@ var _ = Describe("User", Label("user"), func() {
 		})
 
 		It("should deny a non-admin user from promoting others to sysadmin", Label("U00016"), func() {
-			normalCookie, err := tools.CreateUserAndLogin(tools.GenerateTestUsername("u-noadmin"), "Test@123456", false)
+			normalUsername := tools.GenerateTestUsername("u-noadmin")
+			normalID, normalCookie, err := tools.CreateUserAndLoginWithID(normalUsername, "Test@123456", false)
 			Expect(err).NotTo(HaveOccurred())
+			DeferCleanup(func() {
+				_ = tools.DeleteUser(int64(normalID))
+			})
 
 			normalUsersApi := tools.CreateUserClientWithCookie(normalCookie)
 			_, _, err = normalUsersApi.UsersSetUserSysAdmin(ctx, userID, v1alpha1user.UsersSetUserSysAdminBody{
