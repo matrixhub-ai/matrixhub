@@ -1,4 +1,4 @@
-{{- if and .Values.global.storage.apiserver.builtIn (not .Values.apiserver.database.dsn) }}
+{{- if and .Values.global.storage.apiserver.builtIn (not .Values.apiserver.database.dsn) (eq .Values.apiserver.database.driver "mysql")}}
 ---
 apiVersion: v1
 kind: Secret
@@ -10,37 +10,6 @@ metadata:
 type: Opaque
 data:
   mysql-root-password: {{ .Values.mysql.rootPassword | b64enc | quote }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ include "matrixhub.mysql.pvcName" . }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "matrixhub.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.mysql.persistence.size }}
-  {{- if .Values.mysql.persistence.storageClass }}
-  storageClassName: {{ .Values.mysql.persistence.storageClass }}
-  {{- end }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "matrixhub.mysql.initConfigMapName" . }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "matrixhub.labels" . | nindent 4 }}
-data:
-  initdb.sql: |
-    CREATE DATABASE IF NOT EXISTS matrixhub CHARACTER SET utf8mb4;
-    CREATE USER IF NOT EXISTS 'matrixhub'@'%' IDENTIFIED BY '{{ .Values.mysql.rootPassword }}';
-    GRANT ALL PRIVILEGES ON matrixhub.* TO 'matrixhub'@'%';
-    FLUSH PRIVILEGES;
 ---
 apiVersion: v1
 kind: Service
@@ -59,23 +28,21 @@ spec:
     app: {{ include "matrixhub.fullname" . }}-mysql
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "matrixhub.fullname" . }}-mysql
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "matrixhub.labels" . | nindent 4 }}
 spec:
+  serviceName: {{ include "matrixhub.fullname" . }}-mysql
   selector:
     matchLabels:
       app: {{ include "matrixhub.fullname" . }}-mysql
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: {{ include "matrixhub.fullname" . }}-mysql
-        app.kubernetes.io/name: mysql
     spec:
       {{- include "matrixhub.imagePullSecrets" . | nindent 6 }}
       containers:
@@ -97,19 +64,29 @@ spec:
                   key: mysql-root-password
             - name: MYSQL_DATABASE
               value: matrixhub
+            - name: MYSQL_USER
+              value: matrixhub
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "matrixhub.fullname" . }}-mysql-secret
+                  key: mysql-root-password
           ports:
             - containerPort: 3306
               name: mysql
           volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
-            - name: mysql-initdb
-              mountPath: /docker-entrypoint-initdb.d
-      volumes:
-        - name: mysql-persistent-storage
-          persistentVolumeClaim:
-            claimName: {{ include "matrixhub.mysql.pvcName" . }}
-        - name: mysql-initdb
-          configMap:
-            name: {{ include "matrixhub.mysql.initConfigMapName" . }}
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-persistent-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.mysql.persistence.size }}
+        {{- if .Values.mysql.persistence.storageClass }}
+        storageClassName: {{ .Values.mysql.persistence.storageClass }}
+        {{- end }}
 {{- end }}
