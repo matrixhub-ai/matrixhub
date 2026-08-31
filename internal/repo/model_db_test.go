@@ -58,8 +58,8 @@ func expectModelRows() *sqlmock.Rows {
 func TestModelDB_ListAllPathsReturnsJoinedProjectPaths(t *testing.T) {
 	ctx := context.Background()
 	repo, mock := newModelDBForTest(t)
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT CONCAT(p.name, '/', m.name) FROM models m LEFT JOIN projects p ON m.project_id = p.id WHERE p.name IS NOT NULL")).
-		WillReturnRows(sqlmock.NewRows([]string{"CONCAT(p.name, '/', m.name)"}).AddRow("proj/model"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT p.name AS project_name, m.name AS name FROM models m LEFT JOIN projects p ON m.project_id = p.id WHERE p.name IS NOT NULL")).
+		WillReturnRows(sqlmock.NewRows([]string{"project_name", "name"}).AddRow("proj", "model"))
 
 	paths, err := repo.ListAllPaths(ctx)
 
@@ -185,8 +185,8 @@ func TestModelDB_UpdatesOnlyRequestedFields(t *testing.T) {
 		readme := "# Updated"
 		size := int64(1024)
 		parameterCount := int64(2048)
-		mock.ExpectExec("UPDATE `models` SET `parameter_count`=\\?,`readme_content`=\\?,`size`=\\? WHERE id = \\?").
-			WithArgs(parameterCount, readme, size, 7).
+		mock.ExpectExec("UPDATE `models` SET `parameter_count`=\\?,`readme_content`=\\?,`size`=\\?,`updated_at`=\\? WHERE id = \\?").
+			WithArgs(parameterCount, readme, size, sqlmock.AnyArg(), 7).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		err := repo.UpdateMetadata(ctx, 7, &model.MetadataUpdate{
@@ -202,8 +202,8 @@ func TestModelDB_UpdatesOnlyRequestedFields(t *testing.T) {
 	t.Run("setting", func(t *testing.T) {
 		repo, mock := newModelDBForTest(t)
 		popular := true
-		mock.ExpectExec("UPDATE `models` SET `is_popular`=\\? WHERE id = \\?").
-			WithArgs(true, 7).
+		mock.ExpectExec("UPDATE `models` SET `is_popular`=\\?,`updated_at`=\\? WHERE id = \\?").
+			WithArgs(true, sqlmock.AnyArg(), 7).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		err := repo.UpdateSetting(ctx, 7, &model.SettingUpdate{IsPopular: &popular})
@@ -215,8 +215,8 @@ func TestModelDB_UpdatesOnlyRequestedFields(t *testing.T) {
 	t.Run("synced at", func(t *testing.T) {
 		repo, mock := newModelDBForTest(t)
 		syncedAt := time.Date(2026, 8, 31, 0, 0, 0, 0, time.UTC)
-		mock.ExpectExec("UPDATE `models` SET `synced_at`=\\? WHERE id = \\?").
-			WithArgs(syncedAt, 7).
+		mock.ExpectExec("UPDATE `models` SET `synced_at`=\\?,`updated_at`=\\? WHERE id = \\?").
+			WithArgs(syncedAt, sqlmock.AnyArg(), 7).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		err := repo.UpdateSyncedAt(ctx, 7, &syncedAt)
