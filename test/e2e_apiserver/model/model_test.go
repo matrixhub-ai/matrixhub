@@ -505,6 +505,16 @@ var _ = Describe("Model", Label("model"), func() {
 			Expect(resp.Items).NotTo(BeNil())
 		})
 
+		It("should list commits with diff=false", Label("M00061"), func() {
+			resp, _, err := modelsApi.ModelsListModelCommits(ctx, gitProject, gitModel, &v1alpha1model.ModelsApiModelsListModelCommitsOpts{
+				Diff:     optional.NewBool(false),
+				Page:     optional.NewInt32(1),
+				PageSize: optional.NewInt32(10),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.Items).NotTo(BeNil())
+		})
+
 		It("should list commits with pagination", Label("M00024"), func() {
 			resp, _, err := modelsApi.ModelsListModelCommits(ctx, gitProject, gitModel, &v1alpha1model.ModelsApiModelsListModelCommitsOpts{
 				Page:     optional.NewInt32(1),
