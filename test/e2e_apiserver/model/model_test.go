@@ -16,6 +16,7 @@ package model_test
 
 import (
 	"context"
+	"strings"
 
 	v1alpha1model "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/model"
 	v1alpha1project "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/project"
@@ -146,6 +147,24 @@ var _ = Describe("Model", Label("model"), func() {
 			Expect(err).To(HaveOccurred())
 		})
 
+		It("should reject invalid model names", Label("M00058"), func() {
+			invalidNames := []string{
+				"-leading-dash",
+				"contains space",
+				"contains/slash",
+				"models",
+				strings.Repeat("a", 252),
+			}
+
+			for _, modelName := range invalidNames {
+				_, _, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+					Project: projectName,
+					Name:    modelName,
+				})
+				Expect(err).To(HaveOccurred(), "model name %q should fail validation", modelName)
+			}
+		})
+
 		// --- GetModel ---
 		It("should get an existing model with all expected fields", Label("M00008"), func() {
 			modelName := tools.GenerateTestModelName("get-model")
@@ -164,6 +183,25 @@ var _ = Describe("Model", Label("model"), func() {
 			Expect(getResp.CreatedAt).NotTo(BeEmpty())
 
 			GinkgoWriter.Printf("GetModel: id=%v, name=%v, project=%v\n", getResp.Id, getResp.Name, getResp.Project)
+		})
+
+		It("should return default fields for a newly created model", Label("M00059"), func() {
+			modelName := tools.GenerateTestModelName("defaults")
+			_, _, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    modelName,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			getResp, _, err := modelsApi.ModelsGetModel(ctx, projectName, modelName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.DefaultBranch).To(Equal("main"))
+			Expect(getResp.CloneUrls).NotTo(BeNil())
+			Expect(getResp.Labels).To(BeEmpty())
+			Expect(getResp.ReadmeContent).To(BeEmpty())
+			Expect(getResp.Size).To(Equal("0"))
+			Expect(getResp.ParameterCount).To(Equal("0"))
+			Expect(getResp.Popular).To(BeFalse())
 		})
 
 		It("should fail to get a non-existent model", Label("M00009"), func() {
@@ -1125,6 +1163,41 @@ var _ = Describe("Model", Label("model"), func() {
 			}
 			Expect(foundA).To(BeTrue(), "Popular model should appear in popular list")
 			Expect(foundB).To(BeFalse(), "Non-popular model should not appear in popular list")
+		})
+
+		It("should include popular and normal models when popular filter is omitted", Label("M00060"), func() {
+			popularModel := tools.GenerateTestModelName("popular")
+			normalModel := tools.GenerateTestModelName("normal")
+
+			_, _, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    popularModel,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			_, _, err = modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    normalModel,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			_, _, err = modelsApi.ModelsUpdateModelSetting(ctx, projectName, popularModel, v1alpha1model.ModelsUpdateModelSettingBody{
+				Popular: boolPtr(true),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			listResp, _, err := modelsApi.ModelsListModels(ctx, &v1alpha1model.ModelsApiModelsListModelsOpts{
+				Project:  optional.NewString(projectName),
+				Page:     optional.NewInt32(1),
+				PageSize: optional.NewInt32(50),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			modelNames := make(map[string]bool, len(listResp.Items))
+			for _, item := range listResp.Items {
+				modelNames[item.Name] = true
+			}
+			Expect(modelNames).To(HaveKey(popularModel))
+			Expect(modelNames).To(HaveKey(normalModel))
 		})
 
 		It("should fail to update setting for non-existent model", Label("M00056"), func() {
