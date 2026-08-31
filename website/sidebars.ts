@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Operations',
       items: [
+        'operations/login-logout/index',
         {
           type: 'category',
           label: 'Model Repository',
@@ -60,6 +61,7 @@ const sidebars: SidebarsConfig = {
           label: 'Platform Settings',
           items: [
             'operations/platform-settings/user-management',
+            'operations/platform-settings/robot-accounts',
             'operations/platform-settings/registry-management',
             'operations/platform-settings/remote-sync',
           ],

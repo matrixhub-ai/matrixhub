@@ -16,7 +16,7 @@ MatrixHub uses a **Project** as the boundary for model resources and permissions
 *   **Personal Access Tokens**: Represent the owning user, are not bound to a single project, and use that user's access scope and role permissions in each project.
 *   **Robot Accounts**: Project permissions can apply to all projects or selected projects. In selected-project mode, the configured project permissions apply only within those projects; existing read-only access to public projects is unaffected.
 
-Configuration references: [Create and Delete Projects](../operations/project-management/create-delete.md) and [Personal Access Tokens](../operations/profile/access-token.md).
+Configuration references: [Create and Delete Projects](../operations/project-management/create-delete.md), [Personal Access Tokens](../operations/profile/access-token.md), and [Robot Accounts](../operations/platform-settings/robot-accounts.md).
 
 ---
 

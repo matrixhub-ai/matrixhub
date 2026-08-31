@@ -12,6 +12,13 @@
     },
     "recommend": "推荐模型",
     "allModels": "全部模型",
+    "noRecommended": "暂无推荐模型",
+    "emptyTitle": "还没有模型",
+    "emptyDescription": "先创建一个模型仓库，再上传模型文件开始使用。",
+    "create": "创建模型",
+    "uploadGuide": "了解如何上传模型",
+    "loadFailed": "模型加载失败",
+    "retry": "重试",
     "viewMore": "查看更多",
     "collapse": "收起"
   },
@@ -69,6 +76,9 @@
     "modelNameHelper": "支持数字、字母、下划线、短横线和点，且只能以数字、字母开头",
     "submit": "创建模型",
     "uploadTip": "模型创建完成后，您可以使用命令行上传文件。",
+    "createProject": "创建项目",
+    "emptyProjectTitle": "还没有项目",
+    "emptyProjectDescription": "先创建一个项目，创建完成后会自动选中。",
     "modelNameInvalid": "模型名称格式不正确",
     "success": "模型创建成功",
     "error": "创建模型失败"

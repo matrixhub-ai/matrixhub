@@ -119,6 +119,145 @@ func TestExtractMetadataReadsSingleSafetensorsHeader(t *testing.T) {
 	}
 }
 
+func TestCollectSafetensorsFileSkipsReadWhenBudgetSpent(t *testing.T) {
+	ctx := context.Background()
+	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	repo := initRepoTestRepository(t, ctx, store)
+
+	lfsPointer := []byte("version https://git-lfs.github.com/spec/v1\n" +
+		"oid sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n" +
+		"size 1024\n")
+
+	if _, err := repo.CreateCommit(ctx, "main", "add model", "Test", "test@example.com", []repository.CommitOperation{
+		{Type: repository.CommitOperationAdd, Path: "model.safetensors", Content: lfsPointer},
+	}, ""); err != nil {
+		t.Fatalf("CreateCommit() error = %v", err)
+	}
+
+	// A spent budget means an earlier read already blocked on an upstream
+	// download. Opening another tee cache blob would promote it to a foreground
+	// download for a read that cannot finish, so only the pointer size is taken.
+	spentCtx, cancel := context.WithCancel(ctx)
+	cancel()
+
+	metadata := &git.RepoMetadataFiles{
+		SafetensorsFiles: make(map[string][]byte),
+		SafetensorsSizes: make(map[string]int64),
+	}
+	NewGitDB(store, nil).(*gitRepo).collectSafetensorsFile(spentCtx, repo, "main", "model.safetensors", metadata)
+
+	if len(metadata.SafetensorsFiles) != 0 {
+		t.Fatalf("SafetensorsFiles = %v, want no header read", metadata.SafetensorsFiles)
+	}
+	if got := metadata.SafetensorsSizes["model.safetensors"]; got != 1024 {
+		t.Fatalf("SafetensorsSizes[model.safetensors] = %d, want 1024", got)
+	}
+}
+
+func TestExtractMetadataFallsBackToLFSPointerSize(t *testing.T) {
+	ctx := context.Background()
+	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	repo := initRepoTestRepository(t, ctx, store)
+
+	// The pointer stands in for a proxied repository whose weights have not been
+	// fetched yet: the blob is a pointer, and no LFS object exists on disk.
+	lfsPointer := []byte("version https://git-lfs.github.com/spec/v1\n" +
+		"oid sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n" +
+		"size 1024\n")
+
+	if _, err := repo.CreateCommit(ctx, "main", "add model", "Test", "test@example.com", []repository.CommitOperation{
+		{Type: repository.CommitOperationAdd, Path: "config.json", Content: []byte(`{"torch_dtype":"bfloat16"}`)},
+		{Type: repository.CommitOperationAdd, Path: "model.safetensors", Content: lfsPointer},
+	}, ""); err != nil {
+		t.Fatalf("CreateCommit() error = %v", err)
+	}
+
+	files, err := NewGitDB(store, nil).ExtractMetadata(ctx, "models", "test-project", "test-model")
+	if err != nil {
+		t.Fatalf("ExtractMetadata() error = %v", err)
+	}
+
+	if len(files.SafetensorsFiles) != 0 {
+		t.Fatalf("SafetensorsFiles = %v, want no readable headers", files.SafetensorsFiles)
+	}
+	if got := files.SafetensorsSizes["model.safetensors"]; got != 1024 {
+		t.Fatalf("SafetensorsSizes[model.safetensors] = %d, want 1024", got)
+	}
+
+	metadata, err := modeldomain.AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
+	}
+	// 1024 bytes of bfloat16 weights.
+	if metadata.ParameterCount != 512 {
+		t.Fatalf("ParameterCount = %d, want 512", metadata.ParameterCount)
+	}
+}
+
+func TestExtractMetadataSkipsShardHeadersWhenIndexHasTotalSize(t *testing.T) {
+	ctx := context.Background()
+	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	repo := initRepoTestRepository(t, ctx, store)
+
+	index, err := json.Marshal(map[string]any{
+		"metadata": map[string]any{"total_size": 2048},
+		"weight_map": map[string]string{
+			"model.embed_tokens.weight": "model-00001-of-00002.safetensors",
+			"lm_head.weight":            "model-00002-of-00002.safetensors",
+		},
+	})
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+
+	shard := buildRepoTestSafetensorsFile(t, map[string][]int64{"lm_head.weight": {4, 5}}, 1024)
+	if _, err := repo.CreateCommit(ctx, "main", "add sharded model", "Test", "test@example.com", []repository.CommitOperation{
+		{Type: repository.CommitOperationAdd, Path: "config.json", Content: []byte(`{"torch_dtype":"bfloat16"}`)},
+		{Type: repository.CommitOperationAdd, Path: "model.safetensors.index.json", Content: index},
+		{Type: repository.CommitOperationAdd, Path: "model-00001-of-00002.safetensors", Content: shard},
+		{Type: repository.CommitOperationAdd, Path: "model-00002-of-00002.safetensors", Content: shard},
+	}, ""); err != nil {
+		t.Fatalf("CreateCommit() error = %v", err)
+	}
+
+	files, err := NewGitDB(store, nil).ExtractMetadata(ctx, "models", "test-project", "test-model")
+	if err != nil {
+		t.Fatalf("ExtractMetadata() error = %v", err)
+	}
+
+	// total_size alone answers the question, so no shard may be opened. Reading
+	// them would promote every shard to a foreground LFS download on proxy repos.
+	if len(files.SafetensorsFiles) != 0 {
+		t.Fatalf("SafetensorsFiles = %v, want no shard headers read", files.SafetensorsFiles)
+	}
+	if len(files.SafetensorsSizes) != 0 {
+		t.Fatalf("SafetensorsSizes = %v, want no shard sizes recorded", files.SafetensorsSizes)
+	}
+
+	metadata, err := modeldomain.AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
+	}
+	// 2048 bytes of bfloat16 weights.
+	if metadata.ParameterCount != 1024 {
+		t.Fatalf("ParameterCount = %d, want 1024", metadata.ParameterCount)
+	}
+}
+
+func initRepoTestRepository(t *testing.T, ctx context.Context, store *hfdstorage.Storage) *repository.Repository {
+	t.Helper()
+
+	repoPath := store.ResolvePath("test-project/test-model")
+	if err := os.MkdirAll(filepath.Dir(repoPath), 0750); err != nil {
+		t.Fatalf("os.MkdirAll() error = %v", err)
+	}
+	repo, err := repository.Init(ctx, repoPath, "main")
+	if err != nil {
+		t.Fatalf("repository.Init() error = %v", err)
+	}
+	return repo
+}
+
 func buildRepoTestSafetensorsFile(t *testing.T, tensors map[string][]int64, payloadSize int) []byte {
 	t.Helper()
 

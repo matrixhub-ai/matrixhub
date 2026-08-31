@@ -81,82 +81,7 @@ Source 和 Target 分别调度到不同节点。具体软件版本和配置在�
 
 ## 第一步：构建支持 ModelExpress 的 Dynamo Runtime
 
-实验所用的标准 Dynamo Runtime 不保证包含 GPU-to-GPU 加载所需的全部能力，因此先基于固定的 Runtime 1.3.0 Digest 构建新镜像，并安装固定版本的 ModelExpress Python Client。
-
-先获取指定版本源码：
-
-```bash
-MX_TAG=v0.4.1
-MX_COMMIT=e72b140dfc71ee8769898ba750abd43b3c39e8b8
-
-git clone https://github.com/ai-dynamo/modelexpress.git modelexpress
-cd modelexpress
-git fetch origin tag "$MX_TAG"
-git checkout --detach "$MX_COMMIT"
-test "$(git rev-parse HEAD)" = "$MX_COMMIT"
-```
-
-在仓库根目录创建以下 `Dockerfile`。公开示例使用 `<dynamo-runtime-image>@sha256:<digest>` 作为占位符；实际构建时应固定到经过验证的 Runtime Digest，避免基础镜像漂移。
-
-```dockerfile
-ARG DYNAMO_VLLM_RUNTIME_IMAGE=<dynamo-runtime-image>@sha256:<digest>
-FROM ${DYNAMO_VLLM_RUNTIME_IMAGE}
-
-ARG DYNAMO_VLLM_RUNTIME_IMAGE
-ARG MODELEXPRESS_TAG=v0.4.1
-ARG MODELEXPRESS_COMMIT=e72b140dfc71ee8769898ba750abd43b3c39e8b8
-
-LABEL org.opencontainers.image.title="ModelExpress-enabled Dynamo vLLM runtime" \
-      io.daocloud.dynamo.base.image="${DYNAMO_VLLM_RUNTIME_IMAGE}" \
-      io.daocloud.modelexpress.python.tag="${MODELEXPRESS_TAG}" \
-      io.daocloud.modelexpress.python.commit="${MODELEXPRESS_COMMIT}"
-
-COPY --chown=dynamo:dynamo modelexpress_client/python /opt/modelexpress/client
-WORKDIR /opt/modelexpress/client
-
-USER root
-RUN uv pip install --system . \
-    && python3 -m pip freeze | sort > /opt/modelexpress/python-dependencies.txt
-USER dynamo
-
-WORKDIR /workspace
-```
-
-构建 `linux/amd64` 镜像：
-
-```bash
-MX_BASE_IMAGE=<dynamo-runtime-image>@sha256:<digest>
-MX_IMAGE=<registry>/mx-vllm-runtime:1.3.0-mx0.4.1-e72b140
-
-docker build --platform linux/amd64 --progress=plain \
-  --build-arg DYNAMO_VLLM_RUNTIME_IMAGE="$MX_BASE_IMAGE" \
-  --build-arg MODELEXPRESS_TAG=v0.4.1 \
-  --build-arg MODELEXPRESS_COMMIT=e72b140dfc71ee8769898ba750abd43b3c39e8b8 \
-  --tag "$MX_IMAGE" \
-  --file Dockerfile \
-  .
-```
-
-构建完成后，不只检查镜像是否存在，还要验证 Client 版本及 Dynamo、ModelExpress、NIXL、vLLM 和 ModelExpress vLLM Engine 的核心 Import：
-
-```bash
-docker run --rm --platform linux/amd64 "$MX_IMAGE" \
-  python3 -c '
-import importlib.metadata
-import dynamo, modelexpress, nixl, vllm
-import modelexpress.engines.vllm
-print("modelexpress=" + importlib.metadata.version("modelexpress"))
-print("imports=ok")
-'
-
-docker push "$MX_IMAGE"
-
-skopeo inspect --override-os linux --override-arch amd64 \
-  --format 'digest={{.Digest}} arch={{.Architecture}} os={{.Os}}' \
-  "docker://$MX_IMAGE"
-```
-
-最后记录远端 Manifest Digest，并在后续 DGD 中使用 Digest 引用镜像，而不是可变 Tag。
+请直接参阅 [ModelExpress 官方 P2P 客户端镜像文档](https://github.com/ai-dynamo/modelexpress/blob/main/examples/p2p_transfer_k8s/client/README.md) 构建运行时镜像。
 
 ## 第二步：做集群和硬件预检
 
@@ -257,7 +182,7 @@ curl -sS http://127.0.0.1:8000/v1/chat/completions \
 | Source 模型获取 Endpoint | Hugging Face 镜像 | MatrixHub | Hugging Face 镜像 | MatrixHub |
 | Target 权重来源 | Target 本地模型文件 | Target 本地模型文件 | Source GPU | Source GPU |
 | Source 模型文件准备 | 4,382.20 s | 144.579 s | 4,161.32 s | 143.34 s |
-| Target 模型文件下载 | 4,247.68 s | 150.718 s | 不适用 | 不适用 |
+| Target 模型文件下载 | 4,247.68 s | 150.718 s | 0s(不需要) | 0s(不需要) |
 | Source GPU 加载 | 20.88 s | 28.22 s | `MxModelLoader` 159.36 s | `MxModelLoader` 152.70 s |
 | Target GPU 加载 | 32.46 s | 69.05 s | `MxModelLoader` 3.41 s | `MxModelLoader` 3.13 s |
 | P2P 张量数 / 数据量 | 无 | 无 | 312 / 15.24 GB | 312 / 15.24 GB |
@@ -268,7 +193,7 @@ curl -sS http://127.0.0.1:8000/v1/chat/completions \
 
 第一，MatrixHub 在两个节点上都成功完成了模型文件供应。在同一 Source 节点的归档记录中，经 Hugging Face 镜像准备模型文件耗时 4,382.20 秒，经 MatrixHub 则为 144.579 秒。具体倍数取决于实际网络、上游状态和缓存条件，但这组结果体现了将模型分发服务部署在推理集群附近的价值。
 
-第二，P2P 场景不再让 Target 重复下载权重文件，而是从 Ready Source GPU 接收 15.24 GB 权重。在 E4 中，Target 的完整 `MxModelLoader` 阶段为 3.13 秒，随后推理验证通过。
+第二，P2P 场景不再让 Target 重复下载权重文件（「Target 模型文件下载」这一步可视为 0s），而是从 Ready Source GPU 接收 15.24 GB 权重。在 E4 中，Target 的完整 `MxModelLoader` 阶段为 3.13 秒，随后推理验证通过。
 
 ## 结论
 
@@ -277,7 +202,7 @@ MatrixHub 与 ModelExpress P2P 不是竞争关系，而是模型就绪链路中�
 | 场景 | 建议路径 |
 |---|---|
 | 第一个副本，或当前没有 Ready Source | 从集群内 MatrixHub 缓存下载 |
-| 已有兼容的 Ready Source，需要继续扩容 | 使用 ModelExpress P2P 从 Source GPU 获取权重 |
+| 已有 Ready Source，且集群有可用的 RDMA 通道，需要继续扩容 | 使用 ModelExpress P2P 从 Source GPU 获取权重 |
 | 集群没有可用的 RDMA 通道 | 使用 MatrixHub 直拉 |
 | 离线环境或需要受控的模型供应 | 使用 MatrixHub 作为统一模型源 |
 | 需要评估启动性能 | 分开测量文件准备、GPU 加载和端到端就绪耗时 |

@@ -81,82 +81,7 @@ The source and target were scheduled to different nodes. Exact software versions
 
 ## Step 1: Build a ModelExpress-enabled Dynamo Runtime
 
-The stock Dynamo Runtime used by the experiment did not guarantee all the capabilities required for GPU-to-GPU loading. We therefore built a new image from a fixed Runtime 1.3.0 digest and installed a pinned ModelExpress Python client.
-
-Fetch the exact source revision:
-
-```bash
-MX_TAG=v0.4.1
-MX_COMMIT=e72b140dfc71ee8769898ba750abd43b3c39e8b8
-
-git clone https://github.com/ai-dynamo/modelexpress.git modelexpress
-cd modelexpress
-git fetch origin tag "$MX_TAG"
-git checkout --detach "$MX_COMMIT"
-test "$(git rev-parse HEAD)" = "$MX_COMMIT"
-```
-
-Create the following `Dockerfile` in the repository root. The public example uses `<dynamo-runtime-image>@sha256:<digest>` as a placeholder; use a verified runtime digest in a real build so the base image cannot drift.
-
-```dockerfile
-ARG DYNAMO_VLLM_RUNTIME_IMAGE=<dynamo-runtime-image>@sha256:<digest>
-FROM ${DYNAMO_VLLM_RUNTIME_IMAGE}
-
-ARG DYNAMO_VLLM_RUNTIME_IMAGE
-ARG MODELEXPRESS_TAG=v0.4.1
-ARG MODELEXPRESS_COMMIT=e72b140dfc71ee8769898ba750abd43b3c39e8b8
-
-LABEL org.opencontainers.image.title="ModelExpress-enabled Dynamo vLLM runtime" \
-      io.daocloud.dynamo.base.image="${DYNAMO_VLLM_RUNTIME_IMAGE}" \
-      io.daocloud.modelexpress.python.tag="${MODELEXPRESS_TAG}" \
-      io.daocloud.modelexpress.python.commit="${MODELEXPRESS_COMMIT}"
-
-COPY --chown=dynamo:dynamo modelexpress_client/python /opt/modelexpress/client
-WORKDIR /opt/modelexpress/client
-
-USER root
-RUN uv pip install --system . \
-    && python3 -m pip freeze | sort > /opt/modelexpress/python-dependencies.txt
-USER dynamo
-
-WORKDIR /workspace
-```
-
-Build for `linux/amd64`:
-
-```bash
-MX_BASE_IMAGE=<dynamo-runtime-image>@sha256:<digest>
-MX_IMAGE=<registry>/mx-vllm-runtime:1.3.0-mx0.4.1-e72b140
-
-docker build --platform linux/amd64 --progress=plain \
-  --build-arg DYNAMO_VLLM_RUNTIME_IMAGE="$MX_BASE_IMAGE" \
-  --build-arg MODELEXPRESS_TAG=v0.4.1 \
-  --build-arg MODELEXPRESS_COMMIT=e72b140dfc71ee8769898ba750abd43b3c39e8b8 \
-  --tag "$MX_IMAGE" \
-  --file Dockerfile \
-  .
-```
-
-After the build, verify more than image existence. Check the client version and the core Dynamo, ModelExpress, NIXL, vLLM, and ModelExpress vLLM engine imports:
-
-```bash
-docker run --rm --platform linux/amd64 "$MX_IMAGE" \
-  python3 -c '
-import importlib.metadata
-import dynamo, modelexpress, nixl, vllm
-import modelexpress.engines.vllm
-print("modelexpress=" + importlib.metadata.version("modelexpress"))
-print("imports=ok")
-'
-
-docker push "$MX_IMAGE"
-
-skopeo inspect --override-os linux --override-arch amd64 \
-  --format 'digest={{.Digest}} arch={{.Architecture}} os={{.Os}}' \
-  "docker://$MX_IMAGE"
-```
-
-Record the remote manifest digest and use that digest, rather than a mutable tag, in the DGD manifests.
+Build the runtime by following the [official ModelExpress P2P client-image documentation](https://github.com/ai-dynamo/modelexpress/blob/main/examples/p2p_transfer_k8s/client/README.md).
 
 ## Step 2: Preflight the cluster and hardware
 
@@ -257,7 +182,7 @@ With the functional path established, place the direct and P2P records in one ta
 | Source model acquisition endpoint | Hugging Face mirror | MatrixHub | Hugging Face mirror | MatrixHub |
 | Target weight source | Target-local model files | Target-local model files | Source GPU | Source GPU |
 | Source model-file preparation | 4,382.20 s | 144.579 s | 4,161.32 s | 143.34 s |
-| Target model-file download | 4,247.68 s | 150.718 s | Not applicable | Not applicable |
+| Target model-file download | 4,247.68 s | 150.718 s | 0s (not needed) | 0s (not needed) |
 | Source GPU loading | 20.88 s | 28.22 s | `MxModelLoader` 159.36 s | `MxModelLoader` 152.70 s |
 | Target GPU loading | 32.46 s | 69.05 s | `MxModelLoader` 3.41 s | `MxModelLoader` 3.13 s |
 | P2P tensors / data | None | None | 312 / 15.24 GB | 312 / 15.24 GB |
@@ -268,7 +193,7 @@ The table expresses two complementary facts.
 
 First, MatrixHub successfully served the model to both nodes. In the archived runs on the same source node, model-file preparation took 4,382.20 seconds through the Hugging Face mirror and 144.579 seconds through MatrixHub. The exact ratio depends on the network, upstream state, and cache conditions, but the result demonstrates the value of placing model distribution close to the inference cluster.
 
-Second, the P2P scenarios did not repeat the weight-file download on the target. They received 15.24 GB of weights from a ready source GPU instead. In E4, the complete target `MxModelLoader` stage took 3.13 seconds and inference then passed.
+Second, the P2P scenarios did not repeat the weight-file download on the target (the "Target model-file download" step can be treated as 0s). They received 15.24 GB of weights from a ready source GPU instead. In E4, the complete target `MxModelLoader` stage took 3.13 seconds and inference then passed.
 
 ## Conclusion
 
@@ -277,7 +202,7 @@ MatrixHub and ModelExpress P2P are not competing choices. They serve adjacent st
 | Situation | Recommended path |
 |---|---|
 | First replica or no ready source | Download from an in-cluster MatrixHub cache |
-| Scale-out while a compatible source is ready | Use ModelExpress P2P from the source GPU |
+| Scale-out while a source is ready and an RDMA path is available | Use ModelExpress P2P from the source GPU |
 | No RDMA-capable path | Use MatrixHub direct download |
 | Air-gapped or controlled model supply | Use MatrixHub as the governed model source |
 | Need to evaluate startup performance | Measure file preparation, GPU loading, and end-to-end readiness separately |

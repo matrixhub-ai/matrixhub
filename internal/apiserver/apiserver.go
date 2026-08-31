@@ -489,6 +489,7 @@ func (server *APIServer) registerRoutersAndHandlers() {
 	staticDir := server.config.UI.StaticDir
 	if staticDir != "" {
 		server.engine.Static("/assets", filepath.Join(staticDir, "assets"))
+		server.engine.StaticFile("/favicon.ico", filepath.Join(staticDir, "favicon.ico"))
 	}
 
 	// SPA fallback - serve index.html for all non-API routes

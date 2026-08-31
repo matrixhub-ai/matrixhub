@@ -1,13 +1,18 @@
 import {
+  Alert,
+  Anchor,
   Box,
+  Button,
+  Center,
   Group,
+  Paper,
   Space,
   Stack,
   Text,
 } from '@mantine/core'
-import { IconClock } from '@tabler/icons-react'
+import { IconClock, IconCube } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { startTransition } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -38,7 +43,14 @@ export function AllModelList() {
     } = {},
     isLoading,
     isPending,
+    isLoadingError,
+    refetch,
   } = useQuery(catalogModelsQueryOptions(search))
+
+  const hasActiveFilters = Boolean(search.q || search.task || search.library || search.project)
+  const modelCount = pagination?.total ?? items.length
+  const showCreatePrompt = !isLoading && !isPending && !isLoadingError
+    && !hasActiveFilters && modelCount === 0
 
   const sortFieldOptions: SortDropdownOption[] = [
     {
@@ -117,12 +129,56 @@ export function AllModelList() {
         <Space h="lg" />
 
         <Box miw={780} maw={1380}>
-          <ResourceCardGrid
-            loading={isLoading || isPending}
-            skeletonCount={DEFAULT_PAGE_SIZE}
-          >
-            {cardElements}
-          </ResourceCardGrid>
+          {isLoadingError
+            ? (
+                <Alert color="red" title={t('model.list.loadFailed')}>
+                  <Button
+                    mt="sm"
+                    size="xs"
+                    variant="light"
+                    onClick={() => void refetch()}
+                  >
+                    {t('model.list.retry')}
+                  </Button>
+                </Alert>
+              )
+            : showCreatePrompt
+              ? (
+                  <Paper withBorder radius="md">
+                    <Center py="xl">
+                      <Stack align="center" gap="xs">
+                        <IconCube
+                          size={48}
+                          stroke={1.25}
+                          color="var(--mantine-primary-color-filled)"
+                        />
+                        <Text fw={600}>{t('model.list.emptyTitle')}</Text>
+                        <Text size="sm" c="dimmed">
+                          {t('model.list.emptyDescription')}
+                        </Text>
+                        <Button component={Link} to="/models/new" mt="xs">
+                          {t('model.list.create')}
+                        </Button>
+                        <Anchor
+                          href={t('common.docs', { doc: '/docs/operations/model-repo/upload-download/' })}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          size="sm"
+                        >
+                          {t('model.list.uploadGuide')}
+                        </Anchor>
+                      </Stack>
+                    </Center>
+                  </Paper>
+                )
+              : (
+                  <ResourceCardGrid
+                    loading={isLoading || isPending}
+                    skeletonCount={DEFAULT_PAGE_SIZE}
+                  >
+                    {cardElements}
+                  </ResourceCardGrid>
+                )}
 
           <Pagination
             total={pagination?.total ?? 0}

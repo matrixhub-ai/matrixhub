@@ -243,7 +243,7 @@ kubectl exec -n dynamo-system <c2-frontend-pod> -- \
 | Worker 1（缓存未命中） | 38.3 s | 24.2 s | **62.5 s** |
 | Worker 2（缓存命中） | 0 s | 22.8 s | **22.8 s** |
 
-对比未使用 ModelExpress 的情况（Blog 1）：
+对比未使用 ModelExpress 的场景，请参阅 [Blog 1：Dynamo 与 MatrixHub 集成](https://matrixhub.ai/blog/dynamo-matrixhub-integration)。Blog 1 使用 `Qwen/Qwen3-0.6B`，而本文使用 `Qwen/Qwen2.5-1.5B-Instruct`，因此下表数据仅用于说明背景，不能作为直接的耗时对比。
 
 | 来源 | 模型获取耗时 |
 |---|---:|

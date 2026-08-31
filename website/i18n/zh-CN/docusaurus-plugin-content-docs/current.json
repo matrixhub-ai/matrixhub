@@ -40,7 +40,7 @@
     "description": "The label for category 'Reference' in sidebar 'tutorialSidebar'"
   },
   "sidebar.tutorialSidebar.category.Troubleshooting": {
-    "message": "故障排除",
+    "message": "故障排查",
     "description": "The label for category 'Troubleshooting' in sidebar 'tutorialSidebar'"
   },
   "sidebar.tutorialSidebar.category.Development": {

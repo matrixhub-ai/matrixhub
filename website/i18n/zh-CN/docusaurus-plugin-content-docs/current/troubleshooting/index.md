@@ -1,9 +1,9 @@
 ---
-title: 故障排除
+title: 故障排查
 sidebar_position: 1
 ---
 
-# 故障排除
+# 故障排查
 
 本章节介绍 MatrixHub 部署中的常见问题及排查方法。
 

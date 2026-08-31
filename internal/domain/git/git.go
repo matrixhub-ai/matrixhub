@@ -99,7 +99,11 @@ type RepoMetadataFiles struct {
 	ConfigJSON           []byte
 	SafetensorsIndexJSON []byte
 	SafetensorsFiles     map[string][]byte
-	Size                 int64
+	// SafetensorsSizes holds LFS pointer sizes for safetensors files whose
+	// headers could not be read. It lets the model domain fall back to a
+	// size-based estimate instead of reporting no parameter count at all.
+	SafetensorsSizes map[string]int64
+	Size             int64
 }
 
 // OrphanedRepo represents an orphaned Git repository on disk
