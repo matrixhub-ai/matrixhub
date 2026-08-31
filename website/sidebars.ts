@@ -53,6 +53,7 @@ const sidebars: SidebarsConfig = {
           label: 'Profile',
           items: [
             'operations/profile/access-token',
+            'operations/profile/ssh-key',
           ],
         },
         {
