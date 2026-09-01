@@ -11,3 +11,5 @@
 | Chenyang Shi | [@scydas](https://github.com/scydas) | [DaoCloud](https://daocloud.io) |
 | Xinyi Sun | [@Phil-OSophy-42](https://github.com/Phil-OSophy-42) | [DaoCloud](https://daocloud.io) |
 | Hai Tang | [@CoderTH](https://github.com/CoderTH) | [xFusion](https://www.xfusion.com) |
+| Shuang Liu | [@lemontrees123](https://github.com/lemontrees123) | [DaoCloud](https://daocloud.io) |
+| Jinye Shi | [@shijinye](https://github.com/shijinye) | [DaoCloud](https://daocloud.io) |
