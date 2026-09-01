@@ -1,24 +1,6 @@
-# Docker Compose deployment. Demo environment additions are in docker-compose.override.yml.
+# Default single-node Docker Compose deployment backed by SQLite.
+# The public demo uses the explicit MySQL and demo Compose files instead.
 services:
-  mysql:
-    image: mysql:8.4
-    container_name: matrixhub-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
-      MYSQL_DATABASE: matrixhub
-      MYSQL_USER: matrixhub
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./data/mysql:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-password}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
   matrixhub:
     image: ghcr.io/matrixhub-ai/matrixhub:${MATRIXHUB_IMAGE_TAG:-latest}
     container_name: matrixhub-apiserver
@@ -34,9 +16,4 @@ services:
     volumes:
       - ./data/matrixhub:/data/
       - ./config.yaml:/etc/matrixhub/config.yaml:ro
-    environment:
-      - MATRIXHUB_DATABASE_DSN=matrixhub:${MYSQL_PASSWORD:-changeme}@tcp(mysql:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true
-    depends_on:
-      mysql:
-        condition: service_healthy
     restart: unless-stopped

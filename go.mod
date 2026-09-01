@@ -4,6 +4,8 @@ go 1.25.13
 
 require (
 	github.com/alexedwards/scs/mysqlstore v0.0.0-20251002162104-209de6e426de
+	github.com/alexedwards/scs/postgresstore v0.0.0-20251002162104-209de6e426de
+	github.com/alexedwards/scs/sqlite3store v0.0.0-20251002162104-209de6e426de
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/antihax/optional v1.0.0
 	github.com/envoyproxy/protoc-gen-validate v1.3.3
@@ -39,6 +41,7 @@ require (
 	gorm.io/datatypes v1.2.7
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0
+	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
 	k8s.io/klog/v2 v2.140.0
 )
@@ -106,6 +109,7 @@ require (
 	github.com/leonelquinteros/gotext v1.5.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.50 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/olekukonko/ts v0.0.0-20171002115256-78ecb04241c0 // indirect

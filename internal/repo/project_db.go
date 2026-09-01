@@ -113,7 +113,11 @@ func (r *ProjectDBRepo) ListProjects(ctx context.Context, name string, projectTy
 	query := r.db.WithContext(ctx).Model(&project.Project{})
 
 	if name != "" {
-		query = query.Where("name LIKE ?", "%"+name+"%")
+		if r.db.Name() == "sqlite" {
+			query = query.Where("instr(name, ?) > 0", name)
+		} else {
+			query = query.Where("name LIKE ?", "%"+name+"%")
+		}
 	}
 	if projectType != project.ProjectTypeUnspecified {
 		query = query.Where("type = ?", projectType)
@@ -215,7 +219,7 @@ func (r *ProjectDBRepo) ListProjectMembers(ctx context.Context, projectID int, m
 	}
 
 	query := r.db.WithContext(ctx).
-		Select(`members_roles_projects.*, COALESCE(users.username) as member_name`).
+		Select(`members_roles_projects.*, COALESCE(users.username, '') as member_name`).
 		Table("members_roles_projects").
 		Joins("LEFT JOIN users ON users.id = members_roles_projects.member_id").
 		Where("members_roles_projects.project_id = ?", projectID)

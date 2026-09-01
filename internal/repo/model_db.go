@@ -38,14 +38,22 @@ func NewModelDB(db *gorm.DB) model.IModelRepo {
 // Models without a valid project reference are excluded; those are data integrity
 // issues, not orphaned repositories.
 func (m *modelDB) ListAllPaths(ctx context.Context) ([]string, error) {
-	var paths []string
+	var rows []struct {
+		ProjectName string
+		Name        string
+	}
 	if err := m.db.WithContext(ctx).
 		Table("models m").
-		Select("CONCAT(p.name, '/', m.name)").
+		Select("p.name AS project_name, m.name AS name").
 		Joins("LEFT JOIN projects p ON m.project_id = p.id").
 		Where("p.name IS NOT NULL").
-		Find(&paths).Error; err != nil {
+		Find(&rows).Error; err != nil {
 		return nil, err
+	}
+
+	paths := make([]string, 0, len(rows))
+	for _, row := range rows {
+		paths = append(paths, row.ProjectName+"/"+row.Name)
 	}
 	return paths, nil
 }
@@ -72,7 +80,11 @@ func (m *modelDB) List(ctx context.Context, filter *model.Filter) ([]*model.Mode
 
 	if filter.Search != "" {
 		pattern := "%" + filter.Search + "%"
-		query = query.Where("p.name LIKE ? OR m.name LIKE ?", pattern, pattern)
+		if m.db.Name() == "sqlite" {
+			query = query.Where("instr(p.name, ?) > 0 OR m.name LIKE ?", filter.Search, pattern)
+		} else {
+			query = query.Where("p.name LIKE ? OR m.name LIKE ?", pattern, pattern)
+		}
 	}
 
 	if len(filter.Label) > 0 {
@@ -256,7 +268,7 @@ func (m *modelDB) UpdateMetadata(ctx context.Context, modelID int64, update *mod
 	}
 
 	result := m.db.WithContext(ctx).
-		Table("models").
+		Model(&model.Model{}).
 		Where("id = ?", modelID).
 		Updates(updates)
 
@@ -270,9 +282,9 @@ func (m *modelDB) UpdateSyncedAt(ctx context.Context, modelID int64, syncedAt *t
 		value = *syncedAt
 	}
 	return m.db.WithContext(ctx).
-		Table("models").
+		Model(&model.Model{}).
 		Where("id = ?", modelID).
-		UpdateColumn("synced_at", value).Error
+		Update("synced_at", value).Error
 }
 
 // UpdateSetting updates model settings (e.g., popular flag).
@@ -288,7 +300,7 @@ func (m *modelDB) UpdateSetting(ctx context.Context, modelID int64, update *mode
 	}
 
 	result := m.db.WithContext(ctx).
-		Table("models").
+		Model(&model.Model{}).
 		Where("id = ?", modelID).
 		Updates(updates)
 

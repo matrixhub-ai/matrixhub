@@ -50,12 +50,26 @@ Sign in with the public demo credentials:
 
 ### Docker Compose Deployment
 
-Download the Docker Compose files for a released version and start MatrixHub:
+The default Docker Compose deployment uses SQLite and runs a single MatrixHub
+container. Choose a release whose notes list SQLite support (`v0.1.1` does not):
+
+If you are upgrading an existing MySQL Compose installation, do not overwrite
+its default files: existing data is not migrated automatically. Continue with
+the [MySQL variant](#mysql-variant) or perform a separately validated
+export/import first.
 
 ```bash
 export MATRIXHUB_VERSION=v0.1.1
 
 mkdir -p matrixhub && cd matrixhub
+
+env_file_tmp=$(mktemp .env.XXXXXX)
+chmod 600 "$env_file_tmp"
+if [ -f .env ]; then
+  awk '!/^MATRIXHUB_IMAGE_TAG=/' .env > "$env_file_tmp"
+fi
+printf 'MATRIXHUB_IMAGE_TAG=%s\n' "$MATRIXHUB_VERSION" >> "$env_file_tmp"
+mv "$env_file_tmp" .env
 
 curl -fL \
   "https://raw.githubusercontent.com/matrixhub-ai/matrixhub/$MATRIXHUB_VERSION/deploy/docker-compose.yml" \
@@ -64,10 +78,11 @@ curl -fL \
   "https://raw.githubusercontent.com/matrixhub-ai/matrixhub/$MATRIXHUB_VERSION/deploy/config.yaml" \
   -o config.yaml
 
-MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose up -d
+docker compose up -d
 ```
 
-For a newer stable release, replace `v0.1.1` with the version you want to run.
+SQLite stores its database under `./data/matrixhub`. Run only one MatrixHub
+instance against this file; the Helm chart does not support SQLite.
 If port `3001` is already in use, set `MATRIXHUB_HTTP_PORT` before starting the stack, for example `MATRIXHUB_HTTP_PORT=3002`.
 
 Open the MatrixHub web console:
@@ -88,6 +103,31 @@ To stop the local stack:
 
 ```bash
 docker compose down
+```
+
+#### MySQL variant
+
+To use MySQL instead, download the explicit MySQL Compose and config files:
+
+```bash
+export MATRIXHUB_VERSION=v0.1.1
+
+curl -fL \
+  "https://raw.githubusercontent.com/matrixhub-ai/matrixhub/$MATRIXHUB_VERSION/deploy/docker-compose.mysql.yml" \
+  -o docker-compose.mysql.yml
+curl -fL \
+  "https://raw.githubusercontent.com/matrixhub-ai/matrixhub/$MATRIXHUB_VERSION/deploy/config-mysql.yaml" \
+  -o config-mysql.yaml
+
+env_file_tmp=$(mktemp .env.XXXXXX)
+chmod 600 "$env_file_tmp"
+if [ -f .env ]; then
+  awk '!/^MATRIXHUB_IMAGE_TAG=/' .env > "$env_file_tmp"
+fi
+printf 'MATRIXHUB_IMAGE_TAG=%s\n' "$MATRIXHUB_VERSION" >> "$env_file_tmp"
+mv "$env_file_tmp" .env
+
+docker compose -f docker-compose.mysql.yml up -d
 ```
 
 ### Helm (Kubernetes) Deployment

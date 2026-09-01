@@ -144,3 +144,12 @@ Database DSN
 {{- printf "user=matrixhub password=%s host=%s-mysql port=5432 dbname=matrixhub sslmode=disable" .Values.mysql.rootPassword (include "matrixhub.fullname" .) }}
 {{- end }}
 {{- end }}
+
+{{- /*
+Validate MatrixHub chart values.
+*/}}
+{{- define "matrixhub.validateValues" -}}
+{{- if eq .Values.apiserver.database.driver "sqlite" }}
+{{- fail "SQLite is not supported by the MatrixHub Helm chart; use the single-node Docker Compose deployment instead" }}
+{{- end }}
+{{- end }}

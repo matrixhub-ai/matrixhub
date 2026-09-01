@@ -1,4 +1,4 @@
-{{- if and .Values.global.storage.apiserver.builtIn (not .Values.apiserver.database.dsn) }}
+{{- if and .Values.global.storage.apiserver.builtIn (eq .Values.apiserver.database.driver "mysql") (not .Values.apiserver.database.dsn) }}
 ---
 apiVersion: v1
 kind: Secret

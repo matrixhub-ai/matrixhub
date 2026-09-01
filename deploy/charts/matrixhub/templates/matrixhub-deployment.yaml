@@ -24,8 +24,8 @@ spec:
         {{- include "matrixhub.apiserver.labels" . | nindent 8 }}
         {{- include "matrixhub.apiserver.podLabels" . | nindent 8 }}
     spec:
+      {{- if and .Values.global.storage.apiserver.builtIn (eq .Values.apiserver.database.driver "mysql") (not .Values.apiserver.database.dsn) }}
       initContainers:
-        {{- if .Values.global.storage.apiserver.builtIn }}
         - name: check-db-ready
           image: {{ .Values.global.busybox.image.repository }}:{{ .Values.global.busybox.image.tag }}
           imagePullPolicy: {{ .Values.global.busybox.image.pullPolicy }}
@@ -38,7 +38,7 @@ spec:
                 sleep 2;
               done;
               echo 'database OK ✓'
-        {{- end }}
+      {{- end }}
       {{- include "matrixhub.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: {{ include "matrixhub.fullname" . }}

@@ -92,10 +92,10 @@ func (r *syncTaskDB) SelectPendingTasks(ctx context.Context, limit int) ([]*sync
 
 // UpdateTaskStatusCAS atomically updates task status from fromStatus to toStatus.
 func (r *syncTaskDB) UpdateTaskStatusCAS(ctx context.Context, taskID int, fromStatus, toStatus syncpolicy.SyncTaskStatus) (bool, error) {
-	res := r.db.WithContext(ctx).Exec(
-		"UPDATE sync_tasks SET status = ? WHERE id = ? AND status = ?",
-		toStatus, taskID, fromStatus,
-	)
+	res := r.db.WithContext(ctx).
+		Model(&syncpolicy.SyncTask{}).
+		Where("id = ? AND status = ?", taskID, fromStatus).
+		Update("status", toStatus)
 	if res.Error != nil {
 		return false, res.Error
 	}

@@ -38,14 +38,22 @@ func NewDatasetDB(db *gorm.DB) dataset.IDatasetRepo {
 // Datasets without a valid project reference are excluded; those are data integrity
 // issues, not orphaned repositories.
 func (d *datasetDB) ListAllPaths(ctx context.Context) ([]string, error) {
-	var paths []string
+	var rows []struct {
+		ProjectName string
+		Name        string
+	}
 	if err := d.db.WithContext(ctx).
 		Table("datasets d").
-		Select("CONCAT(p.name, '/', d.name)").
+		Select("p.name AS project_name, d.name AS name").
 		Joins("LEFT JOIN projects p ON d.project_id = p.id").
 		Where("p.name IS NOT NULL").
-		Find(&paths).Error; err != nil {
+		Find(&rows).Error; err != nil {
 		return nil, err
+	}
+
+	paths := make([]string, 0, len(rows))
+	for _, row := range rows {
+		paths = append(paths, row.ProjectName+"/"+row.Name)
 	}
 	return paths, nil
 }
@@ -77,7 +85,11 @@ func (d *datasetDB) List(ctx context.Context, filter *model.Filter) ([]*dataset.
 
 	if filter.Search != "" {
 		pattern := "%" + filter.Search + "%"
-		query = query.Where("p.name LIKE ? OR d.name LIKE ?", pattern, pattern)
+		if d.db.Name() == "sqlite" {
+			query = query.Where("instr(p.name, ?) > 0 OR d.name LIKE ?", filter.Search, pattern)
+		} else {
+			query = query.Where("p.name LIKE ? OR d.name LIKE ?", pattern, pattern)
+		}
 	}
 
 	if len(filter.Label) > 0 {

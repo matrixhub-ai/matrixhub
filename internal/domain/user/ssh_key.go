@@ -16,7 +16,13 @@ package user
 
 import (
 	"context"
+	"errors"
 	"time"
+)
+
+var (
+	ErrSSHKeyAlreadyExists = errors.New("ssh key already exists")
+	ErrSSHKeyExpired       = errors.New("ssh key has expired and cannot be reused")
 )
 
 type SSHKey struct {
@@ -30,7 +36,7 @@ type SSHKey struct {
 }
 
 func (s SSHKey) IsExpired(t time.Time) bool {
-	return s.ExpireAt != nil && s.ExpireAt.Before(t)
+	return s.ExpireAt != nil && !s.ExpireAt.After(t)
 }
 
 func (SSHKey) TableName() string {

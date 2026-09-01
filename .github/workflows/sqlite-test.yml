@@ -1,0 +1,178 @@
+name: SQLite tests
+
+on:
+  push:
+    branches:
+      - main
+      - 'release-*'
+    paths:
+      - 'db/migrations/sql/**'
+      - 'internal/infra/config/**'
+      - 'internal/infra/db/**'
+      - 'internal/repo/**'
+      - 'config/config-sqlite.yaml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Makefile'
+      - 'deploy/charts/matrixhub/**'
+      - 'deploy/config-sqlite.yaml'
+      - 'deploy/config.yaml'
+      - 'deploy/config-mysql.yaml'
+      - 'deploy/docker/matrixhub/Dockerfile'
+      - 'deploy/docker-compose.yml'
+      - 'deploy/docker-compose.demo.yml'
+      - 'deploy/docker-compose.sqlite.yml'
+      - 'deploy/docker-compose.mysql.yml'
+      - 'deploy/update-demo-env.sh'
+      - '.github/workflows/deploy-demosite.yml'
+      - '.github/workflows/sqlite-test.yml'
+  pull_request:
+    branches:
+      - main
+      - 'release-*'
+    paths:
+      - 'db/migrations/sql/**'
+      - 'internal/infra/config/**'
+      - 'internal/infra/db/**'
+      - 'internal/repo/**'
+      - 'config/config-sqlite.yaml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Makefile'
+      - 'deploy/charts/matrixhub/**'
+      - 'deploy/config-sqlite.yaml'
+      - 'deploy/config.yaml'
+      - 'deploy/config-mysql.yaml'
+      - 'deploy/docker/matrixhub/Dockerfile'
+      - 'deploy/docker-compose.yml'
+      - 'deploy/docker-compose.demo.yml'
+      - 'deploy/docker-compose.sqlite.yml'
+      - 'deploy/docker-compose.mysql.yml'
+      - 'deploy/update-demo-env.sh'
+      - '.github/workflows/deploy-demosite.yml'
+      - '.github/workflows/sqlite-test.yml'
+
+jobs:
+  sqlite-contract:
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: 1
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Run SQLite contract tests
+        run: make test.sqlite
+
+  sqlite-compose-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Compose configurations
+        run: |
+          set -euo pipefail
+
+          default_config=$(MATRIXHUB_IMAGE_TAG=sqlite-contract docker compose -f deploy/docker-compose.yml config)
+          test "$(MATRIXHUB_IMAGE_TAG=sqlite-contract docker compose -f deploy/docker-compose.yml config --services)" = matrixhub
+          grep -Fq 'image: ghcr.io/matrixhub-ai/matrixhub:sqlite-contract' <<<"${default_config}"
+          grep -Fq 'target: /etc/matrixhub/config.yaml' <<<"${default_config}"
+          grep -Eq '^  driver: sqlite$' deploy/config.yaml
+
+          demo_config=$(MATRIXHUB_IMAGE_TAG=demo-contract MYSQL_ROOT_PASSWORD=root-contract MYSQL_PASSWORD=app-contract docker compose -f deploy/docker-compose.mysql.yml -f deploy/docker-compose.demo.yml --profile prod config)
+          test "$(MATRIXHUB_IMAGE_TAG=demo-contract MYSQL_ROOT_PASSWORD=root-contract MYSQL_PASSWORD=app-contract docker compose -f deploy/docker-compose.mysql.yml -f deploy/docker-compose.demo.yml --profile prod config --services)" = "$(printf 'mysql\nmatrixhub\nnginx')"
+          grep -Fq 'image: ghcr.io/matrixhub-ai/matrixhub:demo-contract' <<<"${demo_config}"
+          grep -Fq 'source: ' <<<"${demo_config}"
+          grep -Fq '/deploy/config-mysql.yaml' <<<"${demo_config}"
+          grep -Fq 'MATRIXHUB_DATABASE_DSN: matrixhub:app-contract@tcp(mysql:3306)/matrixhub' <<<"${demo_config}"
+          grep -Eq '^  driver: mysql$' deploy/config-mysql.yaml
+
+          demo_workflow=.github/workflows/deploy-demosite.yml
+          grep -Fq "default: 'latest'" "${demo_workflow}"
+          grep -Fq 'source: "deploy/docker-compose.mysql.yml,deploy/docker-compose.demo.yml,deploy/nginx.conf,deploy/config-mysql.yaml,deploy/update-demo-env.sh"' "${demo_workflow}"
+          grep -Fq 'bash ./update-demo-env.sh "' "${demo_workflow}"
+          test "$(grep -Fc 'COMPOSE_FILES=(-f docker-compose.mysql.yml -f docker-compose.demo.yml)' "${demo_workflow}")" -eq 2
+          test "$(grep -Fc 'docker compose "' "${demo_workflow}")" -eq 5
+          grep -Fq -- '--profile prod pull matrixhub' "${demo_workflow}"
+          if grep -Fq -- '--profile prod pull matrixhub mysql' "${demo_workflow}"; then
+            echo 'Demo deployment unexpectedly upgrades MySQL with each application release'
+            exit 1
+          fi
+
+          MATRIXHUB_IMAGE_TAG=sqlite-contract docker compose -f deploy/docker-compose.sqlite.yml config --quiet
+
+          mysql_config=$(MATRIXHUB_IMAGE_TAG=mysql-contract docker compose -f deploy/docker-compose.mysql.yml config)
+          test "$(MATRIXHUB_IMAGE_TAG=mysql-contract docker compose -f deploy/docker-compose.mysql.yml config --services)" = "$(printf 'mysql\nmatrixhub')"
+          grep -Fq 'image: ghcr.io/matrixhub-ai/matrixhub:mysql-contract' <<<"${mysql_config}"
+          grep -Fq 'target: /etc/matrixhub/config.yaml' <<<"${mysql_config}"
+
+          default_latest_config=$(MATRIXHUB_IMAGE_TAG='' docker compose -f deploy/docker-compose.yml config)
+          grep -Fq 'image: ghcr.io/matrixhub-ai/matrixhub:latest' <<<"${default_latest_config}"
+
+          sqlite_latest_config=$(MATRIXHUB_IMAGE_TAG='' docker compose -f deploy/docker-compose.sqlite.yml config)
+          grep -Fq 'image: ghcr.io/matrixhub-ai/matrixhub:latest' <<<"${sqlite_latest_config}"
+
+          mysql_latest_config=$(MATRIXHUB_IMAGE_TAG='' docker compose -f deploy/docker-compose.mysql.yml config)
+          grep -Fq 'image: ghcr.io/matrixhub-ai/matrixhub:latest' <<<"${mysql_latest_config}"
+
+      - name: Validate demo environment updates
+        run: |
+          set -euo pipefail
+
+          fresh_dir=${RUNNER_TEMP}/demo-env-fresh
+          mkdir -p "${fresh_dir}"
+          bash deploy/update-demo-env.sh fresh-tag "${fresh_dir}"
+          grep -Eq '^MYSQL_ROOT_PASSWORD=[0-9a-f]{32}$' "${fresh_dir}/.env"
+          grep -Eq '^MYSQL_PASSWORD=[0-9a-f]{32}$' "${fresh_dir}/.env"
+          grep -Fxq 'MATRIXHUB_IMAGE_TAG=fresh-tag' "${fresh_dir}/.env"
+          test "$(stat -c %a "${fresh_dir}/.env")" = 600
+
+          root_password=$(grep '^MYSQL_ROOT_PASSWORD=' "${fresh_dir}/.env")
+          app_password=$(grep '^MYSQL_PASSWORD=' "${fresh_dir}/.env")
+          printf 'KEEP_ME=yes\n' >> "${fresh_dir}/.env"
+          mkdir -p "${fresh_dir}/data/mysql"
+          touch "${fresh_dir}/data/mysql/existing-data"
+          bash deploy/update-demo-env.sh existing-tag "${fresh_dir}"
+          grep -Fxq "${root_password}" "${fresh_dir}/.env"
+          grep -Fxq "${app_password}" "${fresh_dir}/.env"
+          grep -Fxq 'KEEP_ME=yes' "${fresh_dir}/.env"
+          grep -Fxq 'MATRIXHUB_IMAGE_TAG=existing-tag' "${fresh_dir}/.env"
+
+          rm -rf "${fresh_dir}/data"
+          bash deploy/update-demo-env.sh reset-tag "${fresh_dir}"
+          grep -Fxq "${root_password}" "${fresh_dir}/.env"
+          grep -Fxq "${app_password}" "${fresh_dir}/.env"
+          grep -Fxq 'MATRIXHUB_IMAGE_TAG=reset-tag' "${fresh_dir}/.env"
+
+          legacy_dir=${RUNNER_TEMP}/demo-env-legacy
+          mkdir -p "${legacy_dir}/data/mysql"
+          touch "${legacy_dir}/data/mysql/existing-data"
+          printf 'MATRIXHUB_IMAGE_TAG=old-tag\n' > "${legacy_dir}/.env"
+          bash deploy/update-demo-env.sh legacy-tag "${legacy_dir}"
+          grep -Fxq 'MYSQL_ROOT_PASSWORD=password' "${legacy_dir}/.env"
+          grep -Fxq 'MYSQL_PASSWORD=changeme' "${legacy_dir}/.env"
+          grep -Fxq 'MATRIXHUB_IMAGE_TAG=legacy-tag' "${legacy_dir}/.env"
+
+  sqlite-helm-rejection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.16.4
+
+      - name: Verify the Helm chart rejects SQLite
+        run: |
+          chart=deploy/charts/matrixhub
+          helm lint --with-subcharts --values "${chart}/values.yaml" "${chart}"
+          if helm template matrixhub "${chart}" \
+            --set apiserver.database.driver=sqlite > /dev/null 2>&1; then
+            echo 'Helm unexpectedly accepted SQLite'
+            exit 1
+          fi

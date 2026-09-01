@@ -70,7 +70,13 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 
 	repos.Project = NewProjectDBRepo(repos.DB)
 	repos.User = NewUserRepo(repos.DB)
-	repos.Session = NewSessionRepository(repos.DB, conf)
+	repos.Session, err = NewSessionRepository(repos.DB, conf)
+	if err != nil {
+		if sqlDB, closeErr := repos.DB.DB(); closeErr == nil {
+			_ = sqlDB.Close()
+		}
+		log.Fatalw("create session repository failed", "error", err)
+	}
 	repos.AccessToken = NewAccessTokenRepo(repos.DB)
 	repos.SSHKey = NewSSHKeyRepo(repos.DB)
 	repos.Model = NewModelDB(repos.DB)
@@ -88,6 +94,10 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 }
 
 func (r *Repos) Close() error {
+	if session, ok := r.Session.(interface{ Close() }); ok {
+		session.Close()
+	}
+
 	dbConn, err := r.DB.DB()
 	if err != nil {
 		return err

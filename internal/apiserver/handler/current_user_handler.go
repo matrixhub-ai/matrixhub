@@ -37,6 +37,7 @@ type CurrentUserHandler struct {
 	userRepo        user.IUserRepo
 	accessTokenRepo user.IAccessTokenRepo
 	sshKeyRepo      user.ISSHKeyRepo
+	sshKeyService   user.ISSHKeyService
 }
 
 func (cu *CurrentUserHandler) CreateSSHKey(ctx context.Context, request *v1alpha1.CreateSSHKeyRequest) (*v1alpha1.CreateSSHKeyResponse, error) {
@@ -58,10 +59,10 @@ func (cu *CurrentUserHandler) CreateSSHKey(ctx context.Context, request *v1alpha
 		Fingerprint: fp,
 		ExpireAt:    expireAt,
 	}
-	err = cu.sshKeyRepo.CreateSSHKey(ctx, sk)
+	err = cu.sshKeyService.CreateSSHKey(ctx, sk)
 	if err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return nil, status.Error(codes.AlreadyExists, "ssh key already exists")
+		if errors.Is(err, user.ErrSSHKeyAlreadyExists) || errors.Is(err, user.ErrSSHKeyExpired) {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -250,6 +251,7 @@ func NewCurrentUserHandler(userRepo user.IUserRepo, akRepo user.IAccessTokenRepo
 		userRepo:        userRepo,
 		accessTokenRepo: akRepo,
 		sshKeyRepo:      skRepo,
+		sshKeyService:   user.NewSSHKeyService(skRepo),
 	}
 	return handler
 }

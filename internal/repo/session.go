@@ -16,10 +16,15 @@ package repo
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/sqlite3store"
 	"github.com/alexedwards/scs/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -27,13 +32,20 @@ import (
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
-	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+	infradb "github.com/matrixhub-ai/matrixhub/internal/infra/db"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
 type sessionRepo struct {
 	*scs.SessionManager
 	user.SessionConfig
+	stopCleanup func()
+	closeOnce   sync.Once
+}
+
+type sessionStore interface {
+	scs.Store
+	StopCleanup()
 }
 
 func (s *sessionRepo) LoadSession(ctx context.Context) (context.Context, error) {
@@ -92,11 +104,20 @@ func (s *sessionRepo) CommitAndWriteSessionCookie(ctx context.Context) error {
 
 }
 
-func NewSessionRepository(db *gorm.DB, config *config.Config) user.ISessionRepo {
+func (s *sessionRepo) Close() {
+	s.closeOnce.Do(s.stopCleanup)
+}
+
+func NewSessionRepository(db *gorm.DB, config *config.Config) (user.ISessionRepo, error) {
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("fail to initialize database connection: %s", err)
+		return nil, fmt.Errorf("get database connection for session store: %w", err)
 	}
+	store, err := newSessionStore(db.Name(), sqlDB)
+	if err != nil {
+		return nil, err
+	}
+
 	sessionConfig := user.SessionConfig{
 		PersistentSessionLifetime:    config.Session.PersistentSessionLifetime,
 		PersistentSessionIdleTimeout: config.Session.PersistentSessionIdleTimeout,
@@ -109,10 +130,24 @@ func NewSessionRepository(db *gorm.DB, config *config.Config) user.ISessionRepo 
 	sessionManager.Cookie.HttpOnly = true
 	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
 	sessionManager.Cookie.Persist = false
-	sessionManager.Store = mysqlstore.New(sqlDB)
+	sessionManager.Store = store
 
 	return &sessionRepo{
 		SessionManager: sessionManager,
 		SessionConfig:  sessionConfig,
+		stopCleanup:    store.StopCleanup,
+	}, nil
+}
+
+func newSessionStore(driver string, sqlDB *sql.DB) (sessionStore, error) {
+	switch driver {
+	case infradb.DriverMySQL:
+		return mysqlstore.New(sqlDB), nil
+	case infradb.DriverPostgres:
+		return postgresstore.New(sqlDB), nil
+	case infradb.DriverSQLite:
+		return sqlite3store.New(sqlDB), nil
+	default:
+		return nil, fmt.Errorf("unsupported session database driver %q", driver)
 	}
 }

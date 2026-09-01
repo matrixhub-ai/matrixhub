@@ -20,17 +20,20 @@ The [Deploy Demo Site](../.github/workflows/deploy-demosite.yml) workflow is
 started manually with an image tag.
 
 1. Open **Actions** -> **Deploy Demo Site** -> **Run workflow**.
-2. Enter the image tag to deploy. Prefer an immutable release or commit-specific
-   tag so the same version can be deployed again during rollback.
+2. Enter the image tag to deploy, or keep the default `latest` tag for the
+   current demo build. The workflow accepts normal Docker tags, including
+   `latest`.
 3. Run the workflow and wait for all steps to complete.
 4. Open <https://demo.matrixhub.ai/> and verify that the login page loads and the
    documented demo account can sign in.
 
 During deployment, the workflow:
 
-- copies the Compose, MatrixHub, and Nginx configuration to the demo server;
-- creates database passwords on the first deployment and preserves them on
-  later deployments;
+- copies the explicit MySQL Compose file, demo-only Nginx overlay, and
+  MySQL-backed MatrixHub configuration to the demo server;
+- creates an `.env` file with the selected image tag on the first deployment
+  and random MySQL credentials for a new database, while preserving existing
+  MySQL credentials on later deployments;
 - pulls the selected MatrixHub image and starts the Compose services; and
 - installs or refreshes the scheduled data-reset task.
 
@@ -43,10 +46,11 @@ The demo is disposable. The deployment workflow installs
 0 */6 * * *
 ```
 
-The reset stops the Compose services, removes the MySQL and MatrixHub data
-directories, and starts the services again. It deletes all users, projects,
-models, and other data created through the demo. The `.env` file and the Nginx
-ACME certificate volume are preserved.
+The reset stops the Compose services, removes the MySQL database and MatrixHub
+data directories, and starts the services again. It deletes all users,
+projects, models, and other data created through the demo. The `.env` file and
+the Nginx ACME certificate volume are preserved, so the recreated MySQL instance
+continues using the same credentials.
 
 Reset output is written to `/root/matrixhub/logs/reset.log`. A maintainer can run
 `/root/matrixhub/reset.sh` manually when an immediate reset is required.
@@ -68,8 +72,8 @@ the next deployment can overwrite them.
 ## Rollback
 
 To roll back the application, rerun **Deploy Demo Site** with the last known-good
-immutable image tag. The workflow updates only the MatrixHub image tag and does
-not reset demo data as part of deployment.
+version tag. The workflow updates only the MatrixHub image tag and does not
+reset demo data as part of deployment.
 
 If the older image cannot use the current disposable demo database after a
 schema migration, run `/root/matrixhub/reset.sh` after the rollback. This removes

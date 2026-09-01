@@ -22,6 +22,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -47,6 +48,8 @@ func shouldMigrate(db *gorm.DB, sqlPath string, migrationsTable string) error {
 		session, err = newMysqlMigrateSession(sqlDB, sqlPath, migrationsTable)
 	case "postgres":
 		session, err = newPostgresMigrateSession(sqlDB, sqlPath, migrationsTable)
+	case "sqlite":
+		session, err = newSQLiteMigrateSession(sqlDB, sqlPath, migrationsTable)
 	default:
 		return fmt.Errorf("migration not support database: %s", dialector)
 	}
@@ -68,6 +71,21 @@ func shouldMigrate(db *gorm.DB, sqlPath string, migrationsTable string) error {
 	return nil
 }
 
+func newSQLiteMigrateSession(db *sql.DB, sqlPath string, migrationsTable string) (*migrate.Migrate, error) {
+	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{
+		MigrationsTable: migrationsTable,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(sqlPath, "sqlite3", driver)
+	if err != nil {
+		return nil, fmt.Errorf("create sqlite migration session: %w", err)
+	}
+	return m, nil
+}
+
 func newPostgresMigrateSession(db *sql.DB, sqlPath string, migrationsTable string) (*migrate.Migrate, error) {
 	driver, err := postgres.WithInstance(db, &postgres.Config{
 		MigrationsTable: migrationsTable,
@@ -78,7 +96,7 @@ func newPostgresMigrateSession(db *sql.DB, sqlPath string, migrationsTable strin
 
 	m, err := migrate.NewWithDatabaseInstance(sqlPath, "postgres", driver)
 	if err != nil {
-		return nil, fmt.Errorf("migrate.NewWithDatabaseInstance:%v", err)
+		return nil, fmt.Errorf("create postgres migration session: %w", err)
 	}
 	return m, nil
 }
@@ -93,7 +111,7 @@ func newMysqlMigrateSession(db *sql.DB, sqlPath string, migrationsTable string) 
 
 	m, err := migrate.NewWithDatabaseInstance(sqlPath, "publish", driver)
 	if err != nil {
-		return nil, fmt.Errorf("migrate.NewWithDatabaseInstance:%v", err)
+		return nil, fmt.Errorf("create mysql migration session: %w", err)
 	}
 	return m, nil
 }

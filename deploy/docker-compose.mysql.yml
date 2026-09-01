@@ -1,0 +1,42 @@
+# Optional Docker Compose deployment backed by MySQL.
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: matrixhub-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
+      MYSQL_DATABASE: matrixhub
+      MYSQL_USER: matrixhub
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  matrixhub:
+    image: ghcr.io/matrixhub-ai/matrixhub:${MATRIXHUB_IMAGE_TAG:-latest}
+    container_name: matrixhub-apiserver
+    working_dir: /workspace
+    command:
+      - /usr/local/bin/matrixhub
+      - apiserver
+      - -c
+      - /etc/matrixhub/config.yaml
+    ports:
+      - "${MATRIXHUB_HTTP_PORT:-3001}:3001"
+      - "${MATRIXHUB_SSH_PORT:-2222}:22"
+    volumes:
+      - ./data/matrixhub:/data/
+      - ./config-mysql.yaml:/etc/matrixhub/config.yaml:ro
+    environment:
+      - MATRIXHUB_DATABASE_DSN=matrixhub:${MYSQL_PASSWORD:-changeme}@tcp(mysql:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped

@@ -29,6 +29,7 @@ echo "Working directory: $(pwd)"
 E2E_CLUSTER_NAME=${E2E_CLUSTER_NAME:-"matrixhub-e2e"}
 E2E_MATRIXHUB_IMAGE=${E2E_MATRIXHUB_IMAGE:-"ghcr.io/matrixhub-ai/matrixhub:latest"}
 E2E_JOBSERVER_POLL_INTERVAL=${E2E_JOBSERVER_POLL_INTERVAL:-"10s"}
+E2E_MATRIXHUB_HOST_URL=${E2E_MATRIXHUB_HOST_URL:-"http://localhost:30001"}
 
 echo "================================================"
 echo "MatrixHub Deployment"
@@ -36,6 +37,7 @@ echo "================================================"
 echo "Cluster Name:     ${E2E_CLUSTER_NAME}"
 echo "MatrixHub Image:  ${E2E_MATRIXHUB_IMAGE}"
 echo "JobServer Poll:   ${E2E_JOBSERVER_POLL_INTERVAL}"
+echo "Git LFS Host URL: ${E2E_MATRIXHUB_HOST_URL}"
 echo "================================================"
 
 # Get the image registry and tag from the E2E_MATRIXHUB_IMAGE
@@ -132,6 +134,8 @@ helm upgrade --install matrixhub ./deploy/charts/matrixhub \
     --set mysql.persistence.size="5Gi" \
     --set apiserver.service.type="NodePort" \
     --set apiserver.service.nodePort=30001 \
+    --set apiserver.service.sshNodePort=30022 \
+    --set-string apiserver.hostURL="${E2E_MATRIXHUB_HOST_URL}" \
     --set jobServer.enabled=true \
     --set jobServer.syncPolicy.pollInterval="${E2E_JOBSERVER_POLL_INTERVAL}" \
     --set global.storage.apiserver.builtIn=true

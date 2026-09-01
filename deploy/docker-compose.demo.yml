@@ -1,6 +1,7 @@
-# Demo environment overlay. Deployed to ECS by GitHub Actions and auto-loaded by Docker Compose.
-# Restricts ports to localhost and adds nginx with ACME certificate management.
-# Run with: docker compose --profile prod up -d
+# Public demo overlay. Use explicitly with docker-compose.mysql.yml so the
+# repository's default Docker Compose deployment remains SQLite-backed.
+# Run with:
+#   docker compose -f docker-compose.mysql.yml -f docker-compose.demo.yml --profile prod up -d
 services:
   nginx:
     profiles: [prod]

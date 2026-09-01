@@ -10,7 +10,7 @@ ARG NODE_IMAGE_VERSION=22
 
 ##########################################
 
-FROM --platform=$BUILDPLATFORM ${BASE_IMAGE_PREFIX}/library/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
+FROM --platform=$TARGETPLATFORM ${BASE_IMAGE_PREFIX}/library/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 WORKDIR /workspace
 
@@ -30,11 +30,10 @@ COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
 
-ARG TARGETARCH
 ARG LD_FLAGS
 ENV LD_FLAGS=${LD_FLAGS}
+ENV CGO_ENABLED=1
 RUN --mount=type=cache,target=/go/pkg/mod \
-    GOOS=linux GOARCH=$TARGETARCH \
     go build -ldflags="${LD_FLAGS}" -o /matrixhub ./cmd/matrixhub
 
 ##########################################

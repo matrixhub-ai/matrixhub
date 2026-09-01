@@ -96,10 +96,10 @@ func (r *syncJobDB) SelectPendingJobs(ctx context.Context, limit int) ([]*syncjo
 
 // UpdateJobStatusCAS atomically updates job status from fromStatus to toStatus.
 func (r *syncJobDB) UpdateJobStatusCAS(ctx context.Context, jobID int, fromStatus, toStatus syncjob.SyncJobStatus) (bool, error) {
-	res := r.db.WithContext(ctx).Exec(
-		"UPDATE sync_jobs SET status = ? WHERE id = ? AND status = ?",
-		toStatus, jobID, fromStatus,
-	)
+	res := r.db.WithContext(ctx).
+		Model(&syncjob.SyncJob{}).
+		Where("id = ? AND status = ?", jobID, fromStatus).
+		Update("status", toStatus)
 	if res.Error != nil {
 		return false, res.Error
 	}

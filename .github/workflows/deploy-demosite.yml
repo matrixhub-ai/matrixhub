@@ -23,6 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Validate image tag syntax
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          if [[ ! "${IMAGE_TAG}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo 'image_tag must be a valid Docker tag'
+            exit 1
+          fi
+
       - name: Prepare directories on ECS
         uses: appleboy/ssh-action@v1
         with:
@@ -38,7 +47,7 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           # Preserve directory structure so files land at the correct paths under /root/matrixhub
-          source: "deploy/docker-compose.yml,deploy/docker-compose.override.yml,deploy/nginx.conf,deploy/config.yaml"
+          source: "deploy/docker-compose.mysql.yml,deploy/docker-compose.demo.yml,deploy/nginx.conf,deploy/config-mysql.yaml,deploy/update-demo-env.sh"
           target: /root/matrixhub
           strip_components: 0
 
@@ -52,26 +61,21 @@ jobs:
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}
             IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+            COMPOSE_FILES=(-f docker-compose.mysql.yml -f docker-compose.demo.yml)
             echo "[$(date '+%F %T')] === deploy start (tag: ${IMAGE_TAG}) ==="
 
-            # Create .env with random passwords on first deploy; only update image tag on subsequent runs
-            if [ ! -f .env ]; then
-              cat > .env << EOF
-            MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)
-            MYSQL_PASSWORD=$(openssl rand -hex 16)
-            MATRIXHUB_IMAGE_TAG=${IMAGE_TAG}
-            EOF
-              echo ".env created"
-            else
-              sed -i "s|^MATRIXHUB_IMAGE_TAG=.*|MATRIXHUB_IMAGE_TAG=${IMAGE_TAG}|" .env
-            fi
+            # Preserve existing MySQL credentials and generate them only for a
+            # fresh database. The same helper is exercised by CI.
+            bash ./update-demo-env.sh "${IMAGE_TAG}"
 
-            docker compose --profile prod pull matrixhub
-            docker compose --profile prod up -d
+            # Database image upgrades are managed separately from app releases.
+            # A clean host will still pull mysql:8.4 when Compose starts it.
+            docker compose "${COMPOSE_FILES[@]}" --profile prod pull matrixhub
+            docker compose "${COMPOSE_FILES[@]}" --profile prod up -d --remove-orphans
 
             # Reload nginx config without downtime; start it if not yet running
             docker exec matrixhub-nginx nginx -s reload 2>/dev/null || \
-              docker compose --profile prod up -d nginx
+              docker compose "${COMPOSE_FILES[@]}" --profile prod up -d --remove-orphans nginx
 
             echo "[$(date '+%F %T')] === deploy done ==="
 
@@ -89,10 +93,11 @@ jobs:
             #!/bin/bash
             set -euo pipefail
             cd /root/matrixhub/deploy
+            COMPOSE_FILES=(-f docker-compose.mysql.yml -f docker-compose.demo.yml)
             echo "[$(date '+%F %T')] === reset start ==="
-            docker compose --profile prod down
-            rm -rf data/mysql data/matrixhub
-            docker compose --profile prod up -d
+            docker compose "${COMPOSE_FILES[@]}" --profile prod down --remove-orphans
+            rm -rf data/matrixhub data/mysql
+            docker compose "${COMPOSE_FILES[@]}" --profile prod up -d --remove-orphans
             echo "[$(date '+%F %T')] === reset done ==="
             EOF
             chmod +x /root/matrixhub/reset.sh

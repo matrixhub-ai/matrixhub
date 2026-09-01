@@ -94,12 +94,13 @@ func (r *syncPolicyDB) SelectDuePolicies(ctx context.Context, nowMs int64, limit
 func (r *syncPolicyDB) AdvanceNextRunAtCAS(
 	ctx context.Context, policyID int, snapshotMs, nextNextMs, nowMs int64,
 ) (bool, error) {
-	res := r.db.WithContext(ctx).Exec(`
-		UPDATE sync_policies
-		   SET next_run_at = ?, last_run_at = ?
-		 WHERE id = ? AND next_run_at = ?`,
-		nextNextMs, nowMs, policyID, snapshotMs,
-	)
+	res := r.db.WithContext(ctx).
+		Model(&syncpolicy.SyncPolicy{}).
+		Where("id = ? AND next_run_at = ?", policyID, snapshotMs).
+		Updates(map[string]interface{}{
+			"next_run_at": nextNextMs,
+			"last_run_at": nowMs,
+		})
 	if res.Error != nil {
 		return false, res.Error
 	}

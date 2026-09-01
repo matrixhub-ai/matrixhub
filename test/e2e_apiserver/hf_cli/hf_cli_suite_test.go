@@ -12,25 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package db
+package hf_cli_test
 
 import (
-	"errors"
+	"os/exec"
+	"testing"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
+	testenv "github.com/matrixhub-ai/matrixhub/test/e2e_apiserver/init"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func IsUniqueViolationError(err error) bool {
-	var mysqlErr *mysql.MySQLError
-	if errors.As(err, &mysqlErr) {
-		return mysqlErr.Number == 1062
-	}
-
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == pgerrcode.UniqueViolation
-	}
-	return false
+func TestHFCLI(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "HF CLI Suite")
 }
+
+var _ = BeforeSuite(func() {
+	defer GinkgoRecover()
+	_, err := exec.LookPath("hf")
+	Expect(err).NotTo(HaveOccurred(), "hf CLI is required for the hf-cli e2e suite")
+	testenv.InitTestEnvironment()
+})
+
+var _ = AfterSuite(func() {
+	testenv.CleanupTestEnvironment()
+})

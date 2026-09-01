@@ -154,13 +154,20 @@ func Init(configPath, sqlPath string) (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	if cfg.Database.DSN == "" {
-		log.Warn("failed to find matrixhub dsn from env or config")
-	}
-
 	if cfg.DataDir == "" {
 		log.Warn("dataDir is not set, using default ./data")
 		cfg.DataDir = "./data"
+	}
+
+	if cfg.Database.Driver == db.DriverSQLite && cfg.Database.DSN == "" {
+		sqliteDSN, err := db.DefaultSQLiteDSN(cfg.DataDir)
+		if err != nil {
+			return nil, err
+		}
+		cfg.Database.DSN = sqliteDSN
+	}
+	if cfg.Database.DSN == "" {
+		log.Warn("failed to find matrixhub dsn from env or config")
 	}
 
 	if cfg.Session.PersistentSessionLifetime == 0 {

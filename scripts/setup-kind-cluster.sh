@@ -76,6 +76,10 @@ nodes:
     hostPort: 30001
     listenAddress: "127.0.0.1"
     protocol: TCP
+  - containerPort: 30022
+    hostPort: 30022
+    listenAddress: "127.0.0.1"
+    protocol: TCP
 EOF
 kind create cluster --name="${E2E_CLUSTER_NAME}" --image=kindest/node:${E2E_KIND_IMAGE_TAG} --config=/tmp/kind-config.yaml --wait=120s
 
