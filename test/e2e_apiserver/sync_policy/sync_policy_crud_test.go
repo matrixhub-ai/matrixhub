@@ -220,10 +220,14 @@ var _ = Describe("SyncPolicy CRUD APIs", Label("sync-policy"), func() {
 
 			// List with search
 			listResp, _, err := api.SyncPolicyListSyncPolicies(ctx, &v1alpha1.SyncPolicyApiSyncPolicyListSyncPoliciesOpts{
-				Search: optional.NewString(prefix),
+				Page:     optional.NewInt32(1),
+				PageSize: optional.NewInt32(20),
+				Search:   optional.NewString(prefix),
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(listResp.Pagination).NotTo(BeNil())
+			Expect(listResp.Pagination.Page).To(Equal(int32(1)))
+			Expect(listResp.Pagination.PageSize).To(Equal(int32(20)))
 			Expect(listResp.Pagination.Total).To(BeNumerically(">=", 2))
 
 			// Verify both policies are in the list
