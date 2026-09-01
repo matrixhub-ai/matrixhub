@@ -73,3 +73,28 @@ func TestDatasetService_SyncMetadata(t *testing.T) {
 	svc := dataset.NewDatasetService(datasetRepo, labelRepo, gitRepo)
 	require.NoError(t, svc.SyncMetadata(ctx, "proj", "ds"))
 }
+
+func TestDatasetService_SyncMetadataPersistsZeroSize(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+
+	datasetRepo := datasetmocks.NewMockIDatasetRepo(ctrl)
+	labelRepo := modelmocks.NewMockILabelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+
+	datasetRepo.EXPECT().GetByProjectAndName(gomock.Any(), "proj", "empty").
+		Return(&dataset.Dataset{ID: 5, Name: "empty", ProjectName: "proj"}, nil)
+	gitRepo.EXPECT().ExtractMetadata(gomock.Any(), "datasets", "proj", "empty").
+		Return(&gitdomain.RepoMetadataFiles{ReadmeContent: []byte("# Empty")}, nil)
+
+	datasetRepo.EXPECT().UpdateMetadata(gomock.Any(), int64(5), gomock.Any()).
+		DoAndReturn(func(_ context.Context, _ int64, update *dataset.MetadataUpdate) error {
+			require.NotNil(t, update.Size)
+			require.Zero(t, *update.Size)
+			return nil
+		})
+	labelRepo.EXPECT().UpdateDatasetLabels(gomock.Any(), int64(5), []int(nil)).Return(nil)
+
+	svc := dataset.NewDatasetService(datasetRepo, labelRepo, gitRepo)
+	require.NoError(t, svc.SyncMetadata(ctx, "proj", "empty"))
+}

@@ -157,9 +157,9 @@ func (s *DatasetService) SyncMetadata(ctx context.Context, project, name string)
 		return fmt.Errorf("failed to analyze metadata: %w", err)
 	}
 
-	update := &MetadataUpdate{ReadmeContent: &metadata.ReadmeContent}
-	if metadata.Size > 0 {
-		update.Size = &metadata.Size
+	update := &MetadataUpdate{
+		ReadmeContent: &metadata.ReadmeContent,
+		Size:          &metadata.Size,
 	}
 	if err := s.datasetRepo.UpdateMetadata(ctx, d.ID, update); err != nil {
 		return fmt.Errorf("failed to update dataset metadata: %w", err)
