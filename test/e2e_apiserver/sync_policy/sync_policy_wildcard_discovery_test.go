@@ -22,6 +22,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	v1alpha1dataset "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/dataset"
 	v1alpha1model "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/model"
 	v1alpha1 "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/sync_policy"
 	"github.com/matrixhub-ai/matrixhub/test/tools"
@@ -54,6 +55,7 @@ var _ = Describe("SyncPolicy Wildcard Discovery", Label("sync-policy", "git"), f
 
 		api := tools.GetV1alpha1SyncPolicyApi()
 		modelsApi := tools.GetV1alpha1ModelsApi()
+		datasetsApi := tools.GetV1alpha1DatasetsApi()
 
 		// The source project doubles as the remote namespace ("author") on the
 		// stand-in mirror. Public so discovery works without credentials.
@@ -69,6 +71,15 @@ var _ = Describe("SyncPolicy Wildcard Discovery", Label("sync-policy", "git"), f
 			})
 			Expect(err).NotTo(HaveOccurred(), "create source model %s/%s", source.Name, name)
 		}
+		wantDataset := "wildcard-dataset"
+		_, _, err = datasetsApi.DatasetsCreateDataset(ctx, v1alpha1dataset.V1alpha1CreateDatasetRequest{
+			Project: source.Name,
+			Name:    wantDataset,
+		})
+		Expect(err).NotTo(HaveOccurred(), "create source dataset %s/%s", source.Name, wantDataset)
+		defer func() {
+			_, _, _ = datasetsApi.DatasetsDeleteDataset(ctx, source.Name, wantDataset)
+		}()
 
 		target, err := tools.CreateProjectFixture(ctx, "e2e-wc-dst")
 		Expect(err).NotTo(HaveOccurred())
@@ -91,8 +102,11 @@ var _ = Describe("SyncPolicy Wildcard Discovery", Label("sync-policy", "git"), f
 			PullBasePolicy: &v1alpha1.V1alpha1PullBasePolicy{
 				SourceRegistryId: registry.ID,
 				// "<namespace>/*" is what turns this into a discovery-driven policy.
-				ResourceName:      fmt.Sprintf("%s/*", source.Name),
-				ResourceTypes:     []v1alpha1.V1alpha1ResourceType{v1alpha1.MODEL_V1alpha1ResourceType},
+				ResourceName: fmt.Sprintf("%s/*", source.Name),
+				ResourceTypes: []v1alpha1.V1alpha1ResourceType{
+					v1alpha1.MODEL_V1alpha1ResourceType,
+					v1alpha1.DATASET_V1alpha1ResourceType,
+				},
 				TargetProjectName: target.Name,
 			},
 			IsOverwrite: false,
@@ -132,6 +146,9 @@ var _ = Describe("SyncPolicy Wildcard Discovery", Label("sync-policy", "git"), f
 			Expect(discovered).To(ContainElement(fmt.Sprintf("%s:%s/%s", registry.Name, source.Name, want)),
 				"wildcard discovery should have matched %s/%s from the registry URL", source.Name, want)
 		}
+		Expect(discovered).To(ContainElement(fmt.Sprintf("%s:%s/%s", registry.Name, source.Name, wantDataset)),
+			"wildcard discovery should have matched %s/%s from the registry URL", source.Name, wantDataset)
+		Expect(jobs).To(HaveLen(len(wantModels) + 1))
 
 		// The task itself is allowed to end in any terminal state: the pull half
 		// may fail in a sandboxed environment. Discovery is what is under test.

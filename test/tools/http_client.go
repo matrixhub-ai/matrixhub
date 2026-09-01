@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	v1alpha1current_user "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/current_user"
+	v1alpha1dataset "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/dataset"
 	v1alpha1model "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/model"
 	v1alpha1project "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/project"
 	v1alpha1registry "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/registry"
@@ -38,6 +39,7 @@ var (
 	v1alpha1ProjectsApi    *v1alpha1project.ProjectsApiService
 	v1alpha1UsersApi       *v1alpha1user.UsersApiService
 	v1alpha1CurrentUserApi *v1alpha1current_user.CurrentUserApiService
+	v1alpha1DatasetsApi    *v1alpha1dataset.DatasetsApiService
 	v1alpha1ModelsApi      *v1alpha1model.ModelsApiService
 	v1alpha1RegistriesApi  *v1alpha1registry.RegistriesApiService
 	v1alpha1RobotsApi      *v1alpha1robot.RobotsApiService
@@ -95,6 +97,14 @@ func InitHTTPClients() error {
 			HTTPClient:    httpClient,
 		}
 		v1alpha1CurrentUserApi = v1alpha1current_user.NewAPIClient(currentUserCfg).CurrentUserApi
+
+		// Initialize Dataset API client
+		datasetCfg := &v1alpha1dataset.Configuration{
+			BasePath:      baseURL,
+			DefaultHeader: defaultHeaders,
+			HTTPClient:    httpClient,
+		}
+		v1alpha1DatasetsApi = v1alpha1dataset.NewAPIClient(datasetCfg).DatasetsApi
 
 		// Initialize Model API client
 		modelCfg := &v1alpha1model.Configuration{
@@ -176,6 +186,17 @@ func GetV1alpha1ModelsApi() *v1alpha1model.ModelsApiService {
 		}
 	}
 	return v1alpha1ModelsApi
+}
+
+// GetV1alpha1DatasetsApi returns the Datasets HTTP API client.
+func GetV1alpha1DatasetsApi() *v1alpha1dataset.DatasetsApiService {
+	if v1alpha1DatasetsApi == nil {
+		err := InitHTTPClients()
+		if err != nil {
+			panic(err)
+		}
+	}
+	return v1alpha1DatasetsApi
 }
 
 // GetV1alpha1RegistriesApi returns the Registries HTTP API client.

@@ -82,6 +82,16 @@ var _ = Describe("SyncPolicy Manual Pull", Label("sync-policy", "git"), func() {
 
 		// 5. Verify task statistics
 		Expect(task.TotalItems).NotTo(Equal("0"))
+		Expect(task.Status).NotTo(BeNil())
+
+		// 5a. Exercise task status filtering after the task reaches a terminal state.
+		tasksResp, _, err := api.SyncPolicyListSyncTasks(ctx, pid, &v1alpha1.SyncPolicyApiSyncPolicyListSyncTasksOpts{
+			Page:     optional.NewInt32(1),
+			PageSize: optional.NewInt32(20),
+			Status:   optional.NewString(string(*task.Status)),
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(tasksResp.SyncTasks).NotTo(BeEmpty())
 
 		// 6. Query sync jobs
 		jobsResp, _, err := api.SyncPolicyListSyncJobs(ctx, pid, tid, &v1alpha1.SyncPolicyApiSyncPolicyListSyncJobsOpts{
@@ -90,6 +100,24 @@ var _ = Describe("SyncPolicy Manual Pull", Label("sync-policy", "git"), func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(jobsResp.SyncJobs)).To(BeNumerically(">", 0))
+		Expect(jobsResp.SyncJobs[0].Status).NotTo(BeNil())
+		Expect(jobsResp.SyncJobs[0].ResourceType).NotTo(BeNil())
+
+		// Exercise both job filters against the terminal job state and resource type.
+		filteredJobsResp, _, err := api.SyncPolicyListSyncJobs(ctx, pid, tid, &v1alpha1.SyncPolicyApiSyncPolicyListSyncJobsOpts{
+			Page:         optional.NewInt32(1),
+			PageSize:     optional.NewInt32(20),
+			Status:       optional.NewString(string(*jobsResp.SyncJobs[0].Status)),
+			ResourceType: optional.NewString(string(*jobsResp.SyncJobs[0].ResourceType)),
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(filteredJobsResp.SyncJobs).NotTo(BeEmpty())
+		for _, job := range filteredJobsResp.SyncJobs {
+			Expect(job.Status).NotTo(BeNil())
+			Expect(*job.Status).To(Equal(*jobsResp.SyncJobs[0].Status))
+			Expect(job.ResourceType).NotTo(BeNil())
+			Expect(*job.ResourceType).To(Equal(*jobsResp.SyncJobs[0].ResourceType))
+		}
 
 		// 7. Verify job status and log
 		for _, job := range jobsResp.SyncJobs {
