@@ -357,6 +357,32 @@ path therefore reaches the service via the non-loopback hostname
 `matrixhub.local` (mapped to the NodePort host); a loopback `MATRIXHUB_BASE_URL`
 records nothing and the runner warns when that happens.
 
+## UI Automation
+
+UI automation has its own workflow and does not run as part of the E2E target.
+To test an already-running local UI (port `3000` by default), run:
+
+```bash
+make test.ui-automation
+```
+
+Override `UI_AUTOMATION_BASE_URL` when the UI uses another address. Local mode
+requires a sibling `ui-factory-ai` checkout with dependencies installed and an
+active run. Set `UI_AUTOMATION_FRAMEWORK_DIR` when that checkout is not in one
+of the automatically discovered locations.
+
+To create a dedicated `matrixhub-ui-automation` cluster, deploy MatrixHub, run
+the generated UI automation assets, and delete the cluster on exit, run:
+
+```bash
+make test.ui-automation.kind
+```
+
+Set `UI_AUTOMATION_KEEP_CLUSTER=true` to retain that cluster for debugging.
+
+CI uses the KIND target with `UI_AUTOMATION_MODE=ci` and a fixed
+`UI_AUTOMATION_RUNNER_IMAGE` tag or digest.
+
 ## Development Tips
 
 ### Database

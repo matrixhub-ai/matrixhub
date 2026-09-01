@@ -1,0 +1,56 @@
+name: UI Automation CI
+
+on:
+  # GitHub Actions cron uses UTC. This runs Sundays at 16:00 Asia/Shanghai.
+  schedule:
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'sha, tag, or branch'
+        required: true
+        default: main
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  resolve_ref:
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.resolve.outputs.ref }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Resolve commit SHA
+        id: resolve
+        run: echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build_ci_image:
+    needs: resolve_ref
+    uses: ./.github/workflows/build-image-ci.yaml
+    with:
+      ref: ${{ needs.resolve_ref.outputs.ref }}
+      push: false
+    secrets: inherit
+
+  ui_automation_test:
+    needs: [resolve_ref, build_ci_image]
+    uses: ./.github/workflows/ui-automation-init.yaml
+    with:
+      image_tag: ${{ needs.build_ci_image.outputs.imageTag }}
+      ref: ${{ needs.resolve_ref.outputs.ref }}
+      runner_image: ${{ vars.UI_AUTOMATION_RUNNER_IMAGE }}
+      runner_registry: ${{ vars.UI_AUTOMATION_RUNNER_REGISTRY || 'ghcr.io' }}
+    secrets:
+      UI_AUTOMATION_REGISTRY_USERNAME: ${{ secrets.UI_AUTOMATION_REGISTRY_USERNAME }}
+      UI_AUTOMATION_REGISTRY_PASSWORD: ${{ secrets.UI_AUTOMATION_REGISTRY_PASSWORD }}
