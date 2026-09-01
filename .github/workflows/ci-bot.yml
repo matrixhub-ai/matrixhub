@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Issue Opened
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'issues' }}
         env:
           PLUGINS: ${{ env.ISSUE_PLUGINS }}
@@ -152,7 +152,7 @@ jobs:
             We will look into it as soon as possible.
 
       - name: PR Opened
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'opened' }}
         env:
           MEMBERS_PLUGINS: *members_plugins
@@ -170,7 +170,7 @@ jobs:
             We will review it shortly.
 
       - name: PR Edited
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'edited' }}
         env:
           MEMBERS_PLUGINS: *members_plugins
@@ -184,7 +184,7 @@ jobs:
           TYPE: comment
 
       - name: PR Synchronize
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'synchronize' }}
         env:
           MEMBERS_PLUGINS: *members_plugins
@@ -197,7 +197,7 @@ jobs:
           TYPE: synchronize
 
       - name: Issue Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'issue_comment' && !github.event.issue.pull_request }}
         env:
           PLUGINS: ${{ env.ISSUE_PLUGINS }}
@@ -211,7 +211,7 @@ jobs:
           TYPE: comment
 
       - name: PR Review Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'pull_request_review_comment' }}
         env:
           MEMBERS_PLUGINS: *members_plugins
@@ -224,7 +224,7 @@ jobs:
           TYPE: comment
 
       - name: PR Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request }}
         env:
           MEMBERS_PLUGINS: *members_plugins
