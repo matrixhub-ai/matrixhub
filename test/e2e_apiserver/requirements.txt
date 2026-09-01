@@ -1,0 +1,3 @@
+# Keep the PR e2e client deterministic while exercising the current supported
+# Hugging Face CLI behavior.
+huggingface_hub==1.29.0

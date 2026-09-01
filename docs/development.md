@@ -274,6 +274,57 @@ E2E_LABELS='model || project' make test.e2e   # any ginkgo label expression
 MATRIXHUB_BASE_URL=http://localhost:3002 make test.e2e
 ```
 
+### HF CLI and Git-over-SSH E2E tests
+
+The protocol suites invoke the real `hf`, `git`, OpenSSH, and Git LFS clients.
+HTTP APIs are used only to create and clean up users, projects, tokens, keys,
+and permissions. This ensures the tests exercise the same client behavior as a
+user instead of reproducing the protocols with hand-written HTTP requests.
+
+Install the additional client prerequisites before running these suites:
+
+```bash
+python -m pip install --requirement test/e2e_apiserver/requirements.txt
+git lfs install
+```
+
+The SSH endpoint is configured separately from the HTTP endpoint because local
+and KIND deployments expose them on different ports:
+
+```bash
+MATRIXHUB_BASE_URL=http://localhost:3001 \
+MATRIXHUB_SSH_HOST=127.0.0.1 \
+MATRIXHUB_SSH_PORT=2222 \
+E2E_LABELS='hf-cli || git-ssh || protocol-interop' \
+make test.e2e
+```
+
+The server used for a local protocol run must enable `apiServer.sshPort` and
+set `apiServer.hostURL` to an HTTP URL reachable by the Git LFS client. Use a
+disposable `dataDir`; the SSH host key is generated there when one is not
+configured explicitly. For example:
+
+```yaml
+dataDir: /tmp/matrixhub-e2e-data
+apiServer:
+  port: 3001
+  sshPort: 2222
+  hostURL: http://127.0.0.1:3001
+```
+
+Protocol labels and case-ID prefixes are:
+
+| Suite | Label | Case prefix |
+| --- | --- | --- |
+| Hugging Face CLI | `hf-cli` | `HF` |
+| Git over SSH | `git-ssh` | `GS` |
+| HF/Git interoperability | `protocol-interop` | `PI` |
+
+Each case receives an isolated user, private project, access token or SSH key,
+working directory, and HF cache. The `lfs` and `slow` labels identify the
+larger Git LFS flow. KIND runs expose HTTP on `30001` and SSH on `30022` and
+configure `apiServer.hostURL` automatically.
+
 In CI the label is chosen automatically: PRs that touch `test/**` run the full
 suite, others run `smoke` (see `.github/workflows/auto-pr-ci.yaml`).
 
@@ -452,7 +503,7 @@ inventing a new layout.
    ```
 
    Existing labels: `login`, `model`, `project`, `robot`, `sync-policy`,
-   `current-user`, `user`.
+   `current-user`, `user`, `hf-cli`, `git-ssh`, and `protocol-interop`.
 
 5. **Give every `It` a unique case-ID label.** Format is a module prefix plus a
    zero-padded sequence, `<PREFIX>NNNNN` (five digits):
@@ -462,7 +513,8 @@ inventing a new layout.
    ```
 
    Existing prefixes: `CU` (current-user), `L` (login), `M` (model), `R`
-   (robot), `U` (user), `SP` (sync-policy — legacy four-digit `SPNNNN`). Pick a
+   (robot), `U` (user), `SP` (sync-policy — legacy four-digit `SPNNNN`), `HF`
+   (HF CLI), `GS` (Git over SSH), and `PI` (protocol interoperability). Pick a
    free prefix for a new module and keep it unique so IDs stay traceable.
 
 6. **Mark exactly one happy-path case per module `smoke`** — the case the fast

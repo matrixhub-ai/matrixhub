@@ -77,6 +77,10 @@ apiserver:
   # -- ssh server port
   sshPort: 22
 
+  # -- Base HTTP URL returned to SSH Git LFS clients. It must be reachable by
+  # the client performing the Git operation.
+  hostURL: ""
+
   # -- externally-reachable base URL of this instance. Surfaced to the frontend
   # (used as `HF_ENDPOINT` for `hf` CLI snippets, etc). Leave empty to hide
   # affected UI panels. Example: https://matrixhub.example.com

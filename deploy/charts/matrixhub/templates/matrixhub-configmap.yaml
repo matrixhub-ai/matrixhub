@@ -23,6 +23,7 @@ data:
     apiServer:
       port: {{ .Values.apiserver.port }}
       sshPort: {{ .Values.apiserver.sshPort }}
+      hostURL: {{ .Values.apiserver.hostURL | default "" | quote }}
       externalURL: {{ .Values.apiserver.externalURL | default "" | quote }}
     {{- if .Values.jobServer }}
     jobServer:

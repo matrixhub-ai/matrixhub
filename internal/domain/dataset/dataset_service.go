@@ -17,6 +17,7 @@ package dataset
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
@@ -33,6 +34,9 @@ type IDatasetService interface {
 
 	// Label operations
 	ListDatasetTaskLabels(ctx context.Context) ([]*model.Label, error)
+
+	// SyncMetadata synchronizes Git repository metadata to the database.
+	SyncMetadata(ctx context.Context, project, name string) error
 
 	// Git operations
 	ListDatasetRevisions(ctx context.Context, project, name string) (*git.Revisions, error)
@@ -134,6 +138,49 @@ func (s *DatasetService) DeleteDataset(ctx context.Context, project, name string
 	}
 
 	return s.datasetRepo.Delete(ctx, project, name)
+}
+
+// SyncMetadata synchronizes Git repository metadata to the database.
+func (s *DatasetService) SyncMetadata(ctx context.Context, project, name string) error {
+	d, err := s.datasetRepo.GetByProjectAndName(ctx, project, name)
+	if err != nil {
+		return fmt.Errorf("dataset not found: %w", err)
+	}
+
+	files, err := s.gitRepo.ExtractMetadata(ctx, "datasets", project, name)
+	if err != nil {
+		return fmt.Errorf("failed to read metadata files: %w", err)
+	}
+
+	metadata, err := model.AnalyzeRepoMetadata(files)
+	if err != nil {
+		return fmt.Errorf("failed to analyze metadata: %w", err)
+	}
+
+	update := &MetadataUpdate{
+		ReadmeContent: &metadata.ReadmeContent,
+		Size:          &metadata.Size,
+	}
+	if err := s.datasetRepo.UpdateMetadata(ctx, d.ID, update); err != nil {
+		return fmt.Errorf("failed to update dataset metadata: %w", err)
+	}
+
+	return s.updateDatasetLabels(ctx, d.ID, metadata.Tags)
+}
+
+// updateDatasetLabels replaces all labels for a dataset with classified tags.
+func (s *DatasetService) updateDatasetLabels(ctx context.Context, datasetID int64, tags []model.ClassifiedTag) error {
+	var labelIDs []int
+
+	for _, tag := range tags {
+		label, err := s.labelRepo.GetOrCreateByName(ctx, tag.Name, tag.Category, "dataset")
+		if err != nil {
+			return fmt.Errorf("failed to get/create label %s (category=%s): %w", tag.Name, tag.Category, err)
+		}
+		labelIDs = append(labelIDs, label.ID)
+	}
+
+	return s.labelRepo.UpdateDatasetLabels(ctx, datasetID, labelIDs)
 }
 
 // ListDatasetTaskLabels returns all task labels for datasets.

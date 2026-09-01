@@ -41,6 +41,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           filters: |
             run_e2e:
+              - 'test/**'
               - '**/*.sh'
               - '**/*.go'
               - 'go.mod'

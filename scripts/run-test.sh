@@ -36,12 +36,18 @@ MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL:-http://localhost:3001}"
 # empty, which is safer than guessing an address the server cannot route to.
 MATRIXHUB_SELF_URL="${MATRIXHUB_SELF_URL:-}"
 
+# SSH endpoint reached by Git CLI tests. This is deliberately separate from
+# MATRIXHUB_BASE_URL because HTTP and SSH commonly use different NodePorts.
+MATRIXHUB_SSH_HOST="${MATRIXHUB_SSH_HOST:-127.0.0.1}"
+MATRIXHUB_SSH_PORT="${MATRIXHUB_SSH_PORT:-2222}"
+
 echo "================================================"
 echo "MatrixHub E2E Test Runner"
 echo "================================================"
 echo "Label filter: ${LABEL_FILTER:-<all>}"
 echo "Base URL:   ${MATRIXHUB_BASE_URL}"
 echo "Self URL:   ${MATRIXHUB_SELF_URL:-<unset, self-registry tests skipped>}"
+echo "SSH:        ${MATRIXHUB_SSH_HOST}:${MATRIXHUB_SSH_PORT}"
 echo "================================================"
 
 # Step 1: Wait for service to be ready
@@ -80,6 +86,8 @@ echo ""
 
 export MATRIXHUB_BASE_URL="${MATRIXHUB_BASE_URL}"
 export MATRIXHUB_SELF_URL="${MATRIXHUB_SELF_URL}"
+export MATRIXHUB_SSH_HOST="${MATRIXHUB_SSH_HOST}"
+export MATRIXHUB_SSH_PORT="${MATRIXHUB_SSH_PORT}"
 
 # Optional: record all API traffic through a mitmproxy container and print an
 # API-coverage report. Opt-in so plain local runs need no docker/mitmproxy.

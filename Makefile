@@ -182,7 +182,7 @@ kind.setup: deploy.kind-cluster deploy.matrixhub ## Setup KIND cluster and deplo
 
 .PHONY: test.e2e
 test.e2e: ## Run E2E tests locally (requires running MatrixHub). Set E2E_LABELS to filter (e.g. E2E_LABELS=smoke); empty runs all. Set E2E_API_COVERAGE=true for the mitmproxy coverage report.
-	E2E_API_COVERAGE="$(E2E_API_COVERAGE)" MATRIXHUB_BASE_URL="$(MATRIXHUB_BASE_URL)" MATRIXHUB_SELF_URL="$(MATRIXHUB_SELF_URL)" bash ./scripts/run-test.sh "$(E2E_LABELS)"
+	E2E_API_COVERAGE="$(E2E_API_COVERAGE)" MATRIXHUB_BASE_URL="$(MATRIXHUB_BASE_URL)" MATRIXHUB_SELF_URL="$(MATRIXHUB_SELF_URL)" MATRIXHUB_SSH_HOST="$(MATRIXHUB_SSH_HOST)" MATRIXHUB_SSH_PORT="$(MATRIXHUB_SSH_PORT)" bash ./scripts/run-test.sh "$(E2E_LABELS)"
 
 .PHONY: test.e2e.kind
 test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
@@ -208,7 +208,7 @@ test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
 	@# address rather than the NodePort the test process uses.
 	MATRIXHUB_BASE_URL="http://$(if $(filter true,$(E2E_API_COVERAGE)),matrixhub.local,localhost):30001" \
 		$(MAKE) test.e2e E2E_LABELS="$(E2E_LABELS)" E2E_API_COVERAGE="$(E2E_API_COVERAGE)" \
-			MATRIXHUB_SELF_URL="$(E2E_KIND_SELF_URL)"
+			MATRIXHUB_SELF_URL="$(E2E_KIND_SELF_URL)" MATRIXHUB_SSH_HOST="127.0.0.1" MATRIXHUB_SSH_PORT="30022"
 	@echo ""
 	@echo "To cleanup, run:"
 	@echo "  kind delete cluster --name=$${E2E_CLUSTER_NAME:-matrixhub-e2e}"

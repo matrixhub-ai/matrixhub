@@ -335,12 +335,10 @@ func (s *ModelService) SyncMetadata(ctx context.Context, project, name string) e
 		return fmt.Errorf("failed to analyze metadata: %w", err)
 	}
 
-	update := &MetadataUpdate{ReadmeContent: &metadata.ReadmeContent}
-	if metadata.Size > 0 {
-		update.Size = &metadata.Size
-	}
-	if metadata.ParameterCount > 0 {
-		update.ParameterCount = &metadata.ParameterCount
+	update := &MetadataUpdate{
+		ReadmeContent:  &metadata.ReadmeContent,
+		Size:           &metadata.Size,
+		ParameterCount: &metadata.ParameterCount,
 	}
 	if err := s.modelRepo.UpdateMetadata(ctx, m.ID, update); err != nil {
 		return fmt.Errorf("failed to update model metadata: %w", err)

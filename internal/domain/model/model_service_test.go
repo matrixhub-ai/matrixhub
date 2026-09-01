@@ -381,6 +381,31 @@ func TestModelService_CheckOrSyncFromRemoteRecordsSuccessfulSync(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestModelService_SyncMetadataPersistsZeroValues(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	labelRepo := modelmocks.NewMockILabelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+
+	modelRepo.EXPECT().GetByProjectAndName(gomock.Any(), "proj", "empty").
+		Return(&model.Model{ID: 42, Name: "empty", ProjectName: "proj"}, nil)
+	gitRepo.EXPECT().ExtractMetadata(gomock.Any(), "models", "proj", "empty").
+		Return(&git.RepoMetadataFiles{ReadmeContent: []byte("# Empty")}, nil)
+	modelRepo.EXPECT().UpdateMetadata(gomock.Any(), int64(42), gomock.Any()).
+		DoAndReturn(func(_ context.Context, _ int64, update *model.MetadataUpdate) error {
+			require.NotNil(t, update.Size)
+			require.Zero(t, *update.Size)
+			require.NotNil(t, update.ParameterCount)
+			require.Zero(t, *update.ParameterCount)
+			return nil
+		})
+	labelRepo.EXPECT().UpdateModelLabels(gomock.Any(), int64(42), []int(nil)).Return(nil)
+
+	service := model.NewModelService(modelRepo, labelRepo, gitRepo, nil, nil)
+	require.NoError(t, service.SyncMetadata(ctx, "proj", "empty"))
+}
+
 func TestModelService_EnsureModelPropagatesProjectLookupError(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)

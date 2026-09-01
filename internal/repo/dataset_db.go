@@ -220,6 +220,29 @@ func (d *datasetDB) GetByProjectAndName(ctx context.Context, project, name strin
 	return &ds, nil
 }
 
+// UpdateMetadata updates selected metadata fields for a dataset.
+func (d *datasetDB) UpdateMetadata(ctx context.Context, datasetID int64, update *dataset.MetadataUpdate) error {
+	updates := make(map[string]interface{})
+
+	if update.ReadmeContent != nil {
+		updates["readme_content"] = *update.ReadmeContent
+	}
+	if update.Size != nil {
+		updates["size"] = *update.Size
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+
+	result := d.db.WithContext(ctx).
+		Table("datasets").
+		Where("id = ?", datasetID).
+		Updates(updates)
+
+	return result.Error
+}
+
 // Delete removes a dataset by project and name
 func (d *datasetDB) Delete(ctx context.Context, project, name string) error {
 	// First get the dataset to obtain its ID

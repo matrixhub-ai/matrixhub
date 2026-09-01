@@ -76,6 +76,11 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install Tools
         run: |
           # Install kind (use latest version to support containerd v2)
@@ -91,10 +96,20 @@ jobs:
           # report suite compilation failures.
           go install github.com/onsi/ginkgo/v2/ginkgo
 
+          # Install the real clients exercised by protocol e2e tests.
+          python -m pip install --requirement test/e2e_apiserver/requirements.txt
+          python -m pip check
+          sudo apt-get update
+          sudo apt-get install --yes git-lfs openssh-client
+
           # Verify tools
           kind version
           helm version
           ginkgo version
+          hf version
+          git --version
+          git lfs version
+          ssh -V
 
       - name: Map matrixhub.local for API coverage
         # Go's http.ProxyFromEnvironment bypasses loopback hosts, so the e2e
@@ -110,6 +125,7 @@ jobs:
           make test.e2e.kind -e E2E_CLUSTER_NAME=${{ env.CLUSTER_NAME }} \
               -e E2E_MATRIXHUB_IMAGE=ghcr.io/${{ env.IMAGE_REPO_LOWER }}/matrixhub-ci:${{ inputs.image_tag }} \
               -e E2E_KIND_IMAGE_TAG=${{ inputs.k8s_version }} \
+              -e E2E_MATRIXHUB_HOST_URL=http://matrixhub.local:30001 \
               -e E2E_LABELS="${{ inputs.e2e_labels }}" \
               -e E2E_API_COVERAGE=true
       - name: Cleanup Kind Cluster
