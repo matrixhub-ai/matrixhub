@@ -73,6 +73,7 @@ func TestDatasetService_SyncMetadata(t *testing.T) {
 	svc := dataset.NewDatasetService(datasetRepo, labelRepo, gitRepo)
 	require.NoError(t, svc.SyncMetadata(ctx, "proj", "ds"))
 }
+
 func TestDatasetService_SyncMetadataPersistsZeroSize(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
