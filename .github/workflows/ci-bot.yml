@@ -8,15 +8,27 @@ on:
     types:
       - created
 
+  # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_review
+  pull_request_review:
+    types:
+      - submitted
+
   issues:
     types:
       - opened
+      - labeled
+      - unlabeled
 
   # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
   pull_request_target:
     types:
       - opened
       - synchronize
+      - edited
+      - converted_to_draft
+      - ready_for_review
+      - labeled
+      - unlabeled
 
 env:
   # This plugins is for anyone who can use it
@@ -45,8 +57,10 @@ env:
     label-documentation
     label-enhancement
     label-question
+    hold
     lifecycle
     retest
+    transfer-issue
 
   # This plugins is for in the REVIEWERS environment variable
   REVIEWERS_PLUGINS: |-
@@ -79,7 +93,29 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GH_REPOSITORY: ${{ github.repository }}
 
+  # It can be `merge`, `rebase`, or `squash`.
   DEFAULT_MERGE_METHOD: squash
+
+  # Number of reviewers automatically requested when a PR is opened
+  # (blunderbuss). Set to 0 to disable.
+  BLUNDERBUSS_REVIEWER_COUNT: 2
+
+  # Rules for the require-matching-label check, one per line in the format:
+  #   <missing-label> <regexp> [comment...]
+  # When an issue or PR has no label matching the regexp, the missing label
+  # is applied with an explanatory comment, and removed once a matching
+  # label is added. Set to an empty string to disable.
+  REQUIRE_MATCHING_LABELS: |-
+    needs-kind ^kind/
+
+  # Additional labels the bot is allowed to create, one entry per line.
+  # Each entry is either an exact label name, or a prefix ending in a
+  # slash (e.g. kind/) which allows any label with that prefix. These are
+  # merged with the built-in default list of well-known prow and GitHub
+  # labels (see bin/ensure-labels.sh). Labels not matching any entry are
+  # never created automatically.
+  # LABELS: |-
+  #   kind/docs
 
   DETAILS: |-
 
@@ -113,8 +149,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Issue Opened
-        uses: wzshiming/gh-ci-bot@v1.5.0
-        if: ${{ github.event_name == 'issues' }}
+        uses: wzshiming/gh-ci-bot@v1.6.1
+        if: ${{ github.event_name == 'issues' && github.event.action == 'opened' }}
         env:
           LOGIN: ${{ github.event.issue.user.login }}
           AUTHOR: ${{ github.event.issue.user.login }}
@@ -129,7 +165,7 @@ jobs:
             We will look into it as soon as possible.
 
       - name: PR Opened
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'opened' }}
         env:
           LOGIN: ${{ github.event.pull_request.user.login }}
@@ -142,11 +178,11 @@ jobs:
           GREETING: |-
             Hi @${{ github.event.pull_request.user.login }},
             Thanks for your pull request!
-            If the PR is ready, use the `/auto-cc` command to assign Reviewer to Review. 
+            ${{ env.BLUNDERBUSS_REVIEWER_COUNT != '0' && 'Reviewers will be requested automatically. You can also use the `/auto-cc` command to request reviews again.' || 'If the PR is ready, use the `/auto-cc` command to assign Reviewer to Review.' }}
             We will review it shortly.
 
       - name: PR Synchronize
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'synchronize' }}
         env:
           LOGIN: ${{ github.event.pull_request.user.login }}
@@ -157,8 +193,44 @@ jobs:
           ISSUE_KIND: pr
           TYPE: synchronize
 
+      - name: PR Edited or Draft State Changed
+        uses: wzshiming/gh-ci-bot@v1.6.1
+        if: ${{ github.event_name == 'pull_request_target' && (github.event.action == 'edited' || github.event.action == 'converted_to_draft' || github.event.action == 'ready_for_review') }}
+        env:
+          LOGIN: ${{ github.event.pull_request.user.login }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          MESSAGE: ""
+          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          ISSUE_KIND: pr
+          TYPE: edited
+
+      - name: Issue Labeled or Unlabeled
+        uses: wzshiming/gh-ci-bot@v1.6.1
+        if: ${{ github.event_name == 'issues' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') }}
+        env:
+          LOGIN: ${{ github.event.sender.login }}
+          AUTHOR: ${{ github.event.issue.user.login }}
+          MESSAGE: ""
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
+          ISSUE_KIND: issue
+          TYPE: ${{ github.event.action }}
+
+      - name: PR Labeled or Unlabeled
+        uses: wzshiming/gh-ci-bot@v1.6.1
+        if: ${{ github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') }}
+        env:
+          LOGIN: ${{ github.event.sender.login }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          MESSAGE: ""
+          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          ISSUE_KIND: pr
+          TYPE: ${{ github.event.action }}
+
       - name: Issue Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'issue_comment' && !github.event.issue.pull_request }}
         env:
           LOGIN: ${{ github.event.comment.user.login }}
@@ -170,7 +242,7 @@ jobs:
           TYPE: comment
 
       - name: PR Review Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'pull_request_review_comment' }}
         env:
           LOGIN: ${{ github.event.comment.user.login }}
@@ -181,8 +253,20 @@ jobs:
           ISSUE_KIND: pr
           TYPE: comment
 
+      - name: PR Review Submitted
+        uses: wzshiming/gh-ci-bot@v1.6.1
+        if: ${{ github.event_name == 'pull_request_review' && github.event.review.body != '' }}
+        env:
+          LOGIN: ${{ github.event.review.user.login }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          MESSAGE: ${{ github.event.review.body }}
+          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.review.author_association }}
+          ISSUE_KIND: pr
+          TYPE: comment
+
       - name: PR Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.6.1
         if: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request }}
         env:
           LOGIN: ${{ github.event.comment.user.login }}
