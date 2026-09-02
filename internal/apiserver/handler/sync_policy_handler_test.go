@@ -19,7 +19,10 @@ import (
 
 	v1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
+	syncjobmocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncjob/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
+	syncpolicymocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy/mocks"
+	"go.uber.org/mock/gomock"
 )
 
 // syncJobToProto and syncTaskToProto convert the domain status by a plain
@@ -46,4 +49,63 @@ func TestStatusEnumsAreRepresentableInProto(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestListSyncTasksPaginationIncludesPageCount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	policyService := syncpolicymocks.NewMockISyncPolicyService(ctrl)
+	jobService := syncjobmocks.NewMockISyncJobService(ctrl)
+	h := &SyncPolicyHandler{
+		syncPolicyService: policyService,
+		syncJobService:    jobService,
+	}
+
+	policyService.EXPECT().
+		ListSyncTasksByPolicyID(gomock.Any(), 1, 2, 10, syncpolicy.SyncTaskStatusUnspecified).
+		Return([]*syncpolicy.SyncTask{}, int64(21), nil)
+
+	response, err := h.ListSyncTasks(t.Context(), &v1alpha1.ListSyncTasksRequest{
+		SyncPolicyId: 1,
+		Page:         2,
+		PageSize:     10,
+	})
+	if err != nil {
+		t.Fatalf("ListSyncTasks() error = %v", err)
+	}
+	if got, want := response.Pagination.Pages, int32(3); got != want {
+		t.Fatalf("Pagination.Pages = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.Page, int32(2); got != want {
+		t.Fatalf("Pagination.Page = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.PageSize, int32(10); got != want {
+		t.Fatalf("Pagination.PageSize = %d, want %d", got, want)
+	}
+}
+
+func TestListSyncJobsPaginationIncludesPageCount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	jobService := syncjobmocks.NewMockISyncJobService(ctrl)
+	h := &SyncPolicyHandler{syncJobService: jobService}
+
+	jobService.EXPECT().
+		ListSyncJobsByTaskID(gomock.Any(), 1, 1, 20, syncjob.SyncJobStatusUnspecified, "").
+		Return([]*syncjob.SyncJob{}, int64(1<<31)+1, nil)
+
+	response, err := h.ListSyncJobs(t.Context(), &v1alpha1.ListSyncJobsRequest{SyncTaskId: 1})
+	if err != nil {
+		t.Fatalf("ListSyncJobs() error = %v", err)
+	}
+	if got, want := response.Pagination.Pages, int32(107374183); got != want {
+		t.Fatalf("Pagination.Pages = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.Total, int32(1<<31-1); got != want {
+		t.Fatalf("Pagination.Total = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.Page, int32(1); got != want {
+		t.Fatalf("Pagination.Page = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.PageSize, int32(20); got != want {
+		t.Fatalf("Pagination.PageSize = %d, want %d", got, want)
+	}
 }

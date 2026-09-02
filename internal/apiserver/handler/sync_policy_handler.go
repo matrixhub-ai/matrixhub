@@ -30,6 +30,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 	"github.com/matrixhub-ai/matrixhub/internal/jobserver/canceller"
 	"github.com/matrixhub-ai/matrixhub/internal/jobserver/logstore"
 )
@@ -265,9 +266,10 @@ func (h *SyncPolicyHandler) ListSyncTasks(ctx context.Context, request *v1alpha1
 	return &v1alpha1.ListSyncTasksResponse{
 		SyncTasks: items,
 		Pagination: &v1alpha1.Pagination{
-			Total:    int32(total),
-			Page:     request.Page,
-			PageSize: request.PageSize,
+			Total:    utils.ClampInt32(total),
+			Page:     int32(page),
+			PageSize: int32(pageSize),
+			Pages:    utils.CalculatePages(total, int32(pageSize)),
 		},
 	}, nil
 }
@@ -413,9 +415,10 @@ func (h *SyncPolicyHandler) ListSyncJobs(ctx context.Context, request *v1alpha1.
 	return &v1alpha1.ListSyncJobsResponse{
 		SyncJobs: items,
 		Pagination: &v1alpha1.Pagination{
-			Total:    int32(total),
-			Page:     request.Page,
-			PageSize: request.PageSize,
+			Total:    utils.ClampInt32(total),
+			Page:     int32(page),
+			PageSize: int32(pageSize),
+			Pages:    utils.CalculatePages(total, int32(pageSize)),
 		},
 	}, nil
 }

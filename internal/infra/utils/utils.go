@@ -14,15 +14,38 @@
 
 package utils
 
+const (
+	maxInt32 = int64(1<<31 - 1)
+	minInt32 = int64(-1 << 31)
+)
+
 func IsFullPageData(page, pageSize int) bool {
 	return page == 1 && pageSize == -1
 }
 
+// ClampInt32 converts value to int32 without overflowing its bounds.
+func ClampInt32(value int64) int32 {
+	if value > maxInt32 {
+		return int32(maxInt32)
+	}
+	if value < minInt32 {
+		return int32(minInt32)
+	}
+	return int32(value)
+}
+
 // CalculatePages calculates the total number of pages based on total count and page size.
-// It returns 0 if pageSize is 0 or negative.
+// It returns 0 if total or pageSize is 0 or negative.
 func CalculatePages(total int64, pageSize int32) int32 {
-	if pageSize <= 0 {
+	if total <= 0 || pageSize <= 0 {
 		return 0
 	}
-	return (int32(total) + pageSize - 1) / pageSize
+
+	pageSize64 := int64(pageSize)
+	pages := total / pageSize64
+	if total%pageSize64 != 0 {
+		pages++
+	}
+
+	return ClampInt32(pages)
 }
