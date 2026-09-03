@@ -469,10 +469,11 @@
     "v1alpha1RobotAccountStatus": {
       "type": "string",
       "enum": [
+        "ROBOT_ACCOUNT_STATUS_UNSPECIFIED",
         "ROBOT_ACCOUNT_STATUS_DISABLED",
         "ROBOT_ACCOUNT_STATUS_ENABLED"
       ],
-      "default": "ROBOT_ACCOUNT_STATUS_DISABLED"
+      "default": "ROBOT_ACCOUNT_STATUS_UNSPECIFIED"
     },
     "v1alpha1UpdateRobotAccountResponse": {
       "type": "object"

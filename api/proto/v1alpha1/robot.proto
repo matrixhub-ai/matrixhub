@@ -75,8 +75,9 @@ message ListRobotAccountsResponse {
 }
 
 enum RobotAccountStatus {
-  ROBOT_ACCOUNT_STATUS_DISABLED = 0;
-  ROBOT_ACCOUNT_STATUS_ENABLED = 1;
+  ROBOT_ACCOUNT_STATUS_UNSPECIFIED = 0;
+  ROBOT_ACCOUNT_STATUS_DISABLED = 1;
+  ROBOT_ACCOUNT_STATUS_ENABLED = 2;
 }
 
 enum RobotAccountExpireStatus {

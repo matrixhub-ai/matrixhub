@@ -6,7 +6,7 @@ For backend package boundaries and dependency rules, see
 
 ## Prerequisites
 
-- Go 1.23+
+- Go 1.26.8+
 - A C compiler for SQLite development (`clang` on macOS, `gcc` on Linux;
   install `build-base` on Alpine). SQLite requires `CGO_ENABLED=1`.
 - Node.js 18+ for the app UI; Node.js 20+ for the documentation website

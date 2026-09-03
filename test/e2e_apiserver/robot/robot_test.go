@@ -247,6 +247,7 @@ var _ = Describe("Robot", Label("robot"), func() {
 			_, _, err := robotsApi.RobotsCreateRobotAccount(ctx, v1alpha1robot.V1alpha1CreateRobotAccountRequest{
 				Name:        robotName,
 				Description: "original description",
+				ExpireDays:  30,
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -293,6 +294,8 @@ var _ = Describe("Robot", Label("robot"), func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.ExpireDays).To(Equal(int32(0)))
 			Expect(*resp.ExpireStatus).To(Equal(v1alpha1robot.NEVER_V1alpha1RobotAccountExpireStatus))
+			Expect(resp.Status).NotTo(BeNil())
+			Expect(*resp.Status).To(Equal(v1alpha1robot.ENABLED_V1alpha1RobotAccountStatus))
 		})
 
 		It("should fail to update a non-existent robot account", Label("R00012"), func() {
@@ -391,4 +394,3 @@ var _ = Describe("Robot", Label("robot"), func() {
 		})
 	})
 })
-
