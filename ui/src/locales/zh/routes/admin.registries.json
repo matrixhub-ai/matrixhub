@@ -10,12 +10,12 @@
   },
   "form": {
     "provider": "提供者",
-    "name": "仓库源名称",
+    "name": "仓库名称",
     "description": "描述",
-    "url": "仓库源基础 URL",
+    "url": "仓库基础地址",
     "urlHint": {
-      "huggingFace": "请输入上游平台或镜像服务的基础地址，不要填写具体模型或仓库路径。示例：https://huggingface.co、https://hf-mirror.com",
-      "matrixHub": "请输入 MatrixHub 实例的基础地址，不要填写具体项目或模型路径。示例：http://<matrixhub-host>:<port>"
+      "huggingFace": "请输入上游平台或镜像服务的基础地址，不要填写具体模型或仓库路径。\n示例：https://huggingface.co、https://hf-mirror.com",
+      "matrixHub": "请输入 MatrixHub 实例的基础地址，不要填写具体项目或模型路径。\n示例：http://<matrixhub-host>:<port>"
     },
     "urlDescription": {
       "huggingFace": "请输入上游平台或镜像服务的基础地址",
@@ -26,8 +26,8 @@
       "matrixHub": "http://<matrixhub-host>:<port>"
     },
     "urlRepositoryWarning": {
-      "huggingFace": "检测到该地址可能是具体仓库地址，请填写平台或镜像服务的基础地址，例如：https://huggingface.co",
-      "matrixHub": "检测到该地址可能是具体仓库地址，请填写 MatrixHub 实例的基础地址，例如：http://<matrixhub-host>:<port>"
+      "huggingFace": "检测到该地址可能是具体资源路径，请填写平台或镜像服务的基础地址，例如：https://huggingface.co",
+      "matrixHub": "检测到该地址可能是具体资源路径，请填写 MatrixHub 实例的基础地址，例如：http://<matrixhub-host>:<port>"
     },
     "username": "用户名",
     "usernameHint": "若拉取目标仓库中的私密模型，请输入目标仓库的用户名和访问密钥，支持机器人账号。",
@@ -80,7 +80,7 @@
   },
   "validation": {
     "nameLength": "名称长度需在{{min}}-{{max}}字符之间",
-    "urlRequired": "请输入仓库源基础 URL",
+    "urlRequired": "请输入仓库基础地址",
     "urlInvalid": "请输入有效的 URL"
   },
   "notifications": {

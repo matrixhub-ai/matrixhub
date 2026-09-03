@@ -10,12 +10,12 @@
   },
   "form": {
     "provider": "Provider",
-    "name": "Registry Source Name",
+    "name": "Registry Name",
     "description": "Description",
     "url": "Registry Base URL",
     "urlHint": {
-      "huggingFace": "Enter the base address of the upstream platform or mirror service, not a specific model or repository path. Examples: https://huggingface.co, https://hf-mirror.com",
-      "matrixHub": "Enter the base address of the MatrixHub instance, not a specific project or model path. Example: http://<matrixhub-host>:<port>"
+      "huggingFace": "Enter the base address of the upstream platform or mirror service, not a specific model or repository path.\nExamples: https://huggingface.co, https://hf-mirror.com",
+      "matrixHub": "Enter the base address of the MatrixHub instance, not a specific project or model path.\nExample: http://<matrixhub-host>:<port>"
     },
     "urlDescription": {
       "huggingFace": "Base address of the upstream platform or mirror service",
@@ -26,8 +26,8 @@
       "matrixHub": "http://<matrixhub-host>:<port>"
     },
     "urlRepositoryWarning": {
-      "huggingFace": "This looks like a specific repository address. Enter the base address of the platform or mirror service instead, e.g. https://huggingface.co",
-      "matrixHub": "This looks like a specific repository address. Enter the base address of the MatrixHub instance instead, e.g. http://<matrixhub-host>:<port>"
+      "huggingFace": "This looks like a specific resource path. Enter the base address of the platform or mirror service instead, e.g. https://huggingface.co",
+      "matrixHub": "This looks like a specific resource path. Enter the base address of the MatrixHub instance instead, e.g. http://<matrixhub-host>:<port>"
     },
     "username": "Username",
     "usernameHint": "Enter the upstream registry username and access token when pulling private models; robot accounts are supported.",

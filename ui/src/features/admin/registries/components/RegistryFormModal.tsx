@@ -287,6 +287,7 @@ export function RegistryFormModal({
                       <FieldHintLabel
                         label={t('routes.admin.registries.form.url')}
                         hint={t(urlCopyKeys.hint)}
+                        tooltipProps={{ style: { whiteSpace: 'pre-line' } }}
                       />
                     )}
                     withAsterisk
