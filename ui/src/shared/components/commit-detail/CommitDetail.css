@@ -22,6 +22,12 @@
 .d2h-file-header {
   border-radius: var(--mantine-radius-md)  var(--mantine-radius-md) 0 0;
 }
+
+.commit-detail-raw-diff-link,
+.commit-detail-raw-diff-link:visited {
+  color: var(--mantine-primary-color-filled);
+}
+
 .d2h-files-diff {
   border-radius: 0 0 var(--mantine-radius-md) var(--mantine-radius-md);
   overflow: hidden;
