@@ -243,6 +243,9 @@ export function RegistryFormModal({
             <TextInput
               label={t('routes.admin.registries.form.name')}
               withAsterisk
+              // The provider select above it already has a usable default,
+              // so focus starts on the first field that needs input.
+              data-autofocus
               value={field.state.value}
               onChange={event => field.handleChange(
                 sanitizeRegistryName(event.currentTarget.value),

@@ -113,6 +113,11 @@
     "registryLabel": "Registry",
     "organizationLabel": "Organization / User",
     "organizationPlaceholder": "For example: Qwen",
+    "createRegistry": "Create Registry",
+    "emptyRegistryHint": "No registry available. Please <0>create a registry</0> first.",
+    "registryPlaceholder": "https://huggingface.co",
+    "registryEmptyOption": "No data",
+    "refreshRegistries": "Refresh registry list",
     "createFailed": "Failed to create project"
   },
   "deleteModal": {

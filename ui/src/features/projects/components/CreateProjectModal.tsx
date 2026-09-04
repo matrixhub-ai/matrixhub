@@ -1,17 +1,25 @@
 import {
+  ActionIcon,
   Checkbox,
   Group,
   Input,
   Select,
+  Stack,
   Switch,
+  Text,
   TextInput,
+  Tooltip,
 } from '@mantine/core'
-import { Registries } from '@matrixhub/api-ts/v1alpha1/registry.pb'
+import {
+  IconExternalLink, IconInfoCircle, IconPlus, IconRefresh,
+} from '@tabler/icons-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useEffectEvent } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 
+import { allRegistriesQueryOptions } from '@/features/admin/registries/registries.query'
 import { useCurrentUser } from '@/features/auth/auth.query'
+import AnchorLink from '@/shared/components/AnchorLink'
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel.tsx'
 import { ModalWrapper } from '@/shared/components/ModalWrapper'
 import { useForm } from '@/shared/hooks/useForm'
@@ -22,10 +30,40 @@ import {
   organizationSchema, projectNameSchema, registryIdSchema,
 } from '../projects.schema'
 
+import type { MantineSize } from '@mantine/core'
+import type { ReactNode } from 'react'
+
 export interface CreateProjectModalProps {
   opened: boolean
   onClose: () => void
   onCreated?: (projectName: string) => void | Promise<void>
+}
+
+/**
+ * Link to registry creation. Opened in a new tab so the half-filled project
+ * form stays untouched, with the usual icon marking the tab switch.
+ */
+function RegistryCreateLink({
+  children,
+  size,
+}: {
+  children?: ReactNode
+  size?: MantineSize
+}) {
+  return (
+    <AnchorLink
+      to="/admin/registries"
+      search={{ create: true }}
+      target="_blank"
+      size={size}
+      inherit={!size}
+    >
+      <Group component="span" gap={2} align="center" wrap="nowrap" display="inline-flex">
+        {children}
+        <IconExternalLink size={14} />
+      </Group>
+    </AnchorLink>
+  )
 }
 
 export function CreateProjectModal({
@@ -66,15 +104,41 @@ export function CreateProjectModal({
 
   // Fetch registries for the dropdown when proxy is enabled
   const registriesQuery = useQuery({
-    queryKey: ['registries', 'list'],
-    queryFn: () => Registries.ListRegistries({ pageSize: -1 }),
+    ...allRegistriesQueryOptions(),
     enabled: opened,
   })
 
-  const registryOptions = (registriesQuery.data?.registries ?? []).map(r => ({
+  const registryOptions = (registriesQuery.data ?? []).map(r => ({
     value: String(r.id),
     label: r.name ?? r.url ?? '',
   }))
+
+  // Both states are decided only once the request has succeeded, so loading
+  // and error states show neither the guidance nor the shortcut, and the row
+  // does not shift as the request settles.
+  const showEmptyRegistryHint
+    = registriesQuery.isSuccess && registryOptions.length === 0
+  const showCreateRegistryShortcut
+    = registriesQuery.isSuccess && registryOptions.length > 0
+
+  // Opened in a new tab so the half-filled project form stays untouched here.
+  const registryLink = <RegistryCreateLink />
+
+  // Sits next to whichever registry action is currently shown: the create
+  // shortcut when registries exist, the guidance line when none do.
+  const refreshRegistriesButton = (
+    <Tooltip label={t('projects.createModal.refreshRegistries')}>
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        aria-label={t('projects.createModal.refreshRegistries')}
+        loading={registriesQuery.isFetching}
+        onClick={() => void registriesQuery.refetch()}
+      >
+        <IconRefresh size={16} />
+      </ActionIcon>
+    </Tooltip>
+  )
 
   const handleSubmit = () => {
     void form.handleSubmit()
@@ -130,60 +194,96 @@ export function CreateProjectModal({
               />
             )}
           >
-            <form.Field name="enabledProxy">
-              {field => (
-                <Switch
-                  mt={4}
-                  label={field.state.value
-                    ? t('projects.createModal.proxyEnabled')
-                    : t('projects.createModal.proxyDisabled')}
-                  checked={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.currentTarget.checked)
-                    if (!e.currentTarget.checked) {
-                      form.deleteField('organization')
-                      form.deleteField('registryId')
-                    }
-                  }}
-                />
-              )}
-            </form.Field>
+            <Group justify="space-between" align="center" wrap="nowrap" mt={4}>
+              <form.Field name="enabledProxy">
+                {field => (
+                  <Switch
+                    label={field.state.value
+                      ? t('projects.createModal.proxyEnabled')
+                      : t('projects.createModal.proxyDisabled')}
+                    checked={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.currentTarget.checked)
+                      if (!e.currentTarget.checked) {
+                        form.deleteField('organization')
+                        form.deleteField('registryId')
+                      }
+                    }}
+                  />
+                )}
+              </form.Field>
+              <form.Subscribe selector={s => s.values.enabledProxy}>
+                {enabledProxy => enabledProxy && !showEmptyRegistryHint && (
+                  <Group gap="xs" align="center" wrap="nowrap">
+                    {showCreateRegistryShortcut && (
+                      <RegistryCreateLink size="sm">
+                        <IconPlus size={14} />
+                        {t('projects.createModal.createRegistry')}
+                      </RegistryCreateLink>
+                    )}
+                    {refreshRegistriesButton}
+                  </Group>
+                )}
+              </form.Subscribe>
+            </Group>
             <form.Subscribe selector={s => s.values.enabledProxy}>
               {enabledProxy => enabledProxy && (
-                <Group gap="xs" grow align="flex-start" mt="xs">
-                  <form.Field
-                    name="registryId"
-                    validators={{
-                      onChange: registryIdSchema,
-                    }}
-                  >
-                    {field => (
-                      <Select
-                        data={registryOptions}
-                        value={field.state.value != null ? String(field.state.value) : null}
-                        onChange={val => field.handleChange(Number(val))}
-                        onBlur={field.handleBlur}
-                        error={fieldError(field)}
+                <Stack gap="xs" mt="xs">
+                  {showEmptyRegistryHint && (
+                    <Group gap={4} align="center" wrap="nowrap">
+                      <IconInfoCircle
+                        size={16}
+                        color="var(--mantine-primary-color-filled)"
                       />
-                    )}
-                  </form.Field>
+                      <Text size="sm" c="dimmed">
+                        <Trans
+                          i18nKey="projects.createModal.emptyRegistryHint"
+                          components={[registryLink]}
+                        />
+                      </Text>
+                      {refreshRegistriesButton}
+                    </Group>
+                  )}
 
-                  <form.Field
-                    name="organization"
-                    validators={{
-                      onChange: organizationSchema,
-                    }}
-                  >
-                    {field => (
-                      <TextInput
-                        placeholder={t('projects.createModal.organizationPlaceholder')}
-                        value={field.state.value ?? ''}
-                        onChange={e => field.handleChange(e.currentTarget.value)}
-                        error={fieldError(field)}
-                      />
-                    )}
-                  </form.Field>
-                </Group>
+                  <Group gap="xs" align="flex-start" wrap="nowrap">
+                    <form.Field
+                      name="registryId"
+                      validators={{
+                        onChange: registryIdSchema,
+                      }}
+                    >
+                      {field => (
+                        <Select
+                          flex={1}
+                          data={registryOptions}
+                          placeholder={t('projects.createModal.registryPlaceholder')}
+                          nothingFoundMessage={t('projects.createModal.registryEmptyOption')}
+                          value={field.state.value != null ? String(field.state.value) : null}
+                          onChange={val => field.handleChange(Number(val))}
+                          onBlur={field.handleBlur}
+                          error={fieldError(field)}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field
+                      name="organization"
+                      validators={{
+                        onChange: organizationSchema,
+                      }}
+                    >
+                      {field => (
+                        <TextInput
+                          flex={1}
+                          placeholder={t('projects.createModal.organizationPlaceholder')}
+                          value={field.state.value ?? ''}
+                          onChange={e => field.handleChange(e.currentTarget.value)}
+                          error={fieldError(field)}
+                        />
+                      )}
+                    </form.Field>
+                  </Group>
+                </Stack>
               )}
             </form.Subscribe>
           </Input.Wrapper>

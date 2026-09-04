@@ -113,6 +113,11 @@
     "registryLabel": "上游仓库",
     "organizationLabel": "Organization / 用户名",
     "organizationPlaceholder": "例如：Qwen",
+    "createRegistry": "创建目标仓库",
+    "emptyRegistryHint": "暂无可用目标仓库，请先创建仓库，<0>去创建目标仓库</0>",
+    "registryPlaceholder": "https://huggingface.co",
+    "registryEmptyOption": "暂无数据",
+    "refreshRegistries": "刷新仓库列表",
     "createFailed": "项目创建失败"
   },
   "deleteModal": {
