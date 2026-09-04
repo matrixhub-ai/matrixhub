@@ -17,6 +17,7 @@ package repo
 import (
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	gitstorage "github.com/matrixhub-ai/hfd/pkg/storage"
+	xetstorage "github.com/wzshiming/xet/storage"
 	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
@@ -55,7 +56,7 @@ type Repos struct {
 	Robot       robot.IRobotRepo
 }
 
-func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror) *Repos {
+func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror, xetStore xetstorage.GCStore) *Repos {
 	log.Debug("init database")
 	database, err := db.New(conf.Database)
 	if err != nil {
@@ -81,7 +82,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.SSHKey = NewSSHKeyRepo(repos.DB)
 	repos.Model = NewModelDB(repos.DB)
 	repos.Label = NewLabelDB(repos.DB)
-	repos.Git = NewGitDB(repos.GitStorage, repos.GitMirror)
+	repos.Git = NewGitDB(repos.GitStorage, repos.GitMirror, xetStore, conf.APIServer.GCGrace)
 	repos.Dataset = NewDatasetDB(repos.DB)
 	repos.Registry = NewRegistryRepo(repos.DB)
 	repos.SyncPolicy = NewSyncPolicyDB(repos.DB)

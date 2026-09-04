@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -39,6 +40,7 @@ database:
   migrate: true
 apiServer:
   port: 3001
+  gcGrace: -1s
 `, migrationDir, dataDir)
 	require.NoError(t, os.WriteFile(configPath, []byte(configYAML), 0o600))
 
@@ -46,6 +48,7 @@ apiServer:
 	require.NoError(t, err)
 	require.Equal(t, db.DriverSQLite, config.Database.Driver)
 	require.Equal(t, migrationDir, config.Database.SQLPath)
+	require.Equal(t, -time.Second, config.APIServer.GCGrace)
 
 	dsn, err := url.Parse(config.Database.DSN)
 	require.NoError(t, err)

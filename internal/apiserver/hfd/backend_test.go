@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apiserver
+package hfd
 
 import (
 	"reflect"
@@ -21,16 +21,13 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 )
 
-func TestInitGitStorageDoesNotRegisterMetadataPostReceiveHook(t *testing.T) {
-	server := &APIServer{
-		config: &config.Config{DataDir: t.TempDir()},
-	}
-	server.initMirrorHooks()
-	server.initGitStorage()
+func TestNewDoesNotRegisterMirrorReceiveHooks(t *testing.T) {
+	b := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 
-	postReceiveHook := reflect.ValueOf(server.gitStorage.sharedMirror).
-		Elem().FieldByName("postReceiveHookFunc")
-	if !postReceiveHook.IsNil() {
-		t.Fatal("mirror must not register the metadata post-receive hook")
+	m := reflect.ValueOf(b.storage.sharedMirror).Elem()
+	for _, field := range []string{"preReceiveHookFunc", "postReceiveHookFunc"} {
+		if !m.FieldByName(field).IsNil() {
+			t.Fatalf("mirror must not register %s: mirror pulls carry remote-namespace repo names", field)
+		}
 	}
 }

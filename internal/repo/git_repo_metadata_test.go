@@ -18,8 +18,6 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/matrixhub-ai/hfd/pkg/repository"
@@ -31,7 +29,7 @@ import (
 
 func TestExtractMetadataUsesTreeSize(t *testing.T) {
 	ctx := context.Background()
-	repo := NewGitDB(hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir())), nil)
+	repo := NewGitDB(hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir())), nil, nil, 0)
 
 	const (
 		project = "test-project"
@@ -74,12 +72,9 @@ func TestExtractMetadataReadsSingleSafetensorsHeader(t *testing.T) {
 	ctx := context.Background()
 	root := t.TempDir()
 	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(root))
-	repoPath := store.ResolvePath("test-project/test-model")
-	if err := os.MkdirAll(filepath.Dir(repoPath), 0750); err != nil {
-		t.Fatalf("os.MkdirAll() error = %v", err)
-	}
+	repoPath := repository.ResolvePath("test-project/test-model")
 
-	repo, err := repository.Init(ctx, repoPath, "main")
+	repo, err := repository.Init(ctx, store.RepositoriesFS(), repoPath, "main")
 	if err != nil {
 		t.Fatalf("repository.Init() error = %v", err)
 	}
@@ -96,7 +91,7 @@ func TestExtractMetadataReadsSingleSafetensorsHeader(t *testing.T) {
 		t.Fatalf("CreateCommit() error = %v", err)
 	}
 
-	gitRepo := NewGitDB(store, nil)
+	gitRepo := NewGitDB(store, nil, nil, 0)
 	files, err := gitRepo.ExtractMetadata(ctx, "models", "test-project", "test-model")
 	if err != nil {
 		t.Fatalf("ExtractMetadata() error = %v", err)
@@ -144,7 +139,7 @@ func TestCollectSafetensorsFileSkipsReadWhenBudgetSpent(t *testing.T) {
 		SafetensorsFiles: make(map[string][]byte),
 		SafetensorsSizes: make(map[string]int64),
 	}
-	NewGitDB(store, nil).(*gitRepo).collectSafetensorsFile(spentCtx, repo, "main", "model.safetensors", metadata)
+	NewGitDB(store, nil, nil, 0).(*gitRepo).collectSafetensorsFile(spentCtx, repo, "main", "model.safetensors", metadata)
 
 	if len(metadata.SafetensorsFiles) != 0 {
 		t.Fatalf("SafetensorsFiles = %v, want no header read", metadata.SafetensorsFiles)
@@ -172,7 +167,7 @@ func TestExtractMetadataFallsBackToLFSPointerSize(t *testing.T) {
 		t.Fatalf("CreateCommit() error = %v", err)
 	}
 
-	files, err := NewGitDB(store, nil).ExtractMetadata(ctx, "models", "test-project", "test-model")
+	files, err := NewGitDB(store, nil, nil, 0).ExtractMetadata(ctx, "models", "test-project", "test-model")
 	if err != nil {
 		t.Fatalf("ExtractMetadata() error = %v", err)
 	}
@@ -220,7 +215,7 @@ func TestExtractMetadataSkipsShardHeadersWhenIndexHasTotalSize(t *testing.T) {
 		t.Fatalf("CreateCommit() error = %v", err)
 	}
 
-	files, err := NewGitDB(store, nil).ExtractMetadata(ctx, "models", "test-project", "test-model")
+	files, err := NewGitDB(store, nil, nil, 0).ExtractMetadata(ctx, "models", "test-project", "test-model")
 	if err != nil {
 		t.Fatalf("ExtractMetadata() error = %v", err)
 	}
@@ -247,11 +242,8 @@ func TestExtractMetadataSkipsShardHeadersWhenIndexHasTotalSize(t *testing.T) {
 func initRepoTestRepository(t *testing.T, ctx context.Context, store *hfdstorage.Storage) *repository.Repository {
 	t.Helper()
 
-	repoPath := store.ResolvePath("test-project/test-model")
-	if err := os.MkdirAll(filepath.Dir(repoPath), 0750); err != nil {
-		t.Fatalf("os.MkdirAll() error = %v", err)
-	}
-	repo, err := repository.Init(ctx, repoPath, "main")
+	repoPath := repository.ResolvePath("test-project/test-model")
+	repo, err := repository.Init(ctx, store.RepositoriesFS(), repoPath, "main")
 	if err != nil {
 		t.Fatalf("repository.Init() error = %v", err)
 	}
