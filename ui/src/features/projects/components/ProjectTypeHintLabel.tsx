@@ -1,15 +1,17 @@
 import {
-  Anchor, Group, HoverCard, List, Text,
+  Anchor, Group, List, Popover, Text,
 } from '@mantine/core'
 import { IconExternalLink } from '@tabler/icons-react'
+import { useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import IconQuestion from '@/assets/svgs/question.svg?react'
 
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 
-// TODO: replace with the permission guide path once the doc is published.
-// Tracked by https://github.com/matrixhub-ai/matrixhub/issues/872
+// TODO: point this at the permission guide once that doc is published. It
+// currently falls back to the project members doc, which covers role
+// permissions but not the full ruleset.
 const PROJECT_PERMISSION_DOC_URL = '/docs/operations/project-management/members/'
 
 const DROPDOWN_WIDTH = 360
@@ -33,8 +35,13 @@ function PermissionDocLink({ children }: { children?: ReactNode }) {
       c="blue.4"
     >
       {children}
-      {' '}
-      <IconExternalLink size={14} style={{ verticalAlign: '-0.2em' }} />
+      <IconExternalLink
+        size={14}
+        style={{
+          verticalAlign: '-0.2em',
+          marginInlineStart: '0.25em',
+        }}
+      />
     </Anchor>
   )
 }
@@ -46,11 +53,14 @@ interface ProjectTypeHintLabelProps {
 /**
  * Project visibility label with an interactive hint.
  *
- * Uses HoverCard instead of the shared FieldHintLabel tooltip because the hint
- * contains a link, and Mantine tooltips are `pointer-events: none`.
+ * Uses Popover rather than the shared FieldHintLabel tooltip because the hint
+ * contains a link: Mantine tooltips are `pointer-events: none`, so a link
+ * inside one cannot be clicked. The open state is controlled so that the hint
+ * responds to keyboard focus as well as hover.
  */
 export function ProjectTypeHintLabel({ label }: ProjectTypeHintLabelProps) {
   const { t } = useTranslation()
+  const [opened, setOpened] = useState(false)
 
   return (
     <Group
@@ -66,12 +76,12 @@ export function ProjectTypeHintLabel({ label }: ProjectTypeHintLabelProps) {
       <Text component="span" inherit>
         {label}
       </Text>
-      <HoverCard
+      <Popover
         width={DROPDOWN_WIDTH}
         shadow="md"
         withArrow
-        openDelay={100}
-        closeDelay={150}
+        opened={opened}
+        onChange={setOpened}
         styles={{
           dropdown: {
             backgroundColor: 'var(--mantine-color-gray-9)',
@@ -84,17 +94,32 @@ export function ProjectTypeHintLabel({ label }: ProjectTypeHintLabelProps) {
           },
         }}
       >
-        <HoverCard.Target>
+        <Popover.Target>
           <IconQuestion
             width={18}
             height={18}
+            role="button"
+            tabIndex={0}
+            aria-label={t('common.moreInfo')}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+            onFocus={() => setOpened(true)}
+            onBlur={() => setOpened(false)}
+            onKeyDown={(event: KeyboardEvent) => {
+              if (event.key === 'Escape') {
+                setOpened(false)
+              }
+            }}
             style={{
               cursor: 'help',
               flex: 'none',
             }}
           />
-        </HoverCard.Target>
-        <HoverCard.Dropdown>
+        </Popover.Target>
+        <Popover.Dropdown
+          onMouseEnter={() => setOpened(true)}
+          onMouseLeave={() => setOpened(false)}
+        >
           <List size="xs" spacing={4}>
             <List.Item>{t('projects.typeHint.public')}</List.Item>
             <List.Item>{t('projects.typeHint.private')}</List.Item>
@@ -105,8 +130,8 @@ export function ProjectTypeHintLabel({ label }: ProjectTypeHintLabelProps) {
               />
             </List.Item>
           </List>
-        </HoverCard.Dropdown>
-      </HoverCard>
+        </Popover.Dropdown>
+      </Popover>
     </Group>
   )
 }

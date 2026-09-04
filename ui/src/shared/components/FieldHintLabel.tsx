@@ -3,6 +3,7 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 
 import IconQuestion from '@/assets/svgs/question.svg?react'
 
@@ -22,6 +23,8 @@ export function FieldHintLabel({
   hint,
   tooltipProps,
 }: FieldHintLabelProps) {
+  const { t } = useTranslation()
+
   return (
     <Group
       component="span"
@@ -41,11 +44,19 @@ export function FieldHintLabel({
         multiline
         withArrow
         w={DEFAULT_TOOLTIP_WIDTH}
+        events={{
+          hover: true,
+          focus: true,
+          touch: true,
+        }}
         {...tooltipProps}
       >
         <IconQuestion
           width={18}
           height={18}
+          role="button"
+          tabIndex={0}
+          aria-label={t('common.moreInfo')}
           style={{
             cursor: 'help',
             flex: 'none',
