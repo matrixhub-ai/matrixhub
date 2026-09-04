@@ -39,7 +39,7 @@ MATRIXHUB_SELF_URL ?=
 # release and namespace are both "matrixhub", service port is apiserver.service.port).
 E2E_KIND_SELF_URL ?= http://matrixhub.matrixhub.svc.cluster.local:9527
 UNIT_TEST_COVERAGE_PROFILE ?= coverage.out
-GOLANGCI_LINT_VERSION ?= v2.8.0
+GOLANGCI_LINT_VERSION ?= v2.12.2
 ACTIONLINT_VERSION ?= latest
 GOVULNCHECK_VERSION ?= latest
 

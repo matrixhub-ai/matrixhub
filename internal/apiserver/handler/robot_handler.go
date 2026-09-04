@@ -216,7 +216,16 @@ func (r *RobotHandler) UpdateRobotAccount(ctx context.Context, request *v1alpha1
 	rb.PlatformPermissions = platformPermissions
 	rb.ProjectPermissions = projectPermissions
 	rb.ProjectScope = scope
-	rb.Enabled = request.Status == v1alpha1.RobotAccountStatus_ROBOT_ACCOUNT_STATUS_ENABLED
+	switch request.Status {
+	case v1alpha1.RobotAccountStatus_ROBOT_ACCOUNT_STATUS_UNSPECIFIED:
+		// Keep the existing status when callers update unrelated fields.
+	case v1alpha1.RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED:
+		rb.Enabled = false
+	case v1alpha1.RobotAccountStatus_ROBOT_ACCOUNT_STATUS_ENABLED:
+		rb.Enabled = true
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid robot account status: %d", request.Status)
+	}
 
 	if int(request.ExpireDays) != rb.Duration {
 		if request.ExpireDays == 0 {

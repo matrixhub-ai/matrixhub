@@ -72,19 +72,22 @@ func (RobotAccountProjectScope) EnumDescriptor() ([]byte, []int) {
 type RobotAccountStatus int32
 
 const (
-	RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED RobotAccountStatus = 0
-	RobotAccountStatus_ROBOT_ACCOUNT_STATUS_ENABLED  RobotAccountStatus = 1
+	RobotAccountStatus_ROBOT_ACCOUNT_STATUS_UNSPECIFIED RobotAccountStatus = 0
+	RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED    RobotAccountStatus = 1
+	RobotAccountStatus_ROBOT_ACCOUNT_STATUS_ENABLED     RobotAccountStatus = 2
 )
 
 // Enum value maps for RobotAccountStatus.
 var (
 	RobotAccountStatus_name = map[int32]string{
-		0: "ROBOT_ACCOUNT_STATUS_DISABLED",
-		1: "ROBOT_ACCOUNT_STATUS_ENABLED",
+		0: "ROBOT_ACCOUNT_STATUS_UNSPECIFIED",
+		1: "ROBOT_ACCOUNT_STATUS_DISABLED",
+		2: "ROBOT_ACCOUNT_STATUS_ENABLED",
 	}
 	RobotAccountStatus_value = map[string]int32{
-		"ROBOT_ACCOUNT_STATUS_DISABLED": 0,
-		"ROBOT_ACCOUNT_STATUS_ENABLED":  1,
+		"ROBOT_ACCOUNT_STATUS_UNSPECIFIED": 0,
+		"ROBOT_ACCOUNT_STATUS_DISABLED":    1,
+		"ROBOT_ACCOUNT_STATUS_ENABLED":     2,
 	}
 )
 
@@ -529,7 +532,7 @@ func (x *GetRobotAccountResponse) GetStatus() RobotAccountStatus {
 	if x != nil {
 		return x.Status
 	}
-	return RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED
+	return RobotAccountStatus_ROBOT_ACCOUNT_STATUS_UNSPECIFIED
 }
 
 func (x *GetRobotAccountResponse) GetPlatformPermissions() []string {
@@ -730,7 +733,7 @@ func (x *UpdateRobotAccountRequest) GetStatus() RobotAccountStatus {
 	if x != nil {
 		return x.Status
 	}
-	return RobotAccountStatus_ROBOT_ACCOUNT_STATUS_DISABLED
+	return RobotAccountStatus_ROBOT_ACCOUNT_STATUS_UNSPECIFIED
 }
 
 func (x *UpdateRobotAccountRequest) GetPlatformPermissions() []string {
@@ -973,10 +976,11 @@ const file_v1alpha1_robot_proto_rawDesc = "" +
 	"\x05token\x18\x01 \x01(\tR\x05token*i\n" +
 	"\x18RobotAccountProjectScope\x12(\n" +
 	"$ROBOT_ACCOUNT_PROJECT_SCOPE_SELECTED\x10\x00\x12#\n" +
-	"\x1fROBOT_ACCOUNT_PROJECT_SCOPE_ALL\x10\x01*Y\n" +
-	"\x12RobotAccountStatus\x12!\n" +
-	"\x1dROBOT_ACCOUNT_STATUS_DISABLED\x10\x00\x12 \n" +
-	"\x1cROBOT_ACCOUNT_STATUS_ENABLED\x10\x01*\x91\x01\n" +
+	"\x1fROBOT_ACCOUNT_PROJECT_SCOPE_ALL\x10\x01*\x7f\n" +
+	"\x12RobotAccountStatus\x12$\n" +
+	" ROBOT_ACCOUNT_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dROBOT_ACCOUNT_STATUS_DISABLED\x10\x01\x12 \n" +
+	"\x1cROBOT_ACCOUNT_STATUS_ENABLED\x10\x02*\x91\x01\n" +
 	"\x18RobotAccountExpireStatus\x12'\n" +
 	"#ROBOT_ACCOUNT_EXPIRE_STATUS_EXPIRED\x10\x00\x12%\n" +
 	"!ROBOT_ACCOUNT_EXPIRE_STATUS_VALID\x10\x01\x12%\n" +
