@@ -13,6 +13,7 @@ import {
   type DataTableProps,
   type DataTableRowActionsProps,
 } from '@/shared/components/DataTable'
+import { TruncatedText } from '@/shared/components/TruncatedText'
 import { formatDateTime } from '@/shared/utils/date'
 
 import { DeleteRegistryAction } from './DeleteRegistryAction'
@@ -26,6 +27,12 @@ import type { MRT_ColumnDef } from 'mantine-react-table'
 type RegistryCellProps = Parameters<NonNullable<MRT_ColumnDef<Registry>['Cell']>>[0]
 
 type RegistriesTableProps = Omit<DataTableProps<Registry>, 'columns'>
+
+function RegistryNameCell({ row }: RegistryCellProps) {
+  const name = row.original.name
+
+  return <TruncatedText value={name || '-'} />
+}
 
 function RegistryTypeCell({ row }: RegistryCellProps) {
   const { t } = useTranslation()
@@ -66,9 +73,11 @@ function RegistryUrlCell({ row }: RegistryCellProps) {
   }
 
   return (
-    <Anchor size="sm" href={url} target="_blank" rel="noopener noreferrer">
-      {url}
-    </Anchor>
+    <TruncatedText value={url}>
+      <Anchor size="sm" href={url} target="_blank" rel="noopener noreferrer">
+        {url}
+      </Anchor>
+    </TruncatedText>
   )
 }
 
@@ -122,37 +131,51 @@ export function RegistriesTable(props: RegistriesTableProps) {
     {
       id: 'name',
       header: t('routes.admin.registries.table.name'),
-      accessorFn: row => row.name ?? '-',
+      size: 180,
+      minSize: 140,
+      Cell: RegistryNameCell,
     },
     {
       id: 'status',
       header: t('routes.admin.registries.table.status'),
+      size: 100,
+      grow: false,
       Cell: RegistryStatusCell,
     },
     {
       id: 'url',
       header: t('routes.admin.registries.table.url'),
+      size: 190,
+      minSize: 160,
       Cell: RegistryUrlCell,
     },
     {
       id: 'type',
       header: t('routes.admin.registries.table.type'),
+      size: 130,
+      grow: false,
       Cell: RegistryTypeCell,
     },
     {
       id: 'insecure',
       header: t('routes.admin.registries.table.insecure'),
+      size: 160,
+      grow: false,
       Cell: RegistryInsecureCell,
     },
     {
       id: 'credential',
       header: t('routes.admin.registries.table.credential'),
+      size: 100,
+      grow: false,
       Cell: RegistryCredentialCell,
     },
     {
       id: 'createdAt',
       header: t('routes.admin.registries.table.createdAt'),
       accessorFn: row => formatDateTime(row.createdAt),
+      size: 150,
+      grow: false,
     },
   ], [t])
 
@@ -165,6 +188,14 @@ export function RegistriesTable(props: RegistriesTableProps) {
       getRowId={getRegistryRowId}
       enableRowActions
       renderRowActions={RegistryActionsCell}
+      pinRowActions
+      tableOptions={{
+        enableColumnPinning: true,
+        initialState: {
+          // Keep the row identity visible while scrolling the wider columns.
+          columnPinning: { left: ['name'] },
+        },
+      }}
     />
   )
 }

@@ -1,0 +1,49 @@
+/* MRT paints the pinned-column divider unconditionally, so a pinned column
+   shows a shadow even when the table fits and there is nothing to scroll.
+   Gate each side's shadow on the container's actual scroll position.
+
+   Head/footer cells carry the shadow directly, body cells carry it on
+   `::before`. The extra `[data-column-pinned]` qualifier keeps these rules
+   above MRT's own selectors, which would otherwise tie on specificity and be
+   decided by stylesheet order. */
+
+.container:not([data-scrolled-left]) {
+  & [data-column-pinned='left'][data-column-pinned][data-last-left-pinned] {
+    box-shadow: none;
+
+    &::before {
+      box-shadow: none;
+    }
+  }
+}
+
+.container:not([data-scrollable-right]) {
+  & [data-column-pinned='right'][data-column-pinned][data-first-right-pinned] {
+    box-shadow: none;
+
+    &::before {
+      box-shadow: none;
+    }
+  }
+}
+
+/* MRT gives pinned cells `opacity: 0.97`, so the columns scrolling underneath
+   bleed through them. Keep them fully opaque — the pinned column has to read as
+   a solid layer above the scrolling content, not a translucent one. The `tr td`
+   qualifier matches the specificity of MRT's own row-scoped rule. */
+.container [data-column-pinned],
+.container tr td[data-column-pinned] {
+  opacity: 1;
+}
+
+/* `layoutMode: 'grid'` turns rows into flex containers, so the row border no
+   longer collapses into the cell box the way it did in semantic table layout —
+   each row would grow by 1px. Move the border onto the cells, where
+   `box-sizing: border-box` keeps it inside the fixed cell height. */
+.container tbody tr {
+  border-bottom: none;
+}
+
+.container tbody tr td {
+  border-bottom: 1px solid var(--table-border-color, var(--mantine-color-gray-3));
+}

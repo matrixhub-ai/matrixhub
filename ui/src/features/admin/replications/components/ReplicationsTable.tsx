@@ -19,6 +19,7 @@ import {
   type DataTableRowActionsProps,
 } from '@/shared/components/DataTable'
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
+import { TruncatedText } from '@/shared/components/TruncatedText'
 
 import { DeleteReplicationAction } from './DeleteReplicationAction'
 import { EditReplicationAction } from './EditReplicationAction'
@@ -40,32 +41,36 @@ type ReplicationsTableProps = Omit<DataTableProps<SyncPolicyItem>, 'columns'>
 
 const EMPTY_VALUE = '-'
 
+function ReplicationTruncatedTextCell({ cell }: ReplicationCellProps) {
+  return <TruncatedText value={cell.getValue<string>() || EMPTY_VALUE} />
+}
+
 function ReplicationNameCell({ row }: ReplicationCellProps) {
   const name = row.original.name
   const replicationId = row.original.id
 
   if (replicationId == null) {
     return (
-      <Text fw={500}>
-        {name ?? EMPTY_VALUE}
-      </Text>
+      <TruncatedText value={name ?? EMPTY_VALUE} fw={500} />
     )
   }
 
   return (
-    <Anchor
-      fw={500}
-      underline="never"
-      renderRoot={props => (
-        <Link
-          {...props}
-          to="/admin/replications/$replicationId/executions"
-          params={{ replicationId: String(replicationId) }}
-        />
-      )}
-    >
-      {name ?? EMPTY_VALUE}
-    </Anchor>
+    <TruncatedText value={name ?? EMPTY_VALUE}>
+      <Anchor
+        fw={500}
+        underline="never"
+        renderRoot={props => (
+          <Link
+            {...props}
+            to="/admin/replications/$replicationId/executions"
+            params={{ replicationId: String(replicationId) }}
+          />
+        )}
+      >
+        {name ?? EMPTY_VALUE}
+      </Anchor>
+    </TruncatedText>
   )
 }
 
@@ -208,6 +213,7 @@ export function ReplicationsTable(props: ReplicationsTableProps) {
       id: 'source',
       header: t('routes.admin.replications.table.source'),
       accessorFn: row => getReplicationSource(row, localLabel),
+      Cell: ReplicationTruncatedTextCell,
     },
     {
       id: 'syncMode',
@@ -228,6 +234,7 @@ export function ReplicationsTable(props: ReplicationsTableProps) {
       id: 'target',
       header: t('routes.admin.replications.table.target'),
       accessorFn: row => getReplicationTarget(row, localLabel),
+      Cell: ReplicationTruncatedTextCell,
     },
     {
       id: 'triggerType',
@@ -255,6 +262,11 @@ export function ReplicationsTable(props: ReplicationsTableProps) {
       getRowId={getReplicationRowId}
       enableRowActions
       renderRowActions={ReplicationActionsCell}
+      pinRowActions
+      displayColumnDefOptions={{
+        // Four text buttons; the wrapper default clips them.
+        'mrt-row-actions': { size: 250 },
+      }}
     />
   )
 }

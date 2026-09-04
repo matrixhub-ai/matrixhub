@@ -14,9 +14,14 @@ import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks'
 import { IconRefresh, IconTrash } from '@tabler/icons-react'
 import { MantineReactTable } from 'mantine-react-table'
 import 'mantine-react-table/styles.css'
-import { useMemo } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
+import classes from './DataTable.module.css'
 import { Pagination } from './Pagination'
 import {
   SearchToolbar,
@@ -25,6 +30,7 @@ import {
 
 import type { Pagination as PaginationData } from '@matrixhub/api-ts/v1alpha1/utils.pb'
 import type {
+  HTMLPropsRef,
   MRT_ColumnDef,
   MRT_Row,
   MRT_RowData,
@@ -33,7 +39,7 @@ import type {
   MRT_TableOptions,
 } from 'mantine-react-table'
 import type {
-  Dispatch, ReactNode, SetStateAction,
+  Dispatch, MutableRefObject, ReactNode, SetStateAction,
 } from 'react'
 
 // -- Toolbar types --
@@ -164,9 +170,53 @@ function mergeTableOptionProps<TData extends MRT_RowData, TProps extends object>
   }
 }
 
+type TableContainerProps = BoxProps & HTMLPropsRef<HTMLDivElement>
+
+// The wrapper's own `ref` and `className` drive the pinned-shadow tracking and
+// its stylesheet, so they must survive a caller-supplied
+// `mantineTableContainerProps`. Merge those two explicitly instead of letting a
+// plain spread drop them; everything else still overrides as usual.
+//
+// MRT types this `ref` as a ref object rather than a callback, so the two refs
+// cannot be combined into one. The wrapper's ref stays on the element and the
+// caller's is populated from it in an effect.
+function mergeTableContainerProps<TData extends MRT_RowData>(
+  defaults: TableContainerProps & { className: string },
+  props:
+    | TableContainerProps
+    | ((args: { table: MRT_TableInstance<TData> }) => TableContainerProps)
+    | undefined,
+) {
+  const combine = (overrides: TableContainerProps | undefined): TableContainerProps => {
+    if (!overrides) {
+      return defaults
+    }
+
+    const {
+      ref: _callerRef,
+      className: overrideClassName,
+      ...rest
+    } = overrides
+
+    return {
+      ...defaults,
+      ...rest,
+      ref: defaults.ref,
+      className: overrideClassName
+        ? `${defaults.className} ${overrideClassName}`
+        : defaults.className,
+    }
+  }
+
+  if (typeof props === 'function') {
+    return (args: { table: MRT_TableInstance<TData> }) => combine(props(args))
+  }
+
+  return combine(props)
+}
+
 function resolveTableOptionProps<TArgs extends object, TProps extends object>(
-  props: TProps | ((args: TArgs) => TProps) | undefined,
-  args: TArgs,
+  props: TProps | ((args: TArgs) => TProps) | undefined, args: TArgs,
 ) {
   if (!props) {
     return undefined
@@ -236,8 +286,75 @@ function withFilterTooltipLabels<TData extends MRT_RowData>(
   })
 }
 
-// -- DataTable --
+// MRT always paints the pinned-column divider, even when the table fits and
+// there is nothing to scroll. Track the container's real scroll position and
+// expose it as data attributes so the stylesheet can hide each side's shadow
+// until that side actually has content scrolled out of view.
+function usePinnedShadowContainerRef(callerRef?: MutableRefObject<HTMLDivElement | null> | null) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
+  useEffect(() => {
+    const element = containerRef.current
+
+    // MRT only accepts one ref object on the container, so a caller-supplied
+    // ref is populated from ours rather than replacing it.
+    if (callerRef) {
+      callerRef.current = element
+    }
+
+    if (!element) {
+      return
+    }
+
+    const detachCallerRef = () => {
+      if (callerRef) {
+        callerRef.current = null
+      }
+    }
+
+    const update = () => {
+      const {
+        scrollLeft,
+        scrollWidth,
+        clientWidth,
+      } = element
+
+      // 1px tolerance: sub-pixel layout can leave a fractional remainder.
+      element.toggleAttribute('data-scrolled-left', scrollLeft > 0)
+      element.toggleAttribute(
+        'data-scrollable-right',
+        scrollWidth - clientWidth - scrollLeft > 1,
+      )
+    }
+
+    update()
+
+    const observer = new ResizeObserver(update)
+
+    // The container tracks viewport resizes; the inner table tracks row and
+    // column changes, which move the scrollable width without resizing the
+    // container.
+    observer.observe(element)
+
+    const table = element.querySelector('table')
+
+    if (table) {
+      observer.observe(table)
+    }
+
+    element.addEventListener('scroll', update, { passive: true })
+
+    return () => {
+      observer.disconnect()
+      element.removeEventListener('scroll', update)
+      detachCallerRef()
+    }
+  }, [callerRef])
+
+  return containerRef
+}
+
+// -- DataTable --
 export function DataTable<TData extends MRT_RowData>({
   data,
   columns,
@@ -285,6 +402,7 @@ export function DataTable<TData extends MRT_RowData>({
     enableColumnPinning = false,
     enableColumnFilters = true,
     initialState,
+    layoutMode = 'grid',
     mantineFilterSelectProps,
     mantineFilterTextInputProps,
     mantinePaperProps,
@@ -295,6 +413,14 @@ export function DataTable<TData extends MRT_RowData>({
   } = tableOptions ?? {}
 
   const enhancedColumns = useMemo(() => withFilterTooltipLabels(columns), [columns])
+
+  // A container ref is only reachable from the static form of the prop; the
+  // function form is resolved per-render by MRT.
+  const callerContainerRef = typeof mantineTableContainerProps === 'function'
+    ? undefined
+    : mantineTableContainerProps?.ref
+
+  const containerRef = usePinnedShadowContainerRef(callerContainerRef)
 
   const shouldPinRowActions = enableRowActions && pinRowActions
   const actionColumnPinning = initialState?.columnPinning
@@ -320,12 +446,23 @@ export function DataTable<TData extends MRT_RowData>({
     ...(displayColumnDefOptions ?? {}),
     'mrt-row-select': {
       header: '',
+      // `minSize` has to be overridden too: the wrapper's `defaultColumn`
+      // minimum applies to display columns as well and would otherwise win
+      // over this size.
       size: 44,
+      minSize: 44,
       grow: false,
       ...displayColumnDefOptions?.['mrt-row-select'],
     },
     'mrt-row-actions': {
       header: t('shared.actions'),
+      // MRT's default is too narrow for multi-button action cells. An action
+      // column that is too narrow hides its buttons *without* widening the
+      // table, so no scrollbar appears and they become unreachable — size this
+      // to the widest action row in the feature table rather than relying on
+      // the default.
+      size: 140,
+      grow: false,
       ...displayColumnDefOptions?.['mrt-row-actions'],
     },
   }
@@ -450,8 +587,14 @@ export function DataTable<TData extends MRT_RowData>({
         enableSorting={false}
         enableTableHead={!hideTableHead}
         columnFilterDisplayMode={columnFilterDisplayMode}
+        // `grid` layout makes per-column `size` actually apply, so wide content
+        // no longer stretches the table into a long horizontal scroll.
+        layoutMode={layoutMode}
         defaultColumn={{
           enableColumnFilter: false,
+          size: 160,
+          minSize: 80,
+          maxSize: 400,
           ...defaultColumn,
         }}
         // Selection
@@ -494,8 +637,10 @@ export function DataTable<TData extends MRT_RowData>({
           },
           mantinePaperProps,
         )}
-        mantineTableContainerProps={mergeTableOptionProps<TData, BoxProps>(
+        mantineTableContainerProps={mergeTableContainerProps<TData>(
           {
+            ref: containerRef,
+            className: classes.container,
             style: {
               maxWidth: '100%',
               overflowX: 'auto',

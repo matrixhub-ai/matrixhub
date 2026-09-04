@@ -101,7 +101,7 @@ function ActionsCell({
   const isSelf = meta?.currentUsername === row.original.memberName
 
   return (
-    <Group gap="md">
+    <Group gap="md" wrap="nowrap">
       <Anchor
         component="button"
         type="button"
@@ -192,6 +192,10 @@ export function MembersTable({
       getRowId={row => `${row.memberType}:${row.memberId}`}
       enableRowActions={isAdmin}
       renderRowActions={ActionsCell}
+      displayColumnDefOptions={{
+        // "Edit Permission" + "Remove"; the wrapper default clips them.
+        'mrt-row-actions': { size: 200 },
+      }}
       tableOptions={{
         enableBatchRowSelection: true,
         enableMultiRowSelection: true,

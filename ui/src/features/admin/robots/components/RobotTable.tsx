@@ -15,6 +15,7 @@ import {
   type DataTableProps,
   type DataTableRowActionsProps,
 } from '@/shared/components/DataTable'
+import { TruncatedText } from '@/shared/components/TruncatedText'
 import { formatDateTime } from '@/shared/utils/date'
 
 import {
@@ -48,6 +49,10 @@ function RobotStatusCell({ row }: RobotCellProps) {
         : t('routes.admin.robots.boolean.no')}
     </Badge>
   )
+}
+
+function RobotNameCell({ row }: RobotCellProps) {
+  return <TruncatedText value={row.original.name || '-'} />
 }
 
 function RobotPlatformPermissionsCell({ row }: RobotCellProps) {
@@ -125,7 +130,8 @@ export function RobotTable({
     {
       id: 'name',
       header: t('routes.admin.robots.table.name'),
-      accessorFn: row => row.name ?? '-',
+      size: 180,
+      Cell: RobotNameCell,
     },
     {
       id: 'status',
@@ -135,11 +141,13 @@ export function RobotTable({
     {
       id: 'platformPermissions',
       header: t('routes.admin.robots.table.platformPermissions'),
+      size: 170,
       Cell: RobotPlatformPermissionsCell,
     },
     {
       id: 'projectCoverage',
       header: t('routes.admin.robots.table.projectCoverage'),
+      size: 210,
       Cell: RobotProjectCoverageCell,
     },
     {
@@ -218,6 +226,10 @@ export function RobotTable({
       enableRowActions
       renderRowActions={renderRobotActions}
       pinRowActions
+      displayColumnDefOptions={{
+        // Four text buttons; the wrapper default clips them.
+        'mrt-row-actions': { size: 320 },
+      }}
     />
   )
 }

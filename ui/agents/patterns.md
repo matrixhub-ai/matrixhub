@@ -392,6 +392,14 @@ Peer deps kept in the project: `@mantine/dates`, `@tabler/icons-react`, `clsx`, 
 
 All data tables go through the project wrapper. If the wrapper does not yet cover your case, extend the wrapper first, then use it in the page. The wrapper owns pagination, loading, empty state, row actions, selection behavior, shared styling, and default MRT filter behavior. Feature tables should only opt specific columns in with `enableColumnFilter: true` and the needed column filter props. Use `DataTable`'s `enableRowActions` + `renderRowActions` for per-row operations instead of adding regular columns like `id: 'actions'`. Use `pinRowActions` when the row actions column should remain fixed during horizontal scrolling.
 
+**Column width and overflow.** The wrapper runs MRT in `layoutMode: 'grid'`, so per-column `size` / `minSize` / `maxSize` actually apply (in the default `semantic` mode they mostly do not). Wrapper defaults are `size: 160`, `minSize: 80`, `maxSize: 400`; override per column in the feature table. Columns grow to fill leftover width by default — set `grow: false` on fixed-content columns (badges, dates, action buttons) so the growth goes to the text-heavy columns instead. This keeps the table inside the viewport on wide screens; the container still scrolls horizontally when the viewport is genuinely too narrow.
+
+For a column whose value can overflow its width, render `TruncatedText` (`src/shared/components/TruncatedText.tsx`) instead of a bare `<Text>`: it clamps to one line and shows the full value in a tooltip, but only when the text actually overflows. Pass custom content as `children` when the cell renders something other than plain text (e.g. an `Anchor`).
+
+When a table is wide enough to scroll, pin the identity columns with `tableOptions.enableColumnPinning` + `initialState.columnPinning.left` so the user can still tell which row they are on, and combine it with `pinRowActions` so the actions stay reachable without scrolling to the far edge. `src/features/admin/registries/components/RegistriesTable.tsx` is the reference.
+
+The wrapper also gates the pinned-column shadow on real scroll position (`DataTable.module.css`). MRT paints that divider whenever a column is pinned, even when the table fits and nothing can scroll; the wrapper tracks the container's `scrollLeft` / `scrollWidth` and hides each side's shadow until that side actually has content out of view. The same stylesheet overrides two other MRT defaults that only misbehave under `layoutMode: 'grid'` — pinned cells are forced opaque (MRT's `opacity: 0.97` lets the scrolling columns bleed through them), and the row border is moved from `tr` onto `td` (flex rows do not collapse the border into the fixed cell height, so every row would grow by 1px).
+
 Route-backed list pages hold search params, pagination navigation, refresh triggers, and row-selection state in the page layer or a shared hook — `src/shared/hooks/useRouteListState.ts`. The hook expects the search object to have `page` and `query` fields, and derives selected row ids + current-page selected records from `records` + `getRecordId`. Feature table components stay focused on columns, cells, and feature-specific toolbar actions.
 
 Do not introduce a second table abstraction or a second table library for the same class of UI.
@@ -465,3 +473,4 @@ import { Users } from '@matrixhub/api-ts/v1alpha1/user.pb'
 - Do not wire `mantine-react-table` directly in a feature page — use the project wrapper.
 - Do not add a direct `@tanstack/react-table` dependency.
 - Do not introduce a second table library for the same class of UI without agreement.
+- Do not leave overflow-prone columns un-truncated — use `TruncatedText` instead of letting one long value stretch the whole table.

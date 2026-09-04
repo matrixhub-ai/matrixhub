@@ -115,6 +115,11 @@ export function UsersTable({
       getRowId={getUserRowId}
       enableRowActions
       renderRowActions={UserActionsCell}
+      pinRowActions
+      displayColumnDefOptions={{
+        // Three text buttons; the wrapper default clips them.
+        'mrt-row-actions': { size: 330 },
+      }}
       tableOptions={{
         ...tableOptions,
         enableBatchRowSelection: true,
