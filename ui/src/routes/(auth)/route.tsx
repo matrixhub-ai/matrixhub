@@ -1,4 +1,5 @@
 import {
+  Anchor,
   AppShell,
   Avatar,
   Flex,
@@ -11,6 +12,7 @@ import {
 } from '@mantine/core'
 import { Login } from '@matrixhub/api-ts/v1alpha1/login.pb'
 import {
+  IconBook2 as DocsIcon,
   IconChevronDown as ArrowDownIcon,
   IconCube as ModelIcon,
   IconLogout as LogOutIcon,
@@ -164,6 +166,32 @@ function AppNavbar() {
   )
 }
 
+const DOCS_URL = '/'
+
+function DocsLink() {
+  const { t } = useTranslation()
+
+  return (
+    <Anchor
+      href={t('common.docs', { doc: DOCS_URL })}
+      target="_blank"
+      rel="noopener noreferrer"
+      c="dimmed"
+      size="sm"
+      fw={600}
+      underline="never"
+    >
+      <Group
+        gap={4}
+        wrap="nowrap"
+      >
+        <DocsIcon size={rem(18)} />
+        {t('nav.docs')}
+      </Group>
+    </Anchor>
+  )
+}
+
 function AccountMenu() {
   const { t } = useTranslation()
   const user = use(CurrentUserContext)
@@ -312,6 +340,8 @@ function AuthLayout() {
             </Group>
 
             <Group gap="md" wrap="nowrap">
+              <DocsLink />
+
               <LanguageSwitcher />
 
               <AccountMenu />
