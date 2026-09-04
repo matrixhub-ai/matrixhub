@@ -1,0 +1,16 @@
+# MatrixHub 业务页面 Target。需要兼容应用的中英文界面。
+login.username: 'input[name="username"]'
+login.password: 'input[name="password"]'
+login.submit: 'button[type="submit"]'
+
+navigation.project_management: 'a[href="/projects"]'
+
+projects.search_input: 'input[placeholder="请输入项目名称搜索"], input[placeholder="Search by project name"]'
+projects.create_button: 'role=button[name=/^(创建项目|Create Project)$/]'
+projects.name_input: 'role=dialog >> role=textbox[name=/^(项目名称|Project Name)$/]'
+projects.public_checkbox: 'role=dialog >> role=checkbox[name=/^(公开|Public)$/]'
+projects.confirm_button: 'role=dialog >> role=button[name=/^(确定|Confirm)$/]'
+projects.public_row: 'tr:has(a:text-is("${PUBLIC_PROJECT_NAME}"))'
+projects.private_row: 'tr:has(a:text-is("${PRIVATE_PROJECT_NAME}"))'
+projects.public_type: 'tr:has(a:text-is("${PUBLIC_PROJECT_NAME}")) >> text=/^(公开|Public)$/'
+projects.private_type: 'tr:has(a:text-is("${PRIVATE_PROJECT_NAME}")) >> text=/^(私有|Private)$/'

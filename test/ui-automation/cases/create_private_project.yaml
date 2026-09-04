@@ -1,0 +1,42 @@
+id: create_private_project
+name: 创建私有项目
+tags: [projects]
+env: matrixhub
+steps:
+  - name: 打开已登录首页
+    action: goto
+    url: /
+  - name: 进入项目管理
+    action: click
+    target: navigation.project_management
+  - name: 清空项目搜索条件
+    action: clear
+    target: projects.search_input
+  - name: 打开创建项目弹窗
+    action: click
+    target: projects.create_button
+  - name: 输入项目名称
+    action: fill
+    target: projects.name_input
+    value: "${PRIVATE_PROJECT_NAME}"
+  - name: 保持私有项目类型
+    action: uncheck
+    target: projects.public_checkbox
+  - name: 确认创建
+    action: click
+    target: projects.confirm_button
+  - name: 搜索新建项目
+    action: fill
+    target: projects.search_input
+    value: "${PRIVATE_PROJECT_NAME}"
+  - name: 确认项目出现在列表
+    action: expect_visible
+    target: projects.private_row
+    timeout: 30000
+  - name: 确认项目名称
+    action: expect_text
+    target: projects.private_row
+    text: "${PRIVATE_PROJECT_NAME}"
+  - name: 确认项目类型为私有
+    action: expect_visible
+    target: projects.private_type
