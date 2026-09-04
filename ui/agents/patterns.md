@@ -394,6 +394,10 @@ All data tables go through the project wrapper. If the wrapper does not yet cove
 
 Route-backed list pages hold search params, pagination navigation, refresh triggers, and row-selection state in the page layer or a shared hook — `src/shared/hooks/useRouteListState.ts`. The hook expects the search object to have `page` and `query` fields, and derives selected row ids + current-page selected records from `records` + `getRecordId`. Feature table components stay focused on columns, cells, and feature-specific toolbar actions.
 
+In-table navigation links (a resource name / id cell that routes to its detail page) use `src/shared/components/TableCellLink.tsx` — a typed `AnchorLink` preset with `size="sm"` (matching 14px body cell text), `fw={600}`, and no underline. Do not hand-roll `Anchor` + `renderRoot={<Link/>}` in feature tables; pass `to` / `params` directly and override only the props that need to differ.
+
+`DataTable` merges caller-provided `tableOptions.mantineTableBodyRowProps` with its own defaults (selected-row background, last-row bottom border). Caller props win, except `style.borderBottom` which is layered under the caller `style` so the footer separator stays intact unless explicitly overridden.
+
 Do not introduce a second table abstraction or a second table library for the same class of UI.
 
 ---

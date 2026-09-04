@@ -288,6 +288,7 @@ export function DataTable<TData extends MRT_RowData>({
     mantineFilterSelectProps,
     mantineFilterTextInputProps,
     mantinePaperProps,
+    mantineTableBodyRowProps,
     mantineTableContainerProps,
     mantineTableProps,
     state: extraState,
@@ -525,9 +526,20 @@ export function DataTable<TData extends MRT_RowData>({
             padding: '0 var(--mantine-spacing-sm)',
           },
         }}
-        mantineTableBodyRowProps={({ row }) => ({
-          bg: row.getIsSelected() ? 'var(--mantine-color-cyan-light)' : undefined,
-        })}
+        mantineTableBodyRowProps={(args) => {
+          const rowProps = resolveTableOptionProps(mantineTableBodyRowProps, args)
+
+          return {
+            bg: args.row.getIsSelected() ? 'var(--mantine-color-cyan-light)' : undefined,
+            ...rowProps,
+            // Keep the last row's bottom border (removed by mantine-react-table
+            // by default) so the table body stays separated from the footer.
+            style: {
+              borderBottom: '1px solid var(--mantine-color-gray-3)',
+              ...rowProps?.style,
+            },
+          }
+        }}
       />
 
       {onPageChange && (

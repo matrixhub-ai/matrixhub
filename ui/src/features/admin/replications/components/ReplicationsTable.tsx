@@ -1,5 +1,4 @@
 import {
-  Anchor,
   Badge,
   Group,
   Stack,
@@ -9,7 +8,6 @@ import {
   SyncPolicyType,
   TriggerType,
 } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
-import { Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -19,6 +17,7 @@ import {
   type DataTableRowActionsProps,
 } from '@/shared/components/DataTable'
 import { FieldHintLabel } from '@/shared/components/FieldHintLabel'
+import { TableCellLink } from '@/shared/components/TableCellLink'
 
 import { DeleteReplicationAction } from './DeleteReplicationAction'
 import { EditReplicationAction } from './EditReplicationAction'
@@ -53,19 +52,13 @@ function ReplicationNameCell({ row }: ReplicationCellProps) {
   }
 
   return (
-    <Anchor
+    <TableCellLink
       fw={500}
-      underline="never"
-      renderRoot={props => (
-        <Link
-          {...props}
-          to="/admin/replications/$replicationId/executions"
-          params={{ replicationId: String(replicationId) }}
-        />
-      )}
+      to="/admin/replications/$replicationId/executions"
+      params={{ replicationId: String(replicationId) }}
     >
       {name ?? EMPTY_VALUE}
-    </Anchor>
+    </TableCellLink>
   )
 }
 
