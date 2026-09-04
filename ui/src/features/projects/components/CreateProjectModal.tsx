@@ -21,6 +21,7 @@ import { createProjectMutationOptions } from '../projects.mutation'
 import {
   organizationSchema, projectNameSchema, registryIdSchema,
 } from '../projects.schema'
+import { ProjectTypeHintLabel } from './ProjectTypeHintLabel'
 
 export interface CreateProjectModalProps {
   opened: boolean
@@ -107,7 +108,9 @@ export function CreateProjectModal({
         )}
       </form.Field>
 
-      <Input.Wrapper label={t('projects.createModal.typeLabel')}>
+      <Input.Wrapper
+        label={<ProjectTypeHintLabel label={t('projects.createModal.typeLabel')} />}
+      >
         <form.Field name="isPublic">
           {field => (
             <Checkbox

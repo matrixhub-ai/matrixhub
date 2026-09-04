@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useForm } from '@/shared/hooks/useForm'
 
+import { ProjectTypeHintLabel } from '../components/ProjectTypeHintLabel'
 import { updateProjectMutationOptions } from '../projects.mutation'
 import { projectDetailQueryOptions } from '../projects.query'
 
@@ -44,7 +45,13 @@ export function ProjectSettingsPage() {
         <Stack gap="xs">
           <projectSettingForm.Field name="type">
             {field => (
-              <InputWrapper label={t('projects.detail.settingsPage.projectType')}>
+              <InputWrapper
+                label={(
+                  <ProjectTypeHintLabel
+                    label={t('projects.detail.settingsPage.projectType')}
+                  />
+                )}
+              >
                 <Checkbox
                   checked={field.state.value === ProjectType.PROJECT_TYPE_PUBLIC}
                   onChange={(event) => {

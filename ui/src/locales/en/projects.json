@@ -74,6 +74,11 @@
     "private": "Private",
     "public": "Public"
   },
+  "typeHint": {
+    "public": "Public: Anyone can view and download the models and datasets in this project.",
+    "private": "Private: Only users with access permission can view and download the models and datasets in this project.",
+    "permission": "Permissions: Uploading or configuring models and datasets requires the corresponding permission. See the <0>permission guide</0> for the detailed rules."
+  },
   "modelCount": "Model Count",
   "datasetCount": "Dataset Count",
   "title": "Project Management",
