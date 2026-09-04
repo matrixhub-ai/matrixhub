@@ -72,12 +72,12 @@ func (s *CleanupService) PreviewCleanup(ctx context.Context, includeRepos, inclu
 	}
 
 	if includeLFS {
-		orphanedLFS, err := s.gitRepo.FindOrphanedLFS(ctx)
+		res, err := s.gitRepo.CollectLFS(ctx, true)
 		if err != nil {
 			return nil, err
 		}
-		preview.OrphanedLFSObjects = orphanedLFS
-		for _, obj := range orphanedLFS {
+		preview.OrphanedLFSObjects = res.Orphaned
+		for _, obj := range res.Orphaned {
 			preview.TotalReclaimable += obj.SizeBytes
 		}
 	}
@@ -110,23 +110,15 @@ func (s *CleanupService) ExecuteCleanup(ctx context.Context, cleanRepos, cleanLF
 	}
 
 	if cleanLFS {
-		preview, err := s.PreviewCleanup(ctx, false, true)
-		if err != nil {
+		res, err := s.gitRepo.CollectLFS(ctx, dryRun)
+		if res == nil {
 			return nil, err
 		}
-		for _, obj := range preview.OrphanedLFSObjects {
-			if dryRun {
-				result.LFSObjectsDeleted++
-				result.SpaceReclaimed += obj.SizeBytes
-			} else {
-				if err := s.gitRepo.DeleteLFSObject(ctx, obj); err != nil {
-					result.Errors = append(result.Errors, err.Error())
-				} else {
-					result.LFSObjectsDeleted++
-					result.SpaceReclaimed += obj.SizeBytes
-				}
-			}
+		if err != nil {
+			result.Errors = append(result.Errors, err.Error())
 		}
+		result.LFSObjectsDeleted += len(res.Orphaned)
+		result.SpaceReclaimed += res.ReclaimedBytes
 	}
 
 	return result, nil

@@ -25,6 +25,9 @@ data:
       sshPort: {{ .Values.apiserver.sshPort }}
       hostURL: {{ .Values.apiserver.hostURL | default "" | quote }}
       externalURL: {{ .Values.apiserver.externalURL | default "" | quote }}
+      {{- with .Values.apiserver.gcGrace }}
+      gcGrace: {{ . | quote }}
+      {{- end }}
     {{- if .Values.jobServer }}
     jobServer:
       enabled: {{ .Values.jobServer.enabled }}

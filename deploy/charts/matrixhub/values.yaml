@@ -86,6 +86,9 @@ apiserver:
   # affected UI panels. Example: https://matrixhub.example.com
   externalURL: ""
 
+  # -- Grace window that shields recently written xet/LFS objects from cleanup GC (Go duration; empty = 1h, negative disables)
+  gcGrace: ""
+
   # -- storage configuration for git storage (models, datasets, lfs)
   storage:
     # -- storage mode: none (no persistence), pvc (PersistentVolumeClaim), s3 (object storage)

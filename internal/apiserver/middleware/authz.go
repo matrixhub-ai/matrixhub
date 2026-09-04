@@ -16,6 +16,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
@@ -24,7 +25,6 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
-	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
@@ -48,13 +48,12 @@ var (
 
 func NewRepoEnforcer(authzSvc authz.IAuthzService) func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (bool, error) {
 	return func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (passed bool, err error) {
-		userinfo, ok := authenticate.GetUserInfo(ctx)
-		if ok && userinfo.User != authenticate.Anonymous {
-			identity, err := authcodec.Unmarshal(userinfo.User)
-			if err != nil {
-				return false, err
+		// Identity is stored by the authn middlewares or the repo/hfd identity
+		// normalizer before this hook runs.
+		if _, ok := auth.IdentityFromContext(ctx); !ok {
+			if userinfo, ok := authenticate.GetUserInfo(ctx); ok && userinfo.User != authenticate.Anonymous {
+				return false, fmt.Errorf("no identity in context for authenticated user")
 			}
-			ctx = auth.WithIdentity(ctx, identity)
 		}
 
 		resourceType := resourceModel
@@ -71,7 +70,14 @@ func NewRepoEnforcer(authzSvc authz.IAuthzService) func(ctx context.Context, op 
 		if project == "" {
 			return
 		}
-		ps := resourcePermissions[resourceType][op.IsRead()]
+
+		var ps role.Permission
+		switch {
+		case op.IsRead():
+			ps = resourcePermissions[resourceType][true]
+		case op.IsWrite(): // create, update, delete all require push permission
+			ps = resourcePermissions[resourceType][false]
+		}
 		if ps == "" {
 			return
 		}
