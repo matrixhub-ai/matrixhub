@@ -16,6 +16,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -147,6 +148,12 @@ func (h *SyncPolicyHandler) CreateSyncPolicy(ctx context.Context, request *v1alp
 	}
 
 	if err := h.syncPolicyService.CreateSyncPolicy(ctx, policy); err != nil {
+		if errors.Is(err, syncpolicy.ErrSyncPolicyNameTaken) {
+			return nil, status.Error(codes.AlreadyExists, "sync policy name already exists")
+		}
+		if errors.Is(err, syncpolicy.ErrSyncPolicyNameEmpty) {
+			return nil, status.Error(codes.InvalidArgument, "sync policy name is required")
+		}
 		return nil, status.Error(codes.Internal, "failed to create sync policy")
 	}
 
@@ -180,6 +187,12 @@ func (h *SyncPolicyHandler) UpdateSyncPolicy(ctx context.Context, request *v1alp
 	}
 
 	if err := h.syncPolicyService.UpdateSyncPolicy(ctx, existingPolicy); err != nil {
+		if errors.Is(err, syncpolicy.ErrSyncPolicyNameTaken) {
+			return nil, status.Error(codes.AlreadyExists, "sync policy name already exists")
+		}
+		if errors.Is(err, syncpolicy.ErrSyncPolicyNameEmpty) {
+			return nil, status.Error(codes.InvalidArgument, "sync policy name is required")
+		}
 		return nil, status.Error(codes.Internal, "failed to update sync policy")
 	}
 
