@@ -115,18 +115,22 @@ test_previous_official_tag() (
 )
 
 test_pull_validation_and_rendering() {
-  local work feature none block errors
+  local work feature none label_only_none dependabot_body block errors
   work=$(new_work_dir) || return 1
   feature=$(pull_json 21 $'```release-note\nAdded a capability.\nMore detail.\n```' \
     '["kind/feature", "release-note"]' alice) || return 1
   none=$(pull_json 22 $'```release-note\nNONE\n```' \
     '["kind/cleanup", "release-note-none"]' bob) || return 1
+  dependabot_body=$'Bumps a dependency from 1.0.0 to 1.0.1.\n\n<details>\n<summary>Release notes</summary>\nUpstream notes.\n</details>'
+  label_only_none=$(pull_json 23 "$dependabot_body" \
+    '["kind/dependency", "release-note-none"]' 'dependabot[bot]') || return 1
 
   process_pull "$feature" "$work" || return 1
   process_pull "$none" "$work" || return 1
+  process_pull "$label_only_none" "$work" || return 1
   errors=$(cat "$work/errors")
   assert_equal '' "$errors" || return 1
-  assert_equal 22 "$(cat "$work/excluded")" || return 1
+  assert_equal $'22\n23' "$(cat "$work/excluded")" || return 1
 
   block=$(render_generated_block "$work" matrixhub-ai/matrixhub v0.1.0 v0.2.0) || return 1
   assert_contains "$block" '#### Feature' || return 1
@@ -138,6 +142,7 @@ test_pull_validation_and_rendering() {
 
 test_invalid_metadata_is_reported() {
   local work missing_kind conflicting blocked wrong_none missing_release unusable unsupported multiple
+  local deprecated_none
   local errors warnings
   work=$(new_work_dir) || return 1
   missing_kind=$(pull_json 30 $'```release-note\nVisible change.\n```' '["release-note"]') || return 1
@@ -154,6 +159,8 @@ test_invalid_metadata_is_reported() {
     '["kind/unknown", "release-note"]') || return 1
   multiple=$(pull_json 37 $'```release-note\nAPI change.\n```' \
     '["kind/feature", "kind/api-change", "release-note"]') || return 1
+  deprecated_none=$(pull_json 38 '' \
+    '["kind/deprecation", "release-note-none"]') || return 1
 
   process_pull "$missing_kind" "$work" || return 1
   process_pull "$conflicting" "$work" || return 1
@@ -163,16 +170,18 @@ test_invalid_metadata_is_reported() {
   process_pull "$unusable" "$work" || return 1
   process_pull "$unsupported" "$work" || return 1
   process_pull "$multiple" "$work" || return 1
+  process_pull "$deprecated_none" "$work" || return 1
   errors=$(cat "$work/errors")
   warnings=$(cat "$work/warnings")
   assert_contains "$errors" '#30 has no kind/* label' || return 1
   assert_contains "$errors" '#31 has both release-note and release-note-none labels' || return 1
   assert_contains "$errors" '#32 is still labeled do-not-merge/needs-kind' || return 1
   assert_contains "$errors" '#32 is still labeled do-not-merge/needs-release-note' || return 1
-  assert_contains "$errors" '#33 has release-note-none but its release-note block is not NONE or NO' || return 1
+  assert_contains "$errors" '#33 has release-note-none but its release-note block contains content' || return 1
   assert_contains "$errors" '#34 has neither release-note nor release-note-none' || return 1
   assert_contains "$errors" '#35 has release-note but no usable release-note content' || return 1
   assert_contains "$errors" '#36 has unsupported kind labels: kind/unknown' || return 1
+  assert_contains "$errors" '#38 has kind/deprecation and release-note-none' || return 1
   assert_contains "$warnings" '#37 has multiple kind labels (kind/feature, kind/api-change); classified as api-change' || return 1
 }
 

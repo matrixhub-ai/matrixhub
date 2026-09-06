@@ -242,11 +242,15 @@ maintainer.
 ## Release notes in pull requests
 
 MatrixHub follows the [Kubernetes release notes model](https://github.com/kubernetes/community/blob/main/contributors/guide/release-notes.md).
-Every pull request must choose a `/kind` and complete the `release-note` block with
-a user-, API-, or operator-facing change, or `NONE`.
+Every pull request must choose a `/kind` and either complete the `release-note`
+block or have the `release-note-none` label.
 
-Anyone may correct Kind with `/kind` or `/remove-kind`. The bot derives release-note
-labels from the PR body, and reviewers verify the note's accuracy and wording.
+Kind commands in the initial PR body are processed once. After opening the PR,
+use a new `/kind` or `/remove-kind` comment to change it. For a change without
+a release note, the PR author or an organization member may comment
+`/release-note-none` in the PR conversation when the block is empty or
+`NONE`/`NO`. A real note takes precedence over the label, and deprecations
+require a note. Reviewers verify the decision and wording.
 
 Example:
 
