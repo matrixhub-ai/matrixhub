@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -58,7 +57,7 @@ func (a *TokenAuthenticator) AuthenticateToken(ctx context.Context, _, token str
 		return user.NewUserIdentity(ak.UserId, u.Username), nil
 	}
 
-	return nil, errors.New("invalid token")
+	return nil, ErrInvalidCredentials
 }
 
 func parseBearerToken(r *http.Request) (token string) {

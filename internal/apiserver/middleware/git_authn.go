@@ -18,8 +18,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
+	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware/authenticator"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
@@ -32,7 +34,7 @@ func GitHTTPAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRe
 		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
 		_, identity, err := auth.AuthenticateToken(ctx, "", token)
 		if err != nil {
-			return "", false, false, err
+			return "", false, false, gitAuthError(err)
 		}
 		id, err := authcodec.Marshal(identity)
 		if err != nil {
@@ -47,7 +49,7 @@ func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, ro
 		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
 		_, identity, err := auth.AuthenticateToken(ctx, username, password)
 		if err != nil {
-			return "", false, false, err
+			return "", false, false, gitAuthError(err)
 		}
 		id, err := authcodec.Marshal(identity)
 		if err != nil {
@@ -55,6 +57,13 @@ func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, ro
 		}
 		return id, true, true, nil
 	}
+}
+
+func gitAuthError(err error) error {
+	if errors.Is(err, authenticator.ErrInvalidCredentials) || errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	return err
 }
 
 func GitPublicKeyAuthn(sshKeyRepo user.ISSHKeyRepo, userRepo user.IUserRepo) authenticate.PublicKeyValidatorFunc {

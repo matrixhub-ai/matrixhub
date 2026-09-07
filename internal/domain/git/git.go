@@ -121,7 +121,12 @@ type OrphanedRepo struct {
 type OrphanedLFS struct {
 	OID       string
 	SizeBytes int64
-	Path      string
+}
+
+// LFSCollectResult reports one LFS GC run: Orphaned lists candidates on a dry run, unlinked objects otherwise.
+type LFSCollectResult struct {
+	Orphaned       []*OrphanedLFS
+	ReclaimedBytes int64 // 0 on dry run
 }
 
 // BasicCredential holds username/password for remote git authentication.
@@ -191,12 +196,10 @@ type IGitRepo interface {
 
 	// FindOrphanedRepos finds Git repositories on disk that are not present in valid paths.
 	FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*OrphanedRepo, error)
-	// FindOrphanedLFS finds LFS objects on disk that are not referenced by repositories.
-	FindOrphanedLFS(ctx context.Context) ([]*OrphanedLFS, error)
+	// CollectLFS runs the xet LFS garbage collector; dryRun only lists unreferenced objects.
+	CollectLFS(ctx context.Context, dryRun bool) (*LFSCollectResult, error)
 	// DeleteRepositoryAtRelPath deletes an orphaned repository by relative path.
 	DeleteRepositoryAtRelPath(ctx context.Context, path string) error
-	// DeleteLFSObject deletes an orphaned LFS object.
-	DeleteLFSObject(ctx context.Context, object *OrphanedLFS) error
 	// RepositoriesSize returns the size of all repositories on disk.
 	RepositoriesSize(ctx context.Context) int64
 	// LFSSize returns the size of all LFS objects on disk.
