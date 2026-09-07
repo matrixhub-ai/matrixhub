@@ -8,67 +8,90 @@ on:
     types:
       - created
 
+  # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_review
+  pull_request_review:
+    types:
+      - submitted
+
   issues:
     types:
       - opened
+      - labeled
+      - unlabeled
 
   # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
   pull_request_target:
     types:
       - opened
-      - edited
-      - reopened
       - synchronize
+      - edited
+      - converted_to_draft
+      - ready_for_review
+      - reopened
       - labeled
       - unlabeled
 
+# Runs for the same PR or issue execute one at a time, in order, so they
+# cannot race on its labels and approval status comment; runs for different
+# PRs and issues stay parallel. `queue: max` keeps every waiting run instead
+# of cancelling the older pending one, so no command is dropped.
 concurrency:
-  group: ci-bot-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  queue: max
 
 env:
-  # Public on issues and pull requests.
+  # This plugins is for anyone who can use it
   PLUGINS: |-
     assign
     auto-cc
     cc
     label-kind
+    check-dco
 
-  # Public on issues only.
-  ISSUE_PLUGINS: |-
-    assign
-    auto-cc
-    cc
-    label-good-first-issue
-    label-help-wanted
-    label-kind
-
-  # PR or issue authors.
+  # This plugins is for author of issue or PR
   AUTHOR_PLUGINS: |-
     label-bug
     label-documentation
     label-enhancement
     label-question
+    release-note
     retest
 
-  # Organization or repository members.
-  MEMBER_ONLY_PLUGINS: |-
+  # This plugins is for previous contributors (had commits merged) and members
+  CONTRIBUTORS_PLUGINS: |-
+    label-kind
+    retest
+
+  # This plugins is for organization member or repository member
+  MEMBERS_PLUGINS: |-
+    label-area
+    label-committee
     label-duplicate
+    label-good-first-issue
+    label-help-wanted
     label-invalid
+    label-kind
+    label-priority
+    label-sig
+    label-triage
+    label-wg
     label-wontfix
     label-bug
     label-documentation
     label-enhancement
     label-question
+    hold
     lifecycle
+    release-note
     retest
+    transfer-issue
 
-  # Named reviewers.
+  # This plugins is for in the REVIEWERS environment variable
   REVIEWERS_PLUGINS: |-
     label-lgtm
     retitle
 
-  # Named approvers.
+  # This plugins is for in the APPROVERS environment variable
   APPROVERS_PLUGINS: |-
     label-approve
     label
@@ -77,11 +100,11 @@ env:
     rebase
     cherry-pick
 
-  # Named maintainers.
+  # This plugins is for in the MAINTAINERS environment variable
   MAINTAINERS_PLUGINS: |-
     milestone
 
-  # Organization or repository owners.
+  # This plugins is for organization owner or repository owner
   OWNERS_PLUGINS: ""
 
   REVIEWERS: |-
@@ -94,7 +117,57 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GH_REPOSITORY: ${{ github.repository }}
 
+  # Login the bot comments as, used to find its own comments. Only needed
+  # with a GitHub App installation token, which cannot resolve it via the
+  # API: set it to "<app-slug>[bot]".
+  # BOT_LOGIN: ""
+
+  # It can be `merge`, `rebase`, or `squash`.
   DEFAULT_MERGE_METHOD: squash
+
+  # Number of reviewers automatically requested when a PR is opened
+  # (blunderbuss). Set to 0 to disable.
+  BLUNDERBUSS_REVIEWER_COUNT: 2
+
+  # Rules for the require-matching-label check, one per line in the format:
+  #   <missing-label> <regexp>
+  # When an issue (ISSUE_REQUIRE_MATCHING_LABELS) or PR
+  # (PR_REQUIRE_MATCHING_LABELS) has no label matching the regexp, the
+  # missing label is applied, and removed once a matching label is added.
+  # Set to an empty string to disable.
+  ISSUE_REQUIRE_MATCHING_LABELS: |-
+    needs-kind ^kind/
+  PR_REQUIRE_MATCHING_LABELS: |-
+    do-not-merge/needs-kind ^kind/
+
+  # Sync release-note labels from the ```release-note block in PR bodies, blocking merge until one applies (prow's release-note plugin). Unset to disable.
+  RELEASE_NOTE_REQUIRED: "true"
+
+  # Label PRs that have merge conflicts with needs-rebase, removing the label automatically once the conflicts are resolved (prow's needs-rebase plugin, labels only). Unset to disable.
+  NEEDS_REBASE: "true"
+
+  # Block PRs containing merge commits with the
+  # do-not-merge/contains-merge-commits label (prow's mergecommitblocker
+  # plugin). Unset to disable.
+  BLOCK_MERGE_COMMITS: "true"
+
+  # Block PRs whose commit messages or title contain @mentions or keywords
+  # that can automatically close issues (e.g. "fixes #42") with the
+  # do-not-merge/invalid-commit-message label (prow's invalidcommitmsg
+  # plugin). Unset to disable.
+  BLOCK_INVALID_COMMIT_MESSAGES: "true"
+
+  # Require a Signed-off-by line on every PR commit, syncing the "dco-signoff: yes"/"dco-signoff: no" labels and blocking merge until every commit is signed off (prow's dco plugin). Unset to disable.
+  DCO_REQUIRED: "false"
+
+  # Additional labels the bot is allowed to create, one entry per line.
+  # Each entry is either an exact label name, or a prefix ending in a
+  # slash (e.g. kind/) which allows any label with that prefix. These are
+  # merged with the built-in default list of well-known prow and GitHub
+  # labels (see bin/ensure-labels.sh). Labels not matching any entry are
+  # never created automatically.
+  # LABELS: |-
+  #   kind/docs
 
   DETAILS: |-
 
@@ -106,7 +179,7 @@ env:
 
     </details>
 
-# https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions
 permissions:
   actions: write
   checks: read
@@ -120,7 +193,7 @@ permissions:
   pull-requests: write
   repository-projects: read
   security-events: none
-  statuses: write
+  statuses: read
 
 jobs:
   bot:
@@ -128,17 +201,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Issue Opened
-        uses: wzshiming/gh-ci-bot@v1.5.0
-        if: ${{ github.event_name == 'issues' }}
+        uses: wzshiming/gh-ci-bot@v1.7.0
+        if: ${{ github.event_name == 'issues' && github.event.action == 'opened' }}
         env:
-          PLUGINS: ${{ env.ISSUE_PLUGINS }}
-          MEMBERS_PLUGINS: &members_plugins >-
-            ${{ contains(
-              fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-              github.event.comment.author_association
-                || github.event.pull_request.author_association
-                || github.event.issue.author_association
-            ) && env.MEMBER_ONLY_PLUGINS || '' }}
           LOGIN: ${{ github.event.issue.user.login }}
           AUTHOR: ${{ github.event.issue.user.login }}
           MESSAGE: ${{ github.event.issue.body }}
@@ -152,10 +217,9 @@ jobs:
             We will look into it as soon as possible.
 
       - name: PR Opened
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.7.0
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'opened' }}
         env:
-          MEMBERS_PLUGINS: *members_plugins
           LOGIN: ${{ github.event.pull_request.user.login }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
           MESSAGE: ${{ github.event.pull_request.body }}
@@ -166,28 +230,13 @@ jobs:
           GREETING: |-
             Hi @${{ github.event.pull_request.user.login }},
             Thanks for your pull request!
-            If the PR is ready, use the `/auto-cc` command to assign Reviewer to Review. 
+            ${{ env.BLUNDERBUSS_REVIEWER_COUNT != '0' && 'Reviewers will be requested automatically. You can also use the `/auto-cc` command to request reviews again.' || 'If the PR is ready, use the `/auto-cc` command to assign Reviewer to Review.' }}
             We will review it shortly.
 
-      - name: PR Edited
-        uses: wzshiming/gh-ci-bot@v1.5.0
-        if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'edited' }}
-        env:
-          MEMBERS_PLUGINS: *members_plugins
-          LOGIN: ${{ github.event.pull_request.user.login }}
-          AUTHOR: ${{ github.event.pull_request.user.login }}
-          MESSAGE: ${{ github.event.pull_request.body }}
-          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
-          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
-          ISSUE_KIND: pr
-          # v1.5.0 has no edited type; comment reparses the body without greeting.
-          TYPE: comment
-
       - name: PR Synchronize
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.7.0
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'synchronize' }}
         env:
-          MEMBERS_PLUGINS: *members_plugins
           LOGIN: ${{ github.event.pull_request.user.login }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
           MESSAGE: ""
@@ -196,12 +245,46 @@ jobs:
           ISSUE_KIND: pr
           TYPE: synchronize
 
+      - name: PR Edited, Reopened or Draft State Changed
+        uses: wzshiming/gh-ci-bot@v1.7.0
+        if: ${{ github.event_name == 'pull_request_target' && (github.event.action == 'edited' || github.event.action == 'converted_to_draft' || github.event.action == 'ready_for_review' || github.event.action == 'reopened') }}
+        env:
+          LOGIN: ${{ github.event.pull_request.user.login }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          MESSAGE: ""
+          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          ISSUE_KIND: pr
+          TYPE: ${{ github.event.action }}
+
+      - name: Issue Labeled or Unlabeled
+        uses: wzshiming/gh-ci-bot@v1.7.0
+        if: ${{ github.event_name == 'issues' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') }}
+        env:
+          LOGIN: ${{ github.event.sender.login }}
+          AUTHOR: ${{ github.event.issue.user.login }}
+          MESSAGE: ""
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
+          ISSUE_KIND: issue
+          TYPE: ${{ github.event.action }}
+
+      - name: PR Labeled or Unlabeled
+        uses: wzshiming/gh-ci-bot@v1.7.0
+        if: ${{ github.event_name == 'pull_request_target' && (github.event.action == 'labeled' || github.event.action == 'unlabeled') }}
+        env:
+          LOGIN: ${{ github.event.sender.login }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          MESSAGE: ""
+          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          ISSUE_KIND: pr
+          TYPE: ${{ github.event.action }}
+
       - name: Issue Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.7.0
         if: ${{ github.event_name == 'issue_comment' && !github.event.issue.pull_request }}
         env:
-          PLUGINS: ${{ env.ISSUE_PLUGINS }}
-          MEMBERS_PLUGINS: *members_plugins
           LOGIN: ${{ github.event.comment.user.login }}
           AUTHOR: ${{ github.event.issue.user.login }}
           MESSAGE: ${{ github.event.comment.body }}
@@ -211,10 +294,9 @@ jobs:
           TYPE: comment
 
       - name: PR Review Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.7.0
         if: ${{ github.event_name == 'pull_request_review_comment' }}
         env:
-          MEMBERS_PLUGINS: *members_plugins
           LOGIN: ${{ github.event.comment.user.login }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
           MESSAGE: ${{ github.event.comment.body }}
@@ -223,11 +305,22 @@ jobs:
           ISSUE_KIND: pr
           TYPE: comment
 
+      - name: PR Review Submitted
+        uses: wzshiming/gh-ci-bot@v1.7.0
+        if: ${{ github.event_name == 'pull_request_review' && github.event.review.body != '' }}
+        env:
+          LOGIN: ${{ github.event.review.user.login }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          MESSAGE: ${{ github.event.review.body }}
+          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.review.author_association }}
+          ISSUE_KIND: pr
+          TYPE: comment
+
       - name: PR Commented
-        uses: wzshiming/gh-ci-bot@v1.5.0
+        uses: wzshiming/gh-ci-bot@v1.7.0
         if: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request }}
         env:
-          MEMBERS_PLUGINS: *members_plugins
           LOGIN: ${{ github.event.comment.user.login }}
           AUTHOR: ${{ github.event.issue.user.login }}
           MESSAGE: ${{ github.event.comment.body }}
@@ -235,172 +328,3 @@ jobs:
           AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
           ISSUE_KIND: pr
           TYPE: comment
-
-      # gh-ci-bot has no scoped area, priority, or triage plugins.
-      - name: Apply public labels
-        uses: actions/github-script@v8
-        if: ${{ github.event_name != 'pull_request_target' || github.event.action == 'opened' || github.event.action == 'edited' }}
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-            const message = (context.payload.comment?.body
-              ?? context.payload.pull_request?.body
-              ?? context.payload.issue?.body
-              ?? '')
-              .replace(/<!--[\s\S]*?-->/g, '');
-
-            if (!message) {
-              return;
-            }
-
-            const allowed = {
-              area: ['test', 'ui'],
-              priority: ['backlog', 'critical-urgent', 'important-longterm', 'important-soon'],
-              triage: ['duplicate', 'needs-information', 'not-reproducible'],
-            };
-            const operations = [];
-            const commandPattern = /^\/(remove-)?(area|priority|triage)\s+(.+?)\s*$/i;
-            for (const rawLine of message.split(/\r?\n/)) {
-              const match = commandPattern.exec(rawLine.trim());
-              if (!match) {
-                continue;
-              }
-
-              const remove = Boolean(match[1]);
-              const family = match[2].toLowerCase();
-              for (const value of match[3].toLowerCase().split(/[\s,]+/).filter(Boolean)) {
-                if (allowed[family].includes(value)) {
-                  operations.push({ label: `${family}/${value}`, remove });
-                } else {
-                  core.warning(`Ignoring non-public label: ${family}/${value}`);
-                }
-              }
-            }
-
-            if (operations.length === 0) {
-              return;
-            }
-
-            const available = new Set((await github.paginate(
-              github.rest.issues.listLabelsForRepo,
-              { owner, repo, per_page: 100 },
-            )).map(({ name }) => name));
-            const target = { owner, repo, issue_number };
-            const { data: issue } = await github.rest.issues.get(target);
-            const applied = new Set(issue.labels.map((label) =>
-              typeof label === 'string' ? label : label.name));
-
-            for (const { label, remove } of operations) {
-              if (!available.has(label)) {
-                core.warning(`Skipping unavailable label: ${label}`);
-                continue;
-              }
-              if (remove === applied.has(label)) {
-                if (remove) {
-                  await github.rest.issues.removeLabel({ ...target, name: label });
-                  applied.delete(label);
-                } else {
-                  await github.rest.issues.addLabels({ ...target, labels: [label] });
-                  applied.add(label);
-                }
-              }
-            }
-
-      - name: Reconcile PR merge blockers
-        uses: actions/github-script@v8
-        if: ${{ github.event_name == 'pull_request_target' || (github.event_name == 'issue_comment' && github.event.issue.pull_request) || github.event_name == 'pull_request_review_comment' }}
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const pull_number = context.payload.pull_request?.number
-              ?? context.payload.issue?.number;
-
-            if (!pull_number) {
-              return;
-            }
-
-            const { data: pull } = await github.rest.pulls.get({
-              owner,
-              repo,
-              pull_number,
-            });
-            const target = { owner, repo, issue_number: pull_number };
-            const labels = new Set(pull.labels.map((label) => label.name));
-
-            async function setLabel(label, present) {
-              if (labels.has(label) === present) {
-                return;
-              }
-              if (present) {
-                await github.rest.issues.addLabels({ ...target, labels: [label] });
-                labels.add(label);
-              } else {
-                await github.rest.issues.removeLabel({ ...target, name: label });
-                labels.delete(label);
-              }
-              core.info(`${present ? 'Added' : 'Removed'} ${label}`);
-            }
-
-            // Match Kubernetes' public /hold command behavior. If a comment
-            // contains more than one hold command, the last command wins.
-            if (context.eventName === 'issue_comment'
-                || context.eventName === 'pull_request_review_comment') {
-              const body = (context.payload.comment?.body ?? '')
-                .replace(/<!--[\s\S]*?-->/g, '');
-              let hold = null;
-              for (const rawLine of body.split(/\r?\n/)) {
-                const line = rawLine.trim().toLowerCase();
-                if (line === '/hold') {
-                  hold = true;
-                } else if (line === '/hold cancel'
-                    || line === '/unhold'
-                    || line === '/remove-hold') {
-                  hold = false;
-                }
-              }
-              if (hold !== null) {
-                await setLabel('do-not-merge/hold', hold);
-              }
-            }
-
-            const hasKind = [...labels].some((label) => label.startsWith('kind/'));
-            await setLabel('do-not-merge/needs-kind', !hasKind);
-
-            const releaseNoteMatch = /```release-note[^\S\r\n]*(?:\r?\n)?([\s\S]*?)```/i
-              .exec(pull.body ?? '');
-            const releaseNote = releaseNoteMatch?.[1]?.trim() ?? '';
-            const hasNoReleaseNote = /^\W*(?:NONE|NO)\W*$/i.test(releaseNote);
-
-            if (!releaseNote) {
-              await setLabel('release-note', false);
-              await setLabel('release-note-none', false);
-              await setLabel('do-not-merge/needs-release-note', true);
-            } else if (hasNoReleaseNote) {
-              await setLabel('release-note', false);
-              await setLabel('release-note-none', true);
-              await setLabel('do-not-merge/needs-release-note', false);
-            } else {
-              await setLabel('release-note-none', false);
-              await setLabel('release-note', true);
-              await setLabel('do-not-merge/needs-release-note', false);
-            }
-
-            const blockerPrefix = 'do-not-merge/';
-            const blockers = [...labels]
-              .filter((label) => label.startsWith(blockerPrefix))
-              .sort();
-            const blocked = blockers.length > 0;
-            const summary = blocked
-              ? `Blocked by: ${blockers.map((label) => label.slice(blockerPrefix.length)).join(', ')}`
-              : 'No do-not-merge labels are present';
-
-            await github.rest.repos.createCommitStatus({
-              owner,
-              repo,
-              sha: pull.head.sha,
-              state: blocked ? 'failure' : 'success',
-              context: 'ci-bot/merge-blockers',
-              description: summary.slice(0, 140),
-              target_url: pull.html_url,
-            });
