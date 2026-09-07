@@ -7,8 +7,7 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependencies"
-      - "automated"
+      - "kind/dependency"
       - "release-note-none"
     open-pull-requests-limit: 5
     groups:
@@ -24,8 +23,7 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependencies"
-      - "automated"
+      - "kind/dependency"
       - "release-note-none"
     open-pull-requests-limit: 0
     groups:
@@ -66,8 +64,7 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependencies"
-      - "automated"
+      - "kind/dependency"
       - "release-note-none"
     open-pull-requests-limit: 5
     groups:
@@ -83,8 +80,7 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependencies"
-      - "automated"
+      - "kind/dependency"
       - "release-note-none"
     open-pull-requests-limit: 5
     groups:
@@ -100,7 +96,6 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "dependencies"
-      - "automated"
+      - "kind/dependency"
       - "release-note-none"
     open-pull-requests-limit: 3
