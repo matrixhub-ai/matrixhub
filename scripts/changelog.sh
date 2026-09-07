@@ -291,8 +291,15 @@ EOF
   fi
 
   if [ "$has_release_note_none" = true ]; then
-    is_no_release_note "$note" || \
-      append_line "$work_dir/errors" "#$number has release-note-none but its release-note block is not NONE or NO"
+    if [ -n "$note" ] && ! is_no_release_note "$note"; then
+      append_line "$work_dir/errors" \
+        "#$number has release-note-none but its release-note block contains content"
+      return
+    fi
+    if has_line "$kind_labels" 'kind/deprecation'; then
+      append_line "$work_dir/errors" "#$number has kind/deprecation and release-note-none"
+      return
+    fi
     append_line "$work_dir/excluded" "$number"
     return
   fi

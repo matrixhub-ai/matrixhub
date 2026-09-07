@@ -169,20 +169,6 @@ jobs:
             If the PR is ready, use the `/auto-cc` command to assign Reviewer to Review. 
             We will review it shortly.
 
-      - name: PR Edited
-        uses: wzshiming/gh-ci-bot@v1.5.0
-        if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'edited' }}
-        env:
-          MEMBERS_PLUGINS: *members_plugins
-          LOGIN: ${{ github.event.pull_request.user.login }}
-          AUTHOR: ${{ github.event.pull_request.user.login }}
-          MESSAGE: ${{ github.event.pull_request.body }}
-          ISSUE_NUMBER: ${{ github.event.pull_request.number }}
-          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
-          ISSUE_KIND: pr
-          # v1.5.0 has no edited type; comment reparses the body without greeting.
-          TYPE: comment
-
       - name: PR Synchronize
         uses: wzshiming/gh-ci-bot@v1.5.0
         if: ${{ github.event_name == 'pull_request_target' && github.event.action == 'synchronize' }}
@@ -342,13 +328,22 @@ jobs:
               core.info(`${present ? 'Added' : 'Removed'} ${label}`);
             }
 
+            const releaseNoteMatch = /```release-note[^\S\r\n]*(?:\r?\n)?([\s\S]*?)```/i
+              .exec(pull.body ?? '');
+            const releaseNote = releaseNoteMatch?.[1]?.trim() ?? '';
+            const hasNoReleaseNote = /^\W*(?:NONE|NO)\W*$/i.test(releaseNote);
+            const hasReleaseNoteContent = Boolean(releaseNote) && !hasNoReleaseNote;
+            const hasDeprecation = labels.has('kind/deprecation');
+
             // Match Kubernetes' public /hold command behavior. If a comment
             // contains more than one hold command, the last command wins.
             if (context.eventName === 'issue_comment'
                 || context.eventName === 'pull_request_review_comment') {
-              const body = (context.payload.comment?.body ?? '')
-                .replace(/<!--[\s\S]*?-->/g, '');
+              const rawBody = context.payload.comment?.body ?? '';
+              const body = rawBody.replace(/<!--[\s\S]*?-->/g, '');
               let hold = null;
+              const releaseNoteNone = context.eventName === 'issue_comment'
+                && /^\/release-note-none\s*$/im.test(rawBody);
               for (const rawLine of body.split(/\r?\n/)) {
                 const line = rawLine.trim().toLowerCase();
                 if (line === '/hold') {
@@ -362,20 +357,45 @@ jobs:
               if (hold !== null) {
                 await setLabel('do-not-merge/hold', hold);
               }
+              if (releaseNoteNone) {
+                const commenter = context.payload.comment?.user?.login;
+                const association = context.payload.comment?.author_association;
+                const isMember = ['OWNER', 'MEMBER'].includes(association);
+                const isAuthor = commenter?.toLowerCase() === pull.user.login.toLowerCase();
+                if (!isAuthor && !isMember) {
+                  await github.rest.issues.createComment({
+                    ...target,
+                    body: `@${commenter}: only the PR author or an organization member can use \`/release-note-none\`.`,
+                  });
+                } else if (hasReleaseNoteContent) {
+                  await github.rest.issues.createComment({
+                    ...target,
+                    body: `@${commenter}: \`/release-note-none\` cannot be used while the PR body contains a release note.`,
+                  });
+                } else if (hasDeprecation) {
+                  await github.rest.issues.createComment({
+                    ...target,
+                    body: `@${commenter}: \`/release-note-none\` cannot be used with \`kind/deprecation\`.`,
+                  });
+                } else {
+                  await setLabel('release-note-none', true);
+                }
+              }
             }
 
             const hasKind = [...labels].some((label) => label.startsWith('kind/'));
             await setLabel('do-not-merge/needs-kind', !hasKind);
 
-            const releaseNoteMatch = /```release-note[^\S\r\n]*(?:\r?\n)?([\s\S]*?)```/i
-              .exec(pull.body ?? '');
-            const releaseNote = releaseNoteMatch?.[1]?.trim() ?? '';
-            const hasNoReleaseNote = /^\W*(?:NONE|NO)\W*$/i.test(releaseNote);
-
-            if (!releaseNote) {
+            if (hasDeprecation && (!releaseNote || hasNoReleaseNote)) {
               await setLabel('release-note', false);
               await setLabel('release-note-none', false);
               await setLabel('do-not-merge/needs-release-note', true);
+            } else if (!releaseNote) {
+              await setLabel('release-note', false);
+              await setLabel(
+                'do-not-merge/needs-release-note',
+                !labels.has('release-note-none'),
+              );
             } else if (hasNoReleaseNote) {
               await setLabel('release-note', false);
               await setLabel('release-note-none', true);
