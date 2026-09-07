@@ -24,7 +24,14 @@ const DROPDOWN_WIDTH = 360
  * `<1></1>` placeholder renders as nothing.
  */
 function PermissionDocLink({ children }: { children?: ReactNode }) {
-  const { t } = useTranslation()
+  const {
+    t,
+    i18n,
+  } = useTranslation()
+  // English copy already separates the link with spaces; Chinese does not, and
+  // adding them to the translation would leak into the link's accessible name
+  // and underline. Space it here instead.
+  const needsSpacing = (i18n.resolvedLanguage ?? i18n.language).startsWith('zh')
 
   return (
     <Anchor
@@ -33,6 +40,7 @@ function PermissionDocLink({ children }: { children?: ReactNode }) {
       rel="noopener noreferrer"
       inherit
       c="blue.4"
+      style={needsSpacing ? { marginInlineStart: '0.25em' } : undefined}
     >
       {children}
       <IconExternalLink
