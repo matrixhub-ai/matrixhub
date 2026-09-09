@@ -41,6 +41,21 @@ func (m *MockIGitRepo) EXPECT() *MockIGitRepoMockRecorder {
 	return m.recorder
 }
 
+// CollectLFS mocks base method.
+func (m *MockIGitRepo) CollectLFS(ctx context.Context, dryRun bool) (*git.LFSCollectResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CollectLFS", ctx, dryRun)
+	ret0, _ := ret[0].(*git.LFSCollectResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CollectLFS indicates an expected call of CollectLFS.
+func (mr *MockIGitRepoMockRecorder) CollectLFS(ctx, dryRun any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectLFS", reflect.TypeOf((*MockIGitRepo)(nil).CollectLFS), ctx, dryRun)
+}
+
 // CreateCommit mocks base method.
 func (m *MockIGitRepo) CreateCommit(ctx context.Context, repoType, project, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error) {
 	m.ctrl.T.Helper()
@@ -68,20 +83,6 @@ func (m *MockIGitRepo) CreateRepository(ctx context.Context, repoType, project, 
 func (mr *MockIGitRepoMockRecorder) CreateRepository(ctx, repoType, project, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRepository", reflect.TypeOf((*MockIGitRepo)(nil).CreateRepository), ctx, repoType, project, name)
-}
-
-// DeleteLFSObject mocks base method.
-func (m *MockIGitRepo) DeleteLFSObject(ctx context.Context, object *git.OrphanedLFS) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteLFSObject", ctx, object)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteLFSObject indicates an expected call of DeleteLFSObject.
-func (mr *MockIGitRepoMockRecorder) DeleteLFSObject(ctx, object any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLFSObject", reflect.TypeOf((*MockIGitRepo)(nil).DeleteLFSObject), ctx, object)
 }
 
 // DeleteRepository mocks base method.
@@ -125,21 +126,6 @@ func (m *MockIGitRepo) ExtractMetadata(ctx context.Context, repoType, project, n
 func (mr *MockIGitRepoMockRecorder) ExtractMetadata(ctx, repoType, project, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractMetadata", reflect.TypeOf((*MockIGitRepo)(nil).ExtractMetadata), ctx, repoType, project, name)
-}
-
-// FindOrphanedLFS mocks base method.
-func (m *MockIGitRepo) FindOrphanedLFS(ctx context.Context) ([]*git.OrphanedLFS, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindOrphanedLFS", ctx)
-	ret0, _ := ret[0].([]*git.OrphanedLFS)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindOrphanedLFS indicates an expected call of FindOrphanedLFS.
-func (mr *MockIGitRepoMockRecorder) FindOrphanedLFS(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOrphanedLFS", reflect.TypeOf((*MockIGitRepo)(nil).FindOrphanedLFS), ctx)
 }
 
 // FindOrphanedRepos mocks base method.

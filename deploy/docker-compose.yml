@@ -13,6 +13,8 @@ services:
     ports:
       - "${MATRIXHUB_HTTP_PORT:-3001}:3001"
       - "${MATRIXHUB_SSH_PORT:-2222}:22"
+    environment:
+      MATRIXHUB_TOKEN_SIGNING_SECRET: ${MATRIXHUB_TOKEN_SIGNING_SECRET:-}
     volumes:
       - ./data/matrixhub:/data/
       - ./config.yaml:/etc/matrixhub/config.yaml:ro

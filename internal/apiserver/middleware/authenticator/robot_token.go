@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -49,7 +48,7 @@ func (a *RobotTokenAuthenticator) AuthenticateToken(ctx context.Context, _, toke
 		return nil, err
 	}
 	if rb == nil || !rb.IsValid(time.Now()) {
-		return nil, errors.New("robot is invalid")
+		return nil, ErrInvalidCredentials
 	}
 
 	return robot.NewRobotIdentity(rb.ID, rb.Name), nil

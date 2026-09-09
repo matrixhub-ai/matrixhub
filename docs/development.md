@@ -6,7 +6,7 @@ For backend package boundaries and dependency rules, see
 
 ## Prerequisites
 
-- Go 1.23+
+- Go 1.26.6+
 - A C compiler for SQLite development (`clang` on macOS, `gcc` on Linux;
   install `build-base` on Alpine). SQLite requires `CGO_ENABLED=1`.
 - Node.js 18+ for the app UI; Node.js 20+ for the documentation website
@@ -36,6 +36,30 @@ multiple MatrixHub processes against the same file or place it on NFS/SMB. The
 MatrixHub Helm chart does not support SQLite.
 SQLite's built-in `NOCASE` collation only folds ASCII characters; names that
 differ only by non-ASCII case may behave differently from MySQL.
+
+### Protocol Storage and Signing Keys
+
+LFS content is stored in xet CAS under `dataDir/xet`. Existing `dataDir/lfs`
+objects are not migrated automatically; back them up before upgrading.
+
+`apiServer.tokenSigningSecret` signs temporary LFS and CAS tokens.
+`MATRIXHUB_TOKEN_SIGNING_SECRET` overrides the config value. If neither is set,
+MatrixHub generates a cryptographically random key in `dataDir/token-signing-secret`
+with mode `0600` and reuses it on subsequent starts. Keep this file private and
+persist `dataDir`; losing or rotating the key invalidates outstanding tokens.
+Instances with separate data directories must configure the same key when
+sharing a public endpoint. Explicit production keys must be at least 32 bytes
+and must not use the old development default.
+
+Compose accepts an optional `MATRIXHUB_TOKEN_SIGNING_SECRET`; no setting is
+required for a persistent single-node deployment. Helm generates a release
+Secret by default and supports an existing Secret; see the
+[chart configuration](../deploy/charts/matrixhub/README.md#signing-keys).
+
+`apiServer.gcGrace` controls the LFS cleanup grace period: unset or `0` uses
+one hour, a negative duration disables it. Run cleanup only while uploads,
+pushes and mirror syncs are quiescent. See the
+[cleanup design](design/cleanup-design.md) for preview and storage-size semantics.
 
 ### 1. Start MySQL
 
@@ -200,9 +224,6 @@ Run all unit tests from the repository root:
 make test.unit
 ```
 
-`make test.unit` temporarily excludes `./internal/apiserver/handler/hf`; 
-add that package back after the HF handler tests are fixed.
-
 Run unit tests with coverage:
 
 ```bash
@@ -223,10 +244,11 @@ unit-test package roots:
 UNIT_TEST_PKGS="./cmd/... ./internal/... ./pkg/..." make test.unit
 ```
 
-Override `UNIT_TEST_EXCLUDE_PKGS` to change the temporary exclusions:
+No packages are excluded by default. Set `UNIT_TEST_EXCLUDE_PKGS` for a focused
+run that intentionally omits a package:
 
 ```bash
-UNIT_TEST_EXCLUDE_PKGS= make test.unit
+UNIT_TEST_EXCLUDE_PKGS="./internal/repo" make test.unit
 ```
 
 When interfaces change, regenerate mocks before running or committing tests:
@@ -319,11 +341,28 @@ Protocol labels and case-ID prefixes are:
 | Hugging Face CLI | `hf-cli` | `HF` |
 | Git over SSH | `git-ssh` | `GS` |
 | HF/Git interoperability | `protocol-interop` | `PI` |
+| HF CLI and Git Xet transfers | `xet` (Git upload: `git-xet`) | `GP003` |
 
 Each case receives an isolated user, private project, access token or SSH key,
 working directory, and HF cache. The `lfs` and `slow` labels identify the
 larger Git LFS flow. KIND runs expose HTTP on `30001` and SSH on `30022` and
 configure `apiServer.hostURL` automatically.
+
+The xet cases require Git Xet 0.2.1 in `PATH` in addition to the pinned
+`hf-xet` Python dependency. Install the binary from the
+[Git Xet release](https://github.com/huggingface/xet-core/releases/tag/git-xet-v0.2.1)
+and verify it with `git xet --version`; the test registers it with
+`git xet install --local` inside its disposable repository.
+
+```bash
+MATRIXHUB_BASE_URL=http://localhost:3001 E2E_LABELS=xet make test.e2e
+```
+
+These cases require an HTTP E2E endpoint. A local observation proxy asserts
+successful CAS xorb/shard uploads and reconstruction/xorb downloads, and rejects
+LFS/basic content transfers so fallback cannot pass the test. Each download uses
+a fresh HF/xet cache and verifies file size and SHA-256 against the uploaded
+payload. Existing LFS cases keep xet disabled.
 
 In CI the label is chosen automatically: PRs that touch `test/**` run the full
 suite, others run `smoke` (see `.github/workflows/auto-pr-ci.yaml`).

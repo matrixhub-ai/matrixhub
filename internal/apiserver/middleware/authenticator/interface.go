@@ -16,10 +16,13 @@ package authenticator
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 )
+
+var ErrInvalidCredentials = errors.New("invalid credentials")
 
 type AuthMethod string
 

@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
@@ -43,7 +42,7 @@ func (m *MultiAuthenticator) Authenticate(ctx context.Context, r *http.Request) 
 		}
 	}
 
-	return nil, nil, fmt.Errorf("failed to authenticate: %s", err)
+	return nil, nil, ErrInvalidCredentials
 }
 
 func (m *MultiAuthenticator) AuthenticateToken(ctx context.Context, username, token string) (succeeded HTTPAuthenticator, identity auth.Identity, err error) {
@@ -57,5 +56,5 @@ func (m *MultiAuthenticator) AuthenticateToken(ctx context.Context, username, to
 		}
 	}
 
-	return nil, nil, fmt.Errorf("failed to authenticate: %s", err)
+	return nil, nil, ErrInvalidCredentials
 }
