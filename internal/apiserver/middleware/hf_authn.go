@@ -30,8 +30,8 @@ func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRe
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo, userRepo, robotRepo)
-			_, identity, err := auth.Authenticate(r.Context(), r)
-			if err == nil {
+			_, identity, _, ok, err := auth.Authenticate(r.Context(), r)
+			if err == nil && ok {
 				r = setUserInfo(r, identity)
 			}
 			next.ServeHTTP(w, r)

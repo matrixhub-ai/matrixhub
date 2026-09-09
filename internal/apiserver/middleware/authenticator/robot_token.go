@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -34,23 +33,23 @@ func NewRobotTokenAuthenticator(robotRepo robot.IRobotRepo) *RobotTokenAuthentic
 	return &RobotTokenAuthenticator{robotRepo: robotRepo}
 }
 
-func (a *RobotTokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
+func (a *RobotTokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, bool, bool, error) {
 	token := extractTokenCredential(ctx, r)
 	return a.AuthenticateToken(ctx, "", token)
 }
 
-func (a *RobotTokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, error) {
+func (a *RobotTokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, bool, bool, error) {
 	if token == "" || !strings.HasPrefix(token, utils.RobotTokenPrefix) || len(token) == len(utils.RobotTokenPrefix) {
-		return nil, nil
+		return nil, true, false, nil
 	}
 
 	rb, err := a.robotRepo.GetRobotByTokenHash(ctx, utils.Sha256Hex(token))
 	if err != nil {
-		return nil, err
+		return nil, false, false, err
 	}
 	if rb == nil || !rb.IsValid(time.Now()) {
-		return nil, errors.New("robot is invalid")
+		return nil, false, false, nil
 	}
 
-	return robot.NewRobotIdentity(rb.ID, rb.Name), nil
+	return robot.NewRobotIdentity(rb.ID, rb.Name), false, true, nil
 }

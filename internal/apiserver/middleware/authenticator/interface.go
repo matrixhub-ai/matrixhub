@@ -30,22 +30,15 @@ const (
 	MethodPassword AuthMethod = "password"
 )
 
+// HTTPAuthenticator verifies request credentials or an extracted token.
+// Both methods return (identity, next, ok, err):
+//   - (nil, true, false, nil): absent or unrecognized credentials; try the next method.
+//   - (identity, false, true, nil): authenticated with a non-nil identity.
+//   - (nil, false, false, nil): recognized but rejected credentials; stop.
+//   - (nil, false, false, err): infrastructure failure; stop.
 type HTTPAuthenticator interface {
-	// Authenticate attempts to extract credentials from the request and verify them.
-	//
-	// Return semantics:
-	//   (nil, nil)      — this method does not apply to this request; skip and try the next one
-	//   (nil, err)      — credentials were present but invalid; reject immediately, do not try further
-	//   (identity, nil) — authentication succeeded
-	Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error)
-
-	// AuthenticateToken verify the extracted credentials.
-	//
-	// Return semantics:
-	//   (nil, nil)      — this method does not apply to this request; skip and try the next one
-	//   (nil, err)      — credentials were present but invalid; reject immediately, do not try further
-	//   (identity, nil) — authentication succeeded
-	AuthenticateToken(ctx context.Context, username, token string) (auth.Identity, error)
+	Authenticate(ctx context.Context, r *http.Request) (identity auth.Identity, next, ok bool, err error)
+	AuthenticateToken(ctx context.Context, username, token string) (identity auth.Identity, next, ok bool, err error)
 }
 
 type SessionRenewer interface {
