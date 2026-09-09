@@ -249,11 +249,7 @@ func (server *APIServer) initGitAuth() {
 	publicKeyValidator := middleware.GitPublicKeyAuthn(server.repos.SSHKey, server.repos.User)
 	tokenValidator := middleware.GitHTTPAuthn(server.repos.AccessToken, server.repos.User, server.repos.Robot)
 
-	// TODO: Use a proper secret management solution to manage the token signing secret.
-	// Generating and validating temporary tokens.
-	// Currently only used to provide http lfs download in ssh ports.
-	tmpTokenSecret := []byte("secret-xxxxxx")
-	tokenSignValidator := authenticate.NewTokenSignValidator(tmpTokenSecret)
+	tokenSignValidator := authenticate.NewTokenSignValidator([]byte(server.config.APIServer.TokenSigningSecret))
 
 	server.gitAuth.basicAuthValidator = basicAuthValidator
 	server.gitAuth.publicKeyValidator = publicKeyValidator
