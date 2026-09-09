@@ -209,5 +209,6 @@ type ISyncPolicyRepo interface {
 	ListSyncPolicies(ctx context.Context, page, pageSize int, search string) ([]*SyncPolicy, int64, error)
 
 	SelectDuePolicies(ctx context.Context, nowMs int64, limit int) ([]*SyncPolicy, error)
+	GetSyncPolicyByName(ctx context.Context, name string) (*SyncPolicy, error)
 	AdvanceNextRunAtCAS(ctx context.Context, policyID int, snapshotMs, nextNextMs, nowMs int64) (claimed bool, err error)
 }
