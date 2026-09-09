@@ -94,6 +94,11 @@ func (rh *RegistryHandler) CreateRegistry(ctx context.Context, request *registry
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	existing, _ := rh.registryRepo.GetRegistryByName(ctx, request.Name)
+	if existing != nil {
+		return nil, status.Error(codes.AlreadyExists, "registry with this name already exists")
+	}
+
 	domainRegistry := registry.Registry{
 		Name:        request.Name,
 		Description: request.Description,
@@ -120,6 +125,12 @@ func (rh *RegistryHandler) UpdateRegistry(ctx context.Context, request *registry
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+
+	if existing, err := rh.registryRepo.GetRegistryByName(ctx, request.Name); err == nil {
+		if existing.ID != int(request.Id) {
+			return nil, status.Error(codes.AlreadyExists, "registry with this name already exists")
+		}
+	}
 	domainRegistry := registry.Registry{
 		ID:          int(request.Id),
 		Name:        request.Name,

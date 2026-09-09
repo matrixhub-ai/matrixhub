@@ -130,3 +130,18 @@ func (mr *MockIRegistryRepoMockRecorder) UpdateRegistry(ctx, arg1 any) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRegistry", reflect.TypeOf((*MockIRegistryRepo)(nil).UpdateRegistry), ctx, arg1)
 }
+
+// GetRegistryByName mocks base method.
+func (m *MockIRegistryRepo) GetRegistryByName(ctx context.Context, name string) (*registry.Registry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRegistryByName", ctx, name)
+	ret0, _ := ret[0].(*registry.Registry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRegistryByName indicates an expected call of GetRegistryByName.
+func (mr *MockIRegistryRepoMockRecorder) GetRegistryByName(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegistryByName", reflect.TypeOf((*MockIRegistryRepo)(nil).GetRegistryByName), ctx, name)
+}
