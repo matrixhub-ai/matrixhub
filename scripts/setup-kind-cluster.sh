@@ -28,12 +28,41 @@ echo "Working directory: $(pwd)"
 # Environment variables with defaults
 E2E_CLUSTER_NAME=${E2E_CLUSTER_NAME:-"matrixhub-e2e"}
 E2E_KIND_IMAGE_TAG=${E2E_KIND_IMAGE_TAG:-"v1.32.3"}
+E2E_HTTP_HOST_PORT=${E2E_HTTP_HOST_PORT:-"30001"}
+E2E_SSH_HOST_PORT=${E2E_SSH_HOST_PORT:-"30022"}
+E2E_KIND_HTTP_LISTEN_ADDRESS=${E2E_KIND_HTTP_LISTEN_ADDRESS:-"127.0.0.1"}
+E2E_KIND_SSH_LISTEN_ADDRESS=${E2E_KIND_SSH_LISTEN_ADDRESS:-"127.0.0.1"}
+
+validate_port() {
+    local name=$1
+    local value=$2
+    if ! [[ "${value}" =~ ^[0-9]+$ ]] || [ "${value}" -lt 1 ] || [ "${value}" -gt 65535 ]; then
+        echo "Error: ${name} must be an integer between 1 and 65535 (got: ${value})"
+        exit 1
+    fi
+}
+
+validate_listen_address() {
+    local name=$1
+    local value=$2
+    if ! [[ "${value}" =~ ^[0-9A-Fa-f:.]+$ ]]; then
+        echo "Error: ${name} must be an IPv4 or IPv6 address (got: ${value})"
+        exit 1
+    fi
+}
+
+validate_port "E2E_HTTP_HOST_PORT" "${E2E_HTTP_HOST_PORT}"
+validate_port "E2E_SSH_HOST_PORT" "${E2E_SSH_HOST_PORT}"
+validate_listen_address "E2E_KIND_HTTP_LISTEN_ADDRESS" "${E2E_KIND_HTTP_LISTEN_ADDRESS}"
+validate_listen_address "E2E_KIND_SSH_LISTEN_ADDRESS" "${E2E_KIND_SSH_LISTEN_ADDRESS}"
 
 echo "================================================"
 echo "MatrixHub Kind Cluster Setup"
 echo "================================================"
 echo "Cluster Name: ${E2E_CLUSTER_NAME}"
 echo "K8s Version:   ${E2E_KIND_IMAGE_TAG}"
+echo "HTTP Mapping:  ${E2E_KIND_HTTP_LISTEN_ADDRESS}:${E2E_HTTP_HOST_PORT} -> 30001"
+echo "SSH Mapping:   ${E2E_KIND_SSH_LISTEN_ADDRESS}:${E2E_SSH_HOST_PORT} -> 30022"
 echo "================================================"
 
 # Check if kind is installed
@@ -73,12 +102,12 @@ nodes:
 - role: control-plane
   extraPortMappings:
   - containerPort: 30001
-    hostPort: 30001
-    listenAddress: "127.0.0.1"
+    hostPort: ${E2E_HTTP_HOST_PORT}
+    listenAddress: "${E2E_KIND_HTTP_LISTEN_ADDRESS}"
     protocol: TCP
   - containerPort: 30022
-    hostPort: 30022
-    listenAddress: "127.0.0.1"
+    hostPort: ${E2E_SSH_HOST_PORT}
+    listenAddress: "${E2E_KIND_SSH_LISTEN_ADDRESS}"
     protocol: TCP
 EOF
 kind create cluster --name="${E2E_CLUSTER_NAME}" --image=kindest/node:${E2E_KIND_IMAGE_TAG} --config=/tmp/kind-config.yaml --wait=120s
