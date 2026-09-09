@@ -1,10 +1,9 @@
-import { Anchor, Text } from '@mantine/core'
+import { Text } from '@mantine/core'
 import {
   SyncTaskStatus,
   TriggerType,
   type SyncTask,
 } from '@matrixhub/api-ts/v1alpha1/sync_policy.pb'
-import { Link } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -14,6 +13,7 @@ import {
   type DataTableRowActionsProps,
 } from '@/shared/components/DataTable'
 import { StatusIndicator } from '@/shared/components/StatusIndicator'
+import { TableCellLink } from '@/shared/components/TableCellLink'
 import { formatDateTime } from '@/shared/utils/date'
 
 import { StopReplicationExecutionAction } from './StopReplicationExecutionAction'
@@ -67,25 +67,19 @@ function ExecutionTaskCell({
   const executionId = row.original.id
 
   if (executionId == null || syncPolicyId == null) {
-    return <Text fw={600}>{executionId ?? '-'}</Text>
+    return <Text size="sm" fw={600}>{executionId ?? '-'}</Text>
   }
 
   return (
-    <Anchor
-      fw={600}
-      renderRoot={props => (
-        <Link
-          {...props}
-          to="/admin/replications/$replicationId/executions/$executionId"
-          params={{
-            replicationId: String(syncPolicyId),
-            executionId: String(executionId),
-          }}
-        />
-      )}
+    <TableCellLink
+      to="/admin/replications/$replicationId/executions/$executionId"
+      params={{
+        replicationId: String(syncPolicyId),
+        executionId: String(executionId),
+      }}
     >
       {executionId}
-    </Anchor>
+    </TableCellLink>
   )
 }
 

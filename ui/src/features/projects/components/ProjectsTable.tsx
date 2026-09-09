@@ -5,7 +5,6 @@ import {
 } from '@mantine/core'
 import { ProjectType } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
-import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
@@ -14,6 +13,7 @@ import {
   type DataTableProps,
   type DataTableRowActionsProps,
 } from '@/shared/components/DataTable'
+import { TableCellLink } from '@/shared/components/TableCellLink'
 import { formatDateTime } from '@/shared/utils/date'
 
 import type { Project } from '@matrixhub/api-ts/v1alpha1/project.pb'
@@ -38,20 +38,12 @@ function ProjectNameCell({ row }: ProjectCellProps) {
   }
 
   return (
-    <Anchor
-      size="sm"
-      fw={600}
-      underline="never"
-      renderRoot={props => (
-        <Link
-          {...props}
-          to="/projects/$projectId"
-          params={{ projectId: name }}
-        />
-      )}
+    <TableCellLink
+      to="/projects/$projectId"
+      params={{ projectId: name }}
     >
       {name}
-    </Anchor>
+    </TableCellLink>
   )
 }
 
