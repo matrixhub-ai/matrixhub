@@ -86,6 +86,11 @@ apiserver:
   # affected UI panels. Example: https://matrixhub.example.com
   externalURL: ""
 
+  # -- Signing key (at least 32 bytes); empty generates and reuses a release Secret.
+  tokenSigningSecret: ""
+  # -- Existing Secret containing token-signing-secret; overrides tokenSigningSecret.
+  tokenSigningExistingSecret: ""
+
   # -- storage configuration for git storage (models, datasets, lfs)
   storage:
     # -- storage mode: none (no persistence), pvc (PersistentVolumeClaim), s3 (object storage)

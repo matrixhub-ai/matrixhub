@@ -36,6 +36,7 @@ services:
       - ./config-mysql.yaml:/etc/matrixhub/config.yaml:ro
     environment:
       - MATRIXHUB_DATABASE_DSN=matrixhub:${MYSQL_PASSWORD:-changeme}@tcp(mysql:3306)/matrixhub?charset=utf8mb4&multiStatements=true&parseTime=true
+      - MATRIXHUB_TOKEN_SIGNING_SECRET=${MATRIXHUB_TOKEN_SIGNING_SECRET:-}
     depends_on:
       mysql:
         condition: service_healthy
