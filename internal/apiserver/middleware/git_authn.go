@@ -30,30 +30,30 @@ import (
 func GitHTTPAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) authenticate.TokenValidatorFunc {
 	return func(ctx context.Context, token string) (user string, next, ok bool, err error) {
 		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
-		_, identity, err := auth.AuthenticateToken(ctx, "", token)
-		if err != nil {
-			return "", false, false, err
+		_, identity, next, ok, err := auth.AuthenticateToken(ctx, "", token)
+		if err != nil || !ok {
+			return "", next, false, err
 		}
 		id, err := authcodec.Marshal(identity)
 		if err != nil {
 			return "", false, false, err
 		}
-		return id, true, true, nil
+		return id, false, true, nil
 	}
 }
 
 func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) authenticate.BasicAuthValidatorFunc {
 	return func(ctx context.Context, username, password string) (user string, next, ok bool, err error) {
 		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
-		_, identity, err := auth.AuthenticateToken(ctx, username, password)
-		if err != nil {
-			return "", false, false, err
+		_, identity, next, ok, err := auth.AuthenticateToken(ctx, username, password)
+		if err != nil || !ok {
+			return "", next, false, err
 		}
 		id, err := authcodec.Marshal(identity)
 		if err != nil {
 			return "", false, false, err
 		}
-		return id, true, true, nil
+		return id, false, true, nil
 	}
 }
 
@@ -63,14 +63,14 @@ func GitPublicKeyAuthn(sshKeyRepo user.ISSHKeyRepo, userRepo user.IUserRepo) aut
 		sha256sum := sha256.Sum256(marshaledKey)
 		hash := base64.RawStdEncoding.EncodeToString(sha256sum[:])
 		fg := "SHA256:" + hash
-		identity, err := auth.Authenticate(ctx, fg)
-		if err != nil || identity == nil || identity.GetID() == 0 {
-			return "", false, false, err
+		identity, next, ok, err := auth.Authenticate(ctx, fg)
+		if err != nil || !ok {
+			return "", next, false, err
 		}
 		id, err := authcodec.Marshal(identity)
 		if err != nil {
 			return "", false, false, err
 		}
-		return id, true, true, nil
+		return id, false, true, nil
 	}
 }

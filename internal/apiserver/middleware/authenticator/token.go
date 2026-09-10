@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -37,28 +36,28 @@ func NewTokenAuthenticator(tokenRepo user.IAccessTokenRepo, userRepo user.IUserR
 	return &TokenAuthenticator{tokenRepo: tokenRepo, userRepo: userRepo}
 }
 
-func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
+func (a *TokenAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, bool, bool, error) {
 	token := extractTokenCredential(ctx, r)
 	return a.AuthenticateToken(ctx, "", token)
 }
 
-func (a *TokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, error) {
+func (a *TokenAuthenticator) AuthenticateToken(ctx context.Context, _, token string) (auth.Identity, bool, bool, error) {
 	if token == "" || !strings.HasPrefix(token, utils.TokenPrefix) || len(token) == len(utils.TokenPrefix) {
-		return nil, nil
+		return nil, true, false, nil
 	}
 	ak, err := a.tokenRepo.GetByTokenHash(ctx, utils.Sha256Hex(token))
 	if err != nil {
-		return nil, err
+		return nil, false, false, err
 	}
-	if ak != nil && ak.IsValid(time.Now()) {
-		u, err := a.userRepo.GetUser(ctx, ak.UserId)
-		if err != nil {
-			return nil, err
-		}
-		return user.NewUserIdentity(ak.UserId, u.Username), nil
+	if ak == nil || !ak.IsValid(time.Now()) {
+		return nil, false, false, nil
+	}
+	u, err := a.userRepo.GetUser(ctx, ak.UserId)
+	if err != nil {
+		return nil, false, false, err
 	}
 
-	return nil, errors.New("invalid token")
+	return user.NewUserIdentity(ak.UserId, u.Username), false, true, nil
 }
 
 func parseBearerToken(r *http.Request) (token string) {

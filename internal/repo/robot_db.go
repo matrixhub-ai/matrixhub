@@ -16,6 +16,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 
@@ -95,6 +96,9 @@ func (r *robotRepo) GetRobotByTokenHash(ctx context.Context, tokenHash string) (
 	var rb robot.Robot
 	err := r.db.WithContext(ctx).Where("token_hash = ?", tokenHash).First(&rb).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &rb, nil
