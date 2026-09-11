@@ -154,7 +154,7 @@ comment with context. Maintainers may assign the issue once the person agrees or
 
 ## Local development
 
-For prerequisites, local API/UI setup, MySQL configuration, generated code,
+For prerequisites, local API/UI setup, SQLite/MySQL configuration, generated code,
 testing commands, and troubleshooting, see [docs/development.md](docs/development.md).
 
 For a quick non-development run via Docker Compose, see the **Quick Start** in

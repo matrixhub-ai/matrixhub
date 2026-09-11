@@ -13,7 +13,7 @@ We support two official installation methods: **Docker Compose** (for single-nod
 
 ## 🐋 Docker Compose Deployment
 
-Docker Compose is the easiest way to deploy MatrixHub on a standalone virtual machine or server.
+Docker Compose is the easiest way to deploy MatrixHub on a standalone virtual machine or server. The default deployment uses SQLite and does not require a separate database service.
 
 Download the Docker Compose files for a released version and start MatrixHub:
 
@@ -21,7 +21,7 @@ Download the Docker Compose files for a released version and start MatrixHub:
 <TabItem value="linux-macos" label="Linux / macOS" default>
 
 ```bash
-export MATRIXHUB_VERSION=v0.1.1
+export MATRIXHUB_VERSION=v0.2.0-rc.5
 
 mkdir -p matrixhub && cd matrixhub
 
@@ -39,7 +39,7 @@ MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose up -d
 <TabItem value="windows" label="Windows (PowerShell)">
 
 ```powershell
-$env:MATRIXHUB_VERSION = "v0.1.1"
+$env:MATRIXHUB_VERSION = "v0.2.0-rc.5"
 
 New-Item -ItemType Directory -Force -Path "matrixhub" | Out-Null
 Set-Location "matrixhub"
@@ -58,7 +58,7 @@ docker compose up -d
 </TabItem>
 </Tabs>
 
-For a newer stable release, replace `v0.1.1` with the version you want to run.
+Replace `v0.2.0-rc.5` with the version you want to run.
 If port `3001` is already in use, set `MATRIXHUB_HTTP_PORT` before starting the stack, for example `export MATRIXHUB_HTTP_PORT=3002` on Linux/macOS or `$env:MATRIXHUB_HTTP_PORT = "3002"` in PowerShell.
 
 Open the MatrixHub web console:
@@ -66,6 +66,16 @@ Open the MatrixHub web console:
 ```text
 http://127.0.0.1:3001
 ```
+
+SQLite data is stored in `./data/matrixhub`. Run only one MatrixHub instance against this database and keep it on a local filesystem.
+
+To use MySQL instead, download [`docker-compose.mysql.yml`](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/docker-compose.mysql.yml) and [`config-mysql.yaml`](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/config-mysql.yaml), then run:
+
+```bash
+MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose -f docker-compose.mysql.yml up -d
+```
+
+The public demo and the default Helm deployment continue to use MySQL.
 ---
 
 ## ☸️ Helm (Kubernetes) Deployment

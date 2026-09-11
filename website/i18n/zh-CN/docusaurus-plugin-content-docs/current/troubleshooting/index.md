@@ -9,22 +9,24 @@ sidebar_position: 1
 
 ---
 
-## 1. MySQL 连接失败
+## 1. 数据库问题
 
-如果 MatrixHub 无法启动，或日志中出现数据库连接错误，请检查 MySQL 容器的状态和日志：
+默认 Docker Compose 部署使用 SQLite。如果出现 `database is locked`，请确认只有一个 MatrixHub 实例使用该数据库，并确保 `./data/matrixhub` 位于本地文件系统。
+
+对于可选的 MySQL 部署，请检查 MySQL 容器的状态和日志：
 
 ```bash
-docker compose ps mysql
-docker compose logs mysql
+docker compose -f docker-compose.mysql.yml ps mysql
+docker compose -f docker-compose.mysql.yml logs mysql
 ```
 
 如果 MySQL 容器已经停止，可以重新启动：
 
 ```bash
-docker compose restart mysql
+docker compose -f docker-compose.mysql.yml restart mysql
 ```
 
-Docker Compose 默认使用服务名 `mysql` 连接数据库，账号和密码由 `docker-compose.yml` 中的环境变量配置。
+MySQL 版本使用服务名 `mysql` 连接数据库，账号和密码由 `docker-compose.mysql.yml` 中的环境变量配置。
 
 ---
 

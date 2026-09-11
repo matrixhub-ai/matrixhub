@@ -8,22 +8,26 @@ This section covers common MatrixHub deployment issues and troubleshooting steps
 
 ---
 
-## 1. MySQL Connection Failure
+## 1. Database Issues
 
-If MatrixHub fails to start or its logs report a database connection error, check the MySQL container status and logs:
+The default Docker Compose deployment uses SQLite. If it reports `database is
+locked`, confirm that only one MatrixHub instance uses the database and that
+`./data/matrixhub` is on a local filesystem.
+
+For the optional MySQL deployment, check the MySQL container status and logs:
 
 ```bash
-docker compose ps mysql
-docker compose logs mysql
+docker compose -f docker-compose.mysql.yml ps mysql
+docker compose -f docker-compose.mysql.yml logs mysql
 ```
 
 If the MySQL container has stopped, restart it:
 
 ```bash
-docker compose restart mysql
+docker compose -f docker-compose.mysql.yml restart mysql
 ```
 
-Docker Compose connects to the database through the `mysql` service name. Its credentials are configured through environment variables in `docker-compose.yml`.
+The MySQL variant connects through the `mysql` service name. Its credentials are configured through environment variables in `docker-compose.mysql.yml`.
 
 ---
 

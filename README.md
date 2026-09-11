@@ -50,10 +50,12 @@ Sign in with the public demo credentials:
 
 ### Docker Compose Deployment
 
-Download the Docker Compose files for a released version and start MatrixHub:
+The default single-node deployment uses SQLite, so no separate database service
+is required. Download the Docker Compose files for a released version and start
+MatrixHub:
 
 ```bash
-export MATRIXHUB_VERSION=v0.1.1
+export MATRIXHUB_VERSION=v0.2.0-rc.5
 
 mkdir -p matrixhub && cd matrixhub
 
@@ -67,7 +69,7 @@ curl -fL \
 MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose up -d
 ```
 
-For a newer stable release, replace `v0.1.1` with the version you want to run.
+Replace `v0.2.0-rc.5` with the version you want to run.
 If port `3001` is already in use, set `MATRIXHUB_HTTP_PORT` before starting the stack, for example `MATRIXHUB_HTTP_PORT=3002`.
 
 Open the MatrixHub web console:
@@ -89,6 +91,12 @@ To stop the local stack:
 ```bash
 docker compose down
 ```
+
+SQLite data is stored in `./data/matrixhub`. Run only one MatrixHub instance
+against this database and keep it on a local filesystem. For MySQL, use
+[`docker-compose.mysql.yml`](deploy/docker-compose.mysql.yml) with
+[`config-mysql.yaml`](deploy/config-mysql.yaml). The public demo and the default
+Helm deployment continue to use MySQL.
 
 ### Helm (Kubernetes) Deployment
 

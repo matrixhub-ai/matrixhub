@@ -6,8 +6,10 @@ sidebar_position: 1
 
 ## Docker Compose
 
-*   [Docker Compose runtime configuration (`deploy/config.yaml`)](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/config.yaml)
-*   [Docker Compose service definition](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/docker-compose.yml)
+*   [Default SQLite configuration (`deploy/config.yaml`)](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/config.yaml)
+*   [Default SQLite Compose definition](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/docker-compose.yml)
+*   [Optional MySQL configuration (`deploy/config-mysql.yaml`)](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/config-mysql.yaml)
+*   [Optional MySQL Compose definition](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/docker-compose.mysql.yml)
 
 ## Helm Chart
 
