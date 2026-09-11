@@ -21,7 +21,8 @@ import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
-import { ModelCommandDialog, type ModelCommandType } from '@/features/models/components/ModelCommandDialog'
+import { type ModelCommandType } from '@/features/models/command-guide/commandGuides'
+import { ModelCommandDrawer } from '@/features/models/command-guide/ModelCommandDrawer'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
 import { UseModelDrawer } from '@/features/models/use-model/UseModelDrawer'
 import {
@@ -175,7 +176,7 @@ export function ModelDetailPage({
 
       {children}
       {commandDialog.payload && (
-        <ModelCommandDialog
+        <ModelCommandDrawer
           opened={commandDialog.opened}
           type={commandDialog.payload}
           modelPath={modelPath}

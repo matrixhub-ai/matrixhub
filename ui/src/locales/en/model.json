@@ -30,16 +30,6 @@
     "tree": "Model Files",
     "setting": "Settings",
     "history": "Commit History",
-    "commandDialog": {
-      "upload": {
-        "title": "Upload Model Files",
-        "description": "Run this command to upload local files to this model."
-      },
-      "download": {
-        "title": "Download Model",
-        "description": "Run this command to download this model."
-      }
-    },
     "useModel": {
       "title": "Use This Model with {{engine}}",
       "intro": {
@@ -79,6 +69,30 @@
       "dockerHint": "Requires Docker with NVIDIA Container Toolkit configured.",
       "otherMethods": "Other methods",
       "viewDocs": "View {{engine}} docs"
+    },
+    "commandGuide": {
+      "steps": {
+        "install": "Install the CLI",
+        "installHint": "Run this once before first use.",
+        "configureHint": "A token is required for private projects or when authentication is enabled"
+      },
+      "download": {
+        "title": "Download Model",
+        "intro": "Download this model to your machine with the commands below, in order.",
+        "configure": "Configure the download endpoint",
+        "run": "Download the model",
+        "note": "Files are saved to"
+      },
+      "upload": {
+        "title": "Upload Model Files",
+        "intro": "Upload local files to this model repository with the commands below.",
+        "configure": "Configure MatrixHub",
+        "run": "Run the upload",
+        "runHint": "Replace the local folder path with the actual path on your machine.",
+        "localPath": "Local path",
+        "localPathHint": "Replace it with the model folder on this machine, for example:",
+        "localPathExample": "/Users/yourname/models/{{name}}"
+      }
     }
   },
   "settings": {

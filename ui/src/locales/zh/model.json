@@ -30,16 +30,6 @@
     "tree": "模型文件",
     "setting": "模型设置",
     "history": "{{count}} 条提交",
-    "commandDialog": {
-      "upload": {
-        "title": "上传模型文件",
-        "description": "运行以下命令将本地文件上传到该模型。"
-      },
-      "download": {
-        "title": "下载模型文件",
-        "description": "运行以下命令下载该模型。"
-      }
-    },
     "useModel": {
       "title": "使用 {{engine}} 模型",
       "intro": {
@@ -79,6 +69,30 @@
       "dockerHint": "需要安装并配置 Docker 和 NVIDIA Container Toolkit。",
       "otherMethods": "其他方式",
       "viewDocs": "查看 {{engine}} 文档"
+    },
+    "commandGuide": {
+      "steps": {
+        "install": "安装命令行工具",
+        "installHint": "首次使用时，请先执行以下命令。",
+        "configureHint": "私有项目或开启鉴权时需要 Token"
+      },
+      "download": {
+        "title": "下载模型",
+        "intro": "通过命令将当前模型下载到本地环境，按以下顺序执行。",
+        "configure": "配置下载地址",
+        "run": "下载模型",
+        "note": "模型默认保存到"
+      },
+      "upload": {
+        "title": "上传模型文件",
+        "intro": "通过命令将本地文件上传到当前模型仓库。",
+        "configure": "配置 MatrixHub",
+        "run": "执行上传",
+        "runHint": "请将本地模型文件夹路径替换为你电脑上的实际路径。",
+        "localPath": "本地路径",
+        "localPathHint": "请替换为本机模型文件夹路径，例如：",
+        "localPathExample": "/Users/yourname/models/{{name}}"
+      }
     }
   },
   "settings": {

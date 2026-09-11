@@ -1,0 +1,69 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - var(--drawer-header-height, 60px));
+  padding: 0;
+}
+
+/* Scroll container only; the Stack inside lays out at its natural height. */
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+}
+
+.footer {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  border-top: 1px solid var(--app-color-gray-30);
+}
+
+.step {
+  border: 1px solid var(--app-color-gray-30);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+}
+
+.stepHeader {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  background: var(--app-color-gray-10);
+  border-bottom: 1px solid var(--app-color-gray-30);
+}
+
+.stepIndex {
+  flex-shrink: 0;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  font-size: 11px;
+}
+
+.stepBody {
+  padding: var(--mantine-spacing-sm);
+}
+
+.accordionItem,
+.accordionItem[data-active] {
+  border-color: var(--app-color-gray-30);
+  background: var(--app-color-background-body);
+}
+
+.accordionControl,
+.accordionControl:hover {
+  background: var(--app-color-gray-10);
+}
+
+.accordionItem[data-active] .accordionControl {
+  border-bottom: 1px solid var(--app-color-gray-30);
+}
+
+.accordionContent {
+  padding: var(--mantine-spacing-sm);
+}
+
+.note {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border: 1px solid var(--app-color-gray-30);
+  border-radius: var(--mantine-radius-sm);
+}
