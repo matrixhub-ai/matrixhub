@@ -84,6 +84,8 @@ Use the shared `CopyButton` or `CopyValueButton` for copy actions instead of Man
 
 **Shared table wrapper** is `src/shared/components/DataTable.tsx`. Centralise pagination, loading/empty states, row actions, selection behaviour, and shared styling inside the wrapper — feature tables stay focused on columns, cells, and feature-specific toolbar actions.
 
+**Shared code highlighting** lives in `src/shared/utils/shiki.ts` (lazy Shiki highlighter, on-demand grammars, dual light/dark themes). Render a standalone snippet with `src/shared/components/ShikiCodeBlock.tsx` (copy button + skeleton while loading); the markdown renderer in `src/features/file-viewer/markdown/renderer.ts` reuses the same highlighter. Do not create a second Shiki instance.
+
 Only promote code to `src/shared/` once reuse is clear. Do not pre-emptively abstract.
 
 ### `src/i18n/` and `src/locales/`

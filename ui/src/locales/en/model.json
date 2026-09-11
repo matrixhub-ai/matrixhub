@@ -38,11 +38,44 @@
       "download": {
         "title": "Download Model",
         "description": "Run this command to download this model."
-      },
-      "use": {
-        "title": "Use This Model",
-        "description": "Run this command to serve this model with vLLM."
       }
+    },
+    "useModel": {
+      "title": "Use This Model with {{engine}}",
+      "intro": {
+        "transformers": "The following steps load and run the model with Transformers on your GPU server.",
+        "vllm": "The following steps start vLLM on your GPU server and fetch the model from MatrixHub.",
+        "sglang": "The following steps start SGLang on your GPU server and fetch the model from MatrixHub."
+      },
+      "gpu": "GPU",
+      "steps": {
+        "prepare": "Prepare the environment",
+        "prepareHint": "Run the following commands on the GPU server that will serve the model",
+        "install": "Install {{engine}}",
+        "configure": "Configure MatrixHub",
+        "configureHint": "A token is required for private projects or when authentication is enabled",
+        "generate": "Generate code for the model type",
+        "generateTooltip": "The task type and messages structure are switched automatically from the model's task labels. You can also pick one manually.",
+        "generateHint": "Code is generated from the model's capabilities. Replace the image URL and prompt, then run it.",
+        "serve": "Start the model server",
+        "testRequest": "Send a test request",
+        "testRequestHint": "The request body follows the model type. Replace the image URL and prompt, then run it."
+      },
+      "currentTask": "Model type",
+      "tasks": {
+        "text-generation": "Text generation",
+        "image-text-to-text": "Image-text-to-text"
+      },
+      "pipelineTab": "Pipeline (recommended)",
+      "lowLevelTab": "Low-level API",
+      "lowLevelNote": "The low-level API uses Transformers step by step: load the processor, build the chat template, preprocess inputs, call generate, and slice the output. AutoModel* is a generic example; some architectures (e.g. Qwen, LLaVA) require their own model class.",
+      "prompts": {
+        "text": "Who are you?",
+        "imageUrl": "<image-url>",
+        "image": "Describe this image"
+      },
+      "otherMethods": "Other methods",
+      "viewDocs": "View {{engine}} docs"
     }
   },
   "settings": {
