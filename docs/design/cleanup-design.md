@@ -71,7 +71,7 @@ Based on user confirmation, this implementation includes the following features:
 
 ### 2. Database Storage
 
-**Supported Databases**: MySQL / PostgreSQL (via GORM)
+**Supported Databases**: SQLite / MySQL / PostgreSQL (via GORM)
 
 **Table Structure and Disk Usage**:
 
@@ -163,7 +163,7 @@ lfsStorage := lfs.NewLocal(storage.LFSDir())
 |--------------|----------|---------------|------------------|
 | Git Repositories | `DataDir/repositories/` | Model code, configuration | High (orphaned repos) |
 | LFS Objects | `DataDir/lfs/objects/` | **Model weight files** | High (orphaned objects) |
-| Database | MySQL/PostgreSQL | Metadata, sessions, task records | Medium (expired data) |
+| Database | SQLite/MySQL/PostgreSQL | Metadata, sessions, task records | Medium (expired data) |
 | Log Files | System path | Runtime logs | Low (auto rotation) |
 | Mirror Cache | Memory/temp files | Proxy cache | Low (auto expiration) |
 | S3 Objects | S3/MinIO | LFS objects (if enabled) | Low (not enabled by default) |
@@ -583,9 +583,9 @@ func (s *S3LFSCleanup) DeleteObject(ctx context.Context, oid string) error {
 | Orphaned Git Repositories | Local disk | ✅ Implemented | High | Medium |
 | Orphaned LFS Objects (Local) | Local disk | ✅ Implemented | High | High |
 | Orphaned LFS Objects (S3) | S3/MinIO | ❌ Not implemented | Low | High |
-| Expired Sessions | MySQL/PostgreSQL | ✅ Implemented | Medium | Low |
-| Historical Sync Tasks | MySQL/PostgreSQL | ✅ Implemented | Low | Low |
-| Expired Access Tokens | MySQL/PostgreSQL | ❌ Not implemented | Low | Low |
+| Expired Sessions | SQLite/MySQL/PostgreSQL | ✅ Implemented | Medium | Low |
+| Historical Sync Tasks | SQLite/MySQL/PostgreSQL | ✅ Implemented | Low | Low |
+| Expired Access Tokens | SQLite/MySQL/PostgreSQL | ❌ Not implemented | Low | Low |
 | Temporary Files | Local disk | ❌ Not implemented | Low | Medium |
 | Mirror Cache | Local disk | ⚠️ TTL configured | Medium | Low |
 
