@@ -1,3 +1,48 @@
+/*
+ * Heading self-links: look like plain headings; on hover a grey link icon
+ * (Tabler `link`) appears in the left gutter, GitHub-style.
+ */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  position: relative;
+}
+
+.markdown-body .header-anchor {
+  color: inherit;
+  text-decoration: none;
+}
+
+.markdown-body .header-anchor:hover {
+  text-decoration: none;
+}
+
+.markdown-body .header-anchor::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -24px;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 120ms ease;
+  background-color: var(--mantine-color-dimmed);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 15l6 -6'/%3E%3Cpath d='M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464'/%3E%3Cpath d='M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.markdown-body h1:hover .header-anchor::before,
+.markdown-body h2:hover .header-anchor::before,
+.markdown-body h3:hover .header-anchor::before,
+.markdown-body h4:hover .header-anchor::before,
+.markdown-body h5:hover .header-anchor::before,
+.markdown-body h6:hover .header-anchor::before {
+  opacity: 1;
+}
+
 /* Shiki code blocks inside the markdown body */
 .markdown-body pre.shiki {
   padding: 16px;
@@ -11,6 +56,19 @@
   padding: 0;
   background: transparent;
   white-space: pre;
+}
+
+/* Shiki emits both palettes as variables; pick the active one per colour scheme. */
+.markdown-body pre.shiki,
+.markdown-body pre.shiki span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+[data-mantine-color-scheme='dark'] .markdown-body pre.shiki,
+[data-mantine-color-scheme='dark'] .markdown-body pre.shiki span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
 }
 
 /*

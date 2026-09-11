@@ -45,6 +45,7 @@ export function FileToolbar({
         style={{
           flex: 1,
           minWidth: 0,
+          flexWrap: 'nowrap',
         }}
       >
         {file.commit?.authorName

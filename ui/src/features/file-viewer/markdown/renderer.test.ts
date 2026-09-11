@@ -62,6 +62,13 @@ describe('renderMarkdown', () => {
     expect(html).not.toContain('tabindex')
   })
 
+  it('links each heading to its own anchor without opening a new tab', async () => {
+    const html = await renderMarkdown('## Best Practices')
+
+    expect(html).toContain('<a class="header-anchor" href="#best-practices">')
+    expect(html).not.toMatch(/header-anchor[^>]*target=/)
+  })
+
   it('drops style blocks and non-colour inline styles from raw HTML', async () => {
     const html = await renderMarkdown(
       '<style>body{display:none}</style>\n<div style="position:fixed;top:0;color:red">overlay</div>',
@@ -78,11 +85,12 @@ describe('renderMarkdown', () => {
     expect(html).not.toMatch(/<(form|input|button)/)
   })
 
-  it('keeps Shiki token colours', async () => {
+  it('keeps Shiki token colours for both schemes', async () => {
     const html = await renderMarkdown('```python\nx = 1\n```')
 
     expect(html).toContain('class="shiki')
-    expect(html).toMatch(/style="color:#[0-9a-f]{6}/i)
+    expect(html).toMatch(/--shiki-light:#[0-9a-f]{6};--shiki-dark:#[0-9a-f]{6}/i)
+    expect(html).toMatch(/--shiki-light-bg:#[0-9a-f]{6};--shiki-dark-bg:#[0-9a-f]{6}/i)
   })
 
   it('renders GitHub alerts', async () => {
