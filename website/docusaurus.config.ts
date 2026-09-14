@@ -21,8 +21,9 @@ const config: Config = {
   organizationName: 'matrixhub-ai',
   projectName: 'matrixhub',
 
-  onBrokenLinks: 'warn',
-  onBrokenAnchors: 'warn',
+  onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
+  onBrokenMarkdownLinks: 'throw',
 
   i18n: {
     defaultLocale: 'en',

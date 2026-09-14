@@ -25,3 +25,8 @@ serve: node_modules
 .PHONY: clean
 clean:
 	rm -rf build
+
+# Find orphaned (unused) static assets
+.PHONY: find-orphan-files
+find-orphan-files:
+	npm run find-orphan-files

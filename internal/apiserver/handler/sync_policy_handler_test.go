@@ -109,3 +109,33 @@ func TestListSyncJobsPaginationIncludesPageCount(t *testing.T) {
 		t.Fatalf("Pagination.PageSize = %d, want %d", got, want)
 	}
 }
+
+func TestListSyncPoliciesPaginationIncludesPageCount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	policyService := syncpolicymocks.NewMockISyncPolicyService(ctrl)
+	h := &SyncPolicyHandler{syncPolicyService: policyService}
+
+	policyService.EXPECT().
+		ListSyncPolicies(gomock.Any(), 2, 10, "").
+		Return([]*syncpolicy.SyncPolicy{}, int64(21), nil)
+
+	response, err := h.ListSyncPolicies(t.Context(), &v1alpha1.ListSyncPoliciesRequest{
+		Page:     2,
+		PageSize: 10,
+	})
+	if err != nil {
+		t.Fatalf("ListSyncPolicies() error = %v", err)
+	}
+	if got, want := response.Pagination.Pages, int32(3); got != want {
+		t.Fatalf("Pagination.Pages = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.Total, int32(21); got != want {
+		t.Fatalf("Pagination.Total = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.Page, int32(2); got != want {
+		t.Fatalf("Pagination.Page = %d, want %d", got, want)
+	}
+	if got, want := response.Pagination.PageSize, int32(10); got != want {
+		t.Fatalf("Pagination.PageSize = %d, want %d", got, want)
+	}
+}
