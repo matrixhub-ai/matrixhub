@@ -15,10 +15,72 @@
 package repo
 
 import (
+	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/matrixhub-ai/hfd/pkg/repository"
+	hfdstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 )
+
+func TestFindOrphanedLFSShardedObjects(t *testing.T) {
+	ctx := context.Background()
+	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	referencedOID := strings.Repeat("a", 64)
+	orphanedOID := strings.Repeat("b", 64)
+	for _, oid := range []string{referencedOID, orphanedOID} {
+		objectPath := filepath.Join(store.LFSDir(), oid[:2], oid[2:4], oid[4:])
+		if err := os.MkdirAll(filepath.Dir(objectPath), 0750); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(objectPath, []byte("object"), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(store.LFSDir(), "bb", "bb", "lfsd_tmp_x"), []byte("pending"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	repoPath := store.ResolvePath("test-project/test-model")
+	if err := os.MkdirAll(filepath.Dir(repoPath), 0750); err != nil {
+		t.Fatal(err)
+	}
+	repo, err := repository.Init(ctx, repoPath, "main")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pointer := "version https://git-lfs.github.com/spec/v1\noid sha256:" + referencedOID + "\nsize 1048576\n"
+	if _, err := repo.CreateCommit(ctx, "main", "add model", "Test", "test@example.com", []repository.CommitOperation{
+		{Type: repository.CommitOperationAdd, Path: "model.bin", Content: []byte(pointer)},
+	}, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	gitRepo := NewGitDB(store, nil)
+	orphaned, err := gitRepo.FindOrphanedLFS(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(orphaned) != 1 {
+		oids := make([]string, 0, len(orphaned))
+		for _, object := range orphaned {
+			oids = append(oids, object.OID)
+		}
+		t.Fatalf("expected one orphaned LFS object, got %d: %q", len(orphaned), oids)
+	}
+	wantPath := filepath.Join(store.LFSDir(), orphanedOID[:2], orphanedOID[2:4], orphanedOID[4:])
+	if orphaned[0].OID != orphanedOID || orphaned[0].Path != wantPath {
+		t.Fatalf("expected OID %q at %q, got %+v", orphanedOID, wantPath, orphaned[0])
+	}
+	if err := gitRepo.DeleteLFSObject(ctx, orphaned[0]); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(wantPath); !os.IsNotExist(err) {
+		t.Fatalf("expected orphaned LFS file removed, got %v", err)
+	}
+}
 
 func TestConfinedPathAcceptsRelativePathAlreadyUnderRoot(t *testing.T) {
 	cwd, err := os.Getwd()

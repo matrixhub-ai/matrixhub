@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
@@ -35,18 +34,21 @@ func NewSSHKeyAuthenticator(sshKeyRepo user.ISSHKeyRepo, userRepo user.IUserRepo
 	}
 }
 
-func (s *SSHKeyAuthenticator) Authenticate(ctx context.Context, fingerprint string) (auth.Identity, error) {
+func (s *SSHKeyAuthenticator) Authenticate(ctx context.Context, fingerprint string) (auth.Identity, bool, bool, error) {
 	key, err := s.sshKeyRepo.GetByFingerprint(ctx, fingerprint)
 	if err != nil {
-		return nil, fmt.Errorf("fail to get key by fingerprint: %s", err)
+		return nil, false, false, err
+	}
+	if key == nil || key.Id == 0 {
+		return nil, false, false, nil
 	}
 	if key.IsExpired(time.Now()) {
-		return nil, fmt.Errorf("public key %s is expired", fingerprint)
+		return nil, false, false, nil
 	}
 	u, err := s.userRepo.GetUser(ctx, key.UserId)
 	if err != nil {
-		return nil, fmt.Errorf("fail to get user: %s", err)
+		return nil, false, false, err
 	}
 
-	return user.NewUserIdentity(key.UserId, u.Username), nil
+	return user.NewUserIdentity(key.UserId, u.Username), false, true, nil
 }

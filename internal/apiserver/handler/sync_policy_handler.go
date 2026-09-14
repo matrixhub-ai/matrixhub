@@ -92,9 +92,10 @@ func (h *SyncPolicyHandler) ListSyncPolicies(ctx context.Context, request *v1alp
 	return &v1alpha1.ListSyncPoliciesResponse{
 		SyncPolicies: items,
 		Pagination: &v1alpha1.Pagination{
-			Total:    int32(total),
-			Page:     request.Page,
-			PageSize: request.PageSize,
+			Total:    utils.ClampInt32(total),
+			Page:     int32(page),
+			PageSize: int32(pageSize),
+			Pages:    utils.CalculatePages(total, int32(pageSize)),
 		},
 	}, nil
 }
