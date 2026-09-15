@@ -40,8 +40,8 @@ func AuthInterceptor(sessionRepo user.ISessionRepo, userRepo user.IUserRepo, tok
 		}
 
 		authn := authenticator.NewWebAuthenticator(sessionRepo, userRepo, tokenRepo, robotRepo)
-		succeeded, identity, err := authn.Authenticate(ctx, nil)
-		if err != nil || identity == nil {
+		succeeded, identity, _, ok, err := authn.Authenticate(ctx, nil)
+		if err != nil || !ok {
 			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 		}
 		ctx = auth.WithIdentity(ctx, identity)
