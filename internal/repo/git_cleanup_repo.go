@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -32,6 +33,8 @@ type lfsObjectInfo struct {
 	size int64
 	path string
 }
+
+var lfsOIDPattern = regexp.MustCompile("^[0-9a-f]{64}$")
 
 // FindOrphanedRepos finds orphaned Git repositories on disk.
 func (g *gitRepo) FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*git.OrphanedRepo, error) {
@@ -177,8 +180,12 @@ func (g *gitRepo) scanLFSObjects(ctx context.Context) (map[string]*lfsObjectInfo
 			return ctx.Err()
 		}
 
-		oid := info.Name()
-		if len(oid) >= 8 {
+		rel, err := filepath.Rel(lfsDir, path)
+		if err != nil {
+			return err
+		}
+		oid := strings.ReplaceAll(rel, string(filepath.Separator), "")
+		if lfsOIDPattern.MatchString(oid) {
 			objects[oid] = &lfsObjectInfo{
 				size: info.Size(),
 				path: path,

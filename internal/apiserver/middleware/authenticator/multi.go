@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
@@ -32,30 +31,36 @@ func NewMultiAuthenticator(auths ...HTTPAuthenticator) *MultiAuthenticator {
 	}
 }
 
-func (m *MultiAuthenticator) Authenticate(ctx context.Context, r *http.Request) (succeeded HTTPAuthenticator, identity auth.Identity, err error) {
+func (m *MultiAuthenticator) Authenticate(ctx context.Context, r *http.Request) (succeeded HTTPAuthenticator, identity auth.Identity, next, ok bool, err error) {
 	for _, auth := range m.authenticators {
-		identity, err = auth.Authenticate(ctx, r)
+		identity, next, ok, err := auth.Authenticate(ctx, r)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, false, false, err
 		}
-		if identity != nil {
-			return auth, identity, nil
+		if ok {
+			return auth, identity, false, true, nil
+		}
+		if !next {
+			return nil, nil, false, false, nil
 		}
 	}
 
-	return nil, nil, fmt.Errorf("failed to authenticate: %s", err)
+	return nil, nil, true, false, nil
 }
 
-func (m *MultiAuthenticator) AuthenticateToken(ctx context.Context, username, token string) (succeeded HTTPAuthenticator, identity auth.Identity, err error) {
+func (m *MultiAuthenticator) AuthenticateToken(ctx context.Context, username, token string) (succeeded HTTPAuthenticator, identity auth.Identity, next, ok bool, err error) {
 	for _, auth := range m.authenticators {
-		identity, err = auth.AuthenticateToken(ctx, username, token)
+		identity, next, ok, err := auth.AuthenticateToken(ctx, username, token)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, false, false, err
 		}
-		if identity != nil {
-			return auth, identity, nil
+		if ok {
+			return auth, identity, false, true, nil
+		}
+		if !next {
+			return nil, nil, false, false, nil
 		}
 	}
 
-	return nil, nil, fmt.Errorf("failed to authenticate: %s", err)
+	return nil, nil, true, false, nil
 }

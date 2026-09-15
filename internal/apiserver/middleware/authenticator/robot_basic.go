@@ -16,7 +16,6 @@ package authenticator
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -34,28 +33,28 @@ func NewRobotAuthenticator(robotRepo robot.IRobotRepo) *RobotAuthenticator {
 	return &RobotAuthenticator{robotRepo: robotRepo}
 }
 
-func (a *RobotAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, error) {
+func (a *RobotAuthenticator) Authenticate(ctx context.Context, r *http.Request) (auth.Identity, bool, bool, error) {
 	username, secret, err := utils.ParseBasicAuthFromGRPCContext(ctx)
 	if err != nil {
-		return nil, nil
+		return nil, true, false, nil
 	}
 	return a.AuthenticateToken(ctx, username, secret)
 }
 
-func (a *RobotAuthenticator) AuthenticateToken(ctx context.Context, username, token string) (auth.Identity, error) {
+func (a *RobotAuthenticator) AuthenticateToken(ctx context.Context, username, token string) (auth.Identity, bool, bool, error) {
 	if !strings.HasPrefix(username, robot.RobotPrefix) {
-		return nil, nil
+		return nil, true, false, nil
 	}
 	rb, err := a.robotRepo.GetRobotByName(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("robot account not found: %w", err)
+		return nil, false, false, err
 	}
 	if !rb.IsValid(time.Now()) {
-		return nil, fmt.Errorf("robot account is invalid: %s", username)
+		return nil, false, false, nil
 	}
 	if !rb.CheckTokenHash(utils.Sha256Hex(token)) {
-		return nil, fmt.Errorf("invalid robot token: %w", err)
+		return nil, false, false, nil
 	}
 
-	return robot.NewRobotIdentity(rb.ID, rb.Name), nil
+	return robot.NewRobotIdentity(rb.ID, rb.Name), false, true, nil
 }
