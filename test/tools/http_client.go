@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"sync"
 
+	v1alpha1cleanup "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/cleanup"
 	v1alpha1current_user "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/current_user"
 	v1alpha1dataset "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/dataset"
 	v1alpha1model "github.com/matrixhub-ai/matrixhub/test/client/v1alpha1/model"
@@ -44,6 +45,7 @@ var (
 	v1alpha1RegistriesApi  *v1alpha1registry.RegistriesApiService
 	v1alpha1RobotsApi      *v1alpha1robot.RobotsApiService
 	v1alpha1SyncPolicyApi  *v1alpha1sync_policy.SyncPolicyApiService
+	v1alpha1CleanupApi     *v1alpha1cleanup.CleanupApiService
 )
 
 // InitHTTPClients initializes HTTP API clients with admin authentication
@@ -138,6 +140,14 @@ func InitHTTPClients() error {
 		}
 		v1alpha1SyncPolicyApi = v1alpha1sync_policy.NewAPIClient(syncPolicyCfg).SyncPolicyApi
 
+		// Initialize Cleanup API client
+		cleanupCfg := &v1alpha1cleanup.Configuration{
+			BasePath:      baseURL,
+			DefaultHeader: defaultHeaders,
+			HTTPClient:    httpClient,
+		}
+		v1alpha1CleanupApi = v1alpha1cleanup.NewAPIClient(cleanupCfg).CleanupApi
+
 		log.Println("HTTP clients initialized successfully")
 	})
 
@@ -230,6 +240,17 @@ func GetV1alpha1SyncPolicyApi() *v1alpha1sync_policy.SyncPolicyApiService {
 		}
 	}
 	return v1alpha1SyncPolicyApi
+}
+
+// GetV1alpha1CleanupApi returns the Cleanup HTTP API client.
+func GetV1alpha1CleanupApi() *v1alpha1cleanup.CleanupApiService {
+	if v1alpha1CleanupApi == nil {
+		err := InitHTTPClients()
+		if err != nil {
+			panic(err)
+		}
+	}
+	return v1alpha1CleanupApi
 }
 
 // CreateModelClientWithCookie creates a new Model API client with a specific cookie
