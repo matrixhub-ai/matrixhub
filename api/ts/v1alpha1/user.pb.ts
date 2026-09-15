@@ -35,6 +35,7 @@ export type ListUsersRequest = {
   page?: number
   pageSize?: number
   search?: string
+  excludeProject?: string
 }
 
 export type ListUsersResponse = {

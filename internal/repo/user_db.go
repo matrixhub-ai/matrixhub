@@ -57,11 +57,26 @@ func (u *UserRepo) GetUserByName(ctx context.Context, username string) (*user.Us
 	return &user, nil
 }
 
-func (u *UserRepo) ListUsers(ctx context.Context, page, pageSize int, search string) (us []*user.User, total int64, err error) {
-	query := u.db.WithContext(ctx).Model(&user.User{})
+func buildUserListQuery(db *gorm.DB, search, excludeProject string) *gorm.DB {
+	query := db.Model(&user.User{})
 	if search != "" {
 		query = query.Where("username LIKE ?", "%"+search+"%")
 	}
+	if excludeProject != "" {
+		query = query.Where(`NOT EXISTS (
+			SELECT 1
+			FROM members_roles_projects
+			INNER JOIN projects ON projects.id = members_roles_projects.project_id
+			WHERE members_roles_projects.member_id = users.id
+			  AND members_roles_projects.member_type = ?
+			  AND projects.name = ?
+		)`, project.MemberTypeUser, excludeProject)
+	}
+	return query
+}
+
+func (u *UserRepo) ListUsers(ctx context.Context, page, pageSize int, search, excludeProject string) (us []*user.User, total int64, err error) {
+	query := buildUserListQuery(u.db.WithContext(ctx), search, excludeProject)
 	if err = query.Count(&total).Error; err != nil {
 		return
 	}

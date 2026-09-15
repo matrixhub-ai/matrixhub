@@ -53,6 +53,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "excludeProject",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

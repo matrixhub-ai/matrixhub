@@ -44,7 +44,7 @@ type IUserRepo interface {
 	CreateUser(ctx context.Context, user *User) error
 	GetUser(ctx context.Context, id int) (*User, error)
 	GetUserByName(ctx context.Context, username string) (*User, error)
-	ListUsers(ctx context.Context, page, pageSize int, search string) ([]*User, int64, error)
+	ListUsers(ctx context.Context, page, pageSize int, search, excludeProject string) ([]*User, int64, error)
 	DeleteUser(ctx context.Context, id int) error
 	UpdateUserPassword(ctx context.Context, id int, password string) error
 

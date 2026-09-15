@@ -326,6 +326,7 @@ UsersApiService
      * @param "Page" (optional.Int32) - 
      * @param "PageSize" (optional.Int32) - 
      * @param "Search" (optional.String) - 
+     * @param "ExcludeProject" (optional.String) -
 
 @return V1alpha1ListUsersResponse
 */
@@ -334,6 +335,7 @@ type UsersApiUsersListUsersOpts struct {
 	Page optional.Int32
 	PageSize optional.Int32
 	Search optional.String
+	ExcludeProject optional.String
 }
 
 func (a *UsersApiService) UsersListUsers(ctx context.Context, localVarOptionals *UsersApiUsersListUsersOpts) (V1alpha1ListUsersResponse, *http.Response, error) {
@@ -360,6 +362,9 @@ func (a *UsersApiService) UsersListUsers(ctx context.Context, localVarOptionals 
 	}
 	if localVarOptionals != nil && localVarOptionals.Search.IsSet() {
 		localVarQueryParams.Add("search", parameterToString(localVarOptionals.Search.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.ExcludeProject.IsSet() {
+		localVarQueryParams.Add("excludeProject", parameterToString(localVarOptionals.ExcludeProject.Value(), ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{"application/json"}
@@ -633,4 +638,3 @@ func (a *UsersApiService) UsersSetUserSysAdmin(ctx context.Context, id int64, bo
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
-

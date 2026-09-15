@@ -117,7 +117,7 @@ func (u *UserHandler) ListUsers(ctx context.Context, request *userv1alpha1.ListU
 	}
 	page := utils.NewPage(request.Page, request.PageSize)
 
-	users, total, err := u.userRepo.ListUsers(ctx, int(page.Page), int(page.PageSize), request.Search)
+	users, total, err := u.userRepo.ListUsers(ctx, int(page.Page), int(page.PageSize), request.Search, request.ExcludeProject)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

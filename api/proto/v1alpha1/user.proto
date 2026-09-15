@@ -77,6 +77,7 @@ message ListUsersRequest {
   int32 page = 1;
   int32 page_size = 2;
   string search = 3;
+  string exclude_project = 4;
 }
 
 message ListUsersResponse {

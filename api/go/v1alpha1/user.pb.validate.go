@@ -428,6 +428,8 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	// no validation rules for Search
 
+	// no validation rules for ExcludeProject
+
 	if len(errors) > 0 {
 		return ListUsersRequestMultiError(errors)
 	}

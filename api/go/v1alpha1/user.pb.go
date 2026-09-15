@@ -252,12 +252,13 @@ func (*CreateUserResponse) Descriptor() ([]byte, []int) {
 }
 
 type ListUsersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Page           int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize       int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search         string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	ExcludeProject string                 `protobuf:"bytes,4,opt,name=exclude_project,json=excludeProject,proto3" json:"exclude_project,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ListUsersRequest) Reset() {
@@ -307,6 +308,13 @@ func (x *ListUsersRequest) GetPageSize() int32 {
 func (x *ListUsersRequest) GetSearch() string {
 	if x != nil {
 		return x.Search
+	}
+	return ""
+}
+
+func (x *ListUsersRequest) GetExcludeProject() string {
+	if x != nil {
+		return x.ExcludeProject
 	}
 	return ""
 }
@@ -764,11 +772,12 @@ const file_v1alpha1_user_proto_rawDesc = "" +
 	"\busername\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\busername\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\bpassword\x12\x19\n" +
 	"\bis_admin\x18\x03 \x01(\bR\aisAdmin\"\x14\n" +
-	"\x12CreateUserResponse\"[\n" +
+	"\x12CreateUserResponse\"\x84\x01\n" +
 	"\x10ListUsersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
-	"\x06search\x18\x03 \x01(\tR\x06search\"\x83\x01\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\x12'\n" +
+	"\x0fexclude_project\x18\x04 \x01(\tR\x0eexcludeProject\"\x83\x01\n" +
 	"\x11ListUsersResponse\x12.\n" +
 	"\x05users\x18\x01 \x03(\v2\x18.matrixhub.v1alpha1.UserR\x05users\x12>\n" +
 	"\n" +
