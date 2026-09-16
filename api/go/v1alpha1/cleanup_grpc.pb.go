@@ -19,7 +19,6 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Cleanup_PreviewCleanup_FullMethodName  = "/matrixhub.v1alpha1.Cleanup/PreviewCleanup"
 	Cleanup_ExecuteCleanup_FullMethodName  = "/matrixhub.v1alpha1.Cleanup/ExecuteCleanup"
 	Cleanup_GetStorageStats_FullMethodName = "/matrixhub.v1alpha1.Cleanup/GetStorageStats"
 )
@@ -28,9 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CleanupClient interface {
-	// Preview orphaned data (dry-run)
-	PreviewCleanup(ctx context.Context, in *PreviewCleanupRequest, opts ...grpc.CallOption) (*CleanupPreview, error)
-	// Execute cleanup
+	// Execute cleanup; dry_run previews without deleting
 	ExecuteCleanup(ctx context.Context, in *ExecuteCleanupRequest, opts ...grpc.CallOption) (*CleanupResult, error)
 	// Get storage statistics
 	GetStorageStats(ctx context.Context, in *GetStorageStatsRequest, opts ...grpc.CallOption) (*StorageStats, error)
@@ -42,16 +39,6 @@ type cleanupClient struct {
 
 func NewCleanupClient(cc grpc.ClientConnInterface) CleanupClient {
 	return &cleanupClient{cc}
-}
-
-func (c *cleanupClient) PreviewCleanup(ctx context.Context, in *PreviewCleanupRequest, opts ...grpc.CallOption) (*CleanupPreview, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CleanupPreview)
-	err := c.cc.Invoke(ctx, Cleanup_PreviewCleanup_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *cleanupClient) ExecuteCleanup(ctx context.Context, in *ExecuteCleanupRequest, opts ...grpc.CallOption) (*CleanupResult, error) {
@@ -78,9 +65,7 @@ func (c *cleanupClient) GetStorageStats(ctx context.Context, in *GetStorageStats
 // All implementations should embed UnimplementedCleanupServer
 // for forward compatibility.
 type CleanupServer interface {
-	// Preview orphaned data (dry-run)
-	PreviewCleanup(context.Context, *PreviewCleanupRequest) (*CleanupPreview, error)
-	// Execute cleanup
+	// Execute cleanup; dry_run previews without deleting
 	ExecuteCleanup(context.Context, *ExecuteCleanupRequest) (*CleanupResult, error)
 	// Get storage statistics
 	GetStorageStats(context.Context, *GetStorageStatsRequest) (*StorageStats, error)
@@ -93,9 +78,6 @@ type CleanupServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCleanupServer struct{}
 
-func (UnimplementedCleanupServer) PreviewCleanup(context.Context, *PreviewCleanupRequest) (*CleanupPreview, error) {
-	return nil, status.Error(codes.Unimplemented, "method PreviewCleanup not implemented")
-}
 func (UnimplementedCleanupServer) ExecuteCleanup(context.Context, *ExecuteCleanupRequest) (*CleanupResult, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExecuteCleanup not implemented")
 }
@@ -120,24 +102,6 @@ func RegisterCleanupServer(s grpc.ServiceRegistrar, srv CleanupServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Cleanup_ServiceDesc, srv)
-}
-
-func _Cleanup_PreviewCleanup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PreviewCleanupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CleanupServer).PreviewCleanup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Cleanup_PreviewCleanup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CleanupServer).PreviewCleanup(ctx, req.(*PreviewCleanupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Cleanup_ExecuteCleanup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -183,10 +147,6 @@ var Cleanup_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "matrixhub.v1alpha1.Cleanup",
 	HandlerType: (*CleanupServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "PreviewCleanup",
-			Handler:    _Cleanup_PreviewCleanup_Handler,
-		},
 		{
 			MethodName: "ExecuteCleanup",
 			Handler:    _Cleanup_ExecuteCleanup_Handler,

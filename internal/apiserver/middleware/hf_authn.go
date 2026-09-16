@@ -23,7 +23,6 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
-	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 )
 
 func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) func(http.Handler) http.Handler {
@@ -32,21 +31,15 @@ func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRe
 			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo, userRepo, robotRepo)
 			_, identity, _, ok, err := auth.Authenticate(r.Context(), r)
 			if err == nil && ok {
-				r = setUserInfo(r, identity)
+				r = setIdentity(r, identity)
 			}
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func setUserInfo(r *http.Request, identity auth.Identity) *http.Request {
-	id, err := authcodec.Marshal(identity)
-	if err != nil {
-		return r
-	}
-	r = r.WithContext(authenticate.WithContext(r.Context(), authenticate.UserInfo{
-		User: id,
-	}))
-	r = r.WithContext(auth.WithIdentity(r.Context(), identity))
-	return r
+func setIdentity(r *http.Request, identity auth.Identity) *http.Request {
+	ctx := authenticate.WithIdentity(r.Context(), Principal{identity})
+	ctx = auth.WithIdentity(ctx, identity)
+	return r.WithContext(ctx)
 }

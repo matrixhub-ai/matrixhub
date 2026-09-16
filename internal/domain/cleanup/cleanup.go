@@ -14,15 +14,6 @@
 
 package cleanup
 
-import "github.com/matrixhub-ai/matrixhub/internal/domain/git"
-
-// CleanupPreview contains preview results for orphaned data.
-type CleanupPreview struct {
-	OrphanedRepos      []*git.OrphanedRepo
-	OrphanedLFSObjects []*git.OrphanedLFS
-	TotalReclaimable   int64
-}
-
 // CleanupResult contains results from cleanup execution.
 type CleanupResult struct {
 	ReposDeleted      int
