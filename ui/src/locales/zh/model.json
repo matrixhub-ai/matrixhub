@@ -30,18 +30,65 @@
     "tree": "模型文件",
     "setting": "模型设置",
     "history": "{{count}} 条提交",
-    "commandDialog": {
-      "upload": {
-        "title": "上传模型文件",
-        "description": "运行以下命令将本地文件上传到该模型。"
+    "useModel": {
+      "title": "使用 {{engine}} 模型",
+      "intro": {
+        "transformers": "以下步骤会在你的 GPU 服务器上使用 Transformers 加载并运行模型。",
+        "vllm": "以下步骤会在你的 GPU 服务器上启动 vLLM，并通过 MatrixHub 获取模型。",
+        "sglang": "以下步骤会在你的 GPU 服务器上启动 SGLang，并通过 MatrixHub 获取模型。"
+      },
+      "gpu": "GPU 卡",
+      "steps": {
+        "prepare": "准备环境",
+        "prepareHint": "请在运行模型的 GPU 服务器上执行以下命令",
+        "install": "安装 {{engine}}",
+        "configure": "配置 MatrixHub",
+        "configureHint": "私有项目或开启鉴权时需要 Token",
+        "generate": "按模型类型生成代码",
+        "generateTooltip": "代码会根据模型的任务标签自动切换任务类型和 messages 结构，也可以手动选择。",
+        "generateHint": "代码会根据模型能力自动生成，替换图片地址和问题后即可运行",
+        "serve": "启动模型服务",
+        "testRequest": "发送测试请求",
+        "testRequestHint": "请求体会按模型类型自动切换，替换图片地址和问题后即可运行"
+      },
+      "currentTask": "当前模型",
+      "tasks": {
+        "text-generation": "文本生成",
+        "image-text-to-text": "图文多模态"
+      },
+      "pipelineTab": "Pipeline (推荐)",
+      "lowLevelTab": "底层 API",
+      "lowLevelNote": "底层 API 以更细粒度使用 Transformers：加载处理器、组织对话模板、预处理输入、调用 generate、截取输出。AutoModel* 只是通用示例，部分架构（如 Qwen、LLaVA）需要使用专属模型类。",
+      "prompts": {
+        "text": "你是谁？",
+        "imageUrl": "<图片地址>",
+        "image": "请描述这张图片"
+      },
+      "otherMethods": "其他方式",
+      "viewDocs": "查看 {{engine}} 文档"
+    },
+    "commandGuide": {
+      "steps": {
+        "install": "安装命令行工具",
+        "installHint": "首次使用时，请先执行以下命令。",
+        "configureHint": "私有项目或开启鉴权时需要 Token"
       },
       "download": {
-        "title": "下载模型文件",
-        "description": "运行以下命令下载该模型。"
+        "title": "下载模型",
+        "intro": "通过命令将当前模型下载到本地环境，按以下顺序执行。",
+        "configure": "配置下载地址",
+        "run": "下载模型",
+        "note": "模型默认保存到"
       },
-      "use": {
-        "title": "使用此模型",
-        "description": "运行以下命令通过 vLLM 启动该模型。"
+      "upload": {
+        "title": "上传模型文件",
+        "intro": "通过命令将本地文件上传到当前模型仓库。",
+        "configure": "配置 MatrixHub",
+        "run": "执行上传",
+        "runHint": "请将本地模型文件夹路径替换为你电脑上的实际路径。",
+        "localPath": "本地路径",
+        "localPathHint": "请替换为本机模型文件夹路径，例如：",
+        "localPathExample": "/Users/yourname/models/{{name}}"
       }
     }
   },

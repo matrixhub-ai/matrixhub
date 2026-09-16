@@ -37,6 +37,20 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
     }
   }, [content])
 
+  const html = result?.content === content && typeof result.value === 'string' ? result.value : null
+
+  // The router scrolls to the hash before the async render finishes, so
+  // re-run the jump once the headings actually exist in the DOM.
+  useEffect(() => {
+    if (!html || !window.location.hash) {
+      return
+    }
+
+    const id = decodeURIComponent(window.location.hash.slice(1))
+
+    document.getElementById(id)?.scrollIntoView()
+  }, [html])
+
   if (result?.content !== content) {
     return (
       <Center p="xl" bg="var(--mantine-color-default-hover)">
@@ -56,7 +70,8 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
   return (
     <Box
       className="markdown-body"
-      p="md"
+      px={25}
+      py="md"
       bg="var(--mantine-color-default-hover)"
       bdrs="md"
       // eslint-disable-next-line @eslint-react/dom/no-dangerously-set-innerhtml -- html is sanitized by DOMPurify in renderMarkdown

@@ -1,0 +1,75 @@
+.root {
+  position: relative;
+  border: 1px solid var(--app-color-gray-30);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+}
+
+.copyButton {
+  position: absolute;
+  top: var(--mantine-spacing-xs);
+  right: var(--mantine-spacing-xs);
+  z-index: 1;
+  display: flex;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+/* Idle fill matches the code surface (the Shiki theme background). */
+.copyButton :global(.mantine-ActionIcon-root) {
+  background-color: var(--shiki-light-bg, var(--app-color-gray-10));
+}
+
+:global([data-mantine-color-scheme='dark']) .copyButton :global(.mantine-ActionIcon-root) {
+  background-color: var(--shiki-dark-bg, var(--app-color-gray-10));
+}
+
+/* Hover fill one step darker than the code surface, in both colour schemes. */
+.copyButton:hover :global(.mantine-ActionIcon-root) {
+  background-color: var(--app-color-gray-30);
+}
+
+.root:hover .copyButton,
+.copyButton:focus-within {
+  opacity: 1;
+}
+
+.fallback,
+.shiki :global(pre.shiki) {
+  margin: 0;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+  line-height: var(--mantine-line-height-md);
+  overflow-x: auto;
+  border-radius: 0;
+}
+
+.fallback {
+  background: var(--app-color-gray-10);
+  white-space: pre;
+}
+
+.shiki :global(pre.shiki code) {
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+  font-family: var(--mantine-font-family-monospace);
+}
+
+/*
+ * Shiki emits both palettes as per-token variables on <pre> and each <span>.
+ * The active scheme is chosen at the element itself (custom properties resolve
+ * where they are declared), and the <pre> background is mirrored onto .root as
+ * --shiki-bg so chrome like the copy button can reuse it.
+ */
+.shiki :global(pre.shiki),
+.shiki :global(pre.shiki span) {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+:global([data-mantine-color-scheme='dark']) .shiki :global(pre.shiki),
+:global([data-mantine-color-scheme='dark']) .shiki :global(pre.shiki span) {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}

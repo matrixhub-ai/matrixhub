@@ -1,10 +1,12 @@
 import {
   Box,
   Button,
+  Menu,
   Tabs,
 } from '@mantine/core'
 import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb.ts'
 import {
+  IconChevronDown,
   IconCloudUpload,
   IconDownload,
   IconTerminal2,
@@ -19,8 +21,16 @@ import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
-import { ModelCommandDialog, type ModelCommandType } from '@/features/models/components/ModelCommandDialog'
+import { type ModelCommandType } from '@/features/models/command-guide/commandGuides'
+import { ModelCommandDrawer } from '@/features/models/command-guide/ModelCommandDrawer'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
+import { UseModelDrawer } from '@/features/models/use-model/UseModelDrawer'
+import {
+  ENGINE_LABELS,
+  resolveUseModelTask,
+  USE_MODEL_ENGINES,
+  type UseModelEngine,
+} from '@/features/models/use-model/useModelGuides'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
 import { usePayloadModal } from '@/shared/hooks/usePayloadModal'
 
@@ -45,6 +55,7 @@ export function ModelDetailPage({
 
   const { model } = useLoaderData()
   const commandDialog = usePayloadModal<ModelCommandType>()
+  const useModelDrawer = usePayloadModal<UseModelEngine>()
   const projectRole = useProjectRole(projectId)
   const hasSettingsRight = projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
   const modelPath = `${model.project ?? projectId}/${model.name?.trim() || modelId}`
@@ -123,15 +134,25 @@ export function ModelDetailPage({
               >
                 {t('model.detail.download')}
               </Button>
-              <Button
-                color="cyan"
-                fw="normal"
-                variant="light"
-                leftSection={<IconTerminal2 size={16} />}
-                onClick={() => commandDialog.open('use')}
-              >
-                {t('model.detail.use')}
-              </Button>
+              <Menu shadow="md" position="bottom-end" width={160} closeOnItemClick>
+                <Menu.Target>
+                  <Button
+                    color="cyan"
+                    fw="normal"
+                    leftSection={<IconTerminal2 size={16} />}
+                    rightSection={<IconChevronDown size={14} />}
+                  >
+                    {t('model.detail.use')}
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {USE_MODEL_ENGINES.map(engine => (
+                    <Menu.Item key={engine} onClick={() => useModelDrawer.open(engine)}>
+                      {ENGINE_LABELS[engine]}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
             </>
           )}
         />
@@ -155,11 +176,21 @@ export function ModelDetailPage({
 
       {children}
       {commandDialog.payload && (
-        <ModelCommandDialog
+        <ModelCommandDrawer
           opened={commandDialog.opened}
           type={commandDialog.payload}
           modelPath={modelPath}
           onClose={commandDialog.close}
+        />
+      )}
+      {useModelDrawer.payload && (
+        <UseModelDrawer
+          key={useModelDrawer.payload}
+          opened={useModelDrawer.opened}
+          engine={useModelDrawer.payload}
+          modelPath={modelPath}
+          defaultTask={resolveUseModelTask(model)}
+          onClose={useModelDrawer.close}
         />
       )}
     </Box>
