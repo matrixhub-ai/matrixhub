@@ -1,0 +1,38 @@
+# 这是 environment.yaml —— AI 调试和生成 YAML 用的环境合同。
+# ai:run 将 local 值注入受控容器；业务 pipeline 的实际值来自 GitLab CI/CD Variables 或运行时环境变量。
+
+# shared: AI 调试和 pipeline 共用的稳定测试数据，默认值两边必须一致。
+# 这里的变量会被 case.md 的 ${VAR} 引用。
+shared:
+  variables:
+    PUBLIC_PROJECT_NAME: test-project1-public   # 公开项目可见性 Case 使用
+    PRIVATE_PROJECT_NAME: test-project1-private # 私有项目可见性 Case 使用
+
+# local: 只给 AI 调试用，由 ai:run 注入 runner 容器。填你当前调试环境的真实值。
+local:
+  baseUrl: http://127.0.0.1:30101/   # AI 调试时访问的测试环境地址
+  username: admin                     # AI 调试账号
+  password: changeme                  # AI 调试密码（不要提交真实生产密码）
+
+# authorization: 声明本环境允许的操作范围。框架在 manifest 加载时强制校验:
+# Case ID 前缀 create_/update_/edit_/delete_/remove_ 映射到对应权限,false 时拒绝加载。
+authorization:
+  allowCreate: true
+  allowUpdate: true
+  allowDelete: true
+
+# execution: 控制 AI 生成和校验行为。
+execution:
+  environment: matrixhub            # 环境名，对应 config/env.<env>.yaml
+  runner:
+    type: docker
+    image: registry.example.com/ui-playwright:20260806 # 必须使用项目固定的 Playwright runner tag/digest，不能用 latest
+  # 后续若调试环境只有底座，创建同目录 preparation.md 后再取消以下注释：
+  # preparation:
+  #   document: preparation.md          # 文件名固定；未声明时即使文件存在也绝不执行
+  casesDirectory: cases               # AI 生成 YAML 的目录（相对本项目根）
+  manifest: config/manifest.yaml      # 主 manifest 路径
+  caseDocumentUpdate: safe            # safe=AI 可回写 case.md 补充稳定事实；suggest=只建议；off=不回写
+  orphanPolicy: error                 # error=有孤儿 YAML 时阻断校验；report=仅警告
+  execJsAllowed: false                # 是否允许 case 使用 exec_js（逃生通道，默认关闭）
+  shellExecAllowed: false             # 是否允许 case 使用 shell_exec（逃生通道，默认关闭）
