@@ -195,9 +195,15 @@ func (p *SyncPolicy) IsPushBase() bool {
 	return p.PolicyType == SyncPolicyTypePush
 }
 
-// HasWildcardResourceName returns true when the policy targets all resources in the remote project.
+// HasWildcardResourceName returns true when the policy targets all resources in
+// the selected source project. Pull policies use the remote resource name;
+// push policies use the local resource name.
 func (p *SyncPolicy) HasWildcardResourceName() bool {
-	return p.RemoteResourceName == "**" || p.RemoteResourceName == "*"
+	resourceName := p.RemoteResourceName
+	if p.IsPushBase() {
+		resourceName = p.LocalResourceName
+	}
+	return resourceName == "**" || resourceName == "*"
 }
 
 //go:generate go tool mockgen -source=sync_policy.go -destination=mocks/sync_policy_repo_mock.go -package=mocks

@@ -355,35 +355,103 @@ func TestSyncJobGenerator_Generate_Wildcard_PassesRegistryToDiscovery(t *testing
 }
 
 func TestSyncJobGenerator_Generate_PushBaseWildcard(t *testing.T) {
-	// push base with wildcard should still use static matching
-	g := NewSyncJobGenerator(nil, nil)
+	localModels := &mockLocalResourceRepo{
+		paths: []string{
+			"myproject/bert-base",
+			"other-project/ignored",
+			"myproject/t5-base",
+		},
+	}
+	g := NewSyncJobGenerator(nil, nil, LocalResourceSource{
+		ResourceType: "model",
+		Repo:         localModels,
+	})
 	policy := &SyncPolicy{
-		ID:                 2,
-		PolicyType:         SyncPolicyTypePush,
-		TriggerType:        TriggerTypeManual,
-		RegistryID:         1,
-		RemoteProjectName:  "google",
-		RemoteResourceName: "**",
-		LocalProjectName:   "myproject",
-		LocalResourceName:  "myresource",
-		ResourceTypes:      "model",
+		ID:                2,
+		PolicyType:        SyncPolicyTypePush,
+		TriggerType:       TriggerTypeManual,
+		RegistryID:        1,
+		RemoteProjectName: "remote-project",
+		LocalProjectName:  "myproject",
+		LocalResourceName: "**",
+		ResourceTypes:     "model",
 	}
 
 	task, jobs, err := g.Generate(t.Context(), policy)
 	if err != nil {
 		t.Fatalf("Generate() error = %v", err)
 	}
-	if len(jobs) != 1 {
-		t.Fatalf("got %d jobs, want 1", len(jobs))
+	if len(jobs) != 2 {
+		t.Fatalf("got %d jobs, want 2", len(jobs))
 	}
-	if jobs[0].RemoteResourceName != "**" {
-		t.Errorf("jobs[0].RemoteResourceName = %s, want **", jobs[0].RemoteResourceName)
+	if jobs[0].ResourceName != "bert-base" || jobs[0].RemoteResourceName != "bert-base" {
+		t.Errorf("jobs[0] = %s -> %s, want bert-base -> bert-base", jobs[0].ResourceName, jobs[0].RemoteResourceName)
 	}
-	if jobs[0].SyncType != "push" {
-		t.Errorf("jobs[0].SyncType = %s, want push", jobs[0].SyncType)
+	if jobs[1].ResourceName != "t5-base" || jobs[1].RemoteResourceName != "t5-base" {
+		t.Errorf("jobs[1] = %s -> %s, want t5-base -> t5-base", jobs[1].ResourceName, jobs[1].RemoteResourceName)
 	}
-	if task.TotalItems != 1 {
-		t.Errorf("task.TotalItems = %d, want 1", task.TotalItems)
+	for i, job := range jobs {
+		if job.ProjectName != "myproject" {
+			t.Errorf("jobs[%d].ProjectName = %s, want myproject", i, job.ProjectName)
+		}
+		if job.RemoteProjectName != "remote-project" {
+			t.Errorf("jobs[%d].RemoteProjectName = %s, want remote-project", i, job.RemoteProjectName)
+		}
+		if job.SyncType != "push" {
+			t.Errorf("jobs[%d].SyncType = %s, want push", i, job.SyncType)
+		}
+	}
+	if task.TotalItems != 2 {
+		t.Errorf("task.TotalItems = %d, want 2", task.TotalItems)
+	}
+}
+
+func TestSyncJobGenerator_Generate_PushBaseWildcard_AllProjectsAndResourceTypes(t *testing.T) {
+	g := NewSyncJobGenerator(nil, nil,
+		LocalResourceSource{
+			ResourceType: "model",
+			Repo: &mockLocalResourceRepo{paths: []string{
+				"project-a/model-a",
+				"project-b/model-b",
+			}},
+		},
+		LocalResourceSource{
+			ResourceType: "dataset",
+			Repo: &mockLocalResourceRepo{paths: []string{
+				"project-a/dataset-a",
+			}},
+		},
+	)
+	policy := &SyncPolicy{
+		ID:                3,
+		PolicyType:        SyncPolicyTypePush,
+		TriggerType:       TriggerTypeManual,
+		RegistryID:        1,
+		RemoteProjectName: "remote-project",
+		LocalResourceName: "*",
+		ResourceTypes:     "all",
+	}
+
+	task, jobs, err := g.Generate(t.Context(), policy)
+	if err != nil {
+		t.Fatalf("Generate() error = %v", err)
+	}
+	if task.TotalItems != 3 {
+		t.Fatalf("task.TotalItems = %d, want 3", task.TotalItems)
+	}
+	if len(jobs) != 3 {
+		t.Fatalf("got %d jobs, want 3", len(jobs))
+	}
+
+	got := map[string]string{}
+	for _, job := range jobs {
+		got[job.ResourceType] += job.ProjectName + "/" + job.ResourceName + " -> " + job.RemoteProjectName + "/" + job.RemoteResourceName + ";"
+	}
+	if got["model"] != "project-a/model-a -> remote-project/model-a;project-b/model-b -> remote-project/model-b;" {
+		t.Errorf("model jobs = %q", got["model"])
+	}
+	if got["dataset"] != "project-a/dataset-a -> remote-project/dataset-a;" {
+		t.Errorf("dataset jobs = %q", got["dataset"])
 	}
 }
 
@@ -424,6 +492,18 @@ type mockDiscovery struct {
 	// the configured registry (URL, credential) actually reaches the discovery.
 	gotRegistries []*registry.Registry
 	gotFilters    []registrydiscovery.Filter
+}
+
+type mockLocalResourceRepo struct {
+	paths []string
+	err   error
+}
+
+func (m *mockLocalResourceRepo) ListAllPaths(context.Context) ([]string, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.paths, nil
 }
 
 func (m *mockDiscovery) ListRepositories(ctx context.Context, reg *registry.Registry, filter registrydiscovery.Filter) ([]registrydiscovery.RemoteRepository, error) {

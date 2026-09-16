@@ -57,3 +57,42 @@ func (mr *MockSyncJobGeneratorMockRecorder) Generate(ctx, policy any) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockSyncJobGenerator)(nil).Generate), ctx, policy)
 }
+
+// MockLocalResourceRepository is a mock of LocalResourceRepository interface.
+type MockLocalResourceRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockLocalResourceRepositoryMockRecorder
+	isgomock struct{}
+}
+
+// MockLocalResourceRepositoryMockRecorder is the mock recorder for MockLocalResourceRepository.
+type MockLocalResourceRepositoryMockRecorder struct {
+	mock *MockLocalResourceRepository
+}
+
+// NewMockLocalResourceRepository creates a new mock instance.
+func NewMockLocalResourceRepository(ctrl *gomock.Controller) *MockLocalResourceRepository {
+	mock := &MockLocalResourceRepository{ctrl: ctrl}
+	mock.recorder = &MockLocalResourceRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLocalResourceRepository) EXPECT() *MockLocalResourceRepositoryMockRecorder {
+	return m.recorder
+}
+
+// ListAllPaths mocks base method.
+func (m *MockLocalResourceRepository) ListAllPaths(ctx context.Context) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAllPaths", ctx)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAllPaths indicates an expected call of ListAllPaths.
+func (mr *MockLocalResourceRepositoryMockRecorder) ListAllPaths(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllPaths", reflect.TypeOf((*MockLocalResourceRepository)(nil).ListAllPaths), ctx)
+}
