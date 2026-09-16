@@ -37,6 +37,21 @@ MatrixHub Helm chart does not support SQLite.
 SQLite's built-in `NOCASE` collation only folds ASCII characters; names that
 differ only by non-ASCII case may behave differently from MySQL.
 
+### Signing Keys
+
+`apiServer.tokenSigningSecret` signs temporary LFS tokens.
+`MATRIXHUB_TOKEN_SIGNING_SECRET` overrides the config value. If neither is set,
+MatrixHub generates a cryptographically random key in `dataDir/token-signing-secret`
+with mode `0600` and reuses it on subsequent starts. Keep this file private and
+persist `dataDir`; losing or rotating the key invalidates outstanding tokens.
+Instances with separate data directories must configure the same key when
+sharing a public endpoint. Explicit production keys must be at least 32 bytes.
+
+Compose accepts an optional `MATRIXHUB_TOKEN_SIGNING_SECRET`; no setting is
+required for a persistent single-node deployment. Helm generates a release
+Secret by default and supports an existing Secret; see the
+[chart configuration](../deploy/charts/matrixhub/README.md#signing-keys).
+
 ### 1. Start MySQL
 
 ```bash

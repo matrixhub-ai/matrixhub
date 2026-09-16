@@ -82,6 +82,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "matrixhub.fullname" . }}-secret
                   key: matrixhub.dsn
+            - name: MATRIXHUB_TOKEN_SIGNING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiserver.tokenSigningExistingSecret | default (printf "%s-secret" (include "matrixhub.fullname" .)) }}
+                  key: token-signing-secret
       volumes:
         - name: {{ include "matrixhub.fullname" . }}-config
           configMap:

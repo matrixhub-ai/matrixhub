@@ -91,6 +91,8 @@ The following table lists the configurable parameters of the MatrixHub chart and
 | `apiserver.debug` | Debug mode | `false` |
 | `apiserver.logLevel` | Log level (debug/info/warn/error) | `warn` |
 | `apiserver.port` | API server port | `9527` |
+| `apiserver.tokenSigningSecret` | Explicit signing key of at least 32 bytes | `""` (generate and reuse a release Secret) |
+| `apiserver.tokenSigningExistingSecret` | Existing Secret with a `token-signing-secret` key | `""` |
 | `apiserver.database.driver` | Database driver (`mysql` or `postgres`) | `mysql` |
 | `apiserver.database.accessType` | Database access type | `readwrite` |
 | `apiserver.database.maxOpenConns` | Max open connections | `100` |
@@ -138,6 +140,20 @@ helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
   --namespace ${NAMESPACE} --create-namespace \
   -f values.yaml
 ```
+
+### Signing Keys
+
+The chart generates a random signing key in the release Secret and reuses it
+on upgrades through Helm's cluster lookup. It is injected as
+`MATRIXHUB_TOKEN_SIGNING_SECRET`, not stored in the ConfigMap. Configure
+`apiserver.tokenSigningSecret` to supply a key explicitly, or
+`apiserver.tokenSigningExistingSecret` to use a Secret containing
+`token-signing-secret`; the existing Secret takes precedence.
+
+For offline `helm template` or GitOps renderers without cluster lookup, use an
+existing Secret or a stable explicit key to avoid rotation on each render.
+All replicas must share the same key. Rotating it invalidates outstanding
+LFS tokens.
 
 ## Storage
 

@@ -15,6 +15,7 @@
 package config
 
 import (
+	"crypto/rand"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -103,6 +104,8 @@ type APIServerConfig struct {
 	SSHPort        int    `yaml:"sshPort"`
 	SSHHostKeyPath string `yaml:"sshHostKeyPath"`
 	HostURL        string `yaml:"hostURL"`
+	// Empty generates a persistent random key under DataDir.
+	TokenSigningSecret string `yaml:"tokenSigningSecret"`
 	// ExternalURL is the externally-reachable base URL of this instance. It is
 	// surfaced to the frontend (e.g. as the `HF_ENDPOINT` for `hf` CLI snippets).
 	// Empty means "not configured" and the API returns an empty string so the
@@ -148,6 +151,7 @@ func Init(configPath, sqlPath string) (*Config, error) {
 
 	// Allow env overrides (viper will use these when present)
 	_ = v.BindEnv("database.dsn", db.MATRIXHUB_DSN_ENV)
+	_ = v.BindEnv("apiServer.tokenSigningSecret", "MATRIXHUB_TOKEN_SIGNING_SECRET")
 
 	cfg := new(Config)
 	if err := v.Unmarshal(cfg); err != nil {
@@ -218,6 +222,12 @@ func Init(configPath, sqlPath string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create data directory: %w", err)
 	}
+	if cfg.APIServer.TokenSigningSecret == "" {
+		cfg.APIServer.TokenSigningSecret, err = loadOrCreateTokenSigningSecret(cfg.DataDir)
+		if err != nil {
+			return nil, fmt.Errorf("load signing secret: %w", err)
+		}
+	}
 
 	if cfg.Database.Migrate {
 		cfg.Database.SQLPath = filepath.Join(cfg.MigrationPath, sqlPath)
@@ -231,7 +241,39 @@ func Init(configPath, sqlPath string) (*Config, error) {
 	return cfg, nil
 }
 
+func loadOrCreateTokenSigningSecret(dataDir string) (string, error) {
+	secretPath := filepath.Join(dataDir, "token-signing-secret")
+	data, err := os.ReadFile(secretPath)
+	if err == nil {
+		return string(data), nil
+	}
+	if !os.IsNotExist(err) {
+		return "", err
+	}
+	temporary, err := os.CreateTemp(dataDir, ".token-signing-secret-")
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = os.Remove(temporary.Name()) }()
+	_, writeErr := temporary.WriteString(rand.Text() + rand.Text())
+	closeErr := temporary.Close()
+	if writeErr != nil {
+		return "", writeErr
+	}
+	if closeErr != nil {
+		return "", closeErr
+	}
+	if err := os.Link(temporary.Name(), secretPath); err != nil && !os.IsExist(err) {
+		return "", err
+	}
+	data, err = os.ReadFile(secretPath)
+	return string(data), err
+}
+
 func (config *Config) Validate() error {
+	if !config.Debug && len(config.APIServer.TokenSigningSecret) < 32 {
+		return fmt.Errorf("apiServer.tokenSigningSecret must be at least 32 bytes outside debug mode")
+	}
 	fileInfo, err := os.Stat(config.MigrationPath)
 	if err != nil {
 		return err

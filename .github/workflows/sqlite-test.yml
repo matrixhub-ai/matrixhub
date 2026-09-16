@@ -24,6 +24,7 @@ on:
       - 'deploy/docker-compose.sqlite.yml'
       - 'deploy/docker-compose.mysql.yml'
       - 'deploy/update-demo-env.sh'
+      - 'scripts/verify-token-signing.sh'
       - '.github/workflows/deploy-demosite.yml'
       - '.github/workflows/sqlite-test.yml'
   pull_request:
@@ -49,6 +50,7 @@ on:
       - 'deploy/docker-compose.sqlite.yml'
       - 'deploy/docker-compose.mysql.yml'
       - 'deploy/update-demo-env.sh'
+      - 'scripts/verify-token-signing.sh'
       - '.github/workflows/deploy-demosite.yml'
       - '.github/workflows/sqlite-test.yml'
 
@@ -176,3 +178,6 @@ jobs:
             echo 'Helm unexpectedly accepted SQLite'
             exit 1
           fi
+
+      - name: Verify signing secret deployment
+        run: bash scripts/verify-token-signing.sh
