@@ -6,6 +6,8 @@ import {
 
 import { SearchInput, type SearchInputProps } from '@/shared/components/SearchInput'
 
+import classes from './SearchToolbar.module.css'
+
 import type { ReactNode } from 'react'
 
 export interface SearchToolbarProps {
@@ -45,7 +47,7 @@ export function SearchToolbar({
       )}
 
       {children && (
-        <Group gap="md" wrap="nowrap" ml="auto">
+        <Group className={classes.actions} gap="md" wrap="nowrap" ml="auto">
           {children}
         </Group>
       )}

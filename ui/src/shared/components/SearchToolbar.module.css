@@ -1,0 +1,3 @@
+.actions :global(.mantine-Button-root) {
+  --button-radius: var(--app-size-radius-mmd);
+}
