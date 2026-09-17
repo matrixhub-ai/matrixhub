@@ -106,22 +106,23 @@ type RepoMetadataFiles struct {
 	Size             int64
 }
 
-// OrphanedRepo represents an orphaned Git repository on disk
-// that has no corresponding record in the database.
-type OrphanedRepo struct {
-	Path         string
-	Type         string
-	ProjectName  string
-	ResourceName string
-	SizeBytes    int64
-}
-
 // OrphanedLFS represents an orphaned LFS object on disk
 // that is not referenced by any Git repository.
 type OrphanedLFS struct {
 	OID       string
 	SizeBytes int64
-	Path      string
+}
+
+// OrphanedRepo is a repository on disk that no model or dataset row names.
+type OrphanedRepo struct {
+	Path      string // relative to the repositories root, e.g. "project/name.git"
+	SizeBytes int64
+}
+
+// PruneResult reports one LFS prune.
+type PruneResult struct {
+	Unlinked       []*OrphanedLFS
+	ReclaimedBytes int64 // storage freed by the sweep; 0 for a dry run
 }
 
 // BasicCredential holds username/password for remote git authentication.
@@ -189,14 +190,11 @@ type IGitRepo interface {
 	// repoType: "models" or "datasets"
 	ExtractMetadata(ctx context.Context, repoType, project, name string) (*RepoMetadataFiles, error)
 
-	// FindOrphanedRepos finds Git repositories on disk that are not present in valid paths.
-	FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*OrphanedRepo, error)
-	// FindOrphanedLFS finds LFS objects on disk that are not referenced by repositories.
-	FindOrphanedLFS(ctx context.Context) ([]*OrphanedLFS, error)
-	// DeleteRepositoryAtRelPath deletes an orphaned repository by relative path.
-	DeleteRepositoryAtRelPath(ctx context.Context, path string) error
-	// DeleteLFSObject deletes an orphaned LFS object.
-	DeleteLFSObject(ctx context.Context, object *OrphanedLFS) error
+	// PruneRepos removes every repository on disk that neither list names; dryRun only reports them.
+	// Paths are "project/name"; models live at /project/name.git, datasets at /datasets/project/name.git.
+	PruneRepos(ctx context.Context, validModelPaths, validDatasetPaths []string, dryRun bool) ([]*OrphanedRepo, error)
+	// Prune unlinks every LFS object no repository references and sweeps the data; dryRun only reports them.
+	Prune(ctx context.Context, dryRun bool) (*PruneResult, error)
 	// RepositoriesSize returns the size of all repositories on disk.
 	RepositoriesSize(ctx context.Context) int64
 	// LFSSize returns the size of all LFS objects on disk.

@@ -5,30 +5,6 @@
 */
 
 import * as fm from "../fetch.pb"
-export type PreviewCleanupRequest = {
-  includeOrphanedRepos?: boolean
-  includeOrphanedLfs?: boolean
-}
-
-export type CleanupPreview = {
-  orphanedRepos?: OrphanedRepo[]
-  orphanedLfsObjects?: OrphanedLFS[]
-  totalReclaimableBytes?: string
-}
-
-export type OrphanedRepo = {
-  path?: string
-  type?: string
-  projectName?: string
-  resourceName?: string
-  sizeBytes?: string
-}
-
-export type OrphanedLFS = {
-  oid?: string
-  sizeBytes?: string
-}
-
 export type ExecuteCleanupRequest = {
   cleanOrphanedRepos?: boolean
   cleanOrphanedLfs?: boolean
@@ -53,9 +29,6 @@ export type StorageStats = {
 }
 
 export class Cleanup {
-  static PreviewCleanup(req: PreviewCleanupRequest, initReq?: fm.InitReq): Promise<CleanupPreview> {
-    return fm.fetchReq<PreviewCleanupRequest, CleanupPreview>(`/api/v1alpha1/cleanup/preview`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
   static ExecuteCleanup(req: ExecuteCleanupRequest, initReq?: fm.InitReq): Promise<CleanupResult> {
     return fm.fetchReq<ExecuteCleanupRequest, CleanupResult>(`/api/v1alpha1/cleanup/execute`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }

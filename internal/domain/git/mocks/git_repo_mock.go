@@ -70,20 +70,6 @@ func (mr *MockIGitRepoMockRecorder) CreateRepository(ctx, repoType, project, nam
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRepository", reflect.TypeOf((*MockIGitRepo)(nil).CreateRepository), ctx, repoType, project, name)
 }
 
-// DeleteLFSObject mocks base method.
-func (m *MockIGitRepo) DeleteLFSObject(ctx context.Context, object *git.OrphanedLFS) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteLFSObject", ctx, object)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteLFSObject indicates an expected call of DeleteLFSObject.
-func (mr *MockIGitRepoMockRecorder) DeleteLFSObject(ctx, object any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLFSObject", reflect.TypeOf((*MockIGitRepo)(nil).DeleteLFSObject), ctx, object)
-}
-
 // DeleteRepository mocks base method.
 func (m *MockIGitRepo) DeleteRepository(ctx context.Context, repoType, project, name string) error {
 	m.ctrl.T.Helper()
@@ -96,20 +82,6 @@ func (m *MockIGitRepo) DeleteRepository(ctx context.Context, repoType, project, 
 func (mr *MockIGitRepoMockRecorder) DeleteRepository(ctx, repoType, project, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRepository", reflect.TypeOf((*MockIGitRepo)(nil).DeleteRepository), ctx, repoType, project, name)
-}
-
-// DeleteRepositoryAtRelPath mocks base method.
-func (m *MockIGitRepo) DeleteRepositoryAtRelPath(ctx context.Context, path string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteRepositoryAtRelPath", ctx, path)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteRepositoryAtRelPath indicates an expected call of DeleteRepositoryAtRelPath.
-func (mr *MockIGitRepoMockRecorder) DeleteRepositoryAtRelPath(ctx, path any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRepositoryAtRelPath", reflect.TypeOf((*MockIGitRepo)(nil).DeleteRepositoryAtRelPath), ctx, path)
 }
 
 // ExtractMetadata mocks base method.
@@ -125,36 +97,6 @@ func (m *MockIGitRepo) ExtractMetadata(ctx context.Context, repoType, project, n
 func (mr *MockIGitRepoMockRecorder) ExtractMetadata(ctx, repoType, project, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractMetadata", reflect.TypeOf((*MockIGitRepo)(nil).ExtractMetadata), ctx, repoType, project, name)
-}
-
-// FindOrphanedLFS mocks base method.
-func (m *MockIGitRepo) FindOrphanedLFS(ctx context.Context) ([]*git.OrphanedLFS, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindOrphanedLFS", ctx)
-	ret0, _ := ret[0].([]*git.OrphanedLFS)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindOrphanedLFS indicates an expected call of FindOrphanedLFS.
-func (mr *MockIGitRepoMockRecorder) FindOrphanedLFS(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOrphanedLFS", reflect.TypeOf((*MockIGitRepo)(nil).FindOrphanedLFS), ctx)
-}
-
-// FindOrphanedRepos mocks base method.
-func (m *MockIGitRepo) FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*git.OrphanedRepo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindOrphanedRepos", ctx, validModelPaths, validDatasetPaths)
-	ret0, _ := ret[0].([]*git.OrphanedRepo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindOrphanedRepos indicates an expected call of FindOrphanedRepos.
-func (mr *MockIGitRepoMockRecorder) FindOrphanedRepos(ctx, validModelPaths, validDatasetPaths any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOrphanedRepos", reflect.TypeOf((*MockIGitRepo)(nil).FindOrphanedRepos), ctx, validModelPaths, validDatasetPaths)
 }
 
 // GetBlob mocks base method.
@@ -245,6 +187,36 @@ func (m *MockIGitRepo) ListRevisions(ctx context.Context, repoType, project, nam
 func (mr *MockIGitRepoMockRecorder) ListRevisions(ctx, repoType, project, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRevisions", reflect.TypeOf((*MockIGitRepo)(nil).ListRevisions), ctx, repoType, project, name)
+}
+
+// Prune mocks base method.
+func (m *MockIGitRepo) Prune(ctx context.Context, dryRun bool) (*git.PruneResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Prune", ctx, dryRun)
+	ret0, _ := ret[0].(*git.PruneResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Prune indicates an expected call of Prune.
+func (mr *MockIGitRepoMockRecorder) Prune(ctx, dryRun any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prune", reflect.TypeOf((*MockIGitRepo)(nil).Prune), ctx, dryRun)
+}
+
+// PruneRepos mocks base method.
+func (m *MockIGitRepo) PruneRepos(ctx context.Context, validModelPaths, validDatasetPaths []string, dryRun bool) ([]*git.OrphanedRepo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PruneRepos", ctx, validModelPaths, validDatasetPaths, dryRun)
+	ret0, _ := ret[0].([]*git.OrphanedRepo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PruneRepos indicates an expected call of PruneRepos.
+func (mr *MockIGitRepoMockRecorder) PruneRepos(ctx, validModelPaths, validDatasetPaths, dryRun any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PruneRepos", reflect.TypeOf((*MockIGitRepo)(nil).PruneRepos), ctx, validModelPaths, validDatasetPaths, dryRun)
 }
 
 // PullFromRemote mocks base method.

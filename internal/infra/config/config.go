@@ -15,6 +15,7 @@
 package config
 
 import (
+	"crypto/rand"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -103,6 +104,10 @@ type APIServerConfig struct {
 	SSHPort        int    `yaml:"sshPort"`
 	SSHHostKeyPath string `yaml:"sshHostKeyPath"`
 	HostURL        string `yaml:"hostURL"`
+	// Signs temporary LFS/CAS tokens; empty uses a random key per process start.
+	TokenSigningSecret string `yaml:"tokenSigningSecret"`
+	// GCGrace shields xet objects newer than this from LFS cleanup GC; 0 means 1h, negative disables.
+	GCGrace time.Duration `yaml:"gcGrace"`
 	// ExternalURL is the externally-reachable base URL of this instance. It is
 	// surfaced to the frontend (e.g. as the `HF_ENDPOINT` for `hf` CLI snippets).
 	// Empty means "not configured" and the API returns an empty string so the
@@ -212,6 +217,11 @@ func Init(configPath, sqlPath string) (*Config, error) {
 	if cfg.APIServer.HostURL == "" {
 		cfg.APIServer.HostURL = fmt.Sprintf("http://localhost:%d", cfg.APIServer.Port)
 		log.Warnf("hostURL is not set, using default %s", cfg.APIServer.HostURL)
+	}
+
+	if cfg.APIServer.TokenSigningSecret == "" {
+		cfg.APIServer.TokenSigningSecret = rand.Text()
+		log.Warn("apiServer.tokenSigningSecret is not set, using a random key for this process")
 	}
 
 	err := os.MkdirAll(cfg.DataDir, os.ModePerm)

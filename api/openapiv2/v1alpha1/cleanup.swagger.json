@@ -18,7 +18,7 @@
   "paths": {
     "/api/v1alpha1/cleanup/execute": {
       "post": {
-        "summary": "Execute cleanup",
+        "summary": "Execute cleanup; dry_run previews without deleting",
         "operationId": "Cleanup_ExecuteCleanup",
         "responses": {
           "200": {
@@ -41,39 +41,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1alpha1ExecuteCleanupRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Cleanup"
-        ]
-      }
-    },
-    "/api/v1alpha1/cleanup/preview": {
-      "post": {
-        "summary": "Preview orphaned data (dry-run)",
-        "operationId": "Cleanup_PreviewCleanup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1alpha1CleanupPreview"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1alpha1PreviewCleanupRequest"
             }
           }
         ],
@@ -135,29 +102,6 @@
         }
       }
     },
-    "v1alpha1CleanupPreview": {
-      "type": "object",
-      "properties": {
-        "orphanedRepos": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1alpha1OrphanedRepo"
-          }
-        },
-        "orphanedLfsObjects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1alpha1OrphanedLFS"
-          }
-        },
-        "totalReclaimableBytes": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
     "v1alpha1CleanupResult": {
       "type": "object",
       "properties": {
@@ -193,51 +137,6 @@
         "dryRun": {
           "type": "boolean",
           "title": "true = preview only, no actual deletion"
-        }
-      }
-    },
-    "v1alpha1OrphanedLFS": {
-      "type": "object",
-      "properties": {
-        "oid": {
-          "type": "string"
-        },
-        "sizeBytes": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v1alpha1OrphanedRepo": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string",
-          "title": "\"model\" or \"dataset\""
-        },
-        "projectName": {
-          "type": "string"
-        },
-        "resourceName": {
-          "type": "string"
-        },
-        "sizeBytes": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v1alpha1PreviewCleanupRequest": {
-      "type": "object",
-      "properties": {
-        "includeOrphanedRepos": {
-          "type": "boolean"
-        },
-        "includeOrphanedLfs": {
-          "type": "boolean"
         }
       }
     },

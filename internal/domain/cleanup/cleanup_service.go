@@ -31,10 +31,8 @@ type CleanupService struct {
 
 // ICleanupService defines the service interface for cleanup operations.
 type ICleanupService interface {
-	// PreviewCleanup previews orphaned data without deleting.
-	PreviewCleanup(ctx context.Context, includeRepos, includeLFS bool) (*CleanupPreview, error)
-	// ExecuteCleanup executes cleanup based on options.
-	ExecuteCleanup(ctx context.Context, cleanRepos, cleanLFS bool, dryRun bool) (*CleanupResult, error)
+	// ExecuteCleanup removes orphaned repositories when cleanRepos is set, then prunes unreferenced LFS objects when cleanLFS is set; dryRun only counts them.
+	ExecuteCleanup(ctx context.Context, cleanRepos, cleanLFS, dryRun bool) (*CleanupResult, error)
 	// GetStorageStats returns storage statistics.
 	GetStorageStats(ctx context.Context) (*StorageStats, error)
 }
@@ -48,84 +46,48 @@ func NewCleanupService(modelRepo model.IModelRepo, datasetRepo dataset.IDatasetR
 	}
 }
 
-// PreviewCleanup previews orphaned data without deleting.
-func (s *CleanupService) PreviewCleanup(ctx context.Context, includeRepos, includeLFS bool) (*CleanupPreview, error) {
-	preview := &CleanupPreview{}
-
-	if includeRepos {
-		validModelPaths, err := s.modelRepo.ListAllPaths(ctx)
-		if err != nil {
-			return nil, err
-		}
-		validDatasetPaths, err := s.datasetRepo.ListAllPaths(ctx)
-		if err != nil {
-			return nil, err
-		}
-		orphanedRepos, err := s.gitRepo.FindOrphanedRepos(ctx, validModelPaths, validDatasetPaths)
-		if err != nil {
-			return nil, err
-		}
-		preview.OrphanedRepos = orphanedRepos
-		for _, repo := range orphanedRepos {
-			preview.TotalReclaimable += repo.SizeBytes
-		}
-	}
-
-	if includeLFS {
-		orphanedLFS, err := s.gitRepo.FindOrphanedLFS(ctx)
-		if err != nil {
-			return nil, err
-		}
-		preview.OrphanedLFSObjects = orphanedLFS
-		for _, obj := range orphanedLFS {
-			preview.TotalReclaimable += obj.SizeBytes
-		}
-	}
-
-	return preview, nil
-}
-
-// ExecuteCleanup executes cleanup based on options.
-func (s *CleanupService) ExecuteCleanup(ctx context.Context, cleanRepos, cleanLFS bool, dryRun bool) (*CleanupResult, error) {
+// ExecuteCleanup removes orphaned repositories when cleanRepos is set, then prunes unreferenced LFS objects when cleanLFS is set; dryRun only counts them.
+func (s *CleanupService) ExecuteCleanup(ctx context.Context, cleanRepos, cleanLFS, dryRun bool) (*CleanupResult, error) {
 	result := &CleanupResult{}
-
 	if cleanRepos {
-		preview, err := s.PreviewCleanup(ctx, true, false)
+		modelPaths, err := s.modelRepo.ListAllPaths(ctx)
 		if err != nil {
 			return nil, err
 		}
-		for _, repo := range preview.OrphanedRepos {
-			if dryRun {
-				result.ReposDeleted++
-				result.SpaceReclaimed += repo.SizeBytes
-			} else {
-				if err := s.gitRepo.DeleteRepositoryAtRelPath(ctx, repo.Path); err != nil {
-					result.Errors = append(result.Errors, err.Error())
-				} else {
-					result.ReposDeleted++
-					result.SpaceReclaimed += repo.SizeBytes
-				}
-			}
+		datasetPaths, err := s.datasetRepo.ListAllPaths(ctx)
+		if err != nil {
+			return nil, err
+		}
+		repos, err := s.gitRepo.PruneRepos(ctx, modelPaths, datasetPaths, dryRun)
+		if err != nil && dryRun {
+			return nil, err
+		}
+		result.ReposDeleted = len(repos)
+		for _, repo := range repos {
+			result.SpaceReclaimed += repo.SizeBytes
+		}
+		if err != nil {
+			result.Errors = append(result.Errors, err.Error())
 		}
 	}
 
 	if cleanLFS {
-		preview, err := s.PreviewCleanup(ctx, false, true)
-		if err != nil {
+		res, err := s.gitRepo.Prune(ctx, dryRun)
+		if err != nil && dryRun {
 			return nil, err
 		}
-		for _, obj := range preview.OrphanedLFSObjects {
+		if res != nil {
+			result.LFSObjectsDeleted = len(res.Unlinked)
+			result.SpaceReclaimed += res.ReclaimedBytes
 			if dryRun {
-				result.LFSObjectsDeleted++
-				result.SpaceReclaimed += obj.SizeBytes
-			} else {
-				if err := s.gitRepo.DeleteLFSObject(ctx, obj); err != nil {
-					result.Errors = append(result.Errors, err.Error())
-				} else {
-					result.LFSObjectsDeleted++
-					result.SpaceReclaimed += obj.SizeBytes
+				// Nothing is swept in a dry run; report the objects' own sizes instead.
+				for _, object := range res.Unlinked {
+					result.SpaceReclaimed += object.SizeBytes
 				}
 			}
+		}
+		if err != nil {
+			result.Errors = append(result.Errors, err.Error())
 		}
 	}
 
@@ -140,11 +102,11 @@ func (s *CleanupService) GetStorageStats(ctx context.Context) (*StorageStats, er
 	stats.LFSSizeBytes = s.gitRepo.LFSSize(ctx)
 
 	// Calculate orphaned size
-	preview, err := s.PreviewCleanup(ctx, true, true)
+	result, err := s.ExecuteCleanup(ctx, true, true, true)
 	if err != nil {
 		return nil, err
 	}
-	stats.OrphanedSizeBytes = preview.TotalReclaimable
+	stats.OrphanedSizeBytes = result.SpaceReclaimed
 
 	// Total
 	stats.TotalSizeBytes = stats.RepositoriesSizeBytes + stats.LFSSizeBytes

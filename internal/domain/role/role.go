@@ -285,7 +285,7 @@ const (
 	AccessKeyDelete Permission = "access_key.delete" // Delete access key
 
 	// Cleanup management
-	CleanupGet     Permission = "cleanup.get"     // Preview cleanup and view storage stats
+	CleanupGet     Permission = "cleanup.get"     // View storage stats
 	CleanupExecute Permission = "cleanup.execute" // Execute cleanup
 )
 

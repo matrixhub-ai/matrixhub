@@ -57,7 +57,7 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache ca-certificates git && \
+    apk add --no-cache ca-certificates && \
     apk upgrade --no-cache && \
     update-ca-certificates
 

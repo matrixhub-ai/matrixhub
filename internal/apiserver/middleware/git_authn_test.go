@@ -46,25 +46,39 @@ func TestGitAuthRejectsInvalidCredentials(t *testing.T) {
 		{"disabled robot", utils.RobotTokenPrefix + "disabled", nil, &robot.Robot{}, nil, http.StatusUnauthorized},
 		{"storage failure", utils.TokenPrefix + "unavailable", nil, nil, errors.New("database unavailable"), http.StatusInternalServerError},
 		{"robot storage failure", utils.RobotTokenPrefix + "unavailable", nil, nil, errors.New("database unavailable"), http.StatusInternalServerError},
+		{"valid", utils.TokenPrefix + "valid", &user.AccessToken{Enabled: true, UserId: 42}, nil, nil, http.StatusOK},
 	} {
 		for _, scheme := range []string{"basic", "bearer"} {
 			t.Run(test.name+"/"+scheme, func(t *testing.T) {
 				accessRepo := &gitAuthAccessRepo{token: test.access, err: test.err}
 				robotRepo := &gitAuthRobotRepo{robot: test.robot, err: test.err}
+				userRepo := &gitAuthUserRepo{}
+				if test.name == "valid" {
+					userRepo.user = &user.User{Username: "alice"}
+				}
 				reached := false
 				next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					reached = true
 					if test.status != http.StatusOK {
 						t.Error("invalid credential reached the next handler")
 					}
-					info, ok := authenticate.GetUserInfo(r.Context())
-					if !ok || info.User != authenticate.Anonymous {
-						t.Errorf("user info = %v, present = %v, want anonymous", info, ok)
+					identity := authenticate.IdentityFrom(r.Context())
+					if test.name == "valid" {
+						principal, ok := identity.(Principal)
+						if !ok {
+							t.Fatalf("identity = %T, want Principal", identity)
+						}
+						if principal.GetID() != 42 || principal.Name() != "alice" || principal.TypeName() != "user" || principal.Email() != "" {
+							t.Errorf("principal = (%d, %q, %q, %q), want (42, alice, user, empty)",
+								principal.GetID(), principal.Name(), principal.TypeName(), principal.Email())
+						}
+					} else if !authenticate.IsAnonymous(identity) {
+						t.Errorf("identity = %v, want anonymous", identity)
 					}
 					w.WriteHeader(http.StatusOK)
 				})
-				handler := authenticate.BasicAuthHandler(GitBasicAuthAuthn(accessRepo, nil, robotRepo),
-					authenticate.TokenValidatorHandler(GitHTTPAuthn(accessRepo, nil, robotRepo),
+				handler := authenticate.BasicAuthHandler(GitBasicAuthAuthn(accessRepo, userRepo, robotRepo),
+					authenticate.TokenValidatorHandler(GitHTTPAuthn(accessRepo, userRepo, robotRepo),
 						authenticate.AnonymousAuthenticateHandler(next)))
 				request := httptest.NewRequest(http.MethodGet, "/api/whoami-v2", nil)
 				if scheme == "basic" {
@@ -75,7 +89,7 @@ func TestGitAuthRejectsInvalidCredentials(t *testing.T) {
 				response := httptest.NewRecorder()
 				handler.ServeHTTP(response, request)
 				if test.status == http.StatusOK && !reached {
-					t.Error("unrecognized credential did not reach the next handler")
+					t.Error("credential did not reach the next handler")
 				}
 				if response.Code != test.status {
 					t.Errorf("status = %d, want %d", response.Code, test.status)
@@ -96,9 +110,13 @@ func TestGitPublicKeyAuthnRejectsUnknownKey(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			repo := &gitAuthSSHKeyRepo{key: test.key, err: test.err}
-			identity, next, ok, err := GitPublicKeyAuthn(repo, nil)(context.Background(), "alice", "ssh-ed25519", []byte("key"))
-			if identity != "" || next || ok || (err != nil) != (test.err != nil) {
-				t.Errorf("got (%q, %v, %v, %v), want empty identity, no next, rejected, error=%v", identity, next, ok, err, test.err)
+			identity, err := GitPublicKeyAuthn(repo, nil)(context.Background(), "alice", "ssh-ed25519", []byte("key"))
+			wantErr := test.err
+			if wantErr == nil {
+				wantErr = authenticate.ErrUnauthenticated
+			}
+			if identity != nil || !errors.Is(err, wantErr) {
+				t.Errorf("got (%v, %v), want (nil, %v)", identity, err, wantErr)
 			}
 		})
 	}
@@ -108,6 +126,18 @@ type gitAuthSSHKeyRepo struct {
 	user.ISSHKeyRepo
 	key *user.SSHKey
 	err error
+}
+
+type gitAuthUserRepo struct {
+	user.IUserRepo
+	user *user.User
+}
+
+func (repo *gitAuthUserRepo) GetUser(context.Context, int) (*user.User, error) {
+	if repo == nil {
+		return nil, nil
+	}
+	return repo.user, nil
 }
 
 func (repo *gitAuthSSHKeyRepo) GetByFingerprint(context.Context, string) (*user.SSHKey, error) {

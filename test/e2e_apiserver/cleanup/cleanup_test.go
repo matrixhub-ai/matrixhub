@@ -56,14 +56,7 @@ var _ = Describe("Cleanup", Label("cleanup"), func() {
 		}
 	})
 
-	It("should preview and dry-run cleanup", Label("CL00002", "smoke"), func() {
-		_, resp, err := cleanupApi.CleanupPreviewCleanup(ctx, v1alpha1cleanup.V1alpha1PreviewCleanupRequest{
-			IncludeOrphanedRepos: true,
-			IncludeOrphanedLfs:   true,
-		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
+	It("should dry-run cleanup", Label("CL00002", "smoke"), func() {
 		res, resp, err := cleanupApi.CleanupExecuteCleanup(ctx, v1alpha1cleanup.V1alpha1ExecuteCleanupRequest{
 			CleanOrphanedRepos: true,
 			CleanOrphanedLfs:   true,

@@ -21,7 +21,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/matrixhub-ai/hfd/pkg/hf"
+	"github.com/matrixhub-ai/hfd/pkg/hfmeta"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 )
@@ -59,7 +59,7 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 
 	if len(files.ReadmeContent) > 0 {
 		metadata.ReadmeContent = string(files.ReadmeContent)
-		if readme, err := hf.ParseReadme(bytes.NewReader(files.ReadmeContent)); err == nil {
+		if readme, err := hfmeta.ParseReadme(bytes.NewReader(files.ReadmeContent)); err == nil {
 			card := readme.Card
 			if card.PipelineTag != "" {
 				tags = append(tags, ClassifiedTag{Name: card.PipelineTag, Category: "task"})
@@ -88,7 +88,7 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 	// modern Hugging Face model repos.
 	parameterBytes := int64(2)
 	if len(files.ConfigJSON) > 0 {
-		if cfg, err := hf.ParseConfigData(bytes.NewReader(files.ConfigJSON)); err == nil {
+		if cfg, err := hfmeta.ParseConfigData(bytes.NewReader(files.ConfigJSON)); err == nil {
 			if cfg.ModelType != "" {
 				tags = append(tags, ClassifiedTag{Name: cfg.ModelType, Category: "other"})
 			}
