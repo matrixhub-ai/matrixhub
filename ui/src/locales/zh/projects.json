@@ -1,5 +1,6 @@
 {
   "detail": {
+    "proxyBadge": "代理项目",
     "tabs": {
       "models": "模型仓库",
       "datasets": "数据集",
@@ -12,6 +13,25 @@
       "sortFieldDownloads": "下载量",
       "create": "创建模型",
       "loadFailed": "模型列表加载失败，请稍后重试。"
+    },
+    "proxyDownload": {
+      "title": "下载模型",
+      "guideTitle": "代理项目如何下载模型",
+      "guideDescription": "代理项目无需手动创建模型，下载模型后刷新页面将自动生成模型卡片。",
+      "quickDownload": "快速下载",
+      "drawerNotice": "代理项目无需创建模型，输入上游模型名称，即可直接获取下载命令。",
+      "steps": {
+        "modelName": "输入上游模型名称",
+        "command": "复制并执行下载命令",
+        "completion": "下载完成后刷新列表"
+      },
+      "modelNameLabel": "上游模型名称",
+      "modelNamePlaceholder": "例如：Qwen0.6B",
+      "modelNameHelper": "输入上游模型名称即可生成下载命令",
+      "commandPlaceholder": "<模型名称>",
+      "completionNotice": "执行命令后，模型将从已配置的目标仓库下载。下载完成后请刷新模型列表。",
+      "viewDocs": "查看下载说明",
+      "acknowledge": "知道了"
     },
     "settingsPage": {
       "projectType": "项目类型",

@@ -8,14 +8,27 @@ import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import {
   IconClock,
   IconCube,
+  IconDownload,
 } from '@tabler/icons-react'
-import { useQuery } from '@tanstack/react-query'
+import {
+  useQuery,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { startTransition } from 'react'
+import {
+  startTransition,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
 import { projectModelsQueryOptions } from '@/features/models/models.query.ts'
+import {
+  ProxyProjectDownloadDrawer,
+  ProxyProjectDownloadGuide,
+} from '@/features/projects/components/ProxyProjectDownload'
+import { projectDetailQueryOptions } from '@/features/projects/projects.query'
+import { isProxyProject } from '@/features/projects/projects.utils'
 import { Pagination } from '@/shared/components/Pagination'
 import { ModelCard } from '@/shared/components/resource-card/ModelCard.tsx'
 import { ResourceCardGrid } from '@/shared/components/ResourceCardGrid'
@@ -37,6 +50,8 @@ export function ProjectModelsPage() {
     page,
   } = projectModelsRouteApi.useSearch()
   const { t } = useTranslation()
+  const [downloadDrawerOpened, setDownloadDrawerOpened] = useState(false)
+  const { data: project } = useSuspenseQuery(projectDetailQueryOptions(projectId))
 
   const projectRole = useProjectRole(projectId)
   const canCreateModel = projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
@@ -59,6 +74,8 @@ export function ProjectModelsPage() {
     )
   const showSkeletons = isPending && !data
   const isRefreshing = isFetching && !showSkeletons
+  const isProxy = isProxyProject(project.registryUrl)
+  const showProxyDownloadGuide = isProxy && !isPending && project.modelCount === 0
 
   const sortFieldOptions: SortDropdownOption[] = [
     {
@@ -133,41 +150,66 @@ export function ProjectModelsPage() {
             }}
           />
 
-          {canCreateModel && (
-            <Link to="/models/new" search={{ projectId }}>
-              <Button
-                radius={6}
-                leftSection={<IconCube size={16} />}
-              >
-                {t('projects.detail.modelsPage.create')}
-              </Button>
-            </Link>
-          )}
+          {isProxy
+            ? (
+                <Button
+                  radius={6}
+                  leftSection={<IconDownload size={16} />}
+                  onClick={() => setDownloadDrawerOpened(true)}
+                >
+                  {t('projects.detail.proxyDownload.title')}
+                </Button>
+              )
+            : canCreateModel && (
+              <Link to="/models/new" search={{ projectId }}>
+                <Button
+                  radius={6}
+                  leftSection={<IconCube size={16} />}
+                >
+                  {t('projects.detail.modelsPage.create')}
+                </Button>
+              </Link>
+            )}
         </SearchToolbar>
 
-        <Space h="lg"></Space>
+        {showProxyDownloadGuide
+          ? <ProxyProjectDownloadGuide remoteOrganization={project.organization} organization={project.name} />
+          : (
+              <>
+                <Space h="lg" />
 
-        <ResourceCardGrid
-          loading={showSkeletons}
-          skeletonCount={DEFAULT_PAGE_SIZE}
-        >
-          {cardElements}
-        </ResourceCardGrid>
+                <ResourceCardGrid
+                  loading={showSkeletons}
+                  skeletonCount={DEFAULT_PAGE_SIZE}
+                >
+                  {cardElements}
+                </ResourceCardGrid>
 
-        <Pagination
-          total={total}
-          totalPages={totalPages}
-          page={page}
-          onPageChange={(nextPage) => {
-            void navigate({
-              search: prev => ({
-                ...prev,
-                page: nextPage,
-              }),
-            })
-          }}
-        />
+                <Pagination
+                  total={total}
+                  totalPages={totalPages}
+                  page={page}
+                  onPageChange={(nextPage) => {
+                    void navigate({
+                      search: prev => ({
+                        ...prev,
+                        page: nextPage,
+                      }),
+                    })
+                  }}
+                />
+              </>
+            )}
       </Stack>
+
+      {isProxy && (
+        <ProxyProjectDownloadDrawer
+          opened={downloadDrawerOpened}
+          remoteOrganization={project.organization}
+          organization={project.name}
+          onClose={() => setDownloadDrawerOpened(false)}
+        />
+      )}
     </Box>
   )
 }

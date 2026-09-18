@@ -1,5 +1,6 @@
 {
   "detail": {
+    "proxyBadge": "Proxy Project",
     "tabs": {
       "models": "Model Repository",
       "datasets": "Datasets",
@@ -12,6 +13,25 @@
       "sortFieldDownloads": "Downloads",
       "create": "Create Model",
       "loadFailed": "Failed to load models. Please try again later."
+    },
+    "proxyDownload": {
+      "title": "Download Model",
+      "guideTitle": "How to download a model from a proxy project",
+      "guideDescription": "Proxy projects do not require manual model creation. Refresh this page after the download to create the model card automatically.",
+      "quickDownload": "Quick Download",
+      "drawerNotice": "Proxy projects do not require model creation. Enter the upstream model name to get the download command.",
+      "steps": {
+        "modelName": "Enter the upstream model name",
+        "command": "Copy and run the download command",
+        "completion": "Refresh the list after the download"
+      },
+      "modelNameLabel": "Upstream model name",
+      "modelNamePlaceholder": "For example: Qwen0.6B",
+      "modelNameHelper": "Enter the upstream model name to generate the download command.",
+      "commandPlaceholder": "<model-name>",
+      "completionNotice": "The command downloads the model from the configured target registry. Refresh the model list after it completes.",
+      "viewDocs": "View download instructions",
+      "acknowledge": "Got it"
     },
     "settingsPage": {
       "projectType": "Project Type",
