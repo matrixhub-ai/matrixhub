@@ -101,6 +101,7 @@ extract_release_note() {
       content[++count] = value
     }
     {
+      if (done) next
       line = $0
       sub(/\r$/, "", line)
       lower = tolower(line)
@@ -111,7 +112,8 @@ extract_release_note() {
         if (closing) {
           remember(substr(rest, 1, closing - 1))
           closed = 1
-          exit
+          done = 1
+          next
         }
         remember(rest)
         next
@@ -121,7 +123,8 @@ extract_release_note() {
         if (closing) {
           remember(substr(line, 1, closing - 1))
           closed = 1
-          exit
+          done = 1
+          next
         }
         remember(line)
       }
@@ -179,20 +182,37 @@ EOF
 find_previous_official_tag() {
   local version=$1
   local end_ref=$2
-  local tag tags
+  local tag tags tag_commit first_parent_commits
   local best=''
 
   tags=$(git_cmd tag --merged "$end_ref" --list) || return 1
+  first_parent_commits=$(git_cmd rev-list --first-parent "$end_ref") || return 1
   while IFS= read -r tag; do
     [[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
-    version_is_less "$tag" "$version" || continue
+    tag_commit=$(git_cmd rev-parse "$tag^{commit}") || return 1
+    has_line "$first_parent_commits" "$tag_commit" || continue
     if [ -z "$best" ] || version_is_less "$best" "$tag"; then
       best=$tag
     fi
   done <<EOF
 $tags
 EOF
+
+  if [ -n "$best" ] && ! version_is_less "$best" "$version"; then
+    echo "error: --version $version must be greater than latest official tag $best on $end_ref" >&2
+    return 1
+  fi
   printf '%s\n' "$best"
+}
+
+is_first_parent_ref() {
+  local ref=$1
+  local end_ref=$2
+  local ref_commit first_parent_commits
+
+  ref_commit=$(git_cmd rev-parse "$ref^{commit}") || return 1
+  first_parent_commits=$(git_cmd rev-list --first-parent "$end_ref") || return 1
+  has_line "$first_parent_commits" "$ref_commit"
 }
 
 parse_pull_number_from_commit_message() {
@@ -203,9 +223,10 @@ parse_pull_number_from_commit_message() {
       sub(/[^0-9].*$/, "", value)
       print value
       found = 1
-      exit
+      next
     }
     {
+      if (found) next
       remaining = $0
       while (match(remaining, /\(#[0-9]+\)/)) {
         value = substr(remaining, RSTART + 2, RLENGTH - 3)
@@ -252,14 +273,15 @@ process_pull() {
   local work_dir=$2
   local number url author body labels note
   local kind_labels='' kind_count=0 label
-  local has_release_note=false has_release_note_none=false category entry_file
+  local has_release_note_none=false category='' valid_kind=false entry_file
 
-  number=$(printf '%s' "$pull_json" | jq -er '.number')
-  url=$(printf '%s' "$pull_json" | jq -er '.html_url')
-  author=$(printf '%s' "$pull_json" | jq -r '.user.login // "ghost"')
-  body=$(printf '%s' "$pull_json" | jq -r '.body // ""')
-  labels=$(printf '%s' "$pull_json" | jq -r '.labels[]? | if type == "string" then . else .name end')
-  note=$(printf '%s\n' "$body" | extract_release_note)
+  number=$(printf '%s' "$pull_json" | jq -er '.number') || return 1
+  url=$(printf '%s' "$pull_json" | jq -er '.html_url') || return 1
+  author=$(printf '%s' "$pull_json" | jq -r '.user.login // "ghost"') || return 1
+  body=$(printf '%s' "$pull_json" | jq -r '.body // ""') || return 1
+  labels=$(printf '%s' "$pull_json" | jq -r \
+    '.labels[]? | if type == "string" then . else .name end') || return 1
+  note=$(printf '%s\n' "$body" | extract_release_note) || return 1
 
   while IFS= read -r label; do
     case "$label" in
@@ -277,46 +299,42 @@ $label"
 $labels
 EOF
 
-  [ "$kind_count" -gt 0 ] || append_line "$work_dir/errors" "#$number has no kind/* label"
+  if [ "$kind_count" -eq 0 ]; then
+    append_line "$work_dir/errors" "#$number has no kind/* label"
+  elif category=$(classify_kind "$kind_labels"); then
+    valid_kind=true
+    if [ "$kind_count" -gt 1 ]; then
+      append_line "$work_dir/warnings" \
+        "#$number has multiple kind labels ($(printf '%s\n' "$kind_labels" | join_lines)); classified as $category"
+    fi
+  else
+    append_line "$work_dir/errors" \
+      "#$number has unsupported kind labels: $(printf '%s\n' "$kind_labels" | join_lines)"
+  fi
+
   has_line "$labels" 'do-not-merge/needs-kind' && \
     append_line "$work_dir/errors" "#$number is still labeled do-not-merge/needs-kind"
   has_line "$labels" 'do-not-merge/needs-release-note' && \
     append_line "$work_dir/errors" "#$number is still labeled do-not-merge/needs-release-note"
-  has_line "$labels" 'release-note' && has_release_note=true
+  has_line "$labels" 'do-not-merge/release-note-label-needed' && \
+    append_line "$work_dir/errors" "#$number is still labeled do-not-merge/release-note-label-needed"
   has_line "$labels" 'release-note-none' && has_release_note_none=true
 
-  if [ "$has_release_note" = true ] && [ "$has_release_note_none" = true ]; then
-    append_line "$work_dir/errors" "#$number has both release-note and release-note-none labels"
-    return
-  fi
-
-  if [ "$has_release_note_none" = true ]; then
-    is_no_release_note "$note" || \
-      append_line "$work_dir/errors" "#$number has release-note-none but its release-note block is not NONE or NO"
-    append_line "$work_dir/excluded" "$number"
-    return
-  fi
-
-  if [ "$has_release_note" = false ]; then
-    append_line "$work_dir/errors" "#$number has neither release-note nor release-note-none"
-    return
-  fi
-
   if [ -z "$note" ] || is_no_release_note "$note"; then
-    append_line "$work_dir/errors" "#$number has release-note but no usable release-note content"
-    return
+    if [ "$has_release_note_none" = false ]; then
+      append_line "$work_dir/errors" \
+        "#$number has no usable release-note content and no release-note-none label"
+      return
+    fi
+    if has_line "$kind_labels" 'kind/deprecation'; then
+      append_line "$work_dir/errors" "#$number has kind/deprecation and release-note-none"
+      return
+    fi
+    append_line "$work_dir/excluded" "$number"
+    return 0
   fi
 
-  if ! category=$(classify_kind "$kind_labels"); then
-    append_line "$work_dir/errors" \
-      "#$number has unsupported kind labels: $(printf '%s\n' "$kind_labels" | join_lines)"
-    return
-  fi
-
-  if [ "$kind_count" -gt 1 ]; then
-    append_line "$work_dir/warnings" \
-      "#$number has multiple kind labels ($(printf '%s\n' "$kind_labels" | join_lines)); classified as $category"
-  fi
+  [ "$valid_kind" = true ] || return 0
 
   mkdir -p "$work_dir/entries/$category"
   entry_file=$(printf '%s/entries/%s/%012d.md' "$work_dir" "$category" "$number")
@@ -334,16 +352,17 @@ collect_pull_numbers() {
   local base_branch=$3
   local repo=$4
   local work_dir=$5
-  local range=$end_ref sha pulls numbers number subject message message_pull_number
-  local direct_pull api_error api_response api_status found
+  local range=$end_ref sha pulls number subject message message_pull_number
+  local direct_pull api_error api_response api_status found selection ambiguous
 
   [ -z "$start_ref" ] || range="$start_ref..$end_ref"
-  git_cmd rev-list --reverse "$range" > "$work_dir/commits"
+  git_cmd rev-list --first-parent --reverse "$range" > "$work_dir/commits" || return 1
+  mkdir -p "$work_dir/pulls"
   : > "$work_dir/pull_numbers"
 
   while IFS= read -r sha; do
     [ -n "$sha" ] || continue
-    message=$(git_cmd show -s --format=%s%n%b "$sha")
+    message=$(git_cmd show -s --format=%s%n%b "$sha") || return 1
     subject=${message%%$'\n'*}
     message_pull_number=$(printf '%s\n' "$message" | parse_pull_number_from_commit_message)
     found=false
@@ -361,6 +380,7 @@ collect_pull_numbers() {
             and ($base == "" or .base.ref == $base)
             and .merge_commit_sha == $sha' >/dev/null; then
           append_line "$work_dir/pull_numbers" "$message_pull_number"
+          printf '%s\n' "$direct_pull" > "$work_dir/pulls/$message_pull_number.json"
           found=true
         fi
       else
@@ -374,30 +394,57 @@ collect_pull_numbers() {
     fi
 
     if [ "$found" = false ]; then
-      if ! pulls=$(github_api "repos/$repo/commits/$sha/pulls?per_page=100"); then
+      if ! pulls=$(github_api "repos/$repo/commits/$sha/pulls?per_page=100" \
+        --paginate --slurp); then
         echo "error: failed to find pull requests associated with commit $sha" >&2
         return 1
       fi
-      numbers=$(printf '%s' "$pulls" | jq -r --arg base "$base_branch" '
-        .[]
-        | select(.merged_at != null)
-        | select($base == "" or .base.ref == $base)
-        | .number
-      ')
-      if [ -z "$numbers" ]; then
+      if ! selection=$(printf '%s' "$pulls" | jq -c \
+        --arg base "$base_branch" --arg sha "$sha" '
+          [
+            (if length > 0 and (.[0] | type) == "array" then .[] else . end)
+            | .[]
+            | select(.merged_at != null)
+            | select($base == "" or .base.ref == $base)
+          ]
+          | unique_by(.number) as $candidates
+          | [$candidates[] | select(.merge_commit_sha == $sha)] as $exact
+          | if ($exact | length) == 1 then {pull: $exact[0]}
+            elif ($exact | length) > 1 then {ambiguous: ($exact | map(.number))}
+            elif ($candidates | length) == 1 then {pull: $candidates[0]}
+            elif ($candidates | length) > 1 then {ambiguous: ($candidates | map(.number))}
+            else {}
+            end
+        '); then
+        echo "error: invalid associated pull request response for commit $sha" >&2
+        return 1
+      fi
+
+      ambiguous=$(printf '%s' "$selection" | jq -r \
+        '(.ambiguous // []) | map("#" + tostring) | join(", ")')
+      if [ -n "$ambiguous" ]; then
+        append_line "$work_dir/errors" \
+          "$(printf '%.12s' "$sha") has ambiguous merged PRs: $ambiguous"
+        continue
+      fi
+
+      direct_pull=$(printf '%s' "$selection" | jq -c '.pull // empty')
+      if [ -z "$direct_pull" ]; then
         append_line "$work_dir/warnings" \
           "no merged PR found for $(printf '%.12s' "$sha") $subject"
         continue
       fi
-      while IFS= read -r number; do
-        [ -n "$number" ] && append_line "$work_dir/pull_numbers" "$number"
-      done <<EOF
-$numbers
-EOF
+
+      if ! number=$(printf '%s' "$direct_pull" | jq -er '.number'); then
+        echo "error: associated pull request for commit $sha has no number" >&2
+        return 1
+      fi
+      append_line "$work_dir/pull_numbers" "$number"
+      printf '%s\n' "$direct_pull" > "$work_dir/pulls/$number.json"
     fi
   done < "$work_dir/commits"
 
-  sort -n -u "$work_dir/pull_numbers" > "$work_dir/pull_numbers.sorted"
+  sort -n -u "$work_dir/pull_numbers" > "$work_dir/pull_numbers.sorted" || return 1
 }
 
 render_generated_block() {
@@ -601,7 +648,7 @@ main() {
   local base_branch=${GITHUB_BASE_REF:-${GITHUB_REF_NAME:-}}
   local output=''
   local dry_run=false
-  local work_dir token range number pull_json
+  local work_dir token range number pull_json previous_official_tag target_tags
   local included_count excluded_count pull_count commit_count warning
 
   while [ "$#" -gt 0 ]; do
@@ -654,14 +701,24 @@ main() {
   GH_TOKEN=$token
   export GH_TOKEN
 
-  [ -n "$base_branch" ] || base_branch=$(git_cmd branch --show-current)
-  git_cmd rev-parse --verify "$end_ref^{commit}" >/dev/null
-  if [ -n "$(git_cmd tag --list "$version")" ]; then
+  if [ -z "$base_branch" ]; then
+    base_branch=$(git_cmd branch --show-current) || return 1
+  fi
+  git_cmd rev-parse --verify "$end_ref^{commit}" >/dev/null || return 1
+  target_tags=$(git_cmd tag --list "$version") || return 1
+  if [ -n "$target_tags" ]; then
     echo "$version already exists; release notes must be committed before the official tag is created" >&2
     return 1
   fi
-  [ -n "$start_ref" ] || start_ref=$(find_previous_official_tag "$version" "$end_ref")
-  [ -z "$start_ref" ] || git_cmd rev-parse --verify "$start_ref^{commit}" >/dev/null
+  previous_official_tag=$(find_previous_official_tag "$version" "$end_ref") || return 1
+  [ -n "$start_ref" ] || start_ref=$previous_official_tag
+  if [ -n "$start_ref" ]; then
+    git_cmd rev-parse --verify "$start_ref^{commit}" >/dev/null || return 1
+    if ! is_first_parent_ref "$start_ref" "$end_ref"; then
+      echo "error: --start-ref must be on the first-parent chain of --end-ref: $start_ref" >&2
+      return 1
+    fi
+  fi
 
   if [ -z "$output" ]; then
     local version_number=${version#v}
@@ -671,7 +728,7 @@ main() {
     output="CHANGELOG/CHANGELOG-$major.$minor.md"
   fi
 
-  work_dir=$(mktemp -d "${TMPDIR:-/tmp}/matrixhub-changelog.XXXXXX")
+  work_dir=$(mktemp -d "${TMPDIR:-/tmp}/matrixhub-changelog.XXXXXX") || return 1
   CHANGELOG_WORK_DIR=$work_dir
   trap 'cleanup_work_dir "${CHANGELOG_WORK_DIR:-}"' EXIT
   trap 'exit 129' HUP
@@ -685,17 +742,22 @@ main() {
   range=$end_ref
   [ -z "$start_ref" ] || range="$start_ref..$end_ref"
   printf 'Collecting %s release notes from %s\n' "$version" "$range"
-  collect_pull_numbers "$start_ref" "$end_ref" "$base_branch" "$repo" "$work_dir"
+  collect_pull_numbers "$start_ref" "$end_ref" "$base_branch" "$repo" "$work_dir" || return 1
   commit_count=$(line_count "$work_dir/commits")
-  printf 'Inspecting %s commits in %s\n' "$commit_count" "$repo"
+  printf 'Inspecting %s first-parent commits in %s\n' "$commit_count" "$repo"
 
   while IFS= read -r number; do
     [ -n "$number" ] || continue
-    if ! pull_json=$(github_api "repos/$repo/pulls/$number"); then
+    if [ -s "$work_dir/pulls/$number.json" ]; then
+      pull_json=$(cat "$work_dir/pulls/$number.json")
+    elif ! pull_json=$(github_api "repos/$repo/pulls/$number"); then
       echo "error: failed to read pull request #$number" >&2
       return 1
     fi
-    process_pull "$pull_json" "$work_dir"
+    if ! process_pull "$pull_json" "$work_dir"; then
+      echo "error: invalid pull request data for #$number" >&2
+      return 1
+    fi
   done < "$work_dir/pull_numbers.sorted"
 
   while IFS= read -r warning; do
@@ -703,20 +765,21 @@ main() {
   done < "$work_dir/warnings"
 
   if [ -s "$work_dir/errors" ]; then
-    echo 'error: Release note metadata validation failed:' >&2
+    echo 'error: Changelog validation failed:' >&2
     while IFS= read -r warning; do
       printf -- '- %s\n' "$warning" >&2
     done < "$work_dir/errors"
     return 1
   fi
 
-  render_generated_block "$work_dir" "$repo" "$start_ref" "$version" > "$work_dir/generated.md"
+  render_generated_block "$work_dir" "$repo" "$start_ref" "$version" \
+    > "$work_dir/generated.md" || return 1
   if [ "$dry_run" = true ]; then
     printf '\n## %s\n\n' "$version"
     cat "$work_dir/generated.md"
     printf '\n'
   else
-    upsert_changelog "$output" "$output" "$version" "$work_dir/generated.md" "$work_dir"
+    upsert_changelog "$output" "$output" "$version" "$work_dir/generated.md" "$work_dir" || return 1
     printf 'Updated %s\n' "$output"
   fi
 
@@ -728,14 +791,16 @@ main() {
   append_github_output included_count "$included_count"
   append_github_output excluded_count "$excluded_count"
   append_github_output pull_count "$pull_count"
+  append_github_output commit_count "$commit_count"
 
   if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
     {
       printf '## %s release note collection\n\n' "$version"
       printf -- '- Range: `%s`\n' "${start_ref:-repository-root}..$end_ref"
+      printf -- '- First-parent commits inspected: %s\n' "$commit_count"
       printf -- '- Pull requests found: %s\n' "$pull_count"
       printf -- '- Included release notes: %s\n' "$included_count"
-      printf -- '- Excluded as NONE/NO: %s\n' "$excluded_count"
+      printf -- '- Excluded by release-note-none: %s\n' "$excluded_count"
       printf -- '- Commits without an associated merged PR: %s\n' \
         "$(grep -c '^no merged PR found' "$work_dir/warnings" || true)"
     } >> "$GITHUB_STEP_SUMMARY"
