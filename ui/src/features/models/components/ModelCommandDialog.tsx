@@ -15,7 +15,7 @@ import { ModalWrapper } from '@/shared/components/ModalWrapper'
 
 import classes from './ModelCommandDialog.module.css'
 
-export type ModelCommandType = 'upload' | 'download' | 'use'
+export type ModelCommandType = 'upload' | 'download'
 
 interface ModelCommandDialogProps {
   opened: boolean
@@ -34,7 +34,6 @@ function buildModelCommand(type: ModelCommandType, modelPath: string, hfEndpoint
   const commandByType = {
     upload: `hf upload ${modelPath} . .`,
     download: `hf download ${modelPath}`,
-    use: `vllm serve ${modelPath}`,
   }
 
   return `export HF_ENDPOINT=${hfEndpoint}\n${commandByType[type]}`
