@@ -218,10 +218,11 @@ is_first_parent_ref() {
 parse_pull_number_from_commit_message() {
   awk '
     /^Merge pull request #[0-9]+/ {
+      if (found) next
       value = $0
       sub(/^Merge pull request #/, "", value)
       sub(/[^0-9].*$/, "", value)
-      print value
+      merged = value
       found = 1
       next
     }
@@ -229,13 +230,13 @@ parse_pull_number_from_commit_message() {
       if (found) next
       remaining = $0
       while (match(remaining, /\(#[0-9]+\)/)) {
-        value = substr(remaining, RSTART + 2, RLENGTH - 3)
-        candidate = value
+        candidate = substr(remaining, RSTART + 2, RLENGTH - 3)
         remaining = substr(remaining, RSTART + RLENGTH)
       }
     }
     END {
-      if (!found && candidate != "") print candidate
+      if (found) print merged
+      else if (candidate != "") print candidate
     }
   '
 }

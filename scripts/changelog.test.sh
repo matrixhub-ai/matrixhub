@@ -341,6 +341,7 @@ test_commit_message_pull_discovery() (
     printf 'Merge pull request #123 from topic\n'
     awk 'BEGIN { for (i = 0; i < 20000; i++) print "commit body" }'
   } | parse_pull_number_from_commit_message)" || return 1
+  assert_equal 123 "$(printf 'Merge pull request #123 from topic\n\nMerge pull request #456 from other\n' | parse_pull_number_from_commit_message)" || return 1
   assert_equal 34 "$(printf 'docs: mention (#12) and finish (#34)\n' | parse_pull_number_from_commit_message)" || return 1
   assert_equal '' "$(printf 'direct commit\n' | parse_pull_number_from_commit_message)" || return 1
 
