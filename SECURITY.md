@@ -25,8 +25,8 @@ Check [GitHub releases](https://github.com/matrixhub-ai/matrixhub/releases) for 
 - The public demo at [demo.matrixhub.ai](https://demo.matrixhub.ai/) and its
   documented default credentials (`admin` / `changeme`) — these are intentional for
   evaluation only.
-- Vulnerabilities in third-party dependencies that are already publicly known and do
-  not have a MatrixHub-specific impact (these are tracked via Dependabot).
+- Publicly known third-party dependency vulnerabilities that, after triage, do
+  not affect MatrixHub.
 - Issues that require physical access, a compromised host, or misconfiguration
   contrary to the hardening guidance below.
 
@@ -98,6 +98,15 @@ MatrixHub runs the following checks in CI:
 | **Cosign + SBOM** | Release images | `call-release-image.yaml` | Signed images with SPDX SBOM |
 
 All scanning workflows start **non-blocking** (report-only). After initial triage they are promoted to required checks on `main`.
+
+## Dependency vulnerability triage
+
+Maintainers review findings from dependency alerts, security scans, upstream
+advisories, and private reports. They check affected versions, whether MatrixHub
+uses the vulnerable functionality, and the impact on supported releases.
+Applicable findings are prioritized for a dependency update, patch, or
+mitigation, followed by validation and a patched release when warranted.
+Findings assessed as not affecting MatrixHub are documented with the rationale.
 
 ## Security hardening (operators)
 
