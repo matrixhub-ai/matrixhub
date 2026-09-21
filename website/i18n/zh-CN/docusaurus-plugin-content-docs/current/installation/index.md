@@ -22,7 +22,7 @@ Docker Compose 是在独立虚拟机或服务器上部署 MatrixHub 最简单的
 <TabItem value="linux-macos" label="Linux / macOS" default>
 
 ```bash
-export MATRIXHUB_VERSION=v0.2.0-rc.5
+export MATRIXHUB_VERSION=v0.2.0
 
 mkdir -p matrixhub && cd matrixhub
 
@@ -40,7 +40,7 @@ MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose up -d
 <TabItem value="windows" label="Windows (PowerShell)">
 
 ```powershell
-$env:MATRIXHUB_VERSION = "v0.2.0-rc.5"
+$env:MATRIXHUB_VERSION = "v0.2.0"
 
 New-Item -ItemType Directory -Force -Path "matrixhub" | Out-Null
 Set-Location "matrixhub"
@@ -59,7 +59,7 @@ docker compose up -d
 </TabItem>
 </Tabs>
 
-如需使用其他版本，请将 `v0.2.0-rc.5` 替换为您要运行的版本。
+如需使用其他版本，请将 `v0.2.0` 替换为您要运行的版本。
 如果端口 `3001` 已被占用，请在启动服务前设置 `MATRIXHUB_HTTP_PORT`，例如在 Linux/macOS 中运行 `export MATRIXHUB_HTTP_PORT=3002`，或在 PowerShell 中运行 `$env:MATRIXHUB_HTTP_PORT = "3002"`。
 
 打开 MatrixHub Web 控制台：

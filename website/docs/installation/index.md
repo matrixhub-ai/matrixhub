@@ -21,7 +21,7 @@ Download the Docker Compose files for a released version and start MatrixHub:
 <TabItem value="linux-macos" label="Linux / macOS" default>
 
 ```bash
-export MATRIXHUB_VERSION=v0.2.0-rc.5
+export MATRIXHUB_VERSION=v0.2.0
 
 mkdir -p matrixhub && cd matrixhub
 
@@ -39,7 +39,7 @@ MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose up -d
 <TabItem value="windows" label="Windows (PowerShell)">
 
 ```powershell
-$env:MATRIXHUB_VERSION = "v0.2.0-rc.5"
+$env:MATRIXHUB_VERSION = "v0.2.0"
 
 New-Item -ItemType Directory -Force -Path "matrixhub" | Out-Null
 Set-Location "matrixhub"
@@ -58,7 +58,7 @@ docker compose up -d
 </TabItem>
 </Tabs>
 
-Replace `v0.2.0-rc.5` with the version you want to run.
+Replace `v0.2.0` with the version you want to run.
 If port `3001` is already in use, set `MATRIXHUB_HTTP_PORT` before starting the stack, for example `export MATRIXHUB_HTTP_PORT=3002` on Linux/macOS or `$env:MATRIXHUB_HTTP_PORT = "3002"` in PowerShell.
 
 Open the MatrixHub web console:

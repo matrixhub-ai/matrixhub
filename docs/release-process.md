@@ -179,7 +179,7 @@ Create the draft around feature freeze or the first RC:
      tagged), normally `main`;
    - **start_ref:** previous official tag, or leave empty to auto-detect;
    - **end_ref:** leave empty to collect through `base_branch` HEAD. Set a tag
-     or commit to freeze the range, for example `v0.1.0` → `v0.2.0-rc.5` while
+     or commit to freeze the range, for example `v0.1.0` → `v0.2.0` while
      still opening the draft PR against `main`.
 5. Click the green **Run workflow** button in the form.
 6. When the run succeeds, review the draft PR from `release-notes/vX.Y.Z`. Add

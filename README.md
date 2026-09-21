@@ -55,7 +55,7 @@ is required. Download the Docker Compose files for a released version and start
 MatrixHub:
 
 ```bash
-export MATRIXHUB_VERSION=v0.2.0-rc.5
+export MATRIXHUB_VERSION=v0.2.0
 
 mkdir -p matrixhub && cd matrixhub
 
@@ -69,7 +69,7 @@ curl -fL \
 MATRIXHUB_IMAGE_TAG="$MATRIXHUB_VERSION" docker compose up -d
 ```
 
-Replace `v0.2.0-rc.5` with the version you want to run.
+Replace `v0.2.0` with the version you want to run.
 If port `3001` is already in use, set `MATRIXHUB_HTTP_PORT` before starting the stack, for example `MATRIXHUB_HTTP_PORT=3002`.
 
 Open the MatrixHub web console:
