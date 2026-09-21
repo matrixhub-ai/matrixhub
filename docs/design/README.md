@@ -15,6 +15,7 @@ For a **complex change**, add a design doc here (or an external doc) and get mai
 ## Index
 
 - [Architecture](./architecture.md)
+- [MatrixHub and hfd relationship](./matrixhub-hfd-relation-design.md)
 - [Cleanup](./cleanup-design.md)
 - [Jobserver](./jobserver-design.md)
 <!-- Add new design docs here -->
