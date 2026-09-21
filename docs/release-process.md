@@ -265,13 +265,11 @@ Suggested release notes footer (adjust version):
 ghcr.io/matrixhub-ai/matrixhub:v0.1.0
 ```
 
-Verify signature (optional):
+## Supply-chain verification
 
-```bash
-cosign verify ghcr.io/matrixhub-ai/matrixhub:v0.1.0 \
-  --certificate-identity-regexp='.*' \
-  --certificate-oidc-issuer=https://token.actions.githubusercontent.com
-```
+The release container image is signed with Cosign and includes an SPDX SBOM.
+See [SECURITY.md](../SECURITY.md) for verification instructions and dependency
+vulnerability handling.
 
 ### Helm
 

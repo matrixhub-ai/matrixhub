@@ -72,6 +72,15 @@ main() {
 
   extract_section "${source}" > "${OUTPUT_FILE}"
 
+  cat >> "${OUTPUT_FILE}" <<EOF
+
+## Supply-chain metadata
+
+The release container image is signed with Cosign and includes an SPDX SBOM.
+See the [Security Policy](https://github.com/matrixhub-ai/matrixhub/blob/${DEST_TAG}/SECURITY.md)
+for verification instructions and dependency vulnerability handling.
+EOF
+
   if [ "$(wc -l < "${OUTPUT_FILE}")" -lt 5 ]; then
     echo "error: release notes section for ${DEST_TAG} is empty in ${CHANGELOG_PATH}" >&2
     exit 1
