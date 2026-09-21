@@ -1,7 +1,11 @@
 import {
   Accordion,
+  Alert,
   Anchor,
   Badge,
+  Box,
+  Button,
+  Drawer,
   Group,
   rem,
   Select,
@@ -18,13 +22,8 @@ import {
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  GuideDrawer,
-  GuideSnippetBlock as SnippetBlock,
-  GuideStep as Step,
-} from '@/features/models/guides/GuideDrawer'
-import guideClasses from '@/features/models/guides/GuideDrawer.module.css'
 import { useSystemConfig } from '@/features/system/system.query'
+import { ShikiCodeBlock } from '@/shared/components/ShikiCodeBlock'
 
 import classes from './UseModelDrawer.module.css'
 import {
@@ -39,8 +38,11 @@ import {
   ENGINE_LABELS,
   type SnippetPrompts,
   type UseModelEngine,
+  type UseModelSnippet,
   type UseModelTask,
 } from './useModelGuides'
+
+import type { ReactNode } from 'react'
 
 const TASK_OPTIONS: UseModelTask[] = ['text-generation', 'image-text-to-text']
 
@@ -51,6 +53,40 @@ interface UseModelDrawerProps {
   /** Task detected from the model's labels; the user may override it inside the drawer. */
   defaultTask: UseModelTask | null
   onClose: () => void
+}
+
+interface StepProps {
+  index: number
+  title: ReactNode
+  extra?: ReactNode
+  hint?: ReactNode
+  children: ReactNode
+}
+
+function Step({
+  index, title, extra, hint, children,
+}: StepProps) {
+  return (
+    <Box className={classes.step}>
+      <Group className={classes.stepHeader} justify="space-between" wrap="nowrap">
+        <Group gap="xs" wrap="nowrap">
+          <Badge circle size="md" variant="filled" className={classes.stepIndex}>
+            {index}
+          </Badge>
+          <Text component="div" fw={600} size="sm">{title}</Text>
+        </Group>
+        {extra}
+      </Group>
+      <Stack gap="xs" className={classes.stepBody}>
+        {children}
+        {hint && <Text size="xs" c="dimmed">{hint}</Text>}
+      </Stack>
+    </Box>
+  )
+}
+
+function SnippetBlock({ snippet }: { snippet: UseModelSnippet }) {
+  return <ShikiCodeBlock code={snippet.code} lang={snippet.lang} />
 }
 
 export function UseModelDrawer({
@@ -109,7 +145,7 @@ export function UseModelDrawer({
   )
 
   return (
-    <GuideDrawer
+    <Drawer
       opened={opened}
       onClose={onClose}
       position="right"
@@ -245,98 +281,8 @@ export function UseModelDrawer({
             <IconExternalLink size={14} />
           </Group>
         </Anchor>
-      )}
-    >
-      <Step
-        index={1}
-        title={t('model.detail.useModel.steps.prepare')}
-        hint={t('model.detail.useModel.steps.prepareHint')}
-      >
-        <Group gap="xs">
-          <Badge variant="light" color="cyan" radius="sm" tt="none">Linux</Badge>
-          <Badge variant="light" color="cyan" radius="sm" tt="none">Python 3.10+</Badge>
-          <Badge variant="light" color="cyan" radius="sm" tt="none">{t('model.detail.useModel.gpu')}</Badge>
-        </Group>
-      </Step>
-
-      <Step index={2} title={t('model.detail.useModel.steps.install', { engine: engineLabel })}>
-        <SnippetBlock snippet={buildInstallSnippet(engine)} />
-      </Step>
-
-      {envStep}
-
-      {engine === 'transformers'
-        ? (
-            <Step
-              index={4}
-              title={(
-                <Group gap={4} wrap="nowrap">
-                  {t('model.detail.useModel.steps.generate')}
-                  <Tooltip label={t('model.detail.useModel.steps.generateTooltip')} multiline maw={280} withArrow>
-                    <IconInfoCircle size={14} className={classes.infoIcon} />
-                  </Tooltip>
-                </Group>
-              )}
-              extra={taskSelect}
-              hint={t('model.detail.useModel.steps.generateHint')}
-            >
-              <Tabs defaultValue="pipeline" variant="default">
-                <Tabs.List mb="xs">
-                  <Tabs.Tab value="pipeline">{t('model.detail.useModel.pipelineTab')}</Tabs.Tab>
-                  <Tabs.Tab value="lowLevel">{t('model.detail.useModel.lowLevelTab')}</Tabs.Tab>
-                </Tabs.List>
-                <Tabs.Panel value="pipeline">
-                  <SnippetBlock snippet={buildPipelineSnippet(task, modelPath, prompts)} />
-                </Tabs.Panel>
-                <Tabs.Panel value="lowLevel">
-                  <Stack gap="xs">
-                    <SnippetBlock snippet={buildLowLevelSnippet(task, modelPath, prompts)} />
-                    <Text size="xs" c="dimmed">{t('model.detail.useModel.lowLevelNote')}</Text>
-                  </Stack>
-                </Tabs.Panel>
-              </Tabs>
-            </Step>
-          )
-        : (
-            <>
-              <Step index={4} title={t('model.detail.useModel.steps.serve')}>
-                <SnippetBlock snippet={buildServeSnippet(engine, modelPath)} />
-              </Step>
-              <Step
-                index={5}
-                title={t('model.detail.useModel.steps.testRequest')}
-                extra={taskSelect}
-                hint={t('model.detail.useModel.steps.testRequestHint')}
-              >
-                <SnippetBlock snippet={buildTestRequestSnippet(engine, modelPath, task, prompts)} />
-              </Step>
-            </>
-          )}
-
-      <Accordion
-        variant="contained"
-        radius="sm"
-        chevronPosition="left"
-        classNames={{
-          item: guideClasses.accordionItem,
-          control: guideClasses.accordionControl,
-          content: guideClasses.accordionContent,
-        }}
-      >
-        <Accordion.Item value="docker">
-          <Accordion.Control>
-            <Group gap="xs" wrap="nowrap">
-              <Text size="sm" fw={600}>{t('model.detail.useModel.otherMethods')}</Text>
-              <Text size="sm" fw={600}>Docker</Text>
-            </Group>
-          </Accordion.Control>
-          <Accordion.Panel>
-            {systemConfigQuery.isPending
-              ? <Skeleton height={44} radius="sm" />
-              : <SnippetBlock snippet={buildDockerSnippet(hfEndpoint, modelPath)} />}
-          </Accordion.Panel>
-        </Accordion.Item>
-      </Accordion>
-    </GuideDrawer>
+        <Button onClick={onClose}>{t('common.confirm')}</Button>
+      </Group>
+    </Drawer>
   )
 }

@@ -5,6 +5,7 @@ import {
   Button,
   Drawer,
   Group,
+  rem,
   Stack,
   Text,
 } from '@mantine/core'
@@ -51,8 +52,8 @@ export function GuideDrawer({
       title={<Text fw={600} fz="md">{title}</Text>}
       classNames={{ body: classes.body }}
     >
-      <Box className={classes.content}>
-        <Stack gap="md">
+      <Box className={classes.content} pt={rem('4px')}>
+        <Stack gap="sm">
           <Alert
             variant="light"
             color="cyan"
