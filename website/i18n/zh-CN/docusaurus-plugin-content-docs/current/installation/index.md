@@ -68,6 +68,20 @@ docker compose up -d
 http://127.0.0.1:3001
 ```
 
+使用默认本地账号登录：
+
+| 用户名 | 密码 |
+| --- | --- |
+| `admin` | `changeme` |
+
+在将实例暴露到本机以外之前，请先修改默认密码。
+
+停止本地服务：
+
+```bash
+docker compose down
+```
+
 SQLite 数据保存在 `./data/matrixhub`。请仅运行一个使用该数据库的 MatrixHub 实例，并将数据库保存在本地文件系统上。
 
 如需使用 MySQL，请下载 [`docker-compose.mysql.yml`](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/docker-compose.mysql.yml) 和 [`config-mysql.yaml`](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/config-mysql.yaml)，然后运行：
