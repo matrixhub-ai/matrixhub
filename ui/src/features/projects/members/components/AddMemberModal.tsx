@@ -16,6 +16,7 @@ import { fieldError } from '@/shared/utils/form'
 
 import { useProjectRoleDescription, useProjectRoleOptions } from '../member.utils'
 import { addMemberMutationOptions } from '../members.mutation'
+import { memberKeys } from '../members.query'
 
 interface AddMemberModalProps {
   opened: boolean
@@ -70,10 +71,11 @@ export function AddMemberModal({
   const roleDescription = useProjectRoleDescription()
 
   const { data: usersData } = useQuery({
-    queryKey: ['users', 'list'],
+    queryKey: memberKeys.availableUsers(projectId),
     queryFn: () => Users.ListUsers({
       page: 1,
       pageSize: -1,
+      excludeProject: projectId,
     }),
     enabled: opened && memberType === MemberType.MEMBER_TYPE_USER,
   })
