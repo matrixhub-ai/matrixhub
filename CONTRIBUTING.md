@@ -13,23 +13,64 @@ By participating, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md
 
 You don't have to write code to make a difference:
 
-- **Report bugs** and **request features** using the [issue templates](https://github.com/matrixhub-ai/matrixhub/issues/new/choose).
+- **Report bugs** and **request features**, see [Reporting issues](#reporting-issues).
 - **Improve documentation** — the `docs/`, the `website/`, and inline docs.
-- **Review pull requests** and help triage issues.
+- [**Help triage issues**](#helping-triage-issues)
+- [**Review pull requests**](#review-process)
 - **Answer questions** and help others in [Slack](https://cloud-native.slack.com/archives/C0A8UKWR8HG) and [GitHub Discussions](https://github.com/matrixhub-ai/matrixhub/discussions).
-- **Write code** — bug fixes and features.
+- **Write code** — bug fixes and features，see [Code contribution workflow](#code-contribution-workflow)
 
-New here? Look for issues labeled
+New here? Start from looking for issues labeled
 [`good first issue`](https://github.com/matrixhub-ai/matrixhub/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 and
 [`help wanted`](https://github.com/matrixhub-ai/matrixhub/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
 
-## Communication
+## Code contribution workflow
 
-- **GitHub Issues / Pull Requests** — primary development venue.
-- **GitHub Discussions** — questions, ideas, and broader design conversations.
-- **Slack** — [`#matrixhub`](https://cloud-native.slack.com/archives/C0A8UKWR8HG) in the CNCF Slack workspace.
-- **Public roadmap** — [ROADMAP.md](ROADMAP.md).
+1. **Align on scope.** Open an issue using the issue templates (see
+   [Reporting issues](#reporting-issues)), or pick up an existing issue (see
+   [Claiming issues](#claiming-issues) and
+   [Helping triage issues](#helping-triage-issues)). For a large feature, split work
+   into task sub-issues (see
+   [Large features and task sub-issues](#large-features-and-task-sub-issues)).
+2. **Read the issue checklist.** Each issue template may define a different
+   completion or verification checklist. Make sure you understand what must be
+   completed before the issue can be closed. For a parent feature, that includes
+   finishing related sub-issues **and** the parent checklist.
+3. **Fork** the repository and create a topic branch, following the standard
+   [GitHub pull request](https://help.github.com/articles/about-pull-requests/)
+   process.
+4. **Agree on the technical proposal before coding.** For large or complex work, discuss
+   the proposal in the issue or a GitHub Discussion first. For complex backend
+   changes, write a short design doc under `docs/design/` and get maintainer
+   review before coding.
+5. **Set up local development when needed.** If the contribution changes code,
+   use the [Developer Guide](docs/development.md) to set up the local API, UI,
+   database, generated code, and tests.
+6. **Make your change**, following the backend architecture rules in
+   [docs/code-architecture.md](docs/code-architecture.md) and the frontend rules in
+   [ui/AGENTS.md](ui/AGENTS.md).
+7. **Add tests** for behavior changes and bug fixes, then run the relevant tests
+   locally (see [Testing](#testing)).
+8. **Update user-facing documentation when needed.** If the change affects how
+   users install, configure, or use MatrixHub, update the documentation website.
+   See the [Website Developer Guide](docs/development.md#documentation-website-local-development) for documentation website local
+   development.
+9. **Sign your commits** (see
+   [Developer Certificate of Origin](#developer-certificate-of-origin-dco)).
+10. **Open a pull request.** Follow the [Pull request](#pull-request) guidance and
+    [Release notes in pull requests](#release-notes-in-pull-requests).
+11. **Make sure CI passes.** If static-check CI fails, see
+    [Coding standards](#coding-standards) for the local commands.
+12. **Request review.** Add reviewers or mention the right people in a comment.
+    Use [`OWNERS`](OWNERS) to find reviewers and approvers, or ask in Slack.
+    See [Review process](#review-process) for approval requirements.
+13. **Finish the issue after merge.** After the PR is merged, update the linked
+    issue checklist and add relevant PR or documentation links. Close a
+    **task** issue only when its checklist is done. Close a **parent feature**
+    only when all sub-issues are closed **and** the parent checklist is done.
+    If anything remains, leave a comment and hand off the remaining work to the
+    right owner.
 
 ## Reporting issues
 
@@ -38,29 +79,6 @@ and
   and [pull requests](https://github.com/matrixhub-ai/matrixhub/pulls) to avoid duplicates.
 - **Security vulnerabilities:** **do not** open a public issue. Follow the private
   reporting process in [SECURITY.md](SECURITY.md).
-
-## Large features and task sub-issues
-
-For a **large feature**, prefer opening a parent [Feature](https://github.com/matrixhub-ai/matrixhub/issues/new?template=01-FEATURE.md)
-issue to track the overall goal, then split delivery into smaller task issues using
-the task templates:
-
-- [Backend Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=07-BACKEND_TASK.md)
-- [UI Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=08-UI_TASK.md)
-- [QA Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=09-QA_TASK.md)
-- [Doc Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=10-DOC_TASK.md)
-
-In each sub-issue, link the parent feature and fill that task template’s **Completion
-checklist**. Track the sub-issues from the parent (for example list them under the
-parent checklist or in the parent description).
-
-**Do not close the parent feature issue until both are done:**
-
-1. All related **sub-issues** are closed, and
-2. The parent’s own **Completion checklist** is fully checked off
-
-Closing a Backend / QA / Doc task while its **Completion checklist** still has
-unchecked items may cause the issue to be reopened automatically.
 
 ## Helping triage issues
 
@@ -101,64 +119,28 @@ ask maintainers whether it can be reassigned.
 If you think someone else is the right person to fix an issue, mention them in a
 comment with context. Maintainers may assign the issue once the person agrees or when there is a clear owner.
 
-## Contribution workflow
+## Large features and task sub-issues
 
-1. **Align on scope.** Open an issue using the issue templates (see
-   [Reporting issues](#reporting-issues)), or pick up an existing issue (see
-   [Claiming issues](#claiming-issues) and
-   [Helping triage issues](#helping-triage-issues)). For a large feature, split work
-   into task sub-issues (see
-   [Large features and task sub-issues](#large-features-and-task-sub-issues)).
-2. **Read the issue checklist.** Each issue template may define a different
-   completion or verification checklist. Make sure you understand what must be
-   completed before the issue can be closed. For a parent feature, that includes
-   finishing related sub-issues **and** the parent checklist.
-3. **Fork** the repository and create a topic branch, following the standard
-   [GitHub pull request](https://help.github.com/articles/about-pull-requests/)
-   process.
-4. **Agree on the approach before coding.** For large or complex work, discuss
-   the approach in the issue or a GitHub Discussion first. For complex backend
-   changes, write a short design doc under `docs/design/` and get maintainer
-   review before coding.
-5. **Set up local development when needed.** If the contribution changes code,
-   use the [Developer Guide](docs/development.md) to set up the local API, UI,
-   database, generated code, and tests.
-6. **Make your change**, following the backend architecture rules in
-   [docs/code-architecture.md](docs/code-architecture.md) and the frontend rules in
-   [ui/AGENTS.md](ui/AGENTS.md).
-7. **Add tests** for behavior changes and bug fixes, then run the relevant tests
-   locally (see [Testing](#testing)).
-8. **Update user-facing documentation when needed.** If the change affects how
-   users install, configure, or use MatrixHub, update the documentation website.
-   See the [Developer Guide](docs/development.md) for documentation website local
-   development.
-9. **Sign your commits** (see
-   [Developer Certificate of Origin](#developer-certificate-of-origin-dco)).
-10. **Open a pull request** using the PR template. Link the issue: use
-    `Closes #123` when the PR completes all checklist items for the issue, or
-    `Refs #123` when it only completes part of the work. Fill in the PR checklist
-    (see [Pull request](#pull-request)).
-11. **Make sure CI passes.** If static-check CI fails, see
-    [Coding standards](#coding-standards) for the local commands.
-12. **Request review.** Add reviewers or mention the right people in a comment.
-    Reviewers may add `/lgtm`; approvers may add `/approve`. A PR needs at least
-    one `/lgtm`, one `/approve`, and passing CI before it can be merged. Use
-    [`OWNERS`](OWNERS) to find reviewers and approvers, or ask in Slack (see
-    [Review process](#review-process)).
-13. **Finish the issue after merge.** After the PR is merged, update the linked
-    issue checklist and add relevant PR or documentation links. Close a
-    **task** issue only when its checklist is done. Close a **parent feature**
-    only when all sub-issues are closed **and** the parent checklist is done.
-    If anything remains, leave a comment and hand off the remaining work to the
-    right owner.
+For a **large feature**, prefer opening a parent [Feature](https://github.com/matrixhub-ai/matrixhub/issues/new?template=01-FEATURE.md)
+issue to track the overall goal, then split delivery into smaller task issues using
+the task templates:
 
-## Local development
+- [Backend Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=07-BACKEND_TASK.md)
+- [UI Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=08-UI_TASK.md)
+- [QA Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=09-QA_TASK.md)
+- [Doc Task](https://github.com/matrixhub-ai/matrixhub/issues/new?template=10-DOC_TASK.md)
 
-For prerequisites, local API/UI setup, SQLite/MySQL configuration, generated code,
-testing commands, and troubleshooting, see [docs/development.md](docs/development.md).
+In each sub-issue, link the parent feature and fill that task template’s **Completion
+checklist**. Track the sub-issues from the parent (for example list them under the
+parent checklist or in the parent description).
 
-For a quick non-development run via Docker Compose, see the **Quick Start** in
-the [README](README.md).
+**Do not close the parent feature issue until both are done:**
+
+1. All related **sub-issues** are closed, and
+2. The parent’s own **Completion checklist** is fully checked off
+
+Closing a Backend / QA / Doc task while its **Completion checklist** still has
+unchecked items may cause the issue to be reopened automatically.
 
 ## Coding standards
 
@@ -185,6 +167,19 @@ the [README](README.md).
 - Follow the conventions and dependency direction described in
   [docs/code-architecture.md](docs/code-architecture.md).
 
+## Testing
+
+Before opening a PR, run the tests relevant to your change:
+
+- Run [unit tests](docs/development.md#unit-tests) with `make test.unit`.
+- Run [end-to-end tests](docs/development.md#end-to-end-tests) with `make test.e2e`
+  when changing API behavior, backend workflows, jobs, or integration paths.
+- Add or update tests for behavior changes and bug fixes.
+- If a test cannot be run locally, mention it in the PR.
+
+See the [Developer Guide](docs/development.md#unit-tests) for detailed test
+commands, local setup, coverage, and E2E notes.
+
 ## Developer Certificate of Origin (DCO)
 
 All commits must be **signed off** to certify that you wrote the patch or otherwise
@@ -207,37 +202,14 @@ The name and email must match your Git author identity. If you forget, you can
 amend the last commit with `git commit --amend -s`, or sign off a range of commits
 with `git rebase --signoff`.
 
-## Testing
-
-Before opening a PR, run the tests relevant to your change:
-
-- Run unit tests with `make test.unit`.
-- Run end-to-end tests with `make test.e2e` when changing API behavior, backend
-  workflows, jobs, or integration paths.
-- Add or update tests for behavior changes and bug fixes.
-- If a test cannot be run locally, mention it in the PR.
-
-See the [Developer Guide](docs/development.md#unit-tests) for detailed test
-commands, local setup, coverage, and E2E notes.
-
 ## Pull request
 
-- Keep PRs focused and reasonably small; link the issue they address.
-- Ensure **CI is green** (lint, unit tests, and other checks) and that your commits
-  are **signed off**.
+- Keep PRs focused and reasonably small. Use the PR template and fill in its checklist.
+- Link the issue: use `Closes #123` when the PR completes all checklist items for
+  the issue, or `Refs #123` when it only completes part of the work.
+- Ensure **CI is green** (lint, unit tests, and other checks).
 - Choose a `/kind` and fill in the PR template `release-note` block (see
   [Release notes in pull requests](#release-notes-in-pull-requests)).
-
-## Review process
-
-- Reviews follow the [`OWNERS`](OWNERS) model: maintainers use `/lgtm` and `/approve`
-  on PRs. A PR is merged once it has the required approvals and CI passes.
-- Anyone may use `/hold` to pause a PR and `/hold cancel` or `/unhold` to resume it.
-- Be responsive to review feedback; maintainers aim to review promptly but this is a
-  community project, so please be patient.
-
-See [GOVERNANCE.md](GOVERNANCE.md) for roles, decision making, and how to become a
-maintainer.
 
 ## Release notes in pull requests
 
@@ -257,11 +229,26 @@ Added permission-based filtering to the project list API.
 The collector adds PR and author links. Maintainers should follow
 [Prepare release notes](docs/release-process.md#prepare-release-notes).
 
+## Review process
+
+- Reviews follow the [`OWNERS`](OWNERS) model: reviewers may add `/lgtm`, and
+  approvers may add `/approve`. A PR needs at least one of each and passing CI
+  before it can be merged.
+- Anyone can comment on PRs and help review them. Review changes carefully and
+  offer constructive feedback; if you have `/lgtm` permission, use it only when
+  you can responsibly endorse the PR.
+- Anyone may use `/hold` to pause a PR and `/hold cancel` or `/unhold` to resume it.
+- Be responsive to review feedback; maintainers aim to review promptly but this is a
+  community project, so please be patient.
+
+See [GOVERNANCE.md](GOVERNANCE.md) for roles, decision making, and how to become a
+maintainer.
+
 ## License of contributions
 
 MatrixHub is licensed under the [Apache License 2.0](LICENSE). By contributing, you
 agree that your contributions will be licensed under the same license (inbound =
-outbound), and you certify your right to do so via the DCO sign-off described above.
+outbound).
 
 ---
 
