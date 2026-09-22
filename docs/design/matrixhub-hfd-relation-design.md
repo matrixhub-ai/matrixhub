@@ -58,8 +58,10 @@ removed in follow-up cleanup.
 ## Version pin and updates
 
 MatrixHub pins hfd in [`go.mod`](../../go.mod), with checksums recorded in
-[`go.sum`](../../go.sum). Maintainers update it manually through reviewed pull
-requests and run the relevant checks before merging.
+[`go.sum`](../../go.sum). Maintainers review the pinned version during each
+MatrixHub release preparation and when a relevant upstream security advisory or
+dependency alert is received. Updates are made manually through reviewed pull
+requests, with relevant checks run before merging.
 
 ## Security-sensitive application decisions
 
