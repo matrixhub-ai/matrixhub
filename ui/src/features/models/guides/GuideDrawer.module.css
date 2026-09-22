@@ -64,6 +64,7 @@
 
 .note {
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background: var(--app-color-gray-10);
   border: 1px solid var(--app-color-gray-30);
   border-radius: var(--mantine-radius-sm);
 }

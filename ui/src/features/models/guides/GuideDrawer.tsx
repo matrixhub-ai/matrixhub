@@ -68,7 +68,7 @@ export function GuideDrawer({
 
       <Group justify={footerExtra ? 'space-between' : 'flex-end'} className={classes.footer}>
         {footerExtra}
-        <Button onClick={onClose}>{t('common.confirm')}</Button>
+        <Button variant="light" onClick={onClose}>{t('common.gotIt')}</Button>
       </Group>
     </Drawer>
   )
@@ -119,7 +119,7 @@ export function GuideSnippetBlock({ snippet }: { snippet: GuideSnippet }) {
 export function GuideNote({ children }: { children: ReactNode }) {
   return (
     <Box className={classes.note}>
-      <Text size="sm">{children}</Text>
+      <Text component="div" size="sm">{children}</Text>
     </Box>
   )
 }

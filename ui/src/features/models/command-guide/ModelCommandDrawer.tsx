@@ -47,7 +47,12 @@ export function ModelCommandDrawer({
       title={t(`model.detail.commandGuide.${type}.title`)}
       intro={t(`model.detail.commandGuide.${type}.intro`)}
     >
-      <GuideStep index={1} title={t('model.detail.commandGuide.steps.install')}>
+      <GuideStep
+        index={1}
+        title={t(type === 'download'
+          ? 'model.detail.commandGuide.download.install'
+          : 'model.detail.commandGuide.steps.install')}
+      >
         <Text size="sm">{t('model.detail.commandGuide.steps.installHint')}</Text>
         <GuideSnippetBlock snippet={buildInstallHfSnippet()} />
       </GuideStep>
@@ -64,8 +69,11 @@ export function ModelCommandDrawer({
 
       {type === 'download'
         ? (
-            <>
-              <GuideStep index={3} title={t('model.detail.commandGuide.download.run')}>
+            <Stack gap="md">
+              <GuideStep
+                index={3}
+                title={t('model.detail.commandGuide.download.run')}
+              >
                 <GuideSnippetBlock snippet={buildDownloadSnippet(modelPath)} />
               </GuideStep>
               <GuideNote>
@@ -73,12 +81,14 @@ export function ModelCommandDrawer({
                 {' '}
                 <Code>{HF_DEFAULT_CACHE_DIR}</Code>
               </GuideNote>
-            </>
+            </Stack>
           )
         : (
-            <>
-              <GuideStep index={3} title={t('model.detail.commandGuide.upload.run')}>
-                <Text size="sm">{t('model.detail.commandGuide.upload.runHint')}</Text>
+            <Stack gap="md">
+              <GuideStep
+                index={3}
+                title={t('model.detail.commandGuide.upload.run')}
+              >
                 <GuideSnippetBlock snippet={buildUploadSnippet(modelPath)} />
               </GuideStep>
               <GuideNote>
@@ -95,7 +105,7 @@ export function ModelCommandDrawer({
                   </Text>
                 </Stack>
               </GuideNote>
-            </>
+            </Stack>
           )}
     </GuideDrawer>
   )

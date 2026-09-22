@@ -79,6 +79,7 @@
       "download": {
         "title": "下载模型",
         "intro": "通过命令将当前模型下载到本地环境，按以下顺序执行。",
+        "install": "安装下载工具",
         "configure": "配置下载地址",
         "run": "下载模型",
         "note": "模型默认保存到"
@@ -88,7 +89,6 @@
         "intro": "通过命令将本地文件上传到当前模型仓库。",
         "configure": "配置 MatrixHub",
         "run": "执行上传",
-        "runHint": "请将本地模型文件夹路径替换为你电脑上的实际路径。",
         "localPath": "本地路径",
         "localPathHint": "请替换为本机模型文件夹路径，例如：",
         "localPathExample": "/Users/yourname/models/{{name}}"

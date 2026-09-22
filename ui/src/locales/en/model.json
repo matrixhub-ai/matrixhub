@@ -79,6 +79,7 @@
       "download": {
         "title": "Download Model",
         "intro": "Download this model to your machine with the commands below, in order.",
+        "install": "Install the download tool",
         "configure": "Configure the download endpoint",
         "run": "Download the model",
         "note": "Files are saved to"
@@ -88,7 +89,6 @@
         "intro": "Upload local files to this model repository with the commands below.",
         "configure": "Configure MatrixHub",
         "run": "Run the upload",
-        "runHint": "Replace the local folder path with the actual path on your machine.",
         "localPath": "Local path",
         "localPathHint": "Replace it with the model folder on this machine, for example:",
         "localPathExample": "/Users/yourname/models/{{name}}"
