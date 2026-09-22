@@ -42,8 +42,8 @@ and
    process.
 4. **Agree on the technical proposal before coding.** For large or complex work, discuss
    the proposal in the issue or a GitHub Discussion first. For complex backend
-   changes, write a short design doc under `docs/design/` and get maintainer
-   review before coding.
+   changes, write a short design doc under [docs/design/](docs/design/README.md)
+   and get maintainer review before coding.
 5. **Set up local development when needed.** If the contribution changes code,
    use the [Developer Guide](docs/development.md) to set up the local API, UI,
    database, generated code, and tests.

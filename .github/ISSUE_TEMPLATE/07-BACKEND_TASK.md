@@ -13,7 +13,7 @@ The feature is detailed in the parent issue.
 
 **Dev requirements**:
 
-- **Technical design**: for a simple change, describe the approach directly in the checklist; for a complex one, write a **technical design doc** (under `docs/design/`, or an external doc) and get maintainer review **before coding**; link it in the checklist.
+- **Technical design**: for a simple change, describe the approach directly in the checklist; for a complex one, write a **technical design doc** (under [docs/design/](https://github.com/matrixhub-ai/matrixhub/blob/main/docs/design/README.md), or an external doc) and get maintainer review **before coding**; link it in the checklist.
 - **Review the QA test cases** for this feature and leave **at least one constructive comment** on the QA task.
 - Add **unit tests (UT)** for methods with complex or important logic, especially those under `internal/domain`.
 - Add **E2E tests** for this feature.

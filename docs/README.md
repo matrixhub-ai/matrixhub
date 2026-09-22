@@ -10,6 +10,7 @@ Matrixhub Documentation is available on [matrixhub.ai](https://matrixhub.ai).
 
 - [Development guide](development.md)
 - [Code architecture](code-architecture.md)
+- [Technical design docs](design/README.md)
 - [Architecture](design/architecture.md)
 - [Roadmap](../ROADMAP.md)
 - [Release process](release-process.md)
