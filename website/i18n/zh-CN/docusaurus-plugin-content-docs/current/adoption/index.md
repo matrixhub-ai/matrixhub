@@ -19,6 +19,8 @@ MatrixHub 是一个面向企业级 AI 推理基础设施的开源、自托管、
 
 [NVIDIA Dynamo 的 MatrixHub 模型加载指南](https://docs.nvidia.com/dynamo/dev/kubernetes/model-deployment/model-loading/matrix-hub)展示了如何配置 Kubernetes 部署，使 Dynamo 的前端和 worker 组件通过 MatrixHub 加载已缓存的模型权重。
 
+[llm-d 的自托管模型仓库指南](https://llm-d.ai/docs/dev/operations/model-loading-and-startup#self-hosted-registry-with-matrixhub)说明了如何在 `modelserver.env` 中配置 `HF_ENDPOINT`，使 llm-d 的模型服务 Pod 通过 MatrixHub 加载已缓存的模型权重。
+
 ## MatrixHub 参考资料
 
 - [目标用户与使用场景](../overview/)
