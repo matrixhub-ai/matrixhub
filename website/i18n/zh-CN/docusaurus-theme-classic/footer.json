@@ -31,6 +31,10 @@
     "message": "社区",
     "description": "The label of footer link with label=Community linking to /community"
   },
+  "link.item.label.Adoption": {
+    "message": "采用情况",
+    "description": "The label of footer link with label=Adoption linking to /docs/adoption"
+  },
   "link.item.label.GitHub": {
     "message": "GitHub",
     "description": "The label of footer link with label=GitHub linking to https://github.com/matrixhub-ai/matrixhub"

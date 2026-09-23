@@ -71,6 +71,7 @@ const sidebars: SidebarsConfig = {
     'security/index',
     'reference/index',
     'troubleshooting/index',
+    'adoption/index',
     'development/index',
   ],
 };

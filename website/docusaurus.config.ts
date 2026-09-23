@@ -140,6 +140,7 @@ const config: Config = {
           items: [
             { label: 'GitHub', href: 'https://github.com/matrixhub-ai/matrixhub' },
             { label: 'Community', to: '/community' },
+            { label: 'Adoption', to: '/docs/adoption' },
             { label: 'Roadmap', to: '/roadmap' },
           ],
         },
