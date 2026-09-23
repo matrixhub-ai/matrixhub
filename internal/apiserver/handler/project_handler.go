@@ -17,6 +17,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
@@ -60,6 +61,9 @@ func (h *ProjectHandler) CreateProject(ctx context.Context, req *projectv1alpha1
 	}
 	if !hasAtLeastTwoDistinctChars(req.GetName()) {
 		return nil, status.Error(codes.InvalidArgument, "project name must contain at least 2 distinct characters")
+	}
+	if strings.TrimSpace(req.GetOrganization()) != "" && req.GetRegistryId() == nil {
+		return nil, status.Error(codes.InvalidArgument, "registry is required when organization is specified")
 	}
 
 	existingProject, err := h.projectRepo.GetProjectByName(ctx, req.GetName())
