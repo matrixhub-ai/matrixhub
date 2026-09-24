@@ -200,6 +200,15 @@ jobs:
     name: Bot
     runs-on: ubuntu-latest
     steps:
+      - name: Check PR merge state
+        id: pr_before
+        if: github.event.pull_request.number || github.event.issue.pull_request
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          merged=$(gh api "repos/${GH_REPOSITORY}/pulls/${PR_NUMBER}" --jq .merged)
+          echo "merged=$merged" >> "$GITHUB_OUTPUT"
+
       - name: Issue Opened
         uses: wzshiming/gh-ci-bot@v1.7.0
         if: ${{ github.event_name == 'issues' && github.event.action == 'opened' }}
@@ -328,3 +337,13 @@ jobs:
           AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
           ISSUE_KIND: pr
           TYPE: comment
+
+      - name: Build image after bot merge
+        if: always() && steps.pr_before.outputs.merged == 'false'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          merge_sha=$(gh api "repos/${GH_REPOSITORY}/pulls/${PR_NUMBER}" --jq 'if .merged and .base.ref == "main" and .merged_by.login == "github-actions[bot]" then .merge_commit_sha else empty end')
+          if [ -n "$merge_sha" ]; then
+            gh workflow run build-image-latest.yaml --ref main -f ref="$merge_sha"
+          fi
