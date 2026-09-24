@@ -7,6 +7,11 @@
   "engines": {
     "pnpm": ">=10 <11"
   },
+  "pnpm": {
+    "overrides": {
+      "js-yaml@<4.3.2": ">=4.3.2"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
