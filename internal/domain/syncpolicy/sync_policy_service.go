@@ -16,12 +16,19 @@ package syncpolicy
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
+)
+
+
+var (
+	ErrSyncPolicyNameTaken    = errors.New("sync policy name is already taken")
+	ErrSyncPolicyNameEmpty    = errors.New("sync policy name is required")
 )
 
 //go:generate go tool mockgen -source=sync_policy_service.go -destination=mocks/sync_policy_service_mock.go -package=mocks
@@ -73,15 +80,29 @@ func (sps *SyncPolicyService) GetSyncPolicy(ctx context.Context, id int) (*SyncP
 }
 
 func (sps *SyncPolicyService) CreateSyncPolicy(ctx context.Context, param *SyncPolicy) error {
+	if param.Name == "" {
+		return ErrSyncPolicyNameEmpty
+	}
 	if err := param.ApplyScheduleNextRun(time.Now()); err != nil {
 		return err
+	}
+	// Check name uniqueness
+	if existing, err := sps.syncPolicyRepo.GetSyncPolicyByName(ctx, param.Name); err == nil && existing != nil {
+		return ErrSyncPolicyNameTaken
 	}
 	return sps.syncPolicyRepo.CreateSyncPolicy(ctx, param)
 }
 
 func (sps *SyncPolicyService) UpdateSyncPolicy(ctx context.Context, param *SyncPolicy) error {
+	if param.Name == "" {
+		return ErrSyncPolicyNameEmpty
+	}
 	if err := param.ApplyScheduleNextRun(time.Now()); err != nil {
 		return err
+	}
+	// Check name uniqueness (allow the same policy to keep its name)
+	if existing, err := sps.syncPolicyRepo.GetSyncPolicyByName(ctx, param.Name); err == nil && existing != nil && existing.ID != param.ID {
+		return ErrSyncPolicyNameTaken
 	}
 	return sps.syncPolicyRepo.UpdateSyncPolicy(ctx, param)
 }
