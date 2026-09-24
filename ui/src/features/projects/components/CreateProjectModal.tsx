@@ -27,7 +27,7 @@ import { fieldError } from '@/shared/utils/form'
 
 import { createProjectMutationOptions } from '../projects.mutation'
 import {
-  organizationSchema, projectNameSchema, registryIdSchema,
+  createProjectSchema, organizationSchema, projectNameSchema, registryIdSchema,
 } from '../projects.schema'
 import { ProjectTypeHintLabel } from './ProjectTypeHintLabel'
 
@@ -83,6 +83,12 @@ export function CreateProjectModal({
       enabledProxy: false,
       registryId: undefined as number | undefined,
       organization: undefined as string | undefined,
+    },
+    // Field validators only run on fields the user actually edited, so the
+    // proxy-only fields are re-checked here to keep an untouched registry
+    // from reaching the API.
+    validators: {
+      onSubmit: createProjectSchema,
     },
     onSubmit: async ({ value }) => {
       await mutation.mutateAsync(value)
