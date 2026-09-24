@@ -36,6 +36,16 @@ func (r *syncJobDB) CreateSyncJob(ctx context.Context, job *syncjob.SyncJob) err
 	return r.db.WithContext(ctx).Create(job).Error
 }
 
+// CreateSyncJobs creates a batch atomically so processors never observe a partially-created task.
+func (r *syncJobDB) CreateSyncJobs(ctx context.Context, jobs []*syncjob.SyncJob) error {
+	if len(jobs) == 0 {
+		return nil
+	}
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Create(&jobs).Error
+	})
+}
+
 // GetSyncJob gets a sync job by ID
 func (r *syncJobDB) GetSyncJob(ctx context.Context, id int) (*syncjob.SyncJob, error) {
 	var job syncjob.SyncJob

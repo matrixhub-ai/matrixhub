@@ -39,6 +39,12 @@ type ExecuteFn func(ctx context.Context, policyID int, triggerType int) error
 // PollDueFn lists due work and performs CAS advance in the service / repo layer.
 type PollDueFn func(ctx context.Context, nowMs int64) ([]job.DueJob, error)
 
+// ClaimOneFn atomically claims one item selected by its ID.
+type ClaimOneFn func(ctx context.Context, id int) (job.DueJob, bool, error)
+
+// ReleaseClaimFn returns unfinished work to pending so polling can retry it.
+type ReleaseClaimFn func(ctx context.Context, id int) error
+
 // PolicyLocker serializes execution per logical policy key (single-replica in-memory).
 type PolicyLocker interface {
 	TryAcquire(key string, fireAt time.Time) bool
@@ -66,6 +72,7 @@ func (l *memLocker) Release(key string) {
 // Adapter is the minimal lifecycle surface exposed to JobServer.
 type Adapter interface {
 	Processor() Processor
+	Trigger(id int) bool
 	Start(ctx context.Context)
 	Wait()
 }
@@ -79,7 +86,10 @@ type processor struct {
 	taskMax   time.Duration
 	execute   ExecuteFn
 	pollDueFn PollDueFn
+	claimOne  ClaimOneFn
+	release   ReleaseClaimFn
 	runOneFn  func(ctx context.Context, d job.DueJob) // optional override
+	triggerCh chan int
 
 	wg   sync.WaitGroup
 	done chan struct{}
@@ -110,10 +120,23 @@ func newProcessor(
 		taskMax:   taskMax,
 		execute:   execute,
 		pollDueFn: pollDueFn,
+		triggerCh: make(chan int, 256),
 	}
 }
 
 func (b *processor) Processor() Processor { return b.processor }
+
+// Trigger requests immediate processing of one ID. Processors with a targeted
+// claim function CAS-claim that row; periodic scanning remains the recovery path.
+func (b *processor) Trigger(id int) bool {
+	select {
+	case b.triggerCh <- id:
+		return true
+	default:
+		log.Warnw("jobserver: trigger queue full; periodic polling will recover work", "processor", b.processor, "id", id)
+		return false
+	}
+}
 
 // String returns the string representation.
 func (p Processor) String() string { return string(p) }
@@ -149,7 +172,25 @@ func (b *processor) runLoop(ctx context.Context) {
 			return
 		case <-tick.C:
 			b.pollOnce(ctx)
+		case id := <-b.triggerCh:
+			log.Debugw("jobserver: processing triggered work", "processor", b.processor, "id", id)
+			b.triggerOne(ctx, id)
 		}
+	}
+}
+
+func (b *processor) triggerOne(ctx context.Context, id int) {
+	if b.claimOne == nil {
+		b.pollOnce(ctx)
+		return
+	}
+	d, claimed, err := b.claimOne(ctx, id)
+	if err != nil {
+		log.Errorw("jobserver: claim triggered work failed", "processor", b.processor, "id", id, "error", err)
+		return
+	}
+	if claimed {
+		b.runDue(ctx, d)
 	}
 }
 
@@ -161,12 +202,26 @@ func (b *processor) pollOnce(ctx context.Context) {
 		return
 	}
 	for _, d := range dues {
-		d := d
-		b.wg.Add(1)
-		go func() {
-			defer b.wg.Done()
-			b.runOne(ctx, d)
-		}()
+		b.runDue(ctx, d)
+	}
+}
+
+func (b *processor) runDue(ctx context.Context, d job.DueJob) {
+	b.wg.Add(1)
+	go func() {
+		defer b.wg.Done()
+		b.runOne(ctx, d)
+	}()
+}
+
+func (b *processor) releaseClaimForRetry(d job.DueJob) {
+	if b.release == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := b.release(ctx, d.ID); err != nil {
+		log.Errorw("jobserver: failed to release unstarted claim", "processor", b.processor, "id", d.ID, "error", err)
 	}
 }
 
@@ -185,9 +240,17 @@ func (b *processor) runOneDefault(ctx context.Context, d job.DueJob) {
 	defer qCancel()
 	select {
 	case b.sem <- struct{}{}:
+		if err := qCtx.Err(); err != nil {
+			<-b.sem
+			log.Warnw("jobserver: queue expired while acquiring slot",
+				"processor", b.processor, "id", d.ID, "error", err)
+			b.releaseClaimForRetry(d)
+			return
+		}
 	case <-qCtx.Done():
 		log.Warnw("jobserver: queue timeout waiting for slot",
 			"processor", b.processor, "id", d.ID, "error", qCtx.Err())
+		b.releaseClaimForRetry(d)
 		return
 	}
 	defer func() { <-b.sem }()
@@ -202,5 +265,6 @@ func (b *processor) runOneDefault(ctx context.Context, d job.DueJob) {
 	defer cancel()
 	if err := b.execute(runCtx, d.ID, d.TriggerType); err != nil {
 		log.Errorw("jobserver: execute failed", "processor", b.processor, "id", d.ID, "error", err)
+		b.releaseClaimForRetry(d)
 	}
 }

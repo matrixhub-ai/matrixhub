@@ -45,5 +45,15 @@ func NewSyncTaskProcessor(cfg config.SyncTaskConfig, svc syncpolicy.ISyncPolicyS
 		return svc.ClaimPendingSyncTasks(ctx, nowMs)
 	}
 	p := newProcessor(ProcessorSyncTask, cfg.PollInterval, cfg.MaxConcurrent, cfg.TaskMaxDuration, execute, pollDueFn)
+	if claimer, ok := svc.(interface {
+		ClaimPendingSyncTask(ctx context.Context, taskID int) (job.DueJob, bool, error)
+	}); ok {
+		p.claimOne = claimer.ClaimPendingSyncTask
+	}
+	if releaser, ok := svc.(interface {
+		ReleaseSyncTaskClaim(ctx context.Context, taskID int) error
+	}); ok {
+		p.release = releaser.ReleaseSyncTaskClaim
+	}
 	return &syncTaskProcessor{processor: p}
 }

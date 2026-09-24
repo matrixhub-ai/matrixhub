@@ -34,6 +34,7 @@ import (
 type ISyncJobService interface {
 	GetSyncJob(ctx context.Context, id int) (*SyncJob, error)
 	CreateSyncJob(ctx context.Context, param *SyncJob) error
+	CreateSyncJobs(ctx context.Context, params []*SyncJob) error
 	UpdateSyncJob(ctx context.Context, param *SyncJob) error
 	ExecuteSyncJob(ctx context.Context, param *SyncJob) error
 	ListSyncJobsByTaskID(ctx context.Context, taskID int, page, pageSize int, status SyncJobStatus, resourceType string) ([]*SyncJob, int64, error)
@@ -65,6 +66,7 @@ type SyncJobService struct {
 	datasetMeta   MetadataSyncer
 	logStore      LogStore
 	onJobDone     func(ctx context.Context, taskID int) error
+	onJobCreated  func(jobID int) bool
 }
 
 type LogStore interface {
@@ -91,12 +93,31 @@ func (sjs *SyncJobService) SetOnJobDone(fn func(ctx context.Context, taskID int)
 	sjs.onJobDone = fn
 }
 
+// SetOnJobCreated registers a best-effort wakeup called after a job is persisted.
+func (sjs *SyncJobService) SetOnJobCreated(fn func(jobID int) bool) {
+	sjs.onJobCreated = fn
+}
+
 func (sjs *SyncJobService) GetSyncJob(ctx context.Context, id int) (*SyncJob, error) {
 	return sjs.syncJobRepo.GetSyncJob(ctx, id)
 }
 
 func (sjs *SyncJobService) CreateSyncJob(ctx context.Context, syncJob *SyncJob) error {
-	return sjs.syncJobRepo.CreateSyncJob(ctx, syncJob)
+	return sjs.CreateSyncJobs(ctx, []*SyncJob{syncJob})
+}
+
+// CreateSyncJobs persists the full batch before triggering any job, so task
+// status aggregation cannot observe a partially-created set of jobs.
+func (sjs *SyncJobService) CreateSyncJobs(ctx context.Context, syncJobs []*SyncJob) error {
+	if err := sjs.syncJobRepo.CreateSyncJobs(ctx, syncJobs); err != nil {
+		return err
+	}
+	for _, syncJob := range syncJobs {
+		if sjs.onJobCreated != nil && !sjs.onJobCreated(syncJob.ID) {
+			log.Warnw("sync job trigger was not queued; periodic polling will recover it", "jobID", syncJob.ID)
+		}
+	}
+	return nil
 }
 
 func (sjs *SyncJobService) UpdateSyncJob(ctx context.Context, syncJob *SyncJob) error {
@@ -143,6 +164,28 @@ func (sjs *SyncJobService) ClaimPendingSyncJobs(ctx context.Context, _ int64) ([
 		})
 	}
 	return out, nil
+}
+
+// ClaimPendingSyncJob atomically claims a specific job requested by a creation trigger.
+func (sjs *SyncJobService) ClaimPendingSyncJob(ctx context.Context, jobID int) (job.DueJob, bool, error) {
+	syncJob, err := sjs.syncJobRepo.GetSyncJob(ctx, jobID)
+	if err != nil {
+		return job.DueJob{}, false, err
+	}
+	if syncJob.Status != SyncJobStatusPending {
+		return job.DueJob{}, false, nil
+	}
+	claimed, err := sjs.syncJobRepo.UpdateJobStatusCAS(ctx, syncJob.ID, SyncJobStatusPending, SyncJobStatusRunning)
+	if err != nil || !claimed {
+		return job.DueJob{}, claimed, err
+	}
+	return job.DueJob{ID: syncJob.ID, FireAtMs: time.Now().UnixMilli()}, true, nil
+}
+
+// ReleaseSyncJobClaim returns a job that did not start executing to pending.
+func (sjs *SyncJobService) ReleaseSyncJobClaim(ctx context.Context, jobID int) error {
+	_, err := sjs.syncJobRepo.UpdateJobStatusCAS(ctx, jobID, SyncJobStatusRunning, SyncJobStatusPending)
+	return err
 }
 
 // ExecuteSyncJobWithLog executes a sync job with logging and status reporting.

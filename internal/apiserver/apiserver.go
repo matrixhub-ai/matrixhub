@@ -470,6 +470,12 @@ func (server *APIServer) initHandlersServicesRepos() {
 	if server.config.JobServer != nil && server.config.JobServer.Enabled {
 		jc := *server.config.JobServer
 		server.jobServer = jobserver.New(&jc, syncPolicyService, syncJobService, logStore, canc)
+		if notifier, ok := syncPolicyService.(interface{ SetOnTaskCreated(func(int) bool) }); ok {
+			notifier.SetOnTaskCreated(server.jobServer.TriggerSyncTask)
+		}
+		if notifier, ok := syncJobService.(interface{ SetOnJobCreated(func(int) bool) }); ok {
+			notifier.SetOnJobCreated(server.jobServer.TriggerSyncJob)
+		}
 	}
 
 	server.services = &Services{

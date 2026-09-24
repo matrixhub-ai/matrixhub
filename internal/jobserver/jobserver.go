@@ -30,8 +30,10 @@ import (
 
 // JobServer owns one goroutine per processor (syncPolicy, ...). Processors do not share state with each other.
 type JobServer struct {
-	cfg        *config.JobServerConfig
-	processors []processor.Adapter
+	cfg             *config.JobServerConfig
+	processors      []processor.Adapter
+	syncTaskTrigger processor.Adapter
+	syncJobTrigger  processor.Adapter
 }
 
 // New builds a JobServer from config and domain services (cfg is copied; defaults applied without mutating the caller's struct).
@@ -67,15 +69,22 @@ func New(cfg *config.JobServerConfig, syncSvc syncpolicy.ISyncPolicyService, syn
 	if c.SyncJob.TaskMaxDuration == 0 {
 		c.SyncJob.TaskMaxDuration = 2 * time.Hour
 	}
+	syncPolicyProcessor := processor.NewSyncPolicyProcessor(c.SyncPolicy, syncSvc)
+	syncTaskProcessor := processor.NewSyncTaskProcessor(c.SyncTask, syncSvc)
+	syncJobProcessor := processor.NewSyncJobProcessor(c.SyncJob, syncJobSvc, canc)
 	return &JobServer{
-		cfg: &c,
-		processors: []processor.Adapter{
-			processor.NewSyncPolicyProcessor(c.SyncPolicy, syncSvc),
-			processor.NewSyncTaskProcessor(c.SyncTask, syncSvc),
-			processor.NewSyncJobProcessor(c.SyncJob, syncJobSvc, canc),
-		},
+		cfg:             &c,
+		processors:      []processor.Adapter{syncPolicyProcessor, syncTaskProcessor, syncJobProcessor},
+		syncTaskTrigger: syncTaskProcessor,
+		syncJobTrigger:  syncJobProcessor,
 	}
 }
+
+// TriggerSyncTask wakes the task processor after a pending task has been persisted.
+func (js *JobServer) TriggerSyncTask(id int) bool { return js.syncTaskTrigger.Trigger(id) }
+
+// TriggerSyncJob wakes the job processor after a pending job has been persisted.
+func (js *JobServer) TriggerSyncJob(id int) bool { return js.syncJobTrigger.Trigger(id) }
 
 // Run starts all processor loops and blocks until ctx is cancelled.
 func (js *JobServer) Run(ctx context.Context) {

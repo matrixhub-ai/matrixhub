@@ -52,6 +52,16 @@ func NewSyncJobProcessor(cfg config.SyncJobConfig, svc syncjob.ISyncJobService, 
 		return svc.ClaimPendingSyncJobs(ctx, nowMs)
 	}
 	p.processor = newProcessor(ProcessorSyncJob, cfg.PollInterval, cfg.MaxConcurrent, cfg.TaskMaxDuration, execute, pollDueFn)
+	if claimer, ok := svc.(interface {
+		ClaimPendingSyncJob(ctx context.Context, jobID int) (job.DueJob, bool, error)
+	}); ok {
+		p.claimOne = claimer.ClaimPendingSyncJob
+	}
+	if releaser, ok := svc.(interface {
+		ReleaseSyncJobClaim(ctx context.Context, jobID int) error
+	}); ok {
+		p.release = releaser.ReleaseSyncJobClaim
+	}
 	p.runOneFn = p.runOneWithCanceller
 	return p
 }
@@ -64,9 +74,17 @@ func (p *syncJobProcessor) runOneWithCanceller(ctx context.Context, d job.DueJob
 	defer qCancel()
 	select {
 	case p.sem <- struct{}{}:
+		if err := qCtx.Err(); err != nil {
+			<-p.sem
+			log.Warnw("jobserver: queue expired while acquiring slot",
+				"processor", p.Processor(), "id", d.ID, "error", err)
+			p.releaseClaimForRetry(d)
+			return
+		}
 	case <-qCtx.Done():
 		log.Warnw("jobserver: queue timeout waiting for slot",
 			"processor", p.Processor(), "id", d.ID, "error", qCtx.Err())
+		p.releaseClaimForRetry(d)
 		return
 	}
 	defer func() { <-p.sem }()
@@ -85,5 +103,6 @@ func (p *syncJobProcessor) runOneWithCanceller(ctx context.Context, d job.DueJob
 
 	if err := p.execute(runCtx, d.ID, d.TriggerType); err != nil {
 		log.Errorw("jobserver: execute failed", "processor", p.Processor(), "id", d.ID, "error", err)
+		p.releaseClaimForRetry(d)
 	}
 }
