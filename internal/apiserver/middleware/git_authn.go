@@ -19,15 +19,20 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 
-	"github.com/matrixhub-ai/hfd/pkg/authenticate"
-
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware/authenticator"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 )
 
-func GitHTTPAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) authenticate.TokenValidatorFunc {
+// Principal adapts a matrixhub identity to hfd's authenticate.Identity.
+type Principal struct{ auth.Identity }
+
+func (p Principal) Name() string  { return p.GetName() }
+func (p Principal) Email() string { return "" }
+
+func GitHTTPAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) func(ctx context.Context, token string) (user string, next, ok bool, err error) {
 	return func(ctx context.Context, token string) (user string, next, ok bool, err error) {
 		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
 		_, identity, next, ok, err := auth.AuthenticateToken(ctx, "", token)
@@ -42,7 +47,7 @@ func GitHTTPAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRe
 	}
 }
 
-func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) authenticate.BasicAuthValidatorFunc {
+func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) func(ctx context.Context, username, password string) (user string, next, ok bool, err error) {
 	return func(ctx context.Context, username, password string) (user string, next, ok bool, err error) {
 		auth := authenticator.NewGitAuthenticator(akRepo, userRepo, robotRepo)
 		_, identity, next, ok, err := auth.AuthenticateToken(ctx, username, password)
@@ -57,7 +62,7 @@ func GitBasicAuthAuthn(akRepo user.IAccessTokenRepo, userRepo user.IUserRepo, ro
 	}
 }
 
-func GitPublicKeyAuthn(sshKeyRepo user.ISSHKeyRepo, userRepo user.IUserRepo) authenticate.PublicKeyValidatorFunc {
+func GitPublicKeyAuthn(sshKeyRepo user.ISSHKeyRepo, userRepo user.IUserRepo) func(ctx context.Context, username string, keyType string, marshaledKey []byte) (user string, next, ok bool, err error) {
 	return func(ctx context.Context, username string, keyType string, marshaledKey []byte) (user string, next, ok bool, err error) {
 		auth := authenticator.NewSSHKeyAuthenticator(sshKeyRepo, userRepo)
 		sha256sum := sha256.Sum256(marshaledKey)

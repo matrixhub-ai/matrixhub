@@ -37,6 +37,62 @@ MatrixHub Helm chart does not support SQLite.
 SQLite's built-in `NOCASE` collation only folds ASCII characters; names that
 differ only by non-ASCII case may behave differently from MySQL.
 
+### Protocol Storage and Signing Keys
+
+LFS content is stored in xet CAS under `dataDir/xet`. At startup MatrixHub
+imports nonempty objects from the pre-xet `dataDir/lfs` store into xet before
+serving requests. Originals are retained, and already imported objects are
+skipped on later starts. A corrupt or unreadable legacy object fails startup;
+completed imports are retained for the next attempt. Empty legacy objects are
+left untouched and skipped because the current xet storage cannot resolve
+their SHA-256 OID.
+
+`apiServer.tokenSigningSecret` signs temporary LFS and CAS tokens. If it is
+unset, MatrixHub generates a random key at each start, so tokens do not survive
+a restart. Instances or replicas sharing a public endpoint must configure the
+same value.
+
+`apiServer.gcGrace` controls the Git and LFS cleanup grace period: unset or `0` uses
+one hour, a negative duration disables it. Run cleanup only while uploads,
+pushes and mirror syncs are quiescent. `POST /api/v1alpha1/cleanup/execute`
+only acts on the opt-ins `cleanOrphanedRepos` and `cleanOrphanedLfs` (`{}` is
+a no-op); a preview is the same request with `dryRun: true`. The request may
+override the grace period (`grace`; `"0s"` disables it) and bound the sweep
+with `maxDeletes` and `budget`, which leave the prune unbounded and are
+ignored by dry runs; repeat a bounded request until `gc.sweepDone` is `true`.
+`cleanOrphanedLfs` runs Git GC, unlinks objects no surviving LFS pointer
+references, then sweeps already-unlinked data; one `gc` object reports all
+three steps (earlier releases split it into `prune` and `sweep`, before that
+`lfsPrune` and `lfsSweep`). `gc.deletedGitObjects` and `gc.deletedGitBytes`
+report deleted Git objects and their uncompressed payload size;
+`gc.gitReclaimedBytes` reports the actual shrink of Git object storage and
+`gc.xetReclaimedBytes` the swept shard and xorb bytes. A dry run previews
+deletions without repacking, so its Git reclaimed bytes are zero, and its sweep
+only estimates data that earlier runs already unlinked, not the objects it
+lists in `gc.unlinked`. `gc.sweepDone` is `true` when the sweep finished,
+`false` when a bounded sweep left data behind (see `gc.remainingShards` and
+`gc.remainingXorbs`), and `null` when there is no sweep result because the
+prune or the sweep failed.
+
+`spaceReclaimedBytes` sums removed repository sizes, `gc.gitReclaimedBytes`
+and `gc.xetReclaimedBytes`; a dry run's total counts orphaned repository
+sizes and already-unlinked Xet data only. `gc.failed` maps repository paths to
+Git GC errors; those repositories keep their LFS pointers live. A partial
+failure preserves the completed Git GC statistics but skips the sweep. Git GC
+previews can fail for repositories whose retention cannot be predicted
+read-only, such as repositories with reflogs or alternates.
+
+`GET /api/v1alpha1/cleanup/stats` reports Git and Xet storage by kind
+(`git.objects`, `git.other`, `xet.xorbs`, `xet.shards`, `xet.fileIndex`,
+`xet.chunkIndex`, `xet.sha256Index`, each with `count` and `bytes`) and their
+sum in `totalSizeBytes`; it carries no orphaned-space estimate, use a dry run
+for that. The retained `dataDir/lfs` originals are not counted, and xet-only
+uploads are unavailable after a rollback.
+
+`GET /api/models?author=<project>` and `GET /api/datasets?author=<project>`
+require pull permission on that project (public projects are listable
+anonymously); requests without `author`, and `spaces`, are denied.
+
 ### 1. Start MySQL
 
 ```bash
@@ -200,9 +256,6 @@ Run all unit tests from the repository root:
 make test.unit
 ```
 
-`make test.unit` temporarily excludes `./internal/apiserver/handler/hf`; 
-add that package back after the HF handler tests are fixed.
-
 Run unit tests with coverage:
 
 ```bash
@@ -223,10 +276,11 @@ unit-test package roots:
 UNIT_TEST_PKGS="./cmd/... ./internal/... ./pkg/..." make test.unit
 ```
 
-Override `UNIT_TEST_EXCLUDE_PKGS` to change the temporary exclusions:
+No packages are excluded by default. Set `UNIT_TEST_EXCLUDE_PKGS` for a focused
+run that intentionally omits a package:
 
 ```bash
-UNIT_TEST_EXCLUDE_PKGS= make test.unit
+UNIT_TEST_EXCLUDE_PKGS="./internal/repo" make test.unit
 ```
 
 When interfaces change, regenerate mocks before running or committing tests:
@@ -319,11 +373,28 @@ Protocol labels and case-ID prefixes are:
 | Hugging Face CLI | `hf-cli` | `HF` |
 | Git over SSH | `git-ssh` | `GS` |
 | HF/Git interoperability | `protocol-interop` | `PI` |
+| HF CLI and Git Xet transfers | `xet` (Git upload: `git-xet`) | `GP003` |
 
 Each case receives an isolated user, private project, access token or SSH key,
 working directory, and HF cache. The `lfs` and `slow` labels identify the
 larger Git LFS flow. KIND runs expose HTTP on `30001` and SSH on `30022` and
 configure `apiServer.hostURL` automatically.
+
+The xet cases require Git Xet 0.2.1 in `PATH` in addition to the pinned
+`hf-xet` Python dependency. Install the binary from the
+[Git Xet release](https://github.com/huggingface/xet-core/releases/tag/git-xet-v0.2.1)
+and verify it with `git xet --version`; the test registers it with
+`git xet install --local` inside its disposable repository.
+
+```bash
+MATRIXHUB_BASE_URL=http://localhost:3001 E2E_LABELS=xet make test.e2e
+```
+
+These cases require an HTTP E2E endpoint. A local observation proxy asserts
+successful CAS xorb/shard uploads and reconstruction/xorb downloads, and rejects
+LFS/basic content transfers so fallback cannot pass the test. Each download uses
+a fresh HF/xet cache and verifies file size and SHA-256 against the uploaded
+payload. Existing LFS cases keep xet disabled.
 
 In CI the label is chosen automatically: PRs that touch `test/**` run the full
 suite, others run `smoke` (see `.github/workflows/auto-pr-ci.yaml`).

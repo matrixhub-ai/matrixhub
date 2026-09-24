@@ -391,6 +391,9 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 		ResourceName:       name,
 		ResourceType:       "model",
 	}
+	if bc := registry.AsBasic(reg.GetCredential()); bc != nil {
+		gr.Credential = &git.BasicCredential{Username: bc.Username, Password: bc.Password}
+	}
 	if err = s.gitRepo.PullFromRemote(ctx, gr); err != nil {
 		return err
 	}

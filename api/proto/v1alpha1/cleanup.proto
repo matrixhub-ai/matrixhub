@@ -5,17 +5,13 @@ package matrixhub.v1alpha1;
 option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1";
 
 import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/wrappers.proto";
+import "openapiv2/annotations.proto";
+import "validate/validate.proto";
 
 service Cleanup {
-  // Preview orphaned data (dry-run)
-  rpc PreviewCleanup(PreviewCleanupRequest) returns (CleanupPreview) {
-    option (google.api.http) = {
-      post: "/api/v1alpha1/cleanup/preview"
-      body: "*"
-    };
-  }
-
-  // Execute cleanup
+  // Execute cleanup; dry_run previews without deleting
   rpc ExecuteCleanup(ExecuteCleanupRequest) returns (CleanupResult) {
     option (google.api.http) = {
       post: "/api/v1alpha1/cleanup/execute"
@@ -31,48 +27,73 @@ service Cleanup {
   }
 }
 
-message PreviewCleanupRequest {
-  bool include_orphaned_repos = 1;
-  bool include_orphaned_lfs = 2;
-}
-
-message CleanupPreview {
-  repeated OrphanedRepo orphaned_repos = 1;
-  repeated OrphanedLFS orphaned_lfs_objects = 2;
-  int64 total_reclaimable_bytes = 3;
-}
-
-message OrphanedRepo {
-  string path = 1;
-  string type = 2;           // "model" or "dataset"
-  string project_name = 3;
-  string resource_name = 4;
-  int64 size_bytes = 5;
-}
-
-message OrphanedLFS {
-  string oid = 1;
-  int64 size_bytes = 2;
-}
-
 message ExecuteCleanupRequest {
   bool clean_orphaned_repos = 1;
   bool clean_orphaned_lfs = 2;
   bool dry_run = 3;  // true = preview only, no actual deletion
+  google.protobuf.Duration grace = 4 [(validate.rules).duration.gte = {}];  // unset = configured gcGrace; "0s" disables the grace window
+  int32 max_deletes = 5 [(validate.rules).int32.gte = 0];  // max shard+xorb deletions per sweep, 0 = unlimited; ignored by dry runs
+  google.protobuf.Duration budget = 6 [(validate.rules).duration.gte = {}];  // wall-clock cap on the sweep, unset/0 = unlimited; ignored by dry runs
 }
 
 message CleanupResult {
-  int32 repos_deleted = 1;
-  int32 lfs_objects_deleted = 2;
+  reserved 1, 2, 6, 7;
+  reserved "lfs_prune", "lfs_sweep", "prune", "sweep";
   int64 space_reclaimed_bytes = 3;
   repeated string errors = 4;
+  repeated string orphaned_repos = 5;
+  GCResult gc = 8;
+}
+
+// One run of Git GC, LFS prune and the sweep of already-unlinked data; a dry run's sweep estimates that data, not this run's still-linked candidates.
+message GCResult {
+  bool dry_run = 1;
+  int32 repositories = 2;  // repositories scanned, GC failures included
+  int32 deleted_git_objects = 3;
+  int64 deleted_git_bytes = 4;  // uncompressed payload of the deleted Git objects
+  int64 git_reclaimed_bytes = 5;  // shrink of Git object storage; 0 in a dry run, which repacks nothing
+  map<string, string> failed = 6;  // repository path -> Git GC error; its LFS pointers stay live
+  int32 live_objects = 7;
+  repeated string unlinked = 8;  // sorted sha256 hex; dry run: what would be unlinked
+  int32 prune_skipped_in_grace = 9;
+  int32 swept_shards = 10;
+  int32 swept_xorbs = 11;
+  int64 xet_reclaimed_bytes = 12;  // shard and xorb bytes the sweep reclaimed
+  int32 sweep_skipped_in_grace = 13;
+  repeated string dangling = 14;  // OIDs whose data is missing; reported, never deleted
+  repeated string unreadable_shards = 15;  // treated live; no xorb deleted that pass
+  // null: no sweep result because the prune or the sweep failed; false: a bounded sweep left data; true: finished
+  google.protobuf.BoolValue sweep_done = 16 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {extensions: {key: "x-nullable", value: {bool_value: true}}}];
+  int32 remaining_shards = 17;
+  int32 remaining_xorbs = 18;
 }
 
 message GetStorageStatsRequest {}
 
+// Storage by kind; not an atomic snapshot.
 message StorageStats {
-  int64 total_size_bytes = 1;
-  int64 repositories_size_bytes = 2;
-  int64 lfs_size_bytes = 3;
-  int64 orphaned_size_bytes = 4;
+  reserved 2, 3, 4;
+  reserved "repositories_size_bytes", "lfs_size_bytes", "orphaned_size_bytes";
+  int64 total_size_bytes = 1;  // every Git and xet category summed
+  GitStorageUsage git = 5;
+  XetStorageUsage xet = 6;
+}
+
+message StorageObjectUsage {
+  int64 count = 1;
+  int64 bytes = 2;
+}
+
+// Every repository under the repositories root; unreachable objects included, LFS content excluded.
+message GitStorageUsage {
+  StorageObjectUsage objects = 1;  // loose and packed Git objects
+  StorageObjectUsage other = 2;  // everything else in the repository, such as refs and config
+}
+
+message XetStorageUsage {
+  StorageObjectUsage xorbs = 1;
+  StorageObjectUsage shards = 2;
+  StorageObjectUsage file_index = 3;
+  StorageObjectUsage chunk_index = 4;
+  StorageObjectUsage sha256_index = 5;
 }

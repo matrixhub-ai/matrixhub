@@ -16,25 +16,24 @@ package cleanup
 
 import "github.com/matrixhub-ai/matrixhub/internal/domain/git"
 
-// CleanupPreview contains preview results for orphaned data.
-type CleanupPreview struct {
-	OrphanedRepos      []*git.OrphanedRepo
-	OrphanedLFSObjects []*git.OrphanedLFS
-	TotalReclaimable   int64
+// CleanupOptions selects what ExecuteCleanup acts on; the embedded PruneOptions also carry DryRun for the repository step.
+type CleanupOptions struct {
+	CleanOrphanedRepos bool
+	CleanOrphanedLFS   bool
+	git.PruneOptions
 }
 
 // CleanupResult contains results from cleanup execution.
 type CleanupResult struct {
-	ReposDeleted      int
-	LFSObjectsDeleted int
-	SpaceReclaimed    int64
-	Errors            []string
+	OrphanedRepos  []string // repository paths removed, or that a dry run would remove
+	SpaceReclaimed int64    // orphaned repository bytes plus the GC's Git shrink and Xet reclaimed (dry run: sweepable) bytes
+	GC             *git.GCResult
+	Errors         []string
 }
 
 // StorageStats contains storage statistics.
 type StorageStats struct {
-	TotalSizeBytes        int64
-	RepositoriesSizeBytes int64
-	LFSSizeBytes          int64
-	OrphanedSizeBytes     int64
+	TotalSizeBytes int64 // every Git and xet category summed
+	Git            git.GitUsage
+	Xet            git.XetUsage
 }

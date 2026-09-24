@@ -17,89 +17,96 @@ package middleware
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/matrixhub-ai/hfd/pkg/authenticate"
-
+	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
-func TestGitAuthRejectsInvalidCredentials(t *testing.T) {
+func TestGitAuthReturnsEncodedIdentity(t *testing.T) {
 	expired := time.Now().Add(-time.Hour)
 	for _, test := range []struct {
-		name   string
-		token  string
-		access *user.AccessToken
-		robot  *robot.Robot
-		err    error
-		status int
+		name     string
+		token    string
+		access   *user.AccessToken
+		robot    *robot.Robot
+		err      error
+		next     bool
+		identity auth.Identity
 	}{
-		{"unrecognized", "forged", nil, nil, nil, http.StatusOK},
-		{"deleted", utils.TokenPrefix + "deleted", &user.AccessToken{}, nil, nil, http.StatusUnauthorized},
-		{"expired", utils.TokenPrefix + "expired", &user.AccessToken{Enabled: true, ExpireAt: &expired}, nil, nil, http.StatusUnauthorized},
-		{"missing robot", utils.RobotTokenPrefix + "missing", nil, nil, nil, http.StatusUnauthorized},
-		{"disabled robot", utils.RobotTokenPrefix + "disabled", nil, &robot.Robot{}, nil, http.StatusUnauthorized},
-		{"storage failure", utils.TokenPrefix + "unavailable", nil, nil, errors.New("database unavailable"), http.StatusInternalServerError},
-		{"robot storage failure", utils.RobotTokenPrefix + "unavailable", nil, nil, errors.New("database unavailable"), http.StatusInternalServerError},
+		{"unrecognized", "forged", nil, nil, nil, true, nil},
+		{"deleted", utils.TokenPrefix + "deleted", &user.AccessToken{}, nil, nil, false, nil},
+		{"expired", utils.TokenPrefix + "expired", &user.AccessToken{Enabled: true, ExpireAt: &expired}, nil, nil, false, nil},
+		{"missing robot", utils.RobotTokenPrefix + "missing", nil, nil, nil, false, nil},
+		{"disabled robot", utils.RobotTokenPrefix + "disabled", nil, &robot.Robot{}, nil, false, nil},
+		{"storage failure", utils.TokenPrefix + "unavailable", nil, nil, errors.New("database unavailable"), false, nil},
+		{"robot storage failure", utils.RobotTokenPrefix + "unavailable", nil, nil, errors.New("database unavailable"), false, nil},
+		{"valid user", utils.TokenPrefix + "valid", &user.AccessToken{Enabled: true, UserId: 42}, nil, nil, false, user.NewUserIdentity(42, "alice")},
+		{"valid robot", utils.RobotTokenPrefix + "valid", nil, &robot.Robot{ID: 7, Name: "bot", Enabled: true}, nil, false, robot.NewRobotIdentity(7, "bot")},
 	} {
 		for _, scheme := range []string{"basic", "bearer"} {
 			t.Run(test.name+"/"+scheme, func(t *testing.T) {
 				accessRepo := &gitAuthAccessRepo{token: test.access, err: test.err}
 				robotRepo := &gitAuthRobotRepo{robot: test.robot, err: test.err}
-				reached := false
-				next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					reached = true
-					if test.status != http.StatusOK {
-						t.Error("invalid credential reached the next handler")
-					}
-					info, ok := authenticate.GetUserInfo(r.Context())
-					if !ok || info.User != authenticate.Anonymous {
-						t.Errorf("user info = %v, present = %v, want anonymous", info, ok)
-					}
-					w.WriteHeader(http.StatusOK)
-				})
-				handler := authenticate.BasicAuthHandler(GitBasicAuthAuthn(accessRepo, nil, robotRepo),
-					authenticate.TokenValidatorHandler(GitHTTPAuthn(accessRepo, nil, robotRepo),
-						authenticate.AnonymousAuthenticateHandler(next)))
-				request := httptest.NewRequest(http.MethodGet, "/api/whoami-v2", nil)
+				userRepo := &gitAuthUserRepo{user: &user.User{Username: "alice"}}
+				ctx := context.Background()
+				var encoded string
+				var next, ok bool
+				var err error
 				if scheme == "basic" {
-					request.SetBasicAuth("alice", test.token)
+					encoded, next, ok, err = GitBasicAuthAuthn(accessRepo, userRepo, robotRepo)(ctx, "alice", test.token)
 				} else {
-					request.Header.Set("Authorization", "Bearer "+test.token)
+					encoded, next, ok, err = GitHTTPAuthn(accessRepo, userRepo, robotRepo)(ctx, test.token)
 				}
-				response := httptest.NewRecorder()
-				handler.ServeHTTP(response, request)
-				if test.status == http.StatusOK && !reached {
-					t.Error("unrecognized credential did not reach the next handler")
-				}
-				if response.Code != test.status {
-					t.Errorf("status = %d, want %d", response.Code, test.status)
-				}
+				assertGitAuthResult(t, encoded, next, ok, err, test.next, test.identity, test.err)
 			})
 		}
 	}
 }
 
-func TestGitPublicKeyAuthnRejectsUnknownKey(t *testing.T) {
+func assertGitAuthResult(t *testing.T, encoded string, next, ok bool, err error, wantNext bool, wantIdentity auth.Identity, wantErr error) {
+	t.Helper()
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("err = %v, want %v", err, wantErr)
+	}
+	if next != wantNext || ok != (wantIdentity != nil) {
+		t.Fatalf("(next, ok) = (%t, %t), want (%t, %t)", next, ok, wantNext, wantIdentity != nil)
+	}
+	if wantIdentity == nil {
+		if encoded != "" {
+			t.Fatalf("user = %q, want empty", encoded)
+		}
+		return
+	}
+	got, err := authcodec.Unmarshal(encoded)
+	if err != nil {
+		t.Fatalf("user = %q: %v", encoded, err)
+	}
+	if got.GetID() != wantIdentity.GetID() || got.GetName() != wantIdentity.GetName() || got.TypeName() != wantIdentity.TypeName() {
+		t.Errorf("identity = %+v, want %+v", got, wantIdentity)
+	}
+}
+
+func TestGitPublicKeyAuthnReturnsEncodedIdentity(t *testing.T) {
 	for _, test := range []struct {
-		name string
-		key  *user.SSHKey
-		err  error
+		name     string
+		key      *user.SSHKey
+		err      error
+		identity auth.Identity
 	}{
-		{"unknown", &user.SSHKey{}, nil},
-		{"storage failure", nil, errors.New("db")},
+		{"unknown", &user.SSHKey{}, nil, nil},
+		{"storage failure", nil, errors.New("db"), nil},
+		{"valid", &user.SSHKey{Id: 1, UserId: 42}, nil, user.NewUserIdentity(42, "alice")},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			repo := &gitAuthSSHKeyRepo{key: test.key, err: test.err}
-			identity, next, ok, err := GitPublicKeyAuthn(repo, nil)(context.Background(), "alice", "ssh-ed25519", []byte("key"))
-			if identity != "" || next || ok || (err != nil) != (test.err != nil) {
-				t.Errorf("got (%q, %v, %v, %v), want empty identity, no next, rejected, error=%v", identity, next, ok, err, test.err)
-			}
+			userRepo := &gitAuthUserRepo{user: &user.User{Username: "alice"}}
+			encoded, next, ok, err := GitPublicKeyAuthn(repo, userRepo)(context.Background(), "alice", "ssh-ed25519", []byte("key"))
+			assertGitAuthResult(t, encoded, next, ok, err, false, test.identity, test.err)
 		})
 	}
 }
@@ -108,6 +115,18 @@ type gitAuthSSHKeyRepo struct {
 	user.ISSHKeyRepo
 	key *user.SSHKey
 	err error
+}
+
+type gitAuthUserRepo struct {
+	user.IUserRepo
+	user *user.User
+}
+
+func (repo *gitAuthUserRepo) GetUser(context.Context, int) (*user.User, error) {
+	if repo == nil {
+		return nil, nil
+	}
+	return repo.user, nil
 }
 
 func (repo *gitAuthSSHKeyRepo) GetByFingerprint(context.Context, string) (*user.SSHKey, error) {

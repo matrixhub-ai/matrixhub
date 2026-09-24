@@ -35,494 +35,6 @@ var (
 	_ = sort.Sort
 )
 
-// Validate checks the field values on PreviewCleanupRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *PreviewCleanupRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on PreviewCleanupRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// PreviewCleanupRequestMultiError, or nil if none found.
-func (m *PreviewCleanupRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *PreviewCleanupRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for IncludeOrphanedRepos
-
-	// no validation rules for IncludeOrphanedLfs
-
-	if len(errors) > 0 {
-		return PreviewCleanupRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// PreviewCleanupRequestMultiError is an error wrapping multiple validation
-// errors returned by PreviewCleanupRequest.ValidateAll() if the designated
-// constraints aren't met.
-type PreviewCleanupRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m PreviewCleanupRequestMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m PreviewCleanupRequestMultiError) AllErrors() []error { return m }
-
-// PreviewCleanupRequestValidationError is the validation error returned by
-// PreviewCleanupRequest.Validate if the designated constraints aren't met.
-type PreviewCleanupRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e PreviewCleanupRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e PreviewCleanupRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e PreviewCleanupRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e PreviewCleanupRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e PreviewCleanupRequestValidationError) ErrorName() string {
-	return "PreviewCleanupRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e PreviewCleanupRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sPreviewCleanupRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = PreviewCleanupRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = PreviewCleanupRequestValidationError{}
-
-// Validate checks the field values on CleanupPreview with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *CleanupPreview) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on CleanupPreview with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in CleanupPreviewMultiError,
-// or nil if none found.
-func (m *CleanupPreview) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *CleanupPreview) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	for idx, item := range m.GetOrphanedRepos() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, CleanupPreviewValidationError{
-						field:  fmt.Sprintf("OrphanedRepos[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, CleanupPreviewValidationError{
-						field:  fmt.Sprintf("OrphanedRepos[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return CleanupPreviewValidationError{
-					field:  fmt.Sprintf("OrphanedRepos[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	for idx, item := range m.GetOrphanedLfsObjects() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, CleanupPreviewValidationError{
-						field:  fmt.Sprintf("OrphanedLfsObjects[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, CleanupPreviewValidationError{
-						field:  fmt.Sprintf("OrphanedLfsObjects[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return CleanupPreviewValidationError{
-					field:  fmt.Sprintf("OrphanedLfsObjects[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	// no validation rules for TotalReclaimableBytes
-
-	if len(errors) > 0 {
-		return CleanupPreviewMultiError(errors)
-	}
-
-	return nil
-}
-
-// CleanupPreviewMultiError is an error wrapping multiple validation errors
-// returned by CleanupPreview.ValidateAll() if the designated constraints
-// aren't met.
-type CleanupPreviewMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m CleanupPreviewMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m CleanupPreviewMultiError) AllErrors() []error { return m }
-
-// CleanupPreviewValidationError is the validation error returned by
-// CleanupPreview.Validate if the designated constraints aren't met.
-type CleanupPreviewValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e CleanupPreviewValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e CleanupPreviewValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e CleanupPreviewValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e CleanupPreviewValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e CleanupPreviewValidationError) ErrorName() string { return "CleanupPreviewValidationError" }
-
-// Error satisfies the builtin error interface
-func (e CleanupPreviewValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sCleanupPreview.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = CleanupPreviewValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = CleanupPreviewValidationError{}
-
-// Validate checks the field values on OrphanedRepo with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *OrphanedRepo) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on OrphanedRepo with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in OrphanedRepoMultiError, or
-// nil if none found.
-func (m *OrphanedRepo) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *OrphanedRepo) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Path
-
-	// no validation rules for Type
-
-	// no validation rules for ProjectName
-
-	// no validation rules for ResourceName
-
-	// no validation rules for SizeBytes
-
-	if len(errors) > 0 {
-		return OrphanedRepoMultiError(errors)
-	}
-
-	return nil
-}
-
-// OrphanedRepoMultiError is an error wrapping multiple validation errors
-// returned by OrphanedRepo.ValidateAll() if the designated constraints aren't met.
-type OrphanedRepoMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m OrphanedRepoMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m OrphanedRepoMultiError) AllErrors() []error { return m }
-
-// OrphanedRepoValidationError is the validation error returned by
-// OrphanedRepo.Validate if the designated constraints aren't met.
-type OrphanedRepoValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e OrphanedRepoValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e OrphanedRepoValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e OrphanedRepoValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e OrphanedRepoValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e OrphanedRepoValidationError) ErrorName() string { return "OrphanedRepoValidationError" }
-
-// Error satisfies the builtin error interface
-func (e OrphanedRepoValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sOrphanedRepo.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = OrphanedRepoValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = OrphanedRepoValidationError{}
-
-// Validate checks the field values on OrphanedLFS with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *OrphanedLFS) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on OrphanedLFS with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in OrphanedLFSMultiError, or
-// nil if none found.
-func (m *OrphanedLFS) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *OrphanedLFS) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Oid
-
-	// no validation rules for SizeBytes
-
-	if len(errors) > 0 {
-		return OrphanedLFSMultiError(errors)
-	}
-
-	return nil
-}
-
-// OrphanedLFSMultiError is an error wrapping multiple validation errors
-// returned by OrphanedLFS.ValidateAll() if the designated constraints aren't met.
-type OrphanedLFSMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m OrphanedLFSMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m OrphanedLFSMultiError) AllErrors() []error { return m }
-
-// OrphanedLFSValidationError is the validation error returned by
-// OrphanedLFS.Validate if the designated constraints aren't met.
-type OrphanedLFSValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e OrphanedLFSValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e OrphanedLFSValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e OrphanedLFSValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e OrphanedLFSValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e OrphanedLFSValidationError) ErrorName() string { return "OrphanedLFSValidationError" }
-
-// Error satisfies the builtin error interface
-func (e OrphanedLFSValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sOrphanedLFS.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = OrphanedLFSValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = OrphanedLFSValidationError{}
-
 // Validate checks the field values on ExecuteCleanupRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -550,6 +62,77 @@ func (m *ExecuteCleanupRequest) validate(all bool) error {
 	// no validation rules for CleanOrphanedLfs
 
 	// no validation rules for DryRun
+
+	if d := m.GetGrace(); d != nil {
+		dur, err := d.AsDuration(), d.CheckValid()
+		if err != nil {
+			err = ExecuteCleanupRequestValidationError{
+				field:  "Grace",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+
+			gte := time.Duration(0*time.Second + 0*time.Nanosecond)
+
+			if dur < gte {
+				err := ExecuteCleanupRequestValidationError{
+					field:  "Grace",
+					reason: "value must be greater than or equal to 0s",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+		}
+	}
+
+	if m.GetMaxDeletes() < 0 {
+		err := ExecuteCleanupRequestValidationError{
+			field:  "MaxDeletes",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if d := m.GetBudget(); d != nil {
+		dur, err := d.AsDuration(), d.CheckValid()
+		if err != nil {
+			err = ExecuteCleanupRequestValidationError{
+				field:  "Budget",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+
+			gte := time.Duration(0*time.Second + 0*time.Nanosecond)
+
+			if dur < gte {
+				err := ExecuteCleanupRequestValidationError{
+					field:  "Budget",
+					reason: "value must be greater than or equal to 0s",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+		}
+	}
 
 	if len(errors) > 0 {
 		return ExecuteCleanupRequestMultiError(errors)
@@ -653,11 +236,36 @@ func (m *CleanupResult) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for ReposDeleted
-
-	// no validation rules for LfsObjectsDeleted
-
 	// no validation rules for SpaceReclaimedBytes
+
+	if all {
+		switch v := interface{}(m.GetGc()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CleanupResultValidationError{
+					field:  "Gc",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CleanupResultValidationError{
+					field:  "Gc",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGc()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CleanupResultValidationError{
+				field:  "Gc",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return CleanupResultMultiError(errors)
@@ -736,6 +344,162 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CleanupResultValidationError{}
+
+// Validate checks the field values on GCResult with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *GCResult) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GCResult with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in GCResultMultiError, or nil
+// if none found.
+func (m *GCResult) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GCResult) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for DryRun
+
+	// no validation rules for Repositories
+
+	// no validation rules for DeletedGitObjects
+
+	// no validation rules for DeletedGitBytes
+
+	// no validation rules for GitReclaimedBytes
+
+	// no validation rules for Failed
+
+	// no validation rules for LiveObjects
+
+	// no validation rules for PruneSkippedInGrace
+
+	// no validation rules for SweptShards
+
+	// no validation rules for SweptXorbs
+
+	// no validation rules for XetReclaimedBytes
+
+	// no validation rules for SweepSkippedInGrace
+
+	if all {
+		switch v := interface{}(m.GetSweepDone()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GCResultValidationError{
+					field:  "SweepDone",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GCResultValidationError{
+					field:  "SweepDone",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSweepDone()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GCResultValidationError{
+				field:  "SweepDone",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for RemainingShards
+
+	// no validation rules for RemainingXorbs
+
+	if len(errors) > 0 {
+		return GCResultMultiError(errors)
+	}
+
+	return nil
+}
+
+// GCResultMultiError is an error wrapping multiple validation errors returned
+// by GCResult.ValidateAll() if the designated constraints aren't met.
+type GCResultMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GCResultMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GCResultMultiError) AllErrors() []error { return m }
+
+// GCResultValidationError is the validation error returned by
+// GCResult.Validate if the designated constraints aren't met.
+type GCResultValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GCResultValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GCResultValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GCResultValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GCResultValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GCResultValidationError) ErrorName() string { return "GCResultValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GCResultValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGCResult.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GCResultValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GCResultValidationError{}
 
 // Validate checks the field values on GetStorageStatsRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -863,11 +627,63 @@ func (m *StorageStats) validate(all bool) error {
 
 	// no validation rules for TotalSizeBytes
 
-	// no validation rules for RepositoriesSizeBytes
+	if all {
+		switch v := interface{}(m.GetGit()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StorageStatsValidationError{
+					field:  "Git",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StorageStatsValidationError{
+					field:  "Git",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGit()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StorageStatsValidationError{
+				field:  "Git",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
-	// no validation rules for LfsSizeBytes
-
-	// no validation rules for OrphanedSizeBytes
+	if all {
+		switch v := interface{}(m.GetXet()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StorageStatsValidationError{
+					field:  "Xet",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StorageStatsValidationError{
+					field:  "Xet",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetXet()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StorageStatsValidationError{
+				field:  "Xet",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return StorageStatsMultiError(errors)
@@ -945,3 +761,512 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StorageStatsValidationError{}
+
+// Validate checks the field values on StorageObjectUsage with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *StorageObjectUsage) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StorageObjectUsage with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// StorageObjectUsageMultiError, or nil if none found.
+func (m *StorageObjectUsage) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StorageObjectUsage) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Count
+
+	// no validation rules for Bytes
+
+	if len(errors) > 0 {
+		return StorageObjectUsageMultiError(errors)
+	}
+
+	return nil
+}
+
+// StorageObjectUsageMultiError is an error wrapping multiple validation errors
+// returned by StorageObjectUsage.ValidateAll() if the designated constraints
+// aren't met.
+type StorageObjectUsageMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StorageObjectUsageMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StorageObjectUsageMultiError) AllErrors() []error { return m }
+
+// StorageObjectUsageValidationError is the validation error returned by
+// StorageObjectUsage.Validate if the designated constraints aren't met.
+type StorageObjectUsageValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StorageObjectUsageValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StorageObjectUsageValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StorageObjectUsageValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StorageObjectUsageValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StorageObjectUsageValidationError) ErrorName() string {
+	return "StorageObjectUsageValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e StorageObjectUsageValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStorageObjectUsage.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StorageObjectUsageValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StorageObjectUsageValidationError{}
+
+// Validate checks the field values on GitStorageUsage with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GitStorageUsage) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GitStorageUsage with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GitStorageUsageMultiError, or nil if none found.
+func (m *GitStorageUsage) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GitStorageUsage) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetObjects()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GitStorageUsageValidationError{
+					field:  "Objects",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GitStorageUsageValidationError{
+					field:  "Objects",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetObjects()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GitStorageUsageValidationError{
+				field:  "Objects",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetOther()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GitStorageUsageValidationError{
+					field:  "Other",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GitStorageUsageValidationError{
+					field:  "Other",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOther()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GitStorageUsageValidationError{
+				field:  "Other",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GitStorageUsageMultiError(errors)
+	}
+
+	return nil
+}
+
+// GitStorageUsageMultiError is an error wrapping multiple validation errors
+// returned by GitStorageUsage.ValidateAll() if the designated constraints
+// aren't met.
+type GitStorageUsageMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GitStorageUsageMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GitStorageUsageMultiError) AllErrors() []error { return m }
+
+// GitStorageUsageValidationError is the validation error returned by
+// GitStorageUsage.Validate if the designated constraints aren't met.
+type GitStorageUsageValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GitStorageUsageValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GitStorageUsageValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GitStorageUsageValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GitStorageUsageValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GitStorageUsageValidationError) ErrorName() string { return "GitStorageUsageValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GitStorageUsageValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGitStorageUsage.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GitStorageUsageValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GitStorageUsageValidationError{}
+
+// Validate checks the field values on XetStorageUsage with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *XetStorageUsage) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on XetStorageUsage with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// XetStorageUsageMultiError, or nil if none found.
+func (m *XetStorageUsage) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *XetStorageUsage) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetXorbs()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "Xorbs",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "Xorbs",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetXorbs()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return XetStorageUsageValidationError{
+				field:  "Xorbs",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetShards()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "Shards",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "Shards",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetShards()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return XetStorageUsageValidationError{
+				field:  "Shards",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetFileIndex()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "FileIndex",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "FileIndex",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetFileIndex()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return XetStorageUsageValidationError{
+				field:  "FileIndex",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetChunkIndex()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "ChunkIndex",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "ChunkIndex",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChunkIndex()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return XetStorageUsageValidationError{
+				field:  "ChunkIndex",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSha256Index()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "Sha256Index",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, XetStorageUsageValidationError{
+					field:  "Sha256Index",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSha256Index()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return XetStorageUsageValidationError{
+				field:  "Sha256Index",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return XetStorageUsageMultiError(errors)
+	}
+
+	return nil
+}
+
+// XetStorageUsageMultiError is an error wrapping multiple validation errors
+// returned by XetStorageUsage.ValidateAll() if the designated constraints
+// aren't met.
+type XetStorageUsageMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m XetStorageUsageMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m XetStorageUsageMultiError) AllErrors() []error { return m }
+
+// XetStorageUsageValidationError is the validation error returned by
+// XetStorageUsage.Validate if the designated constraints aren't met.
+type XetStorageUsageValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e XetStorageUsageValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e XetStorageUsageValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e XetStorageUsageValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e XetStorageUsageValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e XetStorageUsageValidationError) ErrorName() string { return "XetStorageUsageValidationError" }
+
+// Error satisfies the builtin error interface
+func (e XetStorageUsageValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sXetStorageUsage.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = XetStorageUsageValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = XetStorageUsageValidationError{}
