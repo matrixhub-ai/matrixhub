@@ -7,9 +7,13 @@
 package v1alpha1
 
 import (
+	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -22,258 +26,21 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type PreviewCleanupRequest struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	IncludeOrphanedRepos bool                   `protobuf:"varint,1,opt,name=include_orphaned_repos,json=includeOrphanedRepos,proto3" json:"include_orphaned_repos,omitempty"`
-	IncludeOrphanedLfs   bool                   `protobuf:"varint,2,opt,name=include_orphaned_lfs,json=includeOrphanedLfs,proto3" json:"include_orphaned_lfs,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
-}
-
-func (x *PreviewCleanupRequest) Reset() {
-	*x = PreviewCleanupRequest{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PreviewCleanupRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PreviewCleanupRequest) ProtoMessage() {}
-
-func (x *PreviewCleanupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PreviewCleanupRequest.ProtoReflect.Descriptor instead.
-func (*PreviewCleanupRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *PreviewCleanupRequest) GetIncludeOrphanedRepos() bool {
-	if x != nil {
-		return x.IncludeOrphanedRepos
-	}
-	return false
-}
-
-func (x *PreviewCleanupRequest) GetIncludeOrphanedLfs() bool {
-	if x != nil {
-		return x.IncludeOrphanedLfs
-	}
-	return false
-}
-
-type CleanupPreview struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	OrphanedRepos         []*OrphanedRepo        `protobuf:"bytes,1,rep,name=orphaned_repos,json=orphanedRepos,proto3" json:"orphaned_repos,omitempty"`
-	OrphanedLfsObjects    []*OrphanedLFS         `protobuf:"bytes,2,rep,name=orphaned_lfs_objects,json=orphanedLfsObjects,proto3" json:"orphaned_lfs_objects,omitempty"`
-	TotalReclaimableBytes int64                  `protobuf:"varint,3,opt,name=total_reclaimable_bytes,json=totalReclaimableBytes,proto3" json:"total_reclaimable_bytes,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
-}
-
-func (x *CleanupPreview) Reset() {
-	*x = CleanupPreview{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CleanupPreview) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CleanupPreview) ProtoMessage() {}
-
-func (x *CleanupPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CleanupPreview.ProtoReflect.Descriptor instead.
-func (*CleanupPreview) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *CleanupPreview) GetOrphanedRepos() []*OrphanedRepo {
-	if x != nil {
-		return x.OrphanedRepos
-	}
-	return nil
-}
-
-func (x *CleanupPreview) GetOrphanedLfsObjects() []*OrphanedLFS {
-	if x != nil {
-		return x.OrphanedLfsObjects
-	}
-	return nil
-}
-
-func (x *CleanupPreview) GetTotalReclaimableBytes() int64 {
-	if x != nil {
-		return x.TotalReclaimableBytes
-	}
-	return 0
-}
-
-type OrphanedRepo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"` // "model" or "dataset"
-	ProjectName   string                 `protobuf:"bytes,3,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
-	ResourceName  string                 `protobuf:"bytes,4,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
-	SizeBytes     int64                  `protobuf:"varint,5,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OrphanedRepo) Reset() {
-	*x = OrphanedRepo{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OrphanedRepo) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OrphanedRepo) ProtoMessage() {}
-
-func (x *OrphanedRepo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OrphanedRepo.ProtoReflect.Descriptor instead.
-func (*OrphanedRepo) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *OrphanedRepo) GetPath() string {
-	if x != nil {
-		return x.Path
-	}
-	return ""
-}
-
-func (x *OrphanedRepo) GetType() string {
-	if x != nil {
-		return x.Type
-	}
-	return ""
-}
-
-func (x *OrphanedRepo) GetProjectName() string {
-	if x != nil {
-		return x.ProjectName
-	}
-	return ""
-}
-
-func (x *OrphanedRepo) GetResourceName() string {
-	if x != nil {
-		return x.ResourceName
-	}
-	return ""
-}
-
-func (x *OrphanedRepo) GetSizeBytes() int64 {
-	if x != nil {
-		return x.SizeBytes
-	}
-	return 0
-}
-
-type OrphanedLFS struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Oid           string                 `protobuf:"bytes,1,opt,name=oid,proto3" json:"oid,omitempty"`
-	SizeBytes     int64                  `protobuf:"varint,2,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OrphanedLFS) Reset() {
-	*x = OrphanedLFS{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OrphanedLFS) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OrphanedLFS) ProtoMessage() {}
-
-func (x *OrphanedLFS) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OrphanedLFS.ProtoReflect.Descriptor instead.
-func (*OrphanedLFS) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *OrphanedLFS) GetOid() string {
-	if x != nil {
-		return x.Oid
-	}
-	return ""
-}
-
-func (x *OrphanedLFS) GetSizeBytes() int64 {
-	if x != nil {
-		return x.SizeBytes
-	}
-	return 0
-}
-
 type ExecuteCleanupRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	CleanOrphanedRepos bool                   `protobuf:"varint,1,opt,name=clean_orphaned_repos,json=cleanOrphanedRepos,proto3" json:"clean_orphaned_repos,omitempty"`
 	CleanOrphanedLfs   bool                   `protobuf:"varint,2,opt,name=clean_orphaned_lfs,json=cleanOrphanedLfs,proto3" json:"clean_orphaned_lfs,omitempty"`
-	DryRun             bool                   `protobuf:"varint,3,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"` // true = preview only, no actual deletion
+	DryRun             bool                   `protobuf:"varint,3,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`             // true = preview only, no actual deletion
+	Grace              *durationpb.Duration   `protobuf:"bytes,4,opt,name=grace,proto3" json:"grace,omitempty"`                              // unset = configured gcGrace; "0s" disables the grace window
+	MaxDeletes         int32                  `protobuf:"varint,5,opt,name=max_deletes,json=maxDeletes,proto3" json:"max_deletes,omitempty"` // max shard+xorb deletions per sweep, 0 = unlimited; ignored by dry runs
+	Budget             *durationpb.Duration   `protobuf:"bytes,6,opt,name=budget,proto3" json:"budget,omitempty"`                            // wall-clock cap on the sweep, unset/0 = unlimited; ignored by dry runs
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ExecuteCleanupRequest) Reset() {
 	*x = ExecuteCleanupRequest{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[4]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -285,7 +52,7 @@ func (x *ExecuteCleanupRequest) String() string {
 func (*ExecuteCleanupRequest) ProtoMessage() {}
 
 func (x *ExecuteCleanupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[4]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -298,7 +65,7 @@ func (x *ExecuteCleanupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteCleanupRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteCleanupRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{4}
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ExecuteCleanupRequest) GetCleanOrphanedRepos() bool {
@@ -322,19 +89,40 @@ func (x *ExecuteCleanupRequest) GetDryRun() bool {
 	return false
 }
 
+func (x *ExecuteCleanupRequest) GetGrace() *durationpb.Duration {
+	if x != nil {
+		return x.Grace
+	}
+	return nil
+}
+
+func (x *ExecuteCleanupRequest) GetMaxDeletes() int32 {
+	if x != nil {
+		return x.MaxDeletes
+	}
+	return 0
+}
+
+func (x *ExecuteCleanupRequest) GetBudget() *durationpb.Duration {
+	if x != nil {
+		return x.Budget
+	}
+	return nil
+}
+
 type CleanupResult struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
-	ReposDeleted        int32                  `protobuf:"varint,1,opt,name=repos_deleted,json=reposDeleted,proto3" json:"repos_deleted,omitempty"`
-	LfsObjectsDeleted   int32                  `protobuf:"varint,2,opt,name=lfs_objects_deleted,json=lfsObjectsDeleted,proto3" json:"lfs_objects_deleted,omitempty"`
 	SpaceReclaimedBytes int64                  `protobuf:"varint,3,opt,name=space_reclaimed_bytes,json=spaceReclaimedBytes,proto3" json:"space_reclaimed_bytes,omitempty"`
 	Errors              []string               `protobuf:"bytes,4,rep,name=errors,proto3" json:"errors,omitempty"`
+	OrphanedRepos       []string               `protobuf:"bytes,5,rep,name=orphaned_repos,json=orphanedRepos,proto3" json:"orphaned_repos,omitempty"`
+	Gc                  *GCResult              `protobuf:"bytes,8,opt,name=gc,proto3" json:"gc,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CleanupResult) Reset() {
 	*x = CleanupResult{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[5]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -346,7 +134,7 @@ func (x *CleanupResult) String() string {
 func (*CleanupResult) ProtoMessage() {}
 
 func (x *CleanupResult) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[5]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -359,21 +147,7 @@ func (x *CleanupResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CleanupResult.ProtoReflect.Descriptor instead.
 func (*CleanupResult) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *CleanupResult) GetReposDeleted() int32 {
-	if x != nil {
-		return x.ReposDeleted
-	}
-	return 0
-}
-
-func (x *CleanupResult) GetLfsObjectsDeleted() int32 {
-	if x != nil {
-		return x.LfsObjectsDeleted
-	}
-	return 0
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CleanupResult) GetSpaceReclaimedBytes() int64 {
@@ -390,6 +164,202 @@ func (x *CleanupResult) GetErrors() []string {
 	return nil
 }
 
+func (x *CleanupResult) GetOrphanedRepos() []string {
+	if x != nil {
+		return x.OrphanedRepos
+	}
+	return nil
+}
+
+func (x *CleanupResult) GetGc() *GCResult {
+	if x != nil {
+		return x.Gc
+	}
+	return nil
+}
+
+// One run of Git GC, LFS prune and the sweep of already-unlinked data; a dry run's sweep estimates that data, not this run's still-linked candidates.
+type GCResult struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	DryRun              bool                   `protobuf:"varint,1,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	Repositories        int32                  `protobuf:"varint,2,opt,name=repositories,proto3" json:"repositories,omitempty"` // repositories scanned, GC failures included
+	DeletedGitObjects   int32                  `protobuf:"varint,3,opt,name=deleted_git_objects,json=deletedGitObjects,proto3" json:"deleted_git_objects,omitempty"`
+	DeletedGitBytes     int64                  `protobuf:"varint,4,opt,name=deleted_git_bytes,json=deletedGitBytes,proto3" json:"deleted_git_bytes,omitempty"`                               // uncompressed payload of the deleted Git objects
+	GitReclaimedBytes   int64                  `protobuf:"varint,5,opt,name=git_reclaimed_bytes,json=gitReclaimedBytes,proto3" json:"git_reclaimed_bytes,omitempty"`                         // shrink of Git object storage; 0 in a dry run, which repacks nothing
+	Failed              map[string]string      `protobuf:"bytes,6,rep,name=failed,proto3" json:"failed,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // repository path -> Git GC error; its LFS pointers stay live
+	LiveObjects         int32                  `protobuf:"varint,7,opt,name=live_objects,json=liveObjects,proto3" json:"live_objects,omitempty"`
+	Unlinked            []string               `protobuf:"bytes,8,rep,name=unlinked,proto3" json:"unlinked,omitempty"` // sorted sha256 hex; dry run: what would be unlinked
+	PruneSkippedInGrace int32                  `protobuf:"varint,9,opt,name=prune_skipped_in_grace,json=pruneSkippedInGrace,proto3" json:"prune_skipped_in_grace,omitempty"`
+	SweptShards         int32                  `protobuf:"varint,10,opt,name=swept_shards,json=sweptShards,proto3" json:"swept_shards,omitempty"`
+	SweptXorbs          int32                  `protobuf:"varint,11,opt,name=swept_xorbs,json=sweptXorbs,proto3" json:"swept_xorbs,omitempty"`
+	XetReclaimedBytes   int64                  `protobuf:"varint,12,opt,name=xet_reclaimed_bytes,json=xetReclaimedBytes,proto3" json:"xet_reclaimed_bytes,omitempty"` // shard and xorb bytes the sweep reclaimed
+	SweepSkippedInGrace int32                  `protobuf:"varint,13,opt,name=sweep_skipped_in_grace,json=sweepSkippedInGrace,proto3" json:"sweep_skipped_in_grace,omitempty"`
+	Dangling            []string               `protobuf:"bytes,14,rep,name=dangling,proto3" json:"dangling,omitempty"`                                         // OIDs whose data is missing; reported, never deleted
+	UnreadableShards    []string               `protobuf:"bytes,15,rep,name=unreadable_shards,json=unreadableShards,proto3" json:"unreadable_shards,omitempty"` // treated live; no xorb deleted that pass
+	// null: no sweep result because the prune or the sweep failed; false: a bounded sweep left data; true: finished
+	SweepDone       *wrapperspb.BoolValue `protobuf:"bytes,16,opt,name=sweep_done,json=sweepDone,proto3" json:"sweep_done,omitempty"`
+	RemainingShards int32                 `protobuf:"varint,17,opt,name=remaining_shards,json=remainingShards,proto3" json:"remaining_shards,omitempty"`
+	RemainingXorbs  int32                 `protobuf:"varint,18,opt,name=remaining_xorbs,json=remainingXorbs,proto3" json:"remaining_xorbs,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GCResult) Reset() {
+	*x = GCResult{}
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GCResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GCResult) ProtoMessage() {}
+
+func (x *GCResult) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GCResult.ProtoReflect.Descriptor instead.
+func (*GCResult) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GCResult) GetDryRun() bool {
+	if x != nil {
+		return x.DryRun
+	}
+	return false
+}
+
+func (x *GCResult) GetRepositories() int32 {
+	if x != nil {
+		return x.Repositories
+	}
+	return 0
+}
+
+func (x *GCResult) GetDeletedGitObjects() int32 {
+	if x != nil {
+		return x.DeletedGitObjects
+	}
+	return 0
+}
+
+func (x *GCResult) GetDeletedGitBytes() int64 {
+	if x != nil {
+		return x.DeletedGitBytes
+	}
+	return 0
+}
+
+func (x *GCResult) GetGitReclaimedBytes() int64 {
+	if x != nil {
+		return x.GitReclaimedBytes
+	}
+	return 0
+}
+
+func (x *GCResult) GetFailed() map[string]string {
+	if x != nil {
+		return x.Failed
+	}
+	return nil
+}
+
+func (x *GCResult) GetLiveObjects() int32 {
+	if x != nil {
+		return x.LiveObjects
+	}
+	return 0
+}
+
+func (x *GCResult) GetUnlinked() []string {
+	if x != nil {
+		return x.Unlinked
+	}
+	return nil
+}
+
+func (x *GCResult) GetPruneSkippedInGrace() int32 {
+	if x != nil {
+		return x.PruneSkippedInGrace
+	}
+	return 0
+}
+
+func (x *GCResult) GetSweptShards() int32 {
+	if x != nil {
+		return x.SweptShards
+	}
+	return 0
+}
+
+func (x *GCResult) GetSweptXorbs() int32 {
+	if x != nil {
+		return x.SweptXorbs
+	}
+	return 0
+}
+
+func (x *GCResult) GetXetReclaimedBytes() int64 {
+	if x != nil {
+		return x.XetReclaimedBytes
+	}
+	return 0
+}
+
+func (x *GCResult) GetSweepSkippedInGrace() int32 {
+	if x != nil {
+		return x.SweepSkippedInGrace
+	}
+	return 0
+}
+
+func (x *GCResult) GetDangling() []string {
+	if x != nil {
+		return x.Dangling
+	}
+	return nil
+}
+
+func (x *GCResult) GetUnreadableShards() []string {
+	if x != nil {
+		return x.UnreadableShards
+	}
+	return nil
+}
+
+func (x *GCResult) GetSweepDone() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.SweepDone
+	}
+	return nil
+}
+
+func (x *GCResult) GetRemainingShards() int32 {
+	if x != nil {
+		return x.RemainingShards
+	}
+	return 0
+}
+
+func (x *GCResult) GetRemainingXorbs() int32 {
+	if x != nil {
+		return x.RemainingXorbs
+	}
+	return 0
+}
+
 type GetStorageStatsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -398,7 +368,7 @@ type GetStorageStatsRequest struct {
 
 func (x *GetStorageStatsRequest) Reset() {
 	*x = GetStorageStatsRequest{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[6]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -410,7 +380,7 @@ func (x *GetStorageStatsRequest) String() string {
 func (*GetStorageStatsRequest) ProtoMessage() {}
 
 func (x *GetStorageStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[6]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,22 +393,22 @@ func (x *GetStorageStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStorageStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetStorageStatsRequest) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{6}
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{3}
 }
 
+// Storage by kind; not an atomic snapshot.
 type StorageStats struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	TotalSizeBytes        int64                  `protobuf:"varint,1,opt,name=total_size_bytes,json=totalSizeBytes,proto3" json:"total_size_bytes,omitempty"`
-	RepositoriesSizeBytes int64                  `protobuf:"varint,2,opt,name=repositories_size_bytes,json=repositoriesSizeBytes,proto3" json:"repositories_size_bytes,omitempty"`
-	LfsSizeBytes          int64                  `protobuf:"varint,3,opt,name=lfs_size_bytes,json=lfsSizeBytes,proto3" json:"lfs_size_bytes,omitempty"`
-	OrphanedSizeBytes     int64                  `protobuf:"varint,4,opt,name=orphaned_size_bytes,json=orphanedSizeBytes,proto3" json:"orphaned_size_bytes,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	TotalSizeBytes int64                  `protobuf:"varint,1,opt,name=total_size_bytes,json=totalSizeBytes,proto3" json:"total_size_bytes,omitempty"` // every Git and xet category summed
+	Git            *GitStorageUsage       `protobuf:"bytes,5,opt,name=git,proto3" json:"git,omitempty"`
+	Xet            *XetStorageUsage       `protobuf:"bytes,6,opt,name=xet,proto3" json:"xet,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *StorageStats) Reset() {
 	*x = StorageStats{}
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[7]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -450,7 +420,7 @@ func (x *StorageStats) String() string {
 func (*StorageStats) ProtoMessage() {}
 
 func (x *StorageStats) ProtoReflect() protoreflect.Message {
-	mi := &file_v1alpha1_cleanup_proto_msgTypes[7]
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -463,7 +433,7 @@ func (x *StorageStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageStats.ProtoReflect.Descriptor instead.
 func (*StorageStats) Descriptor() ([]byte, []int) {
-	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{7}
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *StorageStats) GetTotalSizeBytes() int64 {
@@ -473,67 +443,266 @@ func (x *StorageStats) GetTotalSizeBytes() int64 {
 	return 0
 }
 
-func (x *StorageStats) GetRepositoriesSizeBytes() int64 {
+func (x *StorageStats) GetGit() *GitStorageUsage {
 	if x != nil {
-		return x.RepositoriesSizeBytes
+		return x.Git
+	}
+	return nil
+}
+
+func (x *StorageStats) GetXet() *XetStorageUsage {
+	if x != nil {
+		return x.Xet
+	}
+	return nil
+}
+
+type StorageObjectUsage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Count         int64                  `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	Bytes         int64                  `protobuf:"varint,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StorageObjectUsage) Reset() {
+	*x = StorageObjectUsage{}
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StorageObjectUsage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StorageObjectUsage) ProtoMessage() {}
+
+func (x *StorageObjectUsage) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StorageObjectUsage.ProtoReflect.Descriptor instead.
+func (*StorageObjectUsage) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StorageObjectUsage) GetCount() int64 {
+	if x != nil {
+		return x.Count
 	}
 	return 0
 }
 
-func (x *StorageStats) GetLfsSizeBytes() int64 {
+func (x *StorageObjectUsage) GetBytes() int64 {
 	if x != nil {
-		return x.LfsSizeBytes
+		return x.Bytes
 	}
 	return 0
 }
 
-func (x *StorageStats) GetOrphanedSizeBytes() int64 {
+// Every repository under the repositories root; unreachable objects included, LFS content excluded.
+type GitStorageUsage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Objects       *StorageObjectUsage    `protobuf:"bytes,1,opt,name=objects,proto3" json:"objects,omitempty"` // loose and packed Git objects
+	Other         *StorageObjectUsage    `protobuf:"bytes,2,opt,name=other,proto3" json:"other,omitempty"`     // everything else in the repository, such as refs and config
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GitStorageUsage) Reset() {
+	*x = GitStorageUsage{}
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GitStorageUsage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GitStorageUsage) ProtoMessage() {}
+
+func (x *GitStorageUsage) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[6]
 	if x != nil {
-		return x.OrphanedSizeBytes
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
 	}
-	return 0
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GitStorageUsage.ProtoReflect.Descriptor instead.
+func (*GitStorageUsage) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GitStorageUsage) GetObjects() *StorageObjectUsage {
+	if x != nil {
+		return x.Objects
+	}
+	return nil
+}
+
+func (x *GitStorageUsage) GetOther() *StorageObjectUsage {
+	if x != nil {
+		return x.Other
+	}
+	return nil
+}
+
+type XetStorageUsage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Xorbs         *StorageObjectUsage    `protobuf:"bytes,1,opt,name=xorbs,proto3" json:"xorbs,omitempty"`
+	Shards        *StorageObjectUsage    `protobuf:"bytes,2,opt,name=shards,proto3" json:"shards,omitempty"`
+	FileIndex     *StorageObjectUsage    `protobuf:"bytes,3,opt,name=file_index,json=fileIndex,proto3" json:"file_index,omitempty"`
+	ChunkIndex    *StorageObjectUsage    `protobuf:"bytes,4,opt,name=chunk_index,json=chunkIndex,proto3" json:"chunk_index,omitempty"`
+	Sha256Index   *StorageObjectUsage    `protobuf:"bytes,5,opt,name=sha256_index,json=sha256Index,proto3" json:"sha256_index,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *XetStorageUsage) Reset() {
+	*x = XetStorageUsage{}
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *XetStorageUsage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*XetStorageUsage) ProtoMessage() {}
+
+func (x *XetStorageUsage) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_cleanup_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use XetStorageUsage.ProtoReflect.Descriptor instead.
+func (*XetStorageUsage) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_cleanup_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *XetStorageUsage) GetXorbs() *StorageObjectUsage {
+	if x != nil {
+		return x.Xorbs
+	}
+	return nil
+}
+
+func (x *XetStorageUsage) GetShards() *StorageObjectUsage {
+	if x != nil {
+		return x.Shards
+	}
+	return nil
+}
+
+func (x *XetStorageUsage) GetFileIndex() *StorageObjectUsage {
+	if x != nil {
+		return x.FileIndex
+	}
+	return nil
+}
+
+func (x *XetStorageUsage) GetChunkIndex() *StorageObjectUsage {
+	if x != nil {
+		return x.ChunkIndex
+	}
+	return nil
+}
+
+func (x *XetStorageUsage) GetSha256Index() *StorageObjectUsage {
+	if x != nil {
+		return x.Sha256Index
+	}
+	return nil
 }
 
 var File_v1alpha1_cleanup_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_cleanup_proto_rawDesc = "" +
 	"\n" +
-	"\x16v1alpha1/cleanup.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\"\x7f\n" +
-	"\x15PreviewCleanupRequest\x124\n" +
-	"\x16include_orphaned_repos\x18\x01 \x01(\bR\x14includeOrphanedRepos\x120\n" +
-	"\x14include_orphaned_lfs\x18\x02 \x01(\bR\x12includeOrphanedLfs\"\xe4\x01\n" +
-	"\x0eCleanupPreview\x12G\n" +
-	"\x0eorphaned_repos\x18\x01 \x03(\v2 .matrixhub.v1alpha1.OrphanedRepoR\rorphanedRepos\x12Q\n" +
-	"\x14orphaned_lfs_objects\x18\x02 \x03(\v2\x1f.matrixhub.v1alpha1.OrphanedLFSR\x12orphanedLfsObjects\x126\n" +
-	"\x17total_reclaimable_bytes\x18\x03 \x01(\x03R\x15totalReclaimableBytes\"\x9d\x01\n" +
-	"\fOrphanedRepo\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
-	"\x04type\x18\x02 \x01(\tR\x04type\x12!\n" +
-	"\fproject_name\x18\x03 \x01(\tR\vprojectName\x12#\n" +
-	"\rresource_name\x18\x04 \x01(\tR\fresourceName\x12\x1d\n" +
-	"\n" +
-	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\">\n" +
-	"\vOrphanedLFS\x12\x10\n" +
-	"\x03oid\x18\x01 \x01(\tR\x03oid\x12\x1d\n" +
-	"\n" +
-	"size_bytes\x18\x02 \x01(\x03R\tsizeBytes\"\x90\x01\n" +
+	"\x16v1alpha1/cleanup.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1bopenapiv2/annotations.proto\x1a\x17validate/validate.proto\"\xb2\x02\n" +
 	"\x15ExecuteCleanupRequest\x120\n" +
 	"\x14clean_orphaned_repos\x18\x01 \x01(\bR\x12cleanOrphanedRepos\x12,\n" +
 	"\x12clean_orphaned_lfs\x18\x02 \x01(\bR\x10cleanOrphanedLfs\x12\x17\n" +
-	"\adry_run\x18\x03 \x01(\bR\x06dryRun\"\xb0\x01\n" +
-	"\rCleanupResult\x12#\n" +
-	"\rrepos_deleted\x18\x01 \x01(\x05R\freposDeleted\x12.\n" +
-	"\x13lfs_objects_deleted\x18\x02 \x01(\x05R\x11lfsObjectsDeleted\x122\n" +
+	"\adry_run\x18\x03 \x01(\bR\x06dryRun\x129\n" +
+	"\x05grace\x18\x04 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x022\x00R\x05grace\x12(\n" +
+	"\vmax_deletes\x18\x05 \x01(\x05B\a\xfaB\x04\x1a\x02(\x00R\n" +
+	"maxDeletes\x12;\n" +
+	"\x06budget\x18\x06 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x022\x00R\x06budget\"\xec\x01\n" +
+	"\rCleanupResult\x122\n" +
 	"\x15space_reclaimed_bytes\x18\x03 \x01(\x03R\x13spaceReclaimedBytes\x12\x16\n" +
-	"\x06errors\x18\x04 \x03(\tR\x06errors\"\x18\n" +
-	"\x16GetStorageStatsRequest\"\xc6\x01\n" +
+	"\x06errors\x18\x04 \x03(\tR\x06errors\x12%\n" +
+	"\x0eorphaned_repos\x18\x05 \x03(\tR\rorphanedRepos\x12,\n" +
+	"\x02gc\x18\b \x01(\v2\x1c.matrixhub.v1alpha1.GCResultR\x02gcJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x06\x10\aJ\x04\b\a\x10\bR\tlfs_pruneR\tlfs_sweepR\x05pruneR\x05sweep\"\xdd\x06\n" +
+	"\bGCResult\x12\x17\n" +
+	"\adry_run\x18\x01 \x01(\bR\x06dryRun\x12\"\n" +
+	"\frepositories\x18\x02 \x01(\x05R\frepositories\x12.\n" +
+	"\x13deleted_git_objects\x18\x03 \x01(\x05R\x11deletedGitObjects\x12*\n" +
+	"\x11deleted_git_bytes\x18\x04 \x01(\x03R\x0fdeletedGitBytes\x12.\n" +
+	"\x13git_reclaimed_bytes\x18\x05 \x01(\x03R\x11gitReclaimedBytes\x12@\n" +
+	"\x06failed\x18\x06 \x03(\v2(.matrixhub.v1alpha1.GCResult.FailedEntryR\x06failed\x12!\n" +
+	"\flive_objects\x18\a \x01(\x05R\vliveObjects\x12\x1a\n" +
+	"\bunlinked\x18\b \x03(\tR\bunlinked\x123\n" +
+	"\x16prune_skipped_in_grace\x18\t \x01(\x05R\x13pruneSkippedInGrace\x12!\n" +
+	"\fswept_shards\x18\n" +
+	" \x01(\x05R\vsweptShards\x12\x1f\n" +
+	"\vswept_xorbs\x18\v \x01(\x05R\n" +
+	"sweptXorbs\x12.\n" +
+	"\x13xet_reclaimed_bytes\x18\f \x01(\x03R\x11xetReclaimedBytes\x123\n" +
+	"\x16sweep_skipped_in_grace\x18\r \x01(\x05R\x13sweepSkippedInGrace\x12\x1a\n" +
+	"\bdangling\x18\x0e \x03(\tR\bdangling\x12+\n" +
+	"\x11unreadable_shards\x18\x0f \x03(\tR\x10unreadableShards\x12Q\n" +
+	"\n" +
+	"sweep_done\x18\x10 \x01(\v2\x1a.google.protobuf.BoolValueB\x16\x92A\x13\x82\x03\x10\n" +
+	"\n" +
+	"x-nullable\x12\x02 \x01R\tsweepDone\x12)\n" +
+	"\x10remaining_shards\x18\x11 \x01(\x05R\x0fremainingShards\x12'\n" +
+	"\x0fremaining_xorbs\x18\x12 \x01(\x05R\x0eremainingXorbs\x1a9\n" +
+	"\vFailedEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x18\n" +
+	"\x16GetStorageStatsRequest\"\xf6\x01\n" +
 	"\fStorageStats\x12(\n" +
-	"\x10total_size_bytes\x18\x01 \x01(\x03R\x0etotalSizeBytes\x126\n" +
-	"\x17repositories_size_bytes\x18\x02 \x01(\x03R\x15repositoriesSizeBytes\x12$\n" +
-	"\x0elfs_size_bytes\x18\x03 \x01(\x03R\flfsSizeBytes\x12.\n" +
-	"\x13orphaned_size_bytes\x18\x04 \x01(\x03R\x11orphanedSizeBytes2\xa7\x03\n" +
-	"\aCleanup\x12\x89\x01\n" +
-	"\x0ePreviewCleanup\x12).matrixhub.v1alpha1.PreviewCleanupRequest\x1a\".matrixhub.v1alpha1.CleanupPreview\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1alpha1/cleanup/preview\x12\x88\x01\n" +
+	"\x10total_size_bytes\x18\x01 \x01(\x03R\x0etotalSizeBytes\x125\n" +
+	"\x03git\x18\x05 \x01(\v2#.matrixhub.v1alpha1.GitStorageUsageR\x03git\x125\n" +
+	"\x03xet\x18\x06 \x01(\v2#.matrixhub.v1alpha1.XetStorageUsageR\x03xetJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x17repositories_size_bytesR\x0elfs_size_bytesR\x13orphaned_size_bytes\"@\n" +
+	"\x12StorageObjectUsage\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x03R\x05count\x12\x14\n" +
+	"\x05bytes\x18\x02 \x01(\x03R\x05bytes\"\x91\x01\n" +
+	"\x0fGitStorageUsage\x12@\n" +
+	"\aobjects\x18\x01 \x01(\v2&.matrixhub.v1alpha1.StorageObjectUsageR\aobjects\x12<\n" +
+	"\x05other\x18\x02 \x01(\v2&.matrixhub.v1alpha1.StorageObjectUsageR\x05other\"\xea\x02\n" +
+	"\x0fXetStorageUsage\x12<\n" +
+	"\x05xorbs\x18\x01 \x01(\v2&.matrixhub.v1alpha1.StorageObjectUsageR\x05xorbs\x12>\n" +
+	"\x06shards\x18\x02 \x01(\v2&.matrixhub.v1alpha1.StorageObjectUsageR\x06shards\x12E\n" +
+	"\n" +
+	"file_index\x18\x03 \x01(\v2&.matrixhub.v1alpha1.StorageObjectUsageR\tfileIndex\x12G\n" +
+	"\vchunk_index\x18\x04 \x01(\v2&.matrixhub.v1alpha1.StorageObjectUsageR\n" +
+	"chunkIndex\x12I\n" +
+	"\fsha256_index\x18\x05 \x01(\v2&.matrixhub.v1alpha1.StorageObjectUsageR\vsha256Index2\x9b\x02\n" +
+	"\aCleanup\x12\x88\x01\n" +
 	"\x0eExecuteCleanup\x12).matrixhub.v1alpha1.ExecuteCleanupRequest\x1a!.matrixhub.v1alpha1.CleanupResult\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1alpha1/cleanup/execute\x12\x84\x01\n" +
 	"\x0fGetStorageStats\x12*.matrixhub.v1alpha1.GetStorageStatsRequest\x1a .matrixhub.v1alpha1.StorageStats\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1alpha1/cleanup/statsB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
 
@@ -549,31 +718,44 @@ func file_v1alpha1_cleanup_proto_rawDescGZIP() []byte {
 	return file_v1alpha1_cleanup_proto_rawDescData
 }
 
-var file_v1alpha1_cleanup_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_v1alpha1_cleanup_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_v1alpha1_cleanup_proto_goTypes = []any{
-	(*PreviewCleanupRequest)(nil),  // 0: matrixhub.v1alpha1.PreviewCleanupRequest
-	(*CleanupPreview)(nil),         // 1: matrixhub.v1alpha1.CleanupPreview
-	(*OrphanedRepo)(nil),           // 2: matrixhub.v1alpha1.OrphanedRepo
-	(*OrphanedLFS)(nil),            // 3: matrixhub.v1alpha1.OrphanedLFS
-	(*ExecuteCleanupRequest)(nil),  // 4: matrixhub.v1alpha1.ExecuteCleanupRequest
-	(*CleanupResult)(nil),          // 5: matrixhub.v1alpha1.CleanupResult
-	(*GetStorageStatsRequest)(nil), // 6: matrixhub.v1alpha1.GetStorageStatsRequest
-	(*StorageStats)(nil),           // 7: matrixhub.v1alpha1.StorageStats
+	(*ExecuteCleanupRequest)(nil),  // 0: matrixhub.v1alpha1.ExecuteCleanupRequest
+	(*CleanupResult)(nil),          // 1: matrixhub.v1alpha1.CleanupResult
+	(*GCResult)(nil),               // 2: matrixhub.v1alpha1.GCResult
+	(*GetStorageStatsRequest)(nil), // 3: matrixhub.v1alpha1.GetStorageStatsRequest
+	(*StorageStats)(nil),           // 4: matrixhub.v1alpha1.StorageStats
+	(*StorageObjectUsage)(nil),     // 5: matrixhub.v1alpha1.StorageObjectUsage
+	(*GitStorageUsage)(nil),        // 6: matrixhub.v1alpha1.GitStorageUsage
+	(*XetStorageUsage)(nil),        // 7: matrixhub.v1alpha1.XetStorageUsage
+	nil,                            // 8: matrixhub.v1alpha1.GCResult.FailedEntry
+	(*durationpb.Duration)(nil),    // 9: google.protobuf.Duration
+	(*wrapperspb.BoolValue)(nil),   // 10: google.protobuf.BoolValue
 }
 var file_v1alpha1_cleanup_proto_depIdxs = []int32{
-	2, // 0: matrixhub.v1alpha1.CleanupPreview.orphaned_repos:type_name -> matrixhub.v1alpha1.OrphanedRepo
-	3, // 1: matrixhub.v1alpha1.CleanupPreview.orphaned_lfs_objects:type_name -> matrixhub.v1alpha1.OrphanedLFS
-	0, // 2: matrixhub.v1alpha1.Cleanup.PreviewCleanup:input_type -> matrixhub.v1alpha1.PreviewCleanupRequest
-	4, // 3: matrixhub.v1alpha1.Cleanup.ExecuteCleanup:input_type -> matrixhub.v1alpha1.ExecuteCleanupRequest
-	6, // 4: matrixhub.v1alpha1.Cleanup.GetStorageStats:input_type -> matrixhub.v1alpha1.GetStorageStatsRequest
-	1, // 5: matrixhub.v1alpha1.Cleanup.PreviewCleanup:output_type -> matrixhub.v1alpha1.CleanupPreview
-	5, // 6: matrixhub.v1alpha1.Cleanup.ExecuteCleanup:output_type -> matrixhub.v1alpha1.CleanupResult
-	7, // 7: matrixhub.v1alpha1.Cleanup.GetStorageStats:output_type -> matrixhub.v1alpha1.StorageStats
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	9,  // 0: matrixhub.v1alpha1.ExecuteCleanupRequest.grace:type_name -> google.protobuf.Duration
+	9,  // 1: matrixhub.v1alpha1.ExecuteCleanupRequest.budget:type_name -> google.protobuf.Duration
+	2,  // 2: matrixhub.v1alpha1.CleanupResult.gc:type_name -> matrixhub.v1alpha1.GCResult
+	8,  // 3: matrixhub.v1alpha1.GCResult.failed:type_name -> matrixhub.v1alpha1.GCResult.FailedEntry
+	10, // 4: matrixhub.v1alpha1.GCResult.sweep_done:type_name -> google.protobuf.BoolValue
+	6,  // 5: matrixhub.v1alpha1.StorageStats.git:type_name -> matrixhub.v1alpha1.GitStorageUsage
+	7,  // 6: matrixhub.v1alpha1.StorageStats.xet:type_name -> matrixhub.v1alpha1.XetStorageUsage
+	5,  // 7: matrixhub.v1alpha1.GitStorageUsage.objects:type_name -> matrixhub.v1alpha1.StorageObjectUsage
+	5,  // 8: matrixhub.v1alpha1.GitStorageUsage.other:type_name -> matrixhub.v1alpha1.StorageObjectUsage
+	5,  // 9: matrixhub.v1alpha1.XetStorageUsage.xorbs:type_name -> matrixhub.v1alpha1.StorageObjectUsage
+	5,  // 10: matrixhub.v1alpha1.XetStorageUsage.shards:type_name -> matrixhub.v1alpha1.StorageObjectUsage
+	5,  // 11: matrixhub.v1alpha1.XetStorageUsage.file_index:type_name -> matrixhub.v1alpha1.StorageObjectUsage
+	5,  // 12: matrixhub.v1alpha1.XetStorageUsage.chunk_index:type_name -> matrixhub.v1alpha1.StorageObjectUsage
+	5,  // 13: matrixhub.v1alpha1.XetStorageUsage.sha256_index:type_name -> matrixhub.v1alpha1.StorageObjectUsage
+	0,  // 14: matrixhub.v1alpha1.Cleanup.ExecuteCleanup:input_type -> matrixhub.v1alpha1.ExecuteCleanupRequest
+	3,  // 15: matrixhub.v1alpha1.Cleanup.GetStorageStats:input_type -> matrixhub.v1alpha1.GetStorageStatsRequest
+	1,  // 16: matrixhub.v1alpha1.Cleanup.ExecuteCleanup:output_type -> matrixhub.v1alpha1.CleanupResult
+	4,  // 17: matrixhub.v1alpha1.Cleanup.GetStorageStats:output_type -> matrixhub.v1alpha1.StorageStats
+	16, // [16:18] is the sub-list for method output_type
+	14, // [14:16] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_cleanup_proto_init() }
@@ -587,7 +769,7 @@ func file_v1alpha1_cleanup_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_cleanup_proto_rawDesc), len(file_v1alpha1_cleanup_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

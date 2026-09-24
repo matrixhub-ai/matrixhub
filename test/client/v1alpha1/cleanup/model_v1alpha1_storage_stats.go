@@ -9,9 +9,9 @@
 
 package v1alpha1
 
+// Storage by kind; not an atomic snapshot.
 type V1alpha1StorageStats struct {
-	TotalSizeBytes        string `json:"totalSizeBytes,omitempty"`
-	RepositoriesSizeBytes string `json:"repositoriesSizeBytes,omitempty"`
-	LfsSizeBytes          string `json:"lfsSizeBytes,omitempty"`
-	OrphanedSizeBytes     string `json:"orphanedSizeBytes,omitempty"`
+	TotalSizeBytes string `json:"totalSizeBytes,omitempty"`
+	Git *V1alpha1GitStorageUsage `json:"git,omitempty"`
+	Xet *V1alpha1XetStorageUsage `json:"xet,omitempty"`
 }

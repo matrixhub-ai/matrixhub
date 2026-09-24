@@ -7,10 +7,15 @@ set -o pipefail
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 ROOT_DIR="$(realpath "${DIR}/..")"
 FETCH_FILE="${ROOT_DIR}/api/ts/fetch.pb.ts"
+CLEANUP_FILE="${ROOT_DIR}/api/ts/v1alpha1/cleanup.pb.ts"
 
 if [[ ! -f "${FETCH_FILE}" ]]; then
   echo "missing ${FETCH_FILE}" >&2
   exit 1
+fi
+
+if [[ -f "${CLEANUP_FILE}" ]]; then
+  perl -0pi -e 's/^import \* as GoogleProtobufWrappers from "\.\.\/google\/protobuf\/wrappers\.pb"\n//m; s/sweepDone\?: GoogleProtobufWrappers\.BoolValue/sweepDone?: boolean | null/g' "${CLEANUP_FILE}"
 fi
 
 if grep -q "export type FetchFn = typeof fetch" "${FETCH_FILE}"; then

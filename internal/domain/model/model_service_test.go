@@ -381,6 +381,43 @@ func TestModelService_CheckOrSyncFromRemoteRecordsSuccessfulSync(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestModelService_CheckOrSyncFromRemoteForwardsRegistryCredential(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	registryID := 1
+	projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
+	projectRepo.EXPECT().
+		GetProjectByName(ctx, "proj").
+		Return(&project.Project{Name: "proj", RegistryID: &registryID, Organization: "upstream-org"}, nil)
+	reg := &registry.Registry{ID: registryID, URL: "https://huggingface.co"}
+	reg.SetCredential(registry.NewBasicCredential("hf-user", "hf-token"))
+	registryRepo := registrymocks.NewMockIRegistryRepo(ctrl)
+	registryRepo.EXPECT().GetRegistry(ctx, registryID).Return(reg, nil)
+	pullErr := errors.New("pull attempted")
+
+	modelRepo.EXPECT().
+		GetByProjectAndName(ctx, "proj", "model").
+		Return(&model.Model{ID: 42, Name: "model", ProjectName: "proj"}, nil)
+	gitRepo.EXPECT().
+		PullFromRemote(ctx, &git.GitRepository{
+			RemoteRegistryURL:  "https://huggingface.co",
+			RemoteProjectName:  "upstream-org",
+			RemoteResourceName: "model",
+			ProjectName:        "proj",
+			ResourceName:       "model",
+			ResourceType:       "model",
+			Credential:         &git.BasicCredential{Username: "hf-user", Password: "hf-token"},
+		}).
+		Return(pullErr)
+
+	service := model.NewModelService(modelRepo, nil, gitRepo, projectRepo, registryRepo)
+	err := service.CheckOrSyncFromRemote(ctx, "proj", "model")
+
+	require.ErrorIs(t, err, pullErr)
+}
+
 func TestModelService_SyncMetadataPersistsZeroValues(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)

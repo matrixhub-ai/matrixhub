@@ -39,7 +39,10 @@ func runAPIServer(configPath string) error {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	apiServer := apiserver.NewAPIServer(cfg)
+	apiServer, err := apiserver.NewAPIServer(cfg)
+	if err != nil {
+		return err
+	}
 	errorCh := apiServer.Start()
 
 	sign := make(chan os.Signal, 1)

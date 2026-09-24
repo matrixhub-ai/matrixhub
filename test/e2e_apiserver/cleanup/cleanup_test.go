@@ -17,6 +17,7 @@ package cleanup_test
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"math/rand/v2"
 	"net/http"
 	"os"
@@ -49,29 +50,38 @@ var _ = Describe("Cleanup", Label("cleanup"), func() {
 		stats, resp, err := cleanupApi.CleanupGetStorageStats(ctx)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-		for _, size := range []string{stats.TotalSizeBytes, stats.RepositoriesSizeBytes, stats.LfsSizeBytes, stats.OrphanedSizeBytes} {
-			n, err := strconv.ParseInt(size, 10, 64)
+		Expect(stats.Git).NotTo(BeNil())
+		Expect(stats.Xet).NotTo(BeNil())
+		var total int64
+		for _, usage := range []*v1alpha1cleanup.V1alpha1StorageObjectUsage{
+			stats.Git.Objects, stats.Git.Other,
+			stats.Xet.Xorbs, stats.Xet.Shards, stats.Xet.FileIndex, stats.Xet.ChunkIndex, stats.Xet.Sha256Index,
+		} {
+			Expect(usage).NotTo(BeNil())
+			count, err := strconv.ParseInt(usage.Count, 10, 64)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(n).To(BeNumerically(">=", 0))
+			Expect(count).To(BeNumerically(">=", 0))
+			size, err := strconv.ParseInt(usage.Bytes, 10, 64)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(size).To(BeNumerically(">=", 0))
+			total += size
 		}
+		Expect(stats.TotalSizeBytes).To(Equal(strconv.FormatInt(total, 10)))
 	})
 
-	It("should preview and dry-run cleanup", Label("CL00002", "smoke"), func() {
-		_, resp, err := cleanupApi.CleanupPreviewCleanup(ctx, v1alpha1cleanup.V1alpha1PreviewCleanupRequest{
-			IncludeOrphanedRepos: true,
-			IncludeOrphanedLfs:   true,
-		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
+	It("should dry-run cleanup", Label("CL00002", "smoke"), func() {
 		res, resp, err := cleanupApi.CleanupExecuteCleanup(ctx, v1alpha1cleanup.V1alpha1ExecuteCleanupRequest{
 			CleanOrphanedRepos: true,
 			CleanOrphanedLfs:   true,
 			DryRun:             true,
+			Grace:              "0s",
 		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 		Expect(res.Errors).To(BeEmpty())
+		Expect(res.Gc).NotTo(BeNil())
+		Expect(res.Gc.DryRun).To(BeTrue())
+		Expect(res.Gc.SweepDone).To(BeTrue())
 	})
 
 	It("should reclaim a deleted model's LFS objects and keep live ones", Label("CL00003", "smoke", "lfs"), func() {
@@ -123,11 +133,18 @@ var _ = Describe("Cleanup", Label("cleanup"), func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 		Expect(res.Errors).To(BeEmpty())
-		Expect(res.LfsObjectsDeleted).To(BeNumerically(">=", 1))
-		reclaimed, err := strconv.ParseInt(res.SpaceReclaimedBytes, 10, 64)
+		Expect(res.Gc).NotTo(BeNil())
+		Expect(res.Gc.Unlinked).To(ContainElement(hex.EncodeToString(hashes[0][:])))
+		Expect(res.Gc.Unlinked).NotTo(ContainElement(hex.EncodeToString(hashes[1][:])))
+		Expect(res.Gc.SweepDone).To(BeTrue())
+		gitReclaimed, err := strconv.ParseInt(res.Gc.GitReclaimedBytes, 10, 64)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(gitReclaimed).To(BeNumerically(">=", 0))
+		reclaimed, err := strconv.ParseInt(res.Gc.XetReclaimedBytes, 10, 64)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(reclaimed).To(BeNumerically(">", 0))
-		GinkgoWriter.Printf("cleanup unlinked %d LFS objects and reclaimed %d bytes\n", res.LfsObjectsDeleted, reclaimed)
+		Expect(res.SpaceReclaimedBytes).To(Equal(strconv.FormatInt(gitReclaimed+reclaimed, 10)))
+		GinkgoWriter.Printf("cleanup unlinked %d LFS objects and reclaimed %d bytes\n", len(res.Gc.Unlinked), reclaimed)
 
 		downloadDir := filepath.Join(root, "download-b")
 		download := runHF(root, env, "download", fixture.Project.Name+"/"+modelB, "weights.safetensors", "--local-dir", downloadDir, "--force-download")
@@ -139,7 +156,14 @@ var _ = Describe("Cleanup", Label("cleanup"), func() {
 		again, resp, err := cleanupApi.CleanupExecuteCleanup(ctx, v1alpha1cleanup.V1alpha1ExecuteCleanupRequest{CleanOrphanedLfs: true})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-		Expect(again.LfsObjectsDeleted).To(BeZero())
+		Expect(again.Gc).NotTo(BeNil())
+		Expect(again.Gc.Unlinked).To(BeEmpty())
+	})
+
+	It("should reject a negative sweep bound", Label("CL00004"), func() {
+		_, resp, err := cleanupApi.CleanupExecuteCleanup(ctx, v1alpha1cleanup.V1alpha1ExecuteCleanupRequest{CleanOrphanedLfs: true, DryRun: true, MaxDeletes: -1})
+		Expect(err).To(HaveOccurred())
+		Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 	})
 })
 

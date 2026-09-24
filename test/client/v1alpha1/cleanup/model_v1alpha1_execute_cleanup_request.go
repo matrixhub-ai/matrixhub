@@ -10,7 +10,10 @@
 package v1alpha1
 
 type V1alpha1ExecuteCleanupRequest struct {
-	CleanOrphanedRepos bool `json:"cleanOrphanedRepos,omitempty"`
-	CleanOrphanedLfs   bool `json:"cleanOrphanedLfs,omitempty"`
-	DryRun             bool `json:"dryRun,omitempty"`
+	CleanOrphanedRepos bool   `json:"cleanOrphanedRepos,omitempty"`
+	CleanOrphanedLfs   bool   `json:"cleanOrphanedLfs,omitempty"`
+	DryRun             bool   `json:"dryRun,omitempty"`
+	Grace              string `json:"grace,omitempty"`
+	MaxDeletes         int32  `json:"maxDeletes,omitempty"`
+	Budget             string `json:"budget,omitempty"`
 }
