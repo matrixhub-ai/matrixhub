@@ -56,6 +56,7 @@ type SyncPolicyService struct {
 	syncJobService syncjob.ISyncJobService
 	projectRepo    project.IProjectRepo
 	jobGenerator   SyncJobGenerator
+	onTaskCreated  func(taskID int) bool
 }
 
 func NewSyncPolicyService(sprepo ISyncPolicyRepo, strepo ISyncTaskRepo, sjservice syncjob.ISyncJobService, prepo project.IProjectRepo, jobGenerator SyncJobGenerator) ISyncPolicyService {
@@ -70,6 +71,17 @@ func NewSyncPolicyService(sprepo ISyncPolicyRepo, strepo ISyncTaskRepo, sjservic
 
 func (sps *SyncPolicyService) GetSyncPolicy(ctx context.Context, id int) (*SyncPolicy, error) {
 	return sps.syncPolicyRepo.GetSyncPolicy(ctx, id)
+}
+
+// SetOnTaskCreated registers a best-effort wakeup called after a task is persisted.
+func (sps *SyncPolicyService) SetOnTaskCreated(fn func(taskID int) bool) {
+	sps.onTaskCreated = fn
+}
+
+func (sps *SyncPolicyService) notifyTaskCreated(taskID int) {
+	if sps.onTaskCreated != nil && !sps.onTaskCreated(taskID) {
+		log.Warnw("sync task trigger was not queued; periodic polling will recover it", "taskID", taskID)
+	}
 }
 
 func (sps *SyncPolicyService) CreateSyncPolicy(ctx context.Context, param *SyncPolicy) error {
@@ -99,7 +111,11 @@ func (sps *SyncPolicyService) GetSyncTask(ctx context.Context, id int) (*SyncTas
 }
 
 func (sps *SyncPolicyService) CreateSyncTask(ctx context.Context, syncTask *SyncTask) (*SyncTask, error) {
-	return sps.syncTaskRepo.CreateSyncTask(ctx, syncTask)
+	task, err := sps.syncTaskRepo.CreateSyncTask(ctx, syncTask)
+	if err == nil {
+		sps.notifyTaskCreated(task.ID)
+	}
+	return task, err
 }
 
 func (sps *SyncPolicyService) UpdateSyncTask(ctx context.Context, syncTask *SyncTask) error {
@@ -121,9 +137,15 @@ func (sps *SyncPolicyService) CreateSyncTaskAndSyncJobs(ctx context.Context, pol
 	}
 	for _, job := range jobs {
 		job.SyncTaskID = task.ID
-		if err := sps.syncJobService.CreateSyncJob(ctx, job); err != nil {
-			log.Infow("CreateSyncJob failed", "error", err)
+	}
+	if err := sps.syncJobService.CreateSyncJobs(ctx, jobs); err != nil {
+		log.Infow("CreateSyncJobs failed", "error", err)
+		task.Status = SyncTaskStatusFailed
+		task.CompletedTimestamp = time.Now().Unix()
+		if updateErr := sps.syncTaskRepo.UpdateSyncTask(ctx, task); updateErr != nil {
+			log.Errorw("failed to mark task as failed after job creation error", "taskID", task.ID, "error", updateErr)
 		}
+		return err
 	}
 	return nil
 }
@@ -175,7 +197,10 @@ func (sps *SyncPolicyService) CreatePendingSyncTask(ctx context.Context, policyI
 		SuccessfulItems:    0,
 		CompletePercents:   0,
 	}
-	_, err := sps.syncTaskRepo.CreateSyncTask(ctx, task)
+	created, err := sps.syncTaskRepo.CreateSyncTask(ctx, task)
+	if err == nil {
+		sps.notifyTaskCreated(created.ID)
+	}
 	return err
 }
 
@@ -188,7 +213,11 @@ func (sps *SyncPolicyService) CreateSyncTaskAsync(ctx context.Context, policy *S
 		TriggerType:  TriggerTypeManual,
 		Status:       SyncTaskStatusPending,
 	}
-	return sps.syncTaskRepo.CreateSyncTask(ctx, task)
+	created, err := sps.syncTaskRepo.CreateSyncTask(ctx, task)
+	if err == nil {
+		sps.notifyTaskCreated(created.ID)
+	}
+	return created, err
 }
 
 // ClaimPendingSyncTasks selects pending tasks and CAS-claims them for execution.
@@ -214,6 +243,33 @@ func (sps *SyncPolicyService) ClaimPendingSyncTasks(ctx context.Context, _ int64
 		})
 	}
 	return out, nil
+}
+
+// ClaimPendingSyncTask atomically claims a specific task requested by a creation trigger.
+func (sps *SyncPolicyService) ClaimPendingSyncTask(ctx context.Context, taskID int) (job.DueJob, bool, error) {
+	task, err := sps.syncTaskRepo.GetSyncTask(ctx, taskID)
+	if err != nil {
+		return job.DueJob{}, false, err
+	}
+	if task.Status != SyncTaskStatusPending {
+		return job.DueJob{}, false, nil
+	}
+	claimed, err := sps.syncTaskRepo.UpdateTaskStatusCAS(ctx, task.ID, SyncTaskStatusPending, SyncTaskStatusRunning)
+	if err != nil || !claimed {
+		return job.DueJob{}, claimed, err
+	}
+	return job.DueJob{
+		ID:          task.ID,
+		PolicyID:    task.SyncPolicyID,
+		TriggerType: int(task.TriggerType),
+		FireAtMs:    time.Now().UnixMilli(),
+	}, true, nil
+}
+
+// ReleaseSyncTaskClaim returns a task that did not start executing to pending.
+func (sps *SyncPolicyService) ReleaseSyncTaskClaim(ctx context.Context, taskID int) error {
+	_, err := sps.syncTaskRepo.UpdateTaskStatusCAS(ctx, taskID, SyncTaskStatusRunning, SyncTaskStatusPending)
+	return err
 }
 
 // ExecuteSyncTask generates sync jobs from a claimed task and creates pending sync_jobs.
@@ -259,9 +315,15 @@ func (sps *SyncPolicyService) ExecuteSyncTask(ctx context.Context, taskID int) e
 	for _, j := range jobs {
 		j.SyncTaskID = task.ID
 		j.Status = syncjob.SyncJobStatusPending
-		if err := sps.syncJobService.CreateSyncJob(ctx, j); err != nil {
-			log.Errorw("create sync job failed", "error", err, "taskID", task.ID)
+	}
+	if err := sps.syncJobService.CreateSyncJobs(ctx, jobs); err != nil {
+		log.Errorw("create sync jobs failed", "error", err, "taskID", task.ID)
+		task.Status = SyncTaskStatusFailed
+		task.CompletedTimestamp = time.Now().Unix()
+		if updateErr := sps.syncTaskRepo.UpdateSyncTask(ctx, task); updateErr != nil {
+			log.Errorw("failed to mark task as failed after job creation error", "taskID", task.ID, "error", updateErr)
 		}
+		return err
 	}
 	return nil
 }

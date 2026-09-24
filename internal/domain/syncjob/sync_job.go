@@ -84,6 +84,7 @@ func (p *SyncJob) HasSyncTask() bool {
 //go:generate go tool mockgen -source=sync_job.go -destination=mocks/sync_job_repo_mock.go -package=mocks
 type ISyncJobRepo interface {
 	CreateSyncJob(ctx context.Context, syncJob *SyncJob) error
+	CreateSyncJobs(ctx context.Context, syncJobs []*SyncJob) error
 	GetSyncJob(ctx context.Context, id int) (*SyncJob, error)
 	UpdateSyncJob(ctx context.Context, syncJob *SyncJob) error
 	DeleteSyncJob(ctx context.Context, id int) error

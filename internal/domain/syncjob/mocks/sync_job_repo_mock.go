@@ -55,6 +55,20 @@ func (mr *MockISyncJobRepoMockRecorder) CreateSyncJob(ctx, syncJob any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSyncJob", reflect.TypeOf((*MockISyncJobRepo)(nil).CreateSyncJob), ctx, syncJob)
 }
 
+// CreateSyncJobs mocks base method.
+func (m *MockISyncJobRepo) CreateSyncJobs(ctx context.Context, syncJobs []*syncjob.SyncJob) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSyncJobs", ctx, syncJobs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateSyncJobs indicates an expected call of CreateSyncJobs.
+func (mr *MockISyncJobRepoMockRecorder) CreateSyncJobs(ctx, syncJobs any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSyncJobs", reflect.TypeOf((*MockISyncJobRepo)(nil).CreateSyncJobs), ctx, syncJobs)
+}
+
 // DeleteSyncJob mocks base method.
 func (m *MockISyncJobRepo) DeleteSyncJob(ctx context.Context, id int) error {
 	m.ctrl.T.Helper()

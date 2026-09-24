@@ -32,6 +32,8 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
+	syncjobmocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncjob/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy/mocks"
 )
@@ -138,6 +140,7 @@ func TestSyncPolicyService_CreateSyncTaskAsync(t *testing.T) {
 	t.Run("task on a scheduled policy is recorded as manually triggered", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		taskRepo := mocks.NewMockISyncTaskRepo(ctrl)
+		var triggeredTaskID int
 
 		taskRepo.EXPECT().
 			CreateSyncTask(gomock.Any(), gomock.Any()).
@@ -145,10 +148,15 @@ func TestSyncPolicyService_CreateSyncTaskAsync(t *testing.T) {
 				require.Equal(t, syncpolicy.TriggerTypeManual, task.TriggerType)
 				require.Equal(t, syncpolicy.SyncTaskStatusPending, task.Status)
 				require.Equal(t, 7, task.SyncPolicyID)
+				task.ID = 42
 				return task, nil
 			})
 
 		svc := syncpolicy.NewSyncPolicyService(nil, taskRepo, nil, nil, nil)
+		svc.(interface{ SetOnTaskCreated(func(int) bool) }).SetOnTaskCreated(func(id int) bool {
+			triggeredTaskID = id
+			return true
+		})
 		task, err := svc.CreateSyncTaskAsync(ctx, &syncpolicy.SyncPolicy{
 			ID:          7,
 			TriggerType: syncpolicy.TriggerTypeScheduled,
@@ -157,5 +165,60 @@ func TestSyncPolicyService_CreateSyncTaskAsync(t *testing.T) {
 
 		require.NoError(t, err)
 		require.Equal(t, syncpolicy.TriggerTypeManual, task.TriggerType)
+		require.Equal(t, 42, triggeredTaskID)
 	})
+}
+
+func TestSyncPolicyService_ClaimPendingSyncTask(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	taskRepo := mocks.NewMockISyncTaskRepo(ctrl)
+	taskRepo.EXPECT().GetSyncTask(ctx, 42).Return(&syncpolicy.SyncTask{
+		ID:           42,
+		SyncPolicyID: 7,
+		TriggerType:  syncpolicy.TriggerTypeManual,
+		Status:       syncpolicy.SyncTaskStatusPending,
+	}, nil)
+	taskRepo.EXPECT().UpdateTaskStatusCAS(ctx, 42, syncpolicy.SyncTaskStatusPending, syncpolicy.SyncTaskStatusRunning).Return(true, nil)
+
+	svc := syncpolicy.NewSyncPolicyService(nil, taskRepo, nil, nil, nil)
+	due, claimed, err := svc.(interface {
+		ClaimPendingSyncTask(context.Context, int) (job.DueJob, bool, error)
+	}).ClaimPendingSyncTask(ctx, 42)
+
+	require.NoError(t, err)
+	require.True(t, claimed)
+	require.Equal(t, 42, due.ID)
+	require.Equal(t, 7, due.PolicyID)
+	require.Equal(t, int(syncpolicy.TriggerTypeManual), due.TriggerType)
+}
+
+func TestSyncPolicyService_ExecuteSyncTaskMarksFailureWhenJobBatchCreationFails(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	taskRepo := mocks.NewMockISyncTaskRepo(ctrl)
+	policyRepo := mocks.NewMockISyncPolicyRepo(ctrl)
+	jobService := syncjobmocks.NewMockISyncJobService(ctrl)
+	generator := mocks.NewMockSyncJobGenerator(ctrl)
+	task := &syncpolicy.SyncTask{ID: 42, SyncPolicyID: 7, Status: syncpolicy.SyncTaskStatusRunning}
+	policy := &syncpolicy.SyncPolicy{ID: 7}
+	jobs := []*syncjob.SyncJob{{}}
+	createErr := errors.New("database unavailable")
+
+	taskRepo.EXPECT().GetSyncTask(ctx, 42).Return(task, nil)
+	policyRepo.EXPECT().GetSyncPolicy(ctx, 7).Return(policy, nil)
+	generator.EXPECT().Generate(ctx, policy).Return(nil, jobs, nil)
+	taskRepo.EXPECT().UpdateSyncTask(ctx, task).DoAndReturn(func(_ context.Context, updated *syncpolicy.SyncTask) error {
+		require.Equal(t, 1, updated.TotalItems)
+		return nil
+	})
+	jobService.EXPECT().CreateSyncJobs(ctx, jobs).Return(createErr)
+	taskRepo.EXPECT().UpdateSyncTask(ctx, task).DoAndReturn(func(_ context.Context, updated *syncpolicy.SyncTask) error {
+		require.Equal(t, syncpolicy.SyncTaskStatusFailed, updated.Status)
+		require.NotZero(t, updated.CompletedTimestamp)
+		return nil
+	})
+
+	svc := syncpolicy.NewSyncPolicyService(policyRepo, taskRepo, jobService, nil, generator)
+	require.ErrorIs(t, svc.ExecuteSyncTask(ctx, task.ID), createErr)
 }
