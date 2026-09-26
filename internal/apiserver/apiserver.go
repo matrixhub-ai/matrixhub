@@ -46,6 +46,7 @@ import (
 	backendhf "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf"
 	backendhttp "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http"
 	backendlfs "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/lfs"
+	"github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/scanapi"
 	backendssh "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
@@ -53,6 +54,8 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/scan"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/scan/scanner/clamav"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
@@ -204,6 +207,20 @@ func (server *APIServer) initGitHooks() {
 		if err != nil {
 			log.Warnw("sync metadata after receive failed", "repo", repoName, "error", err)
 		}
+		// Security scanning: enqueue one task per updated ref tip. Content
+		// changes always produce a new commit SHA → a new scan verdict.
+		if server.services != nil && server.services.Scan != nil && (repoType == "models" || repoType == "datasets") {
+			for _, u := range updates {
+				if u.IsDelete() {
+					continue
+				}
+				if _, err := server.services.Scan.EnqueueRevision(ctx,
+					scan.RepoKey{RepoType: repoType, Project: project, Name: name},
+					u.NewRev(), "upload", "system:post-receive", false); err != nil {
+					log.Warnw("enqueue scan failed", "repo", repoName, "rev", u.NewRev(), "error", err)
+				}
+			}
+		}
 		return nil
 	}
 
@@ -307,6 +324,15 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 	tokenValidator := server.gitAuth.tokenValidator
 	tokenSignValidator := server.gitAuth.tokenSignValidator
 
+	gitAuthn := func() mux.MiddlewareFunc {
+		return func(next http.Handler) http.Handler {
+			next = authenticate.BasicAuthHandler(basicAuthValidator, next)
+			next = authenticate.TokenValidatorHandler(tokenValidator, next)
+			next = authenticate.AnonymousAuthenticateHandler(next)
+			return next
+		}
+	}
+
 	handler = backendhf.NewHandler(
 		backendhf.WithStorage(storage),
 		backendhf.WithNext(handler),
@@ -319,16 +345,8 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 			middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session, server.repos.User, server.repos.Robot),
 		),
 		backendhf.WithServices(server.services.Model, server.repos.Git, server.services.Authz),
+		backendhf.WithScanService(server.services.Scan),
 	)
-
-	gitAuthn := func() mux.MiddlewareFunc {
-		return func(next http.Handler) http.Handler {
-			next = authenticate.BasicAuthHandler(basicAuthValidator, next)
-			next = authenticate.TokenValidatorHandler(tokenValidator, next)
-			next = authenticate.AnonymousAuthenticateHandler(next)
-			return next
-		}
-	}
 
 	handler = backendlfs.NewHandler(
 		backendlfs.WithStorage(storage),
@@ -340,8 +358,42 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendlfs.WithMiddlewares(gitAuthn()),
 	)
 
+	// Scan REST API (issue #1066): reports / rescan / policy / audit,
+	// authenticated through the same git-style auth chain.
+	scanAPIHandler := scanapi.New(server.services.Scan, server.services.Scan)
+	scanAPIHandler.Use(middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session, server.repos.User, server.repos.Robot))
+	handler = scanAPIHandler.ChainWith(gitAuthn(), handler)
+
+	fetchAdmission := func(ctx context.Context, repoName string) error {
+		if server.services == nil || server.services.Scan == nil {
+			return nil
+		}
+		repoType, project, name, ok := utils.ParseFromRepoName(repoName)
+		if !ok || (repoType != "models" && repoType != "datasets") {
+			return nil
+		}
+		key := scan.RepoKey{RepoType: repoType, Project: project, Name: name}
+		sha, err := server.services.Scan.ResolveRevision(ctx, key, "")
+		if err != nil {
+			return nil // not scannable (e.g. empty repo): fall through
+		}
+		actor := "git-fetch"
+		if userInfo, ok := authenticate.GetUserInfo(ctx); ok && userInfo.User != "" {
+			actor = string(userInfo.User)
+		}
+		decision, err := server.services.Scan.AdmitDownload(ctx, key, sha, actor)
+		if err != nil {
+			return err
+		}
+		if !decision.Allow {
+			return errors.New(decision.Message)
+		}
+		return nil
+	}
+
 	handler = backendhttp.NewHandler(
 		backendhttp.WithStorage(storage),
+		backendhttp.WithFetchAdmissionFunc(fetchAdmission),
 		backendhttp.WithNext(handler),
 		backendhttp.WithMirror(sharedMirror),
 		backendhttp.WithPermissionHookFunc(permissionHookFunc),
@@ -399,6 +451,7 @@ type Services struct {
 	Dataset dataset.IDatasetService
 	Authz   authz.IAuthzService
 	Cleanup cleanup.ICleanupService
+	Scan    *scan.Service
 }
 
 func (server *APIServer) initHandlersServicesRepos() {
@@ -464,12 +517,49 @@ func (server *APIServer) initHandlersServicesRepos() {
 	// init cleanup service
 	cleanupService := cleanup.NewCleanupService(repos.Model, repos.Dataset, repos.Git)
 
+	// init security scan service (issue #1066): clamav (optional) + static
+	// pickle analyzer + resource heuristics over the git/LFS tree
+	scanLimits := scan.DefaultLimits()
+	scanStore := repo.NewScanStore(repos.DB)
+	var scanners []scan.Scanner
+	if server.config.JobServer != nil {
+		sc := server.config.JobServer.Scan
+		if sc.MaxConcurrent > 0 {
+			scanLimits.MaxConcurrent = sc.MaxConcurrent
+		}
+		if sc.TaskMaxDuration > 0 {
+			scanLimits.TaskTimeout = sc.TaskMaxDuration
+		}
+		if sc.MaxFiles > 0 {
+			scanLimits.MaxFiles = sc.MaxFiles
+		}
+		if sc.MaxFileSizeBytes > 0 {
+			scanLimits.MaxFileSize = sc.MaxFileSizeBytes
+		}
+		scanLimits.ClamAVSocket = sc.ClamAVSocket
+		scanLimits.ClamAVTCPServer = sc.ClamAVTCPServer
+	}
+	if scanLimits.ClamAVSocket != "" || scanLimits.ClamAVTCPServer != "" {
+		cfg := clamav.DefaultConfig(scanLimits.ClamAVSocket)
+		if scanLimits.ClamAVSocket == "" {
+			cfg = clamav.DefaultConfig("")
+			cfg.TCPServer = scanLimits.ClamAVTCPServer
+		}
+		if scanLimits.MaxFileSize < cfg.MaxScanBytes {
+			cfg.MaxScanBytes = scanLimits.MaxFileSize
+		}
+		scanners = append(scanners, scan.NewClamAVScanner(cfg))
+	}
+	scanners = append(scanners, scan.NewPickleScanner(), scan.NewHeuristicScanner())
+	scanTree := repo.NewScanTreeReader(repos.GitStorage, server.gitStorage.lfsStorage)
+	scanService := scan.NewService(scanStore, scanTree, scanners, scanLimits)
+
 	// wire task status reporter from sync policy service to sync job service
 	syncJobService.SetOnJobDone(syncPolicyService.ReportTaskStatus)
 
 	if server.config.JobServer != nil && server.config.JobServer.Enabled {
 		jc := *server.config.JobServer
-		server.jobServer = jobserver.New(&jc, syncPolicyService, syncJobService, logStore, canc)
+		server.jobServer = jobserver.New(&jc, syncPolicyService, syncJobService, logStore, canc, scanService, scanStore)
 	}
 
 	server.services = &Services{
@@ -477,6 +567,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		Dataset: datasetService,
 		Authz:   authzService,
 		Cleanup: cleanupService,
+		Scan:    scanService,
 	}
 
 	// init handlers

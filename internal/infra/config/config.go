@@ -46,12 +46,29 @@ type Config struct {
 
 // JobServerConfig is the top-level jobserver configuration (YAML key `jobServer`).
 type JobServerConfig struct {
-	Enabled       bool             `yaml:"enabled"`
-	ShutdownGrace time.Duration    `yaml:"shutdownGrace"`
-	SyncPolicy    SyncPolicyConfig `yaml:"syncPolicy"`
-	SyncTask      SyncTaskConfig   `yaml:"syncTask"`
-	SyncJob       SyncJobConfig    `yaml:"syncJob"`
-	LogDir        string           `yaml:"logDir"`
+	Enabled       bool                `yaml:"enabled"`
+	ShutdownGrace time.Duration       `yaml:"shutdownGrace"`
+	SyncPolicy    SyncPolicyConfig    `yaml:"syncPolicy"`
+	SyncTask      SyncTaskConfig      `yaml:"syncTask"`
+	SyncJob       SyncJobConfig       `yaml:"syncJob"`
+	Scan          ScanProcessorConfig `yaml:"scan"`
+	LogDir        string              `yaml:"logDir"`
+}
+
+// ScanProcessorConfig tunes the security-scan processor and its scanners.
+type ScanProcessorConfig struct {
+	PollInterval    time.Duration `yaml:"pollInterval"`
+	MaxConcurrent   int           `yaml:"maxConcurrent"`
+	TaskMaxDuration time.Duration `yaml:"taskMaxDuration"`
+	// MaxFiles caps the file count of one revision; larger revisions fail.
+	MaxFiles int `yaml:"maxFiles"`
+	// MaxFileSizeBytes caps one file (digest + scan) per file.
+	MaxFileSizeBytes int64 `yaml:"maxFileSizeBytes"`
+	// ClamAVSocket is the clamd unix socket (empty disables the clamav
+	// scanner → scan tasks fail with "scanner unavailable" per policy).
+	ClamAVSocket string `yaml:"clamAVSocket"`
+	// ClamAVTCPServer is host:port when no unix socket is used.
+	ClamAVTCPServer string `yaml:"clamAVTCPServer"`
 }
 
 // SyncPolicyConfig holds per-processor tuning for the sync-policy delayed-job poller.
@@ -94,6 +111,11 @@ func DefaultJobServerConfig() *JobServerConfig {
 			PollInterval:    3 * time.Second,
 			MaxConcurrent:   5,
 			TaskMaxDuration: 2 * time.Hour,
+		},
+		Scan: ScanProcessorConfig{
+			PollInterval:    5 * time.Second,
+			MaxConcurrent:   2,
+			TaskMaxDuration: 30 * time.Minute,
 		},
 	}
 }
