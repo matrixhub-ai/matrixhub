@@ -31,6 +31,9 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
+	"time"
+	"github.com/matrixhub-ai/hfd/pkg/lfs"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/scan"
 )
 
 // handleInfoRevision handles the /api/{repoType}/{repo_id}/revision/{rev} and /api/{repoType}/{repo_id} endpoint
@@ -78,13 +81,40 @@ func (h *Handler) handleInfoRevision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filesMetadata := r.URL.Query().Get("files_metadata") == "true" ||
+		r.URL.Query().Get("blobs") == "true"
+	securityStatus := r.URL.Query().Get("securityStatus") == "true"
+
 	var siblings []sibling
 	for _, entry := range hfEntries {
-		if entry.Type() == repository.EntryTypeFile {
-			siblings = append(siblings, sibling{
-				RFilename: entry.Path(),
-			})
+		if entry.Type() != repository.EntryTypeFile {
+			continue
 		}
+		sib := sibling{RFilename: entry.Path()}
+		if filesMetadata {
+			if b, err := entry.Blob(); err == nil {
+				size := b.Size()
+				sib.Size = &size
+				sib.BlobID = b.Hash().String()
+				if mt := b.ModTime(); !mt.IsZero() {
+					ts := mt.UTC().Format(time.RFC3339)
+					sib.LastModified = &ts
+				}
+				// LFS pointer files expose their oid + real size
+				if size <= lfs.MaxLFSPointerSize {
+					if rc, err := b.NewReader(); err == nil {
+						ptr, derr := lfs.DecodePointer(rc)
+						_ = rc.Close()
+						if derr == nil && ptr != nil {
+							sib.LFS = &sibLFS{OID: ptr.OID(), Size: ptr.Size(), SHA256: ptr.OID()}
+							total := size
+							sib.Size = &total
+						}
+					}
+				}
+			}
+		}
+		siblings = append(siblings, sib)
 	}
 
 	usedStorage, _ := repo.DiskUsage()
@@ -118,12 +148,53 @@ func (h *Handler) handleInfoRevision(w http.ResponseWriter, r *http.Request) {
 		UsedStorage: usedStorage,
 	}
 
+	if securityStatus && h.scanService != nil {
+		key := scan.RepoKey{RepoType: ri.RepoType, Project: ri.Namespace, Name: ri.Name}
+		status, err := h.scanService.VersionStatus(r.Context(), key, commitHash)
+		if err == nil {
+			details := map[string]any{
+				"status":  string(status),
+				"verdict": string(verdictOf(status)),
+				"revision": commitHash,
+			}
+			if rep, err := h.scanService.BuildReport(r.Context(), key, commitHash); err == nil && rep != nil {
+				details["taskId"] = rep.TaskID
+				details["counts"] = rep.Counts
+				if rep.ScannedAt != nil {
+					details["scannedAt"] = rep.ScannedAt.UTC().Format(time.RFC3339)
+				}
+				if rep.Error != "" {
+					details["error"] = rep.Error
+				}
+			}
+			hfInfo.SecurityRepoStatus = map[string]any{
+				"kind":    "malware",
+				"status":  status.HFStatus(),
+				"details": details,
+			}
+		}
+	}
+
 	// For models, also set the modelId field which is required by some HuggingFace clients. For datasets and spaces, the client doesn't require it and it can be confusing to have it be different from the ID, so we leave it empty.
 	if ri.RepoType == "models" {
 		hfInfo.ModelID = hfInfo.ID
 	}
 
 	responseJSON(w, hfInfo, http.StatusOK)
+}
+
+// verdictOf maps a version status to its verdict for reporting.
+func verdictOf(s scan.VersionStatus) scan.Verdict {
+	switch s {
+	case scan.StatusBlocked:
+		return scan.VerdictBlocked
+	case scan.StatusWarning:
+		return scan.VerdictWarning
+	case scan.StatusPass:
+		return scan.VerdictPass
+	default:
+		return scan.VerdictUnknown
+	}
 }
 
 // handleDeleteRepo handles DELETE /api/repos/delete

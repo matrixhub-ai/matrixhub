@@ -30,6 +30,8 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
+	"github.com/matrixhub-ai/hfd/pkg/authenticate"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/scan"
 )
 
 func (h *Handler) handleTree(w http.ResponseWriter, r *http.Request) {
@@ -216,6 +218,30 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 	commitHash := ""
 	if err == nil && len(commits) > 0 {
 		commitHash = commits[0].Hash().String()
+	}
+
+	// Security admission (issue #1066): the resolved revision must satisfy the
+	// scan policy before any content is served. HF-compatible clients receive
+	// a stable, structured 403 error they can surface verbatim.
+	if h.scanService != nil && commitHash != "" {
+		actor := "anonymous"
+		if userInfo, ok := authenticate.GetUserInfo(r.Context()); ok && userInfo.User != "" {
+			actor = string(userInfo.User)
+		}
+		decision, derr := h.scanService.AdmitDownload(r.Context(),
+			scan.RepoKey{RepoType: ri.RepoType, Project: ri.Namespace, Name: ri.Name},
+			commitHash, actor)
+		if derr == nil && !decision.Allow {
+			status := decision.HTTPStatus
+			if status == 0 {
+				status = http.StatusForbidden
+			}
+			responseJSONRaw(w, map[string]any{
+				"error":   decision.Code,
+				"message": decision.Message,
+			}, status)
+			return
+		}
 	}
 
 	blob, err := repo.Blob(rev, path)

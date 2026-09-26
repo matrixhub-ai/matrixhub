@@ -105,11 +105,25 @@ type repoInfo struct {
 	CreatedAt    string    `json:"createdAt,omitempty"`
 	LastModified string    `json:"lastModified,omitempty"`
 	UsedStorage  int64     `json:"usedStorage"`
+	// SecurityRepoStatus is present when securityStatus=true is requested
+	// (huggingface_hub ModelInfo.security_repo_status).
+	SecurityRepoStatus map[string]any `json:"securityRepoStatus,omitempty"`
 }
 
 // sibling represents a file in the model repository
 type sibling struct {
-	RFilename string `json:"rfilename"`
+	RFilename    string    `json:"rfilename"`
+	Size         *int64    `json:"size,omitempty"`
+	BlobID       string    `json:"blobId,omitempty"`
+	LastModified *string   `json:"lastModified,omitempty"`
+	LFS          *sibLFS   `json:"lfs,omitempty"`
+}
+
+// sibLFS mirrors the HF files_metadata LFS descriptor.
+type sibLFS struct {
+	OID    string `json:"oid"`
+	Size   int64  `json:"size"`
+	SHA256 string `json:"sha256"`
 }
 
 // deleteRepoRequest represents the delete repo request body.
