@@ -22,17 +22,17 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/gorilla/mux"
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
+	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
-	"time"
-	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/scan"
 )
 
@@ -153,8 +153,8 @@ func (h *Handler) handleInfoRevision(w http.ResponseWriter, r *http.Request) {
 		status, err := h.scanService.VersionStatus(r.Context(), key, commitHash)
 		if err == nil {
 			details := map[string]any{
-				"status":  string(status),
-				"verdict": string(verdictOf(status)),
+				"status":   string(status),
+				"verdict":  string(verdictOf(status)),
 				"revision": commitHash,
 			}
 			if rep, err := h.scanService.BuildReport(r.Context(), key, commitHash); err == nil && rep != nil {

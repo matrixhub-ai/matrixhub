@@ -45,7 +45,7 @@ type Handler struct {
 	authzService        authz.IAuthzService
 	// fetchAdmissionFunc gates git-upload-pack (clone/fetch) per repository.
 	// Returning a non-nil error denies the fetch with a stable message.
-	fetchAdmissionFunc  func(ctx context.Context, repoName string) error
+	fetchAdmissionFunc func(ctx context.Context, repoName string) error
 }
 
 // Option defines a functional option for configuring the Handler.

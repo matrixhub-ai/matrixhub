@@ -203,14 +203,11 @@ func scanZip(rs io.ReadSeeker, size int64, lim Limits, depth int, out *[]Finding
 		if err != nil {
 			continue
 		}
-		nested, isArchive, isText := sniffNested(rc, lim)
+		nested, isArchive := sniffNested(rc, lim)
 		_ = rc.Close()
-		switch {
-		case isArchive:
+		if isArchive {
 			nrs := bytes.NewReader(nested)
 			scanContainer(nrs, f.Name, int64(len(nested)), lim, depth+1, out)
-		case isText:
-			// plain member, nothing to do
 		}
 	}
 }
@@ -263,7 +260,7 @@ func isTarMagic(b []byte) bool {
 
 // sniffNested reads at most 4 MiB of a member deciding whether it is a nested
 // archive; text members are read harmlessly. It enforces the global cap.
-func sniffNested(rc io.Reader, lim Limits) (data []byte, isArchive, isText bool) {
+func sniffNested(rc io.Reader, lim Limits) (data []byte, isArchive bool) {
 	capBytes := int64(4 << 20)
 	if capBytes > lim.MaxDecompressedBytes {
 		capBytes = lim.MaxDecompressedBytes
@@ -279,10 +276,10 @@ func sniffNested(rc io.Reader, lim Limits) (data []byte, isArchive, isText bool)
 	}
 	if len(buf) >= 4 {
 		if bytes.Equal(buf[:4], []byte("PK\x03\x04")) || bytes.Equal(buf[:2], []byte("\x1f\x8b")) {
-			return buf, true, false
+			return buf, true
 		}
 	}
-	return buf, false, true
+	return buf, false
 }
 
 type seekerAt struct{ rs io.ReadSeeker }

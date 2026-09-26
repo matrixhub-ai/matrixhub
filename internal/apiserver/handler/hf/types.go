@@ -112,11 +112,11 @@ type repoInfo struct {
 
 // sibling represents a file in the model repository
 type sibling struct {
-	RFilename    string    `json:"rfilename"`
-	Size         *int64    `json:"size,omitempty"`
-	BlobID       string    `json:"blobId,omitempty"`
-	LastModified *string   `json:"lastModified,omitempty"`
-	LFS          *sibLFS   `json:"lfs,omitempty"`
+	RFilename    string  `json:"rfilename"`
+	Size         *int64  `json:"size,omitempty"`
+	BlobID       string  `json:"blobId,omitempty"`
+	LastModified *string `json:"lastModified,omitempty"`
+	LFS          *sibLFS `json:"lfs,omitempty"`
 }
 
 // sibLFS mirrors the HF files_metadata LFS descriptor.

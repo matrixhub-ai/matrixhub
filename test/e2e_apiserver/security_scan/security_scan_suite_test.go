@@ -15,6 +15,7 @@
 package security_scan_test
 
 import (
+	"os"
 	"os/exec"
 	"testing"
 
@@ -31,6 +32,13 @@ func TestSecurityScan(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	defer GinkgoRecover()
+	// Opt-in suite: it requires a server deployed with the scan stack
+	// (jobServer.scan enabled + a reachable clamd). CI's default compose has
+	// neither, so the suite skips unless the deployment opts in with
+	// MATRIXHUB_E2E_SECURITY_SCAN=1.
+	if os.Getenv("MATRIXHUB_E2E_SECURITY_SCAN") != "1" {
+		Skip("security-scan e2e is opt-in: set MATRIXHUB_E2E_SECURITY_SCAN=1 on a scan-enabled deployment")
+	}
 	_, err := exec.LookPath("hf")
 	Expect(err).NotTo(HaveOccurred(), "hf CLI is required for the security-scan e2e suite")
 	testenv.InitTestEnvironment()

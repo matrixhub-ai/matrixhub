@@ -97,7 +97,11 @@ func TestScanGzipBomb(t *testing.T) {
 		t.Fatal(err)
 	}
 	_ = gw.Close()
-	fs := Scan(bytes.NewReader(buf.Bytes()), "blob.gz", int64(buf.Len()), DefaultLimits())
+	// 8 MiB of zeros deflates to roughly a 1000:1 ratio, which sits exactly at
+	// the production cap; pin a deterministic, stricter cap for the test.
+	lim := DefaultLimits()
+	lim.MaxRatio = 100
+	fs := Scan(bytes.NewReader(buf.Bytes()), "blob.gz", int64(buf.Len()), lim)
 	found := false
 	for _, f := range fs {
 		if f.Rule == "heur.gzip-bomb" {

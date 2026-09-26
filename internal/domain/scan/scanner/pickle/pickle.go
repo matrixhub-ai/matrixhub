@@ -515,10 +515,12 @@ func (w *walker) step() (bool, error) {
 		}
 	case 0x4A, 0x4B, 0x4D: // BININT, BININT1, BININT2
 		n := 4
-		if op == 0x4B {
+		switch op {
+		case 0x4B:
 			n = 1
-		} else if op == 0x4D {
+		case 0x4D:
 			n = 2
+		default:
 		}
 		if _, err := io.CopyN(io.Discard, w.r, int64(n)); err != nil {
 			return false, err

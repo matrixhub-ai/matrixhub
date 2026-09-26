@@ -27,10 +27,11 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
-	"github.com/matrixhub-ai/hfd/pkg/authenticate"
+
 	"github.com/matrixhub-ai/matrixhub/internal/domain/scan"
 )
 
