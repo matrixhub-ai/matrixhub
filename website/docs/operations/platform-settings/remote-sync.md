@@ -39,6 +39,7 @@ A policy can be triggered manually or scheduled with a cron expression. Each run
     | Pull a single model from a remote registry | Sync Rule: Pull<br />Source Registry: `matrixhub-remote`<br />Resource Name: `Qwen/Qwen3-0.6B`<br />Resource Type: Model<br />Target Project: `demo`<br />Trigger Mode: Manual<br />Bandwidth Limit: `-1` |
     | Pull models from a remote registry in batch | Sync Rule: Pull<br />Source Registry: `matrixhub-remote`<br />Resource Name: `Qwen/**`<br />Resource Type: Model<br />Target Project: `demo`<br />Trigger Mode: Scheduled<br />Cron: `0 0 * * *`<br />Bandwidth Limit: `1024 Kbps` |
     | Push a local model to a remote registry | Sync Rule: Push<br />Target Registry: `matrixhub-remote`<br />Resource Name: `demo/Qwen3-0.6B`<br />Resource Type: Model<br />Target Project: `test-org`<br />Trigger Mode: Manual<br />Bandwidth Limit: `-1` |
+    | Push all local models in a project to a remote registry | Sync Rule: Push<br />Target Registry: `matrixhub-remote`<br />Resource Name: `demo/**`<br />Resource Type: Model<br />Target Project: `test-org`<br />Trigger Mode: Scheduled<br />Cron: `0 0 * * *`<br />Bandwidth Limit: `1024 Kbps` |
 
 1. Click **Confirm** to create the policy. After creation, you can **Sync**, **Edit**, **Enable/Disable**, or **Delete** the policy from the list.
 
@@ -62,7 +63,7 @@ A policy can be triggered manually or scheduled with a cron expression. Each run
 | Name / Description | Used to identify the sync policy. The name must be at least 2 characters, contain only lowercase letters, numbers, dots, underscores, and hyphens, and start with a lowercase letter or number. Description is optional, up to 50 characters. |
 | Sync Rule | Select the direction: **Pull** or **Push**. The direction cannot be changed after creation. |
 | Source / Target Registry | Pull uses a source registry. Push uses a target registry. Registry connections are maintained in **Registry Management**. |
-| Resource Name | The model path to sync, such as `Qwen/Qwen3-0.6B`. Pull supports `*`, `**`, or `Qwen/**` for batch matching. |
+| Resource Name | The model path to sync, such as `Qwen/Qwen3-0.6B`. Pull and push support `*`, `**`, or `Qwen/**` for batch matching on the source registry or local MatrixHub. |
 | Resource Type | Currently only **Model** is supported. |
 | Target Project | For pull, this is a project in the current MatrixHub instance. For push, this is a project in the remote registry. |
 | Trigger Mode / Cron | Run manually or on a five-field cron schedule. Cron is required only for scheduled policies. |

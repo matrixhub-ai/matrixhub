@@ -453,7 +453,12 @@ func (server *APIServer) initHandlersServicesRepos() {
 		registrydiscovery.ProviderHuggingFace: hfdiscovery.New(),
 		registrydiscovery.ProviderMatrixHub:   mhdiscovery.New(),
 	}
-	jobGenerator := syncpolicy.NewSyncJobGenerator(repos.Registry, discoveries)
+	jobGenerator := syncpolicy.NewSyncJobGenerator(
+		repos.Registry,
+		discoveries,
+		syncpolicy.LocalResourceSource{ResourceType: "model", Repo: repos.Model},
+		syncpolicy.LocalResourceSource{ResourceType: "dataset", Repo: repos.Dataset},
+	)
 	syncPolicyService := syncpolicy.NewSyncPolicyService(
 		repos.SyncPolicy,
 		repos.SyncTask,
