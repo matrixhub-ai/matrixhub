@@ -361,6 +361,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 	// Scan REST API (issue #1066): reports / rescan / policy / audit,
 	// authenticated through the same git-style auth chain.
 	scanAPIHandler := scanapi.New(server.services.Scan, server.services.Scan)
+	scanAPIHandler.Use(middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session, server.repos.User, server.repos.Robot))
 	handler = scanAPIHandler.ChainWith(gitAuthn(), handler)
 
 	fetchAdmission := func(ctx context.Context, repoName string) error {

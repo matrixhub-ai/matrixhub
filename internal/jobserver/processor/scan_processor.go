@@ -84,12 +84,23 @@ func (p *scanProcessor) loop(ctx context.Context) {
 	defer close(p.done)
 	ticker := time.NewTicker(p.cfg.PollInterval)
 	defer ticker.Stop()
+	// Claim leases must be re-checked periodically, not only at startup: a
+	// worker goroutine can die without finishing its task (OOM-kill, panic
+	// in a scanner) and the task would otherwise hang in "scanning" forever.
+	sweep := time.NewTicker(time.Minute)
+	defer sweep.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
 			p.drain(ctx)
+		case <-sweep.C:
+			if n, err := p.store.ResetStaleClaims(ctx, time.Now()); err != nil {
+				log.Warnw("scan: reset stale claims failed", "error", err)
+			} else if n > 0 {
+				log.Infow("scan: re-queued stale tasks", "count", n)
+			}
 		}
 	}
 }

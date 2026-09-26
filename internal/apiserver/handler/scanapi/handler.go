@@ -42,6 +42,12 @@ func New(svc scan.ServiceAPI, full *scan.Service) *Handler {
 	return h
 }
 
+// Use appends middlewares to the scan router (e.g. the HF session/token
+// authn middleware so the web UI can call these endpoints with cookies).
+func (h *Handler) Use(mw ...mux.MiddlewareFunc) {
+	h.root.Use(mw...)
+}
+
 func (h *Handler) register() {
 	r := h.root
 	r.Use(h.requireUser)
