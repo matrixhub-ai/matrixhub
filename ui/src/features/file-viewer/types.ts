@@ -9,7 +9,10 @@ export interface FileViewerFile {
   name?: string
   size?: string
   url?: string
+  lfs?: boolean
   sha256?: string
+  xetHash?: string
+  pointerSize?: string
   commit?: {
     id?: string
     authorName?: string
