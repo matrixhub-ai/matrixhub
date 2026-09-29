@@ -1,6 +1,12 @@
 # SSH 公钥
 
-本页介绍如何配置 SSH 公钥。
+SSH 公钥用于 Git 身份认证。配置完成后，无需输入访问令牌即可通过 SSH 克隆和推送模型仓库。
+
+## 前置条件
+
+- 拥有有效的 MatrixHub 账号，并且具备目标模型仓库的访问权限，例如 `my-matrixhub-project/test-mn`。
+- 本地已安装 Git。如果仓库包含大模型文件，还需安装 Git LFS。
+- 已通过 Docker Compose 或 Helm 对外暴露 MatrixHub SSH 服务。
 
 ## 查看已有 SSH 公钥
 
@@ -97,3 +103,53 @@
 1. 登录 MatrixHub UI，依次选择 **个人中心** -> **SSH 公钥** -> **导入 SSH 公钥**。
 
 2. 在弹出的窗口中填写相关信息，然后单击 **确定**。
+
+## 使用 SSH 公钥
+
+SSH 仓库路径格式为 `<项目>/<模型>.git`。请根据部署方式使用对应的 SSH 地址。
+
+### Docker Compose
+
+Docker Compose 默认将 SSH 服务暴露在 `2222` 端口。请将 `<matrixhub-host>` 替换为 MatrixHub 所在主机的 IP 地址或域名：
+
+```bash
+git clone -c core.sshCommand="ssh -p 2222" git@<matrixhub-host>:my-matrixhub-project/test-mn.git
+```
+
+如果启动 MatrixHub 时设置了 `MATRIXHUB_SSH_PORT`，请使用配置的端口替换 `2222`。
+
+### Helm
+
+如果 Helm 部署使用默认的 `NodePort` 配置，请使用 Kubernetes 节点 IP 和 `30022` 端口：
+
+```bash
+git clone -c core.sshCommand="ssh -p 30022" git@<node-ip>:my-matrixhub-project/test-mn.git
+```
+
+可以运行 `kubectl get nodes -o wide` 查看节点 IP。如果修改了 `apiserver.service.sshNodePort`，请使用配置的端口替换 `30022`。
+
+### 可选：配置 SSH 以便长期使用
+
+如果需要经常使用 MatrixHub，可以在 `~/.ssh/config` 中添加别名，并填写部署对应的 SSH 端口（Docker Compose 默认为 `2222`，Helm NodePort 默认为 `30022`）：
+
+```text
+Host matrixhub
+  HostName <matrixhub-host-or-node-ip>
+  Port <ssh-port>
+  User git
+```
+
+之后可以使用更短的命令克隆仓库：
+
+```bash
+git clone matrixhub:my-matrixhub-project/test-mn.git
+```
+
+克隆完成后，可以使用标准 Git 命令提交并推送修改：
+
+```bash
+cd test-mn
+git add .
+git commit -m "Update model"
+git push
+```

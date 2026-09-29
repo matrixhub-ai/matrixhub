@@ -1,6 +1,12 @@
 # SSH Public Key
 
-This page explains how to configure your SSH public key.
+SSH public keys are used for Git authentication. After configuration, you can clone and push model repositories over SSH without entering an access token.
+
+## Prerequisites
+
+- A valid MatrixHub account with access to the target model repository, for example `my-matrixhub-project/test-mn`.
+- Git installed locally. Install Git LFS as well if the repository contains large model files.
+- A MatrixHub SSH endpoint exposed by Docker Compose or Helm.
 
 ## View Existing SSH Keys
 
@@ -99,3 +105,54 @@ you can use the following commands to copy the public key to the clipboard, depe
 1. Log in to the MatrixHub UI page and select **Profile** -> **SSH Public Key** -> **Import SSH Public Key**.
 
 2. Fill the required information in the pop-up window and click **Confirm**.
+
+## Use the SSH Public Key
+
+The SSH repository path is `<project>/<model>.git`. Use the endpoint that matches your deployment.
+
+### Docker Compose
+
+Docker Compose exposes the SSH service on port `2222` by default. Replace `<matrixhub-host>` with the IP address or hostname of the machine running MatrixHub:
+
+```bash
+git clone -c core.sshCommand="ssh -p 2222" git@<matrixhub-host>:my-matrixhub-project/test-mn.git
+```
+
+If you set `MATRIXHUB_SSH_PORT` when starting MatrixHub, use that port instead of `2222`.
+
+### Helm
+
+For a Helm deployment exposed with the default `NodePort` settings, use a Kubernetes node IP and port `30022`:
+
+```bash
+git clone -c core.sshCommand="ssh -p 30022" git@<node-ip>:my-matrixhub-project/test-mn.git
+```
+
+Find a node IP with `kubectl get nodes -o wide`. If you changed `apiserver.service.sshNodePort`, use the configured port instead of `30022`.
+
+### Optional: Configure SSH for Long-Term Use
+
+If you use MatrixHub frequently, add an alias to `~/.ssh/config` and use the SSH port for your deployment (`2222` for Docker Compose or `30022` for the default Helm NodePort):
+
+```text
+Host matrixhub
+  HostName <matrixhub-host-or-node-ip>
+  Port <ssh-port>
+  User git
+```
+
+You can then clone repositories with a shorter command:
+
+```bash
+git clone matrixhub:my-matrixhub-project/test-mn.git
+```
+
+After cloning, use standard Git commands to commit and push changes:
+
+```bash
+cd test-mn
+git add .
+git commit -m "Update model"
+git push
+```
+
