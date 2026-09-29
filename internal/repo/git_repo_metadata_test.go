@@ -15,13 +15,17 @@
 package repo
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	hfdstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 
@@ -109,6 +113,9 @@ func TestExtractMetadataReadsSingleSafetensorsHeader(t *testing.T) {
 	if len(header) >= len(fullSafetensors) {
 		t.Fatalf("expected only safetensors header, got full file: header=%d full=%d", len(header), len(fullSafetensors))
 	}
+	if size := files.SafetensorsSizes["model.safetensors"]; size != int64(len(fullSafetensors)) {
+		t.Fatalf("SafetensorsSizes[model.safetensors] = %d, want %d", size, len(fullSafetensors))
+	}
 
 	metadata, err := modeldomain.AnalyzeRepoMetadata(files)
 	if err != nil {
@@ -194,7 +201,7 @@ func TestExtractMetadataFallsBackToLFSPointerSize(t *testing.T) {
 	}
 }
 
-func TestExtractMetadataSkipsShardHeadersWhenIndexHasTotalSize(t *testing.T) {
+func TestExtractMetadataReadsLocalShardHeadersWhenIndexHasTotalSize(t *testing.T) {
 	ctx := context.Background()
 	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
 	repo := initRepoTestRepository(t, ctx, store)
@@ -220,27 +227,148 @@ func TestExtractMetadataSkipsShardHeadersWhenIndexHasTotalSize(t *testing.T) {
 		t.Fatalf("CreateCommit() error = %v", err)
 	}
 
-	files, err := NewGitDB(store, nil).ExtractMetadata(ctx, "models", "test-project", "test-model")
+	files, err := NewGitDB(store, &mirror.Mirror{}).ExtractMetadata(ctx, "models", "test-project", "test-model")
 	if err != nil {
 		t.Fatalf("ExtractMetadata() error = %v", err)
 	}
 
-	// total_size alone answers the question, so no shard may be opened. Reading
-	// them would promote every shard to a foreground LFS download on proxy repos.
-	if len(files.SafetensorsFiles) != 0 {
-		t.Fatalf("SafetensorsFiles = %v, want no shard headers read", files.SafetensorsFiles)
+	if len(files.SafetensorsFiles) != 2 {
+		t.Fatalf("SafetensorsFiles contains %d headers, want 2", len(files.SafetensorsFiles))
 	}
-	if len(files.SafetensorsSizes) != 0 {
-		t.Fatalf("SafetensorsSizes = %v, want no shard sizes recorded", files.SafetensorsSizes)
+	if len(files.SafetensorsSizes) != 2 {
+		t.Fatalf("SafetensorsSizes contains %d sizes, want 2", len(files.SafetensorsSizes))
+	}
+	for path, size := range files.SafetensorsSizes {
+		if size != int64(len(shard)) {
+			t.Fatalf("SafetensorsSizes[%s] = %d, want %d", path, size, len(shard))
+		}
 	}
 
 	metadata, err := modeldomain.AnalyzeRepoMetadata(files)
 	if err != nil {
 		t.Fatalf("AnalyzeRepoMetadata() error = %v", err)
 	}
-	// 2048 bytes of bfloat16 weights.
-	if metadata.ParameterCount != 1024 {
-		t.Fatalf("ParameterCount = %d, want 1024", metadata.ParameterCount)
+	if metadata.ParameterCount != 40 {
+		t.Fatalf("ParameterCount = %d, want 40 from local headers", metadata.ParameterCount)
+	}
+}
+
+func TestExtractMetadataIndexedHeadersNeverAccessMirror(t *testing.T) {
+	for _, tt := range []struct {
+		name       string
+		localLFS   bool
+		corrupt    bool
+		cancel     bool
+		wantHeader int
+	}{
+		{"all LFS shards local", true, false, false, 2},
+		{"one LFS shard missing", false, false, false, 0},
+		{"one local header unreadable", true, true, false, 0},
+		{"spent budget", true, false, true, 0},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+			repo := initRepoTestRepository(t, ctx, store)
+			first := buildRepoTestSafetensorsFile(t, map[string][]int64{"a": {2, 3}}, 64)
+			second := buildRepoTestSafetensorsFile(t, map[string][]int64{"b": {4, 5}}, 64)
+			if tt.corrupt {
+				second = []byte("invalid")
+			}
+			firstPointer := repoTestLFSPointer(t, store, first, true)
+			secondPointer := repoTestLFSPointer(t, store, second, tt.localLFS)
+			index := []byte(`{"metadata":{"total_size":52},"weight_map":{"a":"a.safetensors","b":"b.safetensors"}}`)
+			if _, err := repo.CreateCommit(ctx, "main", "add indexed LFS model", "Test", "test@example.com", []repository.CommitOperation{
+				{Type: repository.CommitOperationAdd, Path: "config.json", Content: []byte(`{"torch_dtype":"bfloat16"}`)},
+				{Type: repository.CommitOperationAdd, Path: "model.safetensors.index.json", Content: index},
+				{Type: repository.CommitOperationAdd, Path: "a.safetensors", Content: firstPointer},
+				{Type: repository.CommitOperationAdd, Path: "b.safetensors", Content: secondPointer},
+			}, ""); err != nil {
+				t.Fatal(err)
+			}
+			if tt.cancel {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+			}
+			// An uninitialized mirror panics on Get, detecting any tee-cache access.
+			files, err := NewGitDB(store, &mirror.Mirror{}).ExtractMetadata(ctx, "models", "test-project", "test-model")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(files.SafetensorsFiles) != tt.wantHeader {
+				t.Fatalf("got %d headers, want %d", len(files.SafetensorsFiles), tt.wantHeader)
+			}
+			if files.SafetensorsSizes["a.safetensors"] != int64(len(first)) ||
+				files.SafetensorsSizes["b.safetensors"] != int64(len(second)) {
+				t.Fatalf("full LFS sizes not retained: %v", files.SafetensorsSizes)
+			}
+			metadata, err := modeldomain.AnalyzeRepoMetadata(files)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if metadata.ParameterCount != 26 {
+				t.Fatalf("ParameterCount = %d, want 26", metadata.ParameterCount)
+			}
+		})
+	}
+}
+
+func TestExtractMetadataUnindexedLocalLFSHeader(t *testing.T) {
+	ctx := context.Background()
+	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	repo := initRepoTestRepository(t, ctx, store)
+	shard := buildRepoTestSafetensorsFile(t, map[string][]int64{"weight": {2, 3}}, 64)
+	pointer := repoTestLFSPointer(t, store, shard, true)
+	if _, err := repo.CreateCommit(ctx, "main", "add local LFS model", "Test", "test@example.com", []repository.CommitOperation{
+		{Type: repository.CommitOperationAdd, Path: "model.safetensors", Content: pointer},
+	}, ""); err != nil {
+		t.Fatal(err)
+	}
+	files, err := NewGitDB(store, &mirror.Mirror{}).ExtractMetadata(ctx, "models", "test-project", "test-model")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files.SafetensorsFiles) != 1 || files.SafetensorsSizes["model.safetensors"] != int64(len(shard)) {
+		t.Fatalf("expected local header and full size, got %d headers and %v", len(files.SafetensorsFiles), files.SafetensorsSizes)
+	}
+	metadata, err := modeldomain.AnalyzeRepoMetadata(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if metadata.ParameterCount != 6 {
+		t.Fatalf("ParameterCount = %d, want 6", metadata.ParameterCount)
+	}
+}
+
+func repoTestLFSPointer(t *testing.T, store *hfdstorage.Storage, content []byte, local bool) []byte {
+	t.Helper()
+	oid := fmt.Sprintf("%x", sha256.Sum256(content))
+	if local {
+		objectPath := filepath.Join(store.LFSDir(), oid[:2], oid[2:4], oid[4:])
+		if err := os.MkdirAll(filepath.Dir(objectPath), 0750); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(objectPath, content, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return []byte(fmt.Sprintf("version https://git-lfs.github.com/spec/v1\noid sha256:%s\nsize %d\n", oid, len(content)))
+}
+
+func TestReadSafetensorsHeaderRejectsOversizedHeaders(t *testing.T) {
+	var prefix [8]byte
+	binary.LittleEndian.PutUint64(prefix[:], maxSafetensorsHeaderBytes+1)
+	if _, err := readSafetensorsHeaderFrom(bytes.NewReader(prefix[:])); err == nil {
+		t.Fatal("expected an oversized header to be rejected before allocating its body")
+	}
+}
+
+func TestIndexedSafetensorsPathsRequireEveryReference(t *testing.T) {
+	index := parseSafetensorsIndex([]byte(`{"metadata":{"total_size":100},"weight_map":{"a":"a.safetensors","b":"../b.safetensors"}}`))
+	paths, complete := index.safetensorsPaths()
+	if complete || len(paths) != 1 || paths[0] != "a.safetensors" {
+		t.Fatalf("safetensorsPaths = %v, %v; want the valid subset but incomplete", paths, complete)
 	}
 }
 
