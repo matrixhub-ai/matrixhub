@@ -235,29 +235,6 @@ When interfaces change, regenerate mocks before running or committing tests:
 make generate-mocks
 ```
 
-### Model Metadata Parameter Counts
-
-Parameter counts use safetensors tensor shapes and quantization settings from
-`config.json`, accounting for packed weights and excluding quantization state.
-The counting rules track the pinned Hugging Face Hub implementation linked in
-`internal/domain/model/safetensors_parameters.go`. Self-reported
-`total_parameters` values are not used.
-
-For an index with `metadata.total_size`, exact counting requires valid headers
-for every referenced shard. Extraction only checks Git blobs and the local LFS
-store on this path; it never promotes proxy weight downloads. Otherwise, the
-index size supplies an estimate. FP8 checkpoints declaring four-bit routed
-experts use 17/32 bytes per parameter, including block scales; this is an
-approximation until all headers are available. Other size estimates retain
-their existing dtype/quantization rules. Without an index size, readable headers
-are combined with size estimates for unreadable files, without double counting.
-
-Focused regression tests:
-
-```bash
-go test -count=1 ./internal/domain/model/... ./internal/repo/... ./internal/domain/git/...
-```
-
 ## End-to-End Tests
 
 E2E tests live under `test/e2e_apiserver` and run against a live MatrixHub API
@@ -347,14 +324,6 @@ Each case receives an isolated user, private project, access token or SSH key,
 working directory, and HF cache. The `lfs` and `slow` labels identify the
 larger Git LFS flow. KIND runs expose HTTP on `30001` and SSH on `30022` and
 configure `apiServer.hostURL` automatically.
-
-The `HF00004` case uploads a synthetic mixed FP4/FP8 checkpoint and verifies
-the transition from an index-size estimate to an exact parameter count, then
-checks that changing `expert_dtype` updates the persisted count:
-
-```bash
-E2E_LABELS=HF00004 make test.e2e
-```
 
 In CI the label is chosen automatically: PRs that touch `test/**` run the full
 suite, others run `smoke` (see `.github/workflows/auto-pr-ci.yaml`).
