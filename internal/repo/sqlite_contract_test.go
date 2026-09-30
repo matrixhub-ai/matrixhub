@@ -27,6 +27,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	appconfig "github.com/matrixhub-ai/matrixhub/internal/infra/config"
@@ -221,6 +222,43 @@ func assertCASUpdatesTimestamps(t *testing.T, database *gorm.DB) {
 	require.NoError(t, err)
 	require.True(t, updated)
 	requireTimestampAdvanced(t, database, "sync_jobs", int64(job.ID), oldTimestamp)
+}
+
+func TestRegistryRepo_UpdateZeroValueAndPreserveDescription(t *testing.T) {
+	database, _ := newSQLiteRepositoryTestDatabase(t)
+	ctx := context.Background()
+	repo := NewRegistryRepo(database)
+
+	// 1. Create registry with Insecure = true and a description
+	reg, err := repo.CreateRegistry(ctx, registry.Registry{
+		Name:        "upstream-hf",
+		Description: "original description",
+		URL:         "https://hf-mirror.com",
+		Type:        "REGISTRY_TYPE_HUGGINGFACE",
+		Insecure:    true,
+	})
+	require.NoError(t, err)
+	require.True(t, reg.Insecure)
+	require.Equal(t, "original description", reg.Description)
+
+	// 2. Update registry with Insecure = false and empty Description (verify remote cert without overriding description)
+	reg.Insecure = false
+	reg.Description = ""
+	err = repo.UpdateRegistry(ctx, *reg)
+	require.NoError(t, err)
+
+	fetched, err := repo.GetRegistry(ctx, reg.ID)
+	require.NoError(t, err)
+	require.False(t, fetched.Insecure, "Insecure should be updated to false (zero-value update)")
+	require.Equal(t, "original description", fetched.Description, "Description should not be wiped out when omitted/empty")
+
+	// 3. Update registry with a new non-empty description
+	reg.Description = "updated description"
+	err = repo.UpdateRegistry(ctx, *reg)
+	require.NoError(t, err)
+	fetched, err = repo.GetRegistry(ctx, reg.ID)
+	require.NoError(t, err)
+	require.Equal(t, "updated description", fetched.Description)
 }
 
 func requireTimestampAdvanced(t *testing.T, database *gorm.DB, table string, id int64, oldTimestamp time.Time) {

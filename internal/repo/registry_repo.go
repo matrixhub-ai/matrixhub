@@ -63,7 +63,19 @@ func (r *RegistryRepo) CreateRegistry(ctx context.Context, reg registry.Registry
 }
 
 func (r *RegistryRepo) UpdateRegistry(ctx context.Context, reg registry.Registry) error {
-	return r.db.WithContext(ctx).Model(&registry.Registry{}).Where("id = ?", reg.ID).Updates(reg).Error
+	fields := []string{"name", "url", "insecure"}
+	// Description and credentials can only be set, not cleared: empty means
+	// "not provided" because the proto has no way to distinguish the two.
+	// TODO: support explicit clearing via FieldMask or optional proto fields.
+	if reg.Description != "" {
+		fields = append(fields, "description")
+	}
+	if reg.CredentialType != "" {
+		fields = append(fields, "credential_type", "auth_info")
+	}
+	return r.db.WithContext(ctx).Model(&registry.Registry{}).Where("id = ?", reg.ID).
+		Select(fields).
+		Updates(reg).Error
 }
 
 func (r *RegistryRepo) DeleteRegistry(ctx context.Context, id int) error {
