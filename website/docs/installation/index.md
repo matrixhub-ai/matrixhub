@@ -67,6 +67,20 @@ Open the MatrixHub web console:
 http://127.0.0.1:3001
 ```
 
+Sign in with the default local credentials:
+
+| Username | Password |
+| --- | --- |
+| `admin` | `changeme` |
+
+Change the default password before exposing the instance outside your local machine.
+
+To stop the local stack:
+
+```bash
+docker compose down
+```
+
 SQLite data is stored in `./data/matrixhub`. Run only one MatrixHub instance against this database and keep it on a local filesystem.
 
 To use MySQL instead, download [`docker-compose.mysql.yml`](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/docker-compose.mysql.yml) and [`config-mysql.yaml`](https://github.com/matrixhub-ai/matrixhub/blob/main/deploy/config-mysql.yaml), then run:
