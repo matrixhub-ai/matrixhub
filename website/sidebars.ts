@@ -37,6 +37,7 @@ const sidebars: SidebarsConfig = {
           label: 'Model Repository',
           items: [
             'operations/model-repo/upload-download',
+            'operations/model-repo/use-model',
             'operations/model-repo/project-setting',
           ],
         },
