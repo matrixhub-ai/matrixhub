@@ -17,6 +17,7 @@ package repo
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"net/http"
 	"time"
 
@@ -67,7 +68,27 @@ func (r *RegistryRepo) UpdateRegistry(ctx context.Context, reg registry.Registry
 }
 
 func (r *RegistryRepo) DeleteRegistry(ctx context.Context, id int) error {
-	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&registry.Registry{}).Error
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var projectCount int64
+		if err := tx.Table("projects").Where("registry_id = ?", id).Count(&projectCount).Error; err != nil {
+			return err
+		}
+
+		var syncPolicyCount int64
+		if err := tx.Table("sync_policies").Where("registry_id = ?", id).Count(&syncPolicyCount).Error; err != nil {
+			return err
+		}
+
+		if projectCount > 0 || syncPolicyCount > 0 {
+			return registry.ErrInUse
+		}
+
+		err := tx.Where("id = ?", id).Delete(&registry.Registry{}).Error
+		if errors.Is(err, gorm.ErrForeignKeyViolated) {
+			return registry.ErrInUse
+		}
+		return err
+	})
 }
 
 func (r *RegistryRepo) PingRegistry(ctx context.Context, reg registry.Registry) (int, string, error) {
