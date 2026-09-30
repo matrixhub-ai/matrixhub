@@ -91,6 +91,8 @@ The following table lists the configurable parameters of the MatrixHub chart and
 | `apiserver.debug` | Debug mode | `false` |
 | `apiserver.logLevel` | Log level (debug/info/warn/error) | `warn` |
 | `apiserver.port` | API server port | `9527` |
+| `apiserver.tokenSigningSecret` | Signing key for temporary LFS/CAS tokens; empty generates a random key per pod start (set it when replicaCount > 1) | `""` |
+| `apiserver.gcGrace` | Git and LFS cleanup grace period; negative disables | `""` (1 hour) |
 | `apiserver.database.driver` | Database driver (`mysql` or `postgres`) | `mysql` |
 | `apiserver.database.accessType` | Database access type | `readwrite` |
 | `apiserver.database.maxOpenConns` | Max open connections | `100` |

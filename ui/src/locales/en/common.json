@@ -21,6 +21,8 @@
     "lastCommit": "Last commit",
     "lastUpdate": "Last update",
     "download": "Download",
+    "xetStored": "Stored with Xet",
+    "lfsStored": "Stored with Git LFS",
     "updatedTime": "Updated: {{time}}",
     "preview": "Preview",
     "code": "Code",

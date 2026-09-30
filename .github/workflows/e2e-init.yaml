@@ -100,7 +100,17 @@ jobs:
           python -m pip install --requirement test/e2e_apiserver/requirements.txt
           python -m pip check
           sudo apt-get update
-          sudo apt-get install --yes git-lfs openssh-client
+          sudo apt-get install --yes git-lfs openssh-client unzip
+
+          curl --fail --location --retry 3 \
+            --output "${RUNNER_TEMP}/git-xet.zip" \
+            https://github.com/huggingface/xet-core/releases/download/git-xet-v0.2.1/git-xet-linux-x86_64.zip
+          printf '%s  %s\n' e6354d55704cc838d1feed79ee27b9b89da7752ae98bd83df5797c180700fdb1 "${RUNNER_TEMP}/git-xet.zip" | sha256sum --check
+          unzip -q "${RUNNER_TEMP}/git-xet.zip" -d "${RUNNER_TEMP}/git-xet"
+          mkdir -p "${HOME}/.local/bin"
+          install -m 0755 "${RUNNER_TEMP}/git-xet/git-xet" "${HOME}/.local/bin/git-xet"
+          echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+          export PATH="${HOME}/.local/bin:${PATH}"
 
           # Verify tools
           kind version
@@ -109,6 +119,7 @@ jobs:
           hf version
           git --version
           git lfs version
+          git xet --version
           ssh -V
 
       - name: Map matrixhub.local for API coverage
