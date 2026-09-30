@@ -252,6 +252,15 @@ func TestRegistryRepo_UpdateZeroValueAndPreserveDescription(t *testing.T) {
 	require.False(t, fetched.Insecure, "Insecure should be updated to false (zero-value update)")
 	require.Equal(t, "original description", fetched.Description, "Description should not be wiped out when omitted/empty")
 
+	// A sparse request must not clear existing text fields.
+	err = repo.UpdateRegistry(ctx, registry.Registry{ID: reg.ID, Insecure: false})
+	require.NoError(t, err)
+	fetched, err = repo.GetRegistry(ctx, reg.ID)
+	require.NoError(t, err)
+	require.Equal(t, "upstream-hf", fetched.Name)
+	require.Equal(t, "https://hf-mirror.com", fetched.URL)
+	require.Equal(t, "original description", fetched.Description)
+
 	// 3. Update registry with a new non-empty description
 	reg.Description = "updated description"
 	err = repo.UpdateRegistry(ctx, *reg)
