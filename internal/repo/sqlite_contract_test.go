@@ -27,6 +27,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	appconfig "github.com/matrixhub-ai/matrixhub/internal/infra/config"
@@ -91,6 +92,47 @@ func TestSQLiteRepositoryContract(t *testing.T) {
 
 	assertModelUpdatesTimestamp(t, database, modelRepo, createdModel.ID)
 	assertCASUpdatesTimestamps(t, database)
+}
+
+func TestRegistryRepo_DeleteRejectsReferencedRegistry(t *testing.T) {
+	database, _ := newSQLiteRepositoryTestDatabase(t)
+	ctx := context.Background()
+	repo := NewRegistryRepo(database)
+
+	reg, err := repo.CreateRegistry(ctx, registry.Registry{
+		Name: "upstream-hf",
+		URL:  "https://hf-mirror.com",
+		Type: "REGISTRY_TYPE_HUGGINGFACE",
+	})
+	require.NoError(t, err)
+
+	projectRepo := NewProjectDBRepo(database)
+	registryID := reg.ID
+	_, err = projectRepo.CreateProject(ctx, &project.Project{
+		Name:       "proxy-project",
+		Type:       project.ProjectTypePublic,
+		RegistryID: &registryID,
+	})
+	require.NoError(t, err)
+
+	require.ErrorIs(t, repo.DeleteRegistry(ctx, reg.ID), registry.ErrInUse)
+	_, err = repo.GetRegistry(ctx, reg.ID)
+	require.NoError(t, err)
+
+	policyReg, err := repo.CreateRegistry(ctx, registry.Registry{
+		Name: "policy-registry",
+		URL:  "https://hf-mirror.com",
+		Type: "REGISTRY_TYPE_HUGGINGFACE",
+	})
+	require.NoError(t, err)
+	result := database.Exec(`INSERT INTO sync_policies
+		(name, registry_id, next_run_at, updated_at) VALUES (?, ?, ?, ?)`,
+		"policy-using-registry", policyReg.ID, 0, time.Now().UTC())
+	require.NoError(t, result.Error)
+
+	require.ErrorIs(t, repo.DeleteRegistry(ctx, policyReg.ID), registry.ErrInUse)
+	_, err = repo.GetRegistry(ctx, policyReg.ID)
+	require.NoError(t, err)
 }
 
 func assertProjectNameSearchIsCaseSensitive(t *testing.T, ctx context.Context, database *gorm.DB) {

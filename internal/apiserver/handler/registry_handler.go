@@ -148,6 +148,9 @@ func (rh *RegistryHandler) DeleteRegistry(ctx context.Context, request *registry
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	if err := rh.registryRepo.DeleteRegistry(ctx, int(request.Id)); err != nil {
+		if errors.Is(err, registry.ErrInUse) {
+			return nil, status.Error(codes.FailedPrecondition, "registry is still referenced by a project or sync policy")
+		}
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &registryv1alpha1.DeleteRegistryResponse{}, nil
