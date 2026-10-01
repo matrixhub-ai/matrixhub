@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/scan"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
@@ -37,7 +38,7 @@ type JobServer struct {
 }
 
 // New builds a JobServer from config and domain services (cfg is copied; defaults applied without mutating the caller's struct).
-func New(cfg *config.JobServerConfig, syncSvc syncpolicy.ISyncPolicyService, syncJobSvc syncjob.ISyncJobService, ls logstore.LogStore, canc canceller.Canceller) *JobServer {
+func New(cfg *config.JobServerConfig, syncSvc syncpolicy.ISyncPolicyService, syncJobSvc syncjob.ISyncJobService, ls logstore.LogStore, canc canceller.Canceller, scanSvc *scan.Service, scanStore scan.Store) *JobServer {
 	c := *cfg
 	if c.ShutdownGrace == 0 {
 		c.ShutdownGrace = 30 * time.Second
@@ -72,9 +73,10 @@ func New(cfg *config.JobServerConfig, syncSvc syncpolicy.ISyncPolicyService, syn
 	syncPolicyProcessor := processor.NewSyncPolicyProcessor(c.SyncPolicy, syncSvc)
 	syncTaskProcessor := processor.NewSyncTaskProcessor(c.SyncTask, syncSvc)
 	syncJobProcessor := processor.NewSyncJobProcessor(c.SyncJob, syncJobSvc, canc)
+	scanProcessor := processor.NewScanProcessor(c.Scan, scanSvc, scanStore)
 	return &JobServer{
 		cfg:             &c,
-		processors:      []processor.Adapter{syncPolicyProcessor, syncTaskProcessor, syncJobProcessor},
+		processors:      []processor.Adapter{syncPolicyProcessor, syncTaskProcessor, syncJobProcessor, scanProcessor},
 		syncTaskTrigger: syncTaskProcessor,
 		syncJobTrigger:  syncJobProcessor,
 	}
