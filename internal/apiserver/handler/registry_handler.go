@@ -119,6 +119,9 @@ func (rh *RegistryHandler) UpdateRegistry(ctx context.Context, request *registry
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	if strings.TrimSpace(request.Name) == "" || strings.TrimSpace(request.Url) == "" {
+		return nil, status.Error(codes.InvalidArgument, "name and url are required for a registry update")
+	}
 
 	domainRegistry := registry.Registry{
 		ID:          int(request.Id),

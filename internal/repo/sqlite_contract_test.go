@@ -224,50 +224,40 @@ func assertCASUpdatesTimestamps(t *testing.T, database *gorm.DB) {
 	requireTimestampAdvanced(t, database, "sync_jobs", int64(job.ID), oldTimestamp)
 }
 
-func TestRegistryRepo_UpdateZeroValueAndPreserveDescription(t *testing.T) {
+func TestRegistryRepo_UpdateAllEditableFieldsIncludingZeroValues(t *testing.T) {
 	database, _ := newSQLiteRepositoryTestDatabase(t)
 	ctx := context.Background()
 	repo := NewRegistryRepo(database)
 
-	// 1. Create registry with Insecure = true and a description
-	reg, err := repo.CreateRegistry(ctx, registry.Registry{
+	initial := registry.Registry{
 		Name:        "upstream-hf",
 		Description: "original description",
 		URL:         "https://hf-mirror.com",
 		Type:        "REGISTRY_TYPE_HUGGINGFACE",
 		Insecure:    true,
-	})
+	}
+	initial.SetCredential(registry.NewBasicCredential("old-user", "old-password"))
+	reg, err := repo.CreateRegistry(ctx, initial)
 	require.NoError(t, err)
-	require.True(t, reg.Insecure)
-	require.Equal(t, "original description", reg.Description)
 
-	// 2. Update registry with Insecure = false and empty Description (verify remote cert without overriding description)
-	reg.Insecure = false
-	reg.Description = ""
-	err = repo.UpdateRegistry(ctx, *reg)
+	// PUT sends all editable fields; clearing description and credentials must persist.
+	err = repo.UpdateRegistry(ctx, registry.Registry{
+		ID:       reg.ID,
+		Name:     "updated-hf",
+		URL:      "https://huggingface.co",
+		Insecure: false,
+	})
 	require.NoError(t, err)
 
 	fetched, err := repo.GetRegistry(ctx, reg.ID)
 	require.NoError(t, err)
-	require.False(t, fetched.Insecure, "Insecure should be updated to false (zero-value update)")
-	require.Equal(t, "original description", fetched.Description, "Description should not be wiped out when omitted/empty")
-
-	// A sparse request must not clear existing text fields.
-	err = repo.UpdateRegistry(ctx, registry.Registry{ID: reg.ID, Insecure: false})
-	require.NoError(t, err)
-	fetched, err = repo.GetRegistry(ctx, reg.ID)
-	require.NoError(t, err)
-	require.Equal(t, "upstream-hf", fetched.Name)
-	require.Equal(t, "https://hf-mirror.com", fetched.URL)
-	require.Equal(t, "original description", fetched.Description)
-
-	// 3. Update registry with a new non-empty description
-	reg.Description = "updated description"
-	err = repo.UpdateRegistry(ctx, *reg)
-	require.NoError(t, err)
-	fetched, err = repo.GetRegistry(ctx, reg.ID)
-	require.NoError(t, err)
-	require.Equal(t, "updated description", fetched.Description)
+	require.Equal(t, "updated-hf", fetched.Name)
+	require.Equal(t, "https://huggingface.co", fetched.URL)
+	require.Empty(t, fetched.Description)
+	require.Empty(t, fetched.CredentialType)
+	require.Empty(t, fetched.AuthInfo)
+	require.False(t, fetched.Insecure)
+	require.Equal(t, initial.Type, fetched.Type)
 }
 
 func requireTimestampAdvanced(t *testing.T, database *gorm.DB, table string, id int64, oldTimestamp time.Time) {
