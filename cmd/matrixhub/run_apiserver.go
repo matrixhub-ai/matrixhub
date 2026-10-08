@@ -15,8 +15,8 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -39,16 +39,18 @@ func runAPIServer(configPath string) error {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	apiServer, err := apiserver.NewAPIServer(cfg)
+	// Installed before construction so a signal during the startup import cancels it.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	apiServer, err := apiserver.NewAPIServer(ctx, cfg)
 	if err != nil {
 		return err
 	}
 	errorCh := apiServer.Start()
 
-	sign := make(chan os.Signal, 1)
-	signal.Notify(sign, syscall.SIGINT, syscall.SIGTERM)
 	select {
-	case <-sign:
+	case <-ctx.Done():
 	case <-errorCh:
 	}
 

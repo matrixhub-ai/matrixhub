@@ -97,11 +97,12 @@ type Backend struct {
 	robotRepo   robot.IRobotRepo
 }
 
-// New builds the storage/xet/mirror layer. Hooks and auth validators that need
-// domain services attach later via Bind, preserving the original init order.
-func New(cfg *config.Config) (*Backend, error) {
+// New builds the storage/xet/mirror layer; ctx bounds the startup import of
+// the legacy LFS store. Hooks and auth validators that need domain services
+// attach later via Bind, preserving the original init order.
+func New(ctx context.Context, cfg *config.Config) (*Backend, error) {
 	b := &Backend{config: cfg}
-	err := b.init()
+	err := b.init(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +153,10 @@ func (b *Backend) preOpenHook(ctx context.Context, repoName string, write bool) 
 	if !ok || repoType != "models" {
 		return nil
 	}
+	// Model names are a single path element: the REST API and UI cannot address "a/b".
+	if strings.Contains(name, "/") {
+		return repository.ErrRepositoryNotExists
+	}
 	if write {
 		if _, err := b.modelService.EnsureModel(ctx, project, name); err != nil {
 			return fmt.Errorf("ensure model %s/%s: %w", project, name, err)
@@ -169,7 +174,7 @@ func (b *Backend) preReceiveHook(ctx context.Context, repoName string, updates [
 	if !ok {
 		return false, nil
 	}
-	if repoType == "models" {
+	if repoType == "models" && !strings.Contains(name, "/") {
 		_, err := b.modelService.EnsureModel(ctx, project, name)
 		return err == nil, err
 	}
@@ -416,7 +421,7 @@ func (b *Backend) initGitAuth(
 	b.auth.tokenValidator = authenticate.TokenValidatorFunc(middleware.GitHTTPAuthn(akRepo, userRepo, robotRepo))
 }
 
-func (b *Backend) init() error {
+func (b *Backend) init(ctx context.Context) error {
 	xetStorage, err := xetlocal.NewStorage(
 		xetlocal.WithBasePath(filepath.Join(b.config.DataDir, "xet", "storage")),
 	)
@@ -472,8 +477,8 @@ func (b *Backend) init() error {
 		return fmt.Errorf("create git mirror failed: %w", err)
 	}
 
-	// Objects left by the pre-xet local LFS store are imported into xet; originals stay.
-	if err := migrateLegacyLFS(context.Background(), filepath.Join(b.config.DataDir, "lfs"), sharedMirror); err != nil {
+	// Objects left by the pre-xet local LFS store are imported into xet; the store is then moved to lfs.bak.
+	if err := migrateLegacyLFS(ctx, filepath.Join(b.config.DataDir, "lfs"), sharedMirror); err != nil {
 		return err
 	}
 

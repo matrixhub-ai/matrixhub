@@ -49,7 +49,7 @@ import (
 )
 
 func TestHandlerGitAuthenticationChallenge(t *testing.T) {
-	backend, _ := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
+	backend, _ := New(t.Context(), &config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 	backend.sessionRepo = &handlerSessionRepo{manager: scs.New()}
 	backend.permissionHookFunc = func(context.Context, permission.Operation, string, permission.Context) (bool, error) {
 		return false, nil
@@ -105,7 +105,7 @@ func TestHandlerCASURLIsReachableByTheClient(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cfg := testConfig(t.TempDir())
 			cfg.APIServer.HostURL, cfg.APIServer.ExternalURL = "http://localhost:3001", test.externalURL
-			backend, err := New(cfg)
+			backend, err := New(t.Context(), cfg)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -127,7 +127,7 @@ func TestHandlerCASURLIsReachableByTheClient(t *testing.T) {
 }
 
 func TestHandlerCASTokenIsNotAUser(t *testing.T) {
-	backend, _ := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
+	backend, _ := New(t.Context(), &config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 	backend.sessionRepo = &handlerSessionRepo{manager: scs.New()}
 	var seen authenticate.Identity
 	backend.permissionHookFunc = func(ctx context.Context, _ permission.Operation, _ string, _ permission.Context) (bool, error) {
@@ -171,7 +171,7 @@ func TestHandlerCASTokenIsNotAUser(t *testing.T) {
 }
 
 func TestHandlerListAuthorization(t *testing.T) {
-	backend, _ := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
+	backend, _ := New(t.Context(), &config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 	backend.sessionRepo = &handlerSessionRepo{manager: scs.New()}
 	backend.permissionHookFunc = middleware.NewRepoEnforcer(handlerAuthzService{})
 	ctrl := gomock.NewController(t)
@@ -278,7 +278,7 @@ func TestHandlerWhoami(t *testing.T) {
 		{"anonymous", nil, &handlerWhoamiUserRepo{err: dbErr}, &handlerWhoamiRobotRepo{err: dbErr}, nil, nil, http.StatusUnauthorized, `{"error":"Unauthorized"}`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			backend, err := New(testConfig(t.TempDir()))
+			backend, err := New(t.Context(), testConfig(t.TempDir()))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -318,7 +318,7 @@ func TestHandlerWhoami(t *testing.T) {
 }
 
 func TestHandlerWhoamiReadsDatabase(t *testing.T) {
-	backend, err := New(testConfig(t.TempDir()))
+	backend, err := New(t.Context(), testConfig(t.TempDir()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -435,7 +435,7 @@ func TestHandlerListRepos(t *testing.T) {
 		{"datasets", "/api/datasets?author=pub", public, nil, []call{{filter("pub", 1, 100, "", nil), nil, 1, nil}}, true, http.StatusOK, "pub/data", dataItem, ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			backend, err := New(testConfig(t.TempDir()))
+			backend, err := New(t.Context(), testConfig(t.TempDir()))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -531,7 +531,7 @@ func (service *handlerDatasetService) DeleteDataset(_ context.Context, project, 
 }
 
 func TestHandlerRepoCRUD(t *testing.T) {
-	backend, _ := New(testConfig(t.TempDir()))
+	backend, _ := New(t.Context(), testConfig(t.TempDir()))
 	backend.sessionRepo = &handlerSessionRepo{manager: scs.New()}
 	backend.permissionHookFunc = func(context.Context, permission.Operation, string, permission.Context) (bool, error) {
 		return true, nil
@@ -617,7 +617,7 @@ func TestHandlerRepoCRUD(t *testing.T) {
 }
 
 func TestHandlerSignedTokenFromSSHIdentity(t *testing.T) {
-	backend, err := New(testConfig(t.TempDir()))
+	backend, err := New(t.Context(), testConfig(t.TempDir()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -767,7 +767,7 @@ func testColdLFSResolve(t *testing.T, firstMethod string) {
 	}))
 	t.Cleanup(cdn.Close)
 
-	b, err := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
+	b, err := New(ctx, &config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -926,11 +926,109 @@ func testColdLFSResolve(t *testing.T, firstMethod string) {
 	}
 }
 
+// HF API writes into a pull-mirrored repository are refused, as main's
+// CreateModelCommit did; git push is not gated here and keeps main's behaviour.
+func TestHandlerRefusesHFWritesToProxiedRepository(t *testing.T) {
+	ctx := t.Context()
+	b, err := New(ctx, testConfig(t.TempDir()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b.sessionRepo = &handlerSessionRepo{manager: scs.New()}
+	b.auth.tokenValidator = authenticate.NewSimpleTokenValidator(encodedIdentity(t, user.NewUserIdentity(42, "alice")), "alice-token")
+	b.permissionHookFunc = func(context.Context, permission.Operation, string, permission.Context) (bool, error) {
+		return true, nil
+	}
+	registryID := 1
+	reg := &registry.Registry{ID: registryID, URL: "https://hub.example"}
+	reg.SetCredential(registry.NewBasicCredential("upstream", "upstream-token"))
+	ctrl := gomock.NewController(t)
+	projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
+	projectRepo.EXPECT().GetProjectByName(gomock.Any(), "local").Return(&project.Project{Name: "local", Organization: "remote-org", RegistryID: &registryID}, nil).AnyTimes()
+	projectRepo.EXPECT().GetProjectByName(gomock.Any(), "plain").Return(&project.Project{Name: "plain"}, nil).AnyTimes()
+	registryRepo := registrymocks.NewMockIRegistryRepo(ctrl)
+	registryRepo.EXPECT().GetRegistry(gomock.Any(), registryID).Return(reg, nil).AnyTimes()
+	modelService := modelmocks.NewMockIModelService(ctrl)
+	b.projectRepo, b.registryRepo, b.modelService = projectRepo, registryRepo, modelService
+	if _, err := repository.Init(ctx, b.Storage().RepositoriesFS(), repository.ResolvePath("plain/repo"), "main"); err != nil {
+		t.Fatal(err)
+	}
+	handler := b.Handler(http.NotFoundHandler())
+
+	do := func(method, path, body string) *httptest.ResponseRecorder {
+		t.Helper()
+		request := httptest.NewRequest(method, path, strings.NewReader(body))
+		request.Header.Set("Authorization", "Bearer alice-token")
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		return response
+	}
+	const commit = "{\"key\":\"header\",\"value\":{\"summary\":\"upload\"}}\n" +
+		"{\"key\":\"file\",\"value\":{\"path\":\"README.md\",\"content\":\"# hello\\n\"}}\n"
+
+	// No EnsureModel expectation: a proxied write must be refused before any hook runs.
+	if response := do(http.MethodPost, "/api/models/local/repo/commit/main", commit); response.Code != http.StatusForbidden {
+		t.Fatalf("proxied commit: status = %d, body = %s; want 403", response.Code, response.Body.String())
+	}
+	if response := do(http.MethodPost, "/api/models/local/repo/preupload/main", `{"files":[{"path":"README.md","size":8}]}`); response.Code != http.StatusForbidden {
+		t.Fatalf("proxied preupload: status = %d, body = %s; want 403", response.Code, response.Body.String())
+	}
+
+	modelService.EXPECT().EnsureModel(gomock.Any(), "local", "repo").Return(&model.Model{}, nil)
+	if response := do(http.MethodGet, "/local/repo.git/info/refs?service=git-receive-pack", ""); response.Code == http.StatusForbidden {
+		t.Fatalf("git push discovery into the proxied repository was refused; want main's behaviour (allowed: 404 here as no repository exists on disk)")
+	}
+
+	modelService.EXPECT().EnsureModel(gomock.Any(), "plain", "repo").Return(&model.Model{}, nil).MinTimes(1)
+	modelService.EXPECT().SyncMetadata(gomock.Any(), "plain", "repo").Return(nil)
+	if response := do(http.MethodPost, "/api/models/plain/repo/commit/main", commit); response.Code != http.StatusOK {
+		t.Fatalf("plain commit: status = %d, body = %s; want 200", response.Code, response.Body.String())
+	}
+}
+
+// Nested model names ("proj/a/b") parse but are unaddressable by the REST API and UI, so the hooks must not create or sync them.
+func TestHandlerNestedModelNameIsNotAddressable(t *testing.T) {
+	ctx := t.Context()
+	b, err := New(ctx, testConfig(t.TempDir()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b.sessionRepo = &handlerSessionRepo{manager: scs.New()}
+	b.permissionHookFunc = func(context.Context, permission.Operation, string, permission.Context) (bool, error) {
+		return true, nil
+	}
+	// No EnsureModel or CheckOrSyncFromRemote expectation: any hook call fails the test.
+	b.modelService = modelmocks.NewMockIModelService(gomock.NewController(t))
+	handler := b.Handler(http.NotFoundHandler())
+	for _, test := range []struct{ name, path string }{
+		{"push discovery", "/proj/a/b.git/info/refs?service=git-receive-pack"},
+		{"clone discovery", "/proj/a/b.git/info/refs?service=git-upload-pack"},
+		{"resolve", "/proj/a/b/resolve/main/README.md"},
+	} {
+		request := httptest.NewRequest(http.MethodGet, test.path, nil)
+		request = request.WithContext(authenticate.WithIdentity(request.Context(), middleware.Principal{Identity: user.NewUserIdentity(1, "alice")}))
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		if response.Code != http.StatusNotFound {
+			t.Errorf("%s: status = %d, body = %s; want 404", test.name, response.Code, response.Body.String())
+		}
+	}
+	if ok, err := b.preReceiveHook(ctx, "proj/a/b", nil); ok || err != nil {
+		t.Errorf("preReceiveHook(proj/a/b) = (%t, %v), want (false, nil)", ok, err)
+	}
+	// hfd's SSH command path compares the sentinel with ==, so it must not be wrapped.
+	for _, write := range []bool{false, true} {
+		if err := b.preOpenHook(ctx, "proj/a/b", write); err != repository.ErrRepositoryNotExists {
+			t.Errorf("preOpenHook(proj/a/b, write=%t) = %v, want the bare repository.ErrRepositoryNotExists", write, err)
+		}
+	}
+}
+
 // The hfd mirror's SourceFunc answers with the repository's registry source
 // URL carrying the registry's Basic credential as userinfo.
 func TestBackendMirrorSourceURL(t *testing.T) {
 	ctx := t.Context()
-	b, err := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
+	b, err := New(ctx, &config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 	if err != nil {
 		t.Fatal(err)
 	}

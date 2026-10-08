@@ -89,7 +89,7 @@ func TestNewMigratesLegacyLFS(t *testing.T) {
 	content := bytes.Repeat([]byte("legacy lfs payload "), 4096)
 	oid := writeLegacyLFSObject(t, dataDir, content)
 
-	b, err := New(testConfig(dataDir))
+	b, err := New(t.Context(), testConfig(dataDir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +115,7 @@ func TestNewSkipsEmptyLegacyLFSObject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	backend, err := New(testConfig(dataDir))
+	backend, err := New(t.Context(), testConfig(dataDir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +131,7 @@ func TestNewMigratesLegacyLFSSkipsImportedObjects(t *testing.T) {
 	dataDir := t.TempDir()
 	content := []byte("imported once")
 	oid := writeLegacyLFSObject(t, dataDir, content)
-	if _, err := New(testConfig(dataDir)); err != nil {
+	if _, err := New(t.Context(), testConfig(dataDir)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -143,7 +143,7 @@ func TestNewMigratesLegacyLFSSkipsImportedObjects(t *testing.T) {
 	if err := os.WriteFile(legacyLFSPath(dataDir, oid), []byte("changed after import"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	b, err := New(testConfig(dataDir))
+	b, err := New(t.Context(), testConfig(dataDir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,7 +192,7 @@ func TestNewMigratesLegacyLFSIgnoresNonCanonicalEntries(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b, err := New(testConfig(dataDir))
+	b, err := New(t.Context(), testConfig(dataDir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -225,7 +225,7 @@ func TestNewFailsOnLegacyLFSHashMismatchUntilRepaired(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := New(testConfig(dataDir))
+	_, err := New(t.Context(), testConfig(dataDir))
 	if err == nil || !strings.Contains(err.Error(), oid) || !strings.Contains(err.Error(), path) {
 		t.Fatalf("New() error = %v, want hash mismatch naming %s and %s", err, oid, path)
 	}
@@ -235,7 +235,7 @@ func TestNewFailsOnLegacyLFSHashMismatchUntilRepaired(t *testing.T) {
 	if err := os.WriteFile(path, nil, 0644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := New(testConfig(dataDir)); err == nil || !strings.Contains(err.Error(), "content hash does not match OID") {
+	if _, err := New(t.Context(), testConfig(dataDir)); err == nil || !strings.Contains(err.Error(), "content hash does not match OID") {
 		t.Fatalf("New() error = %v, want truncated legacy object to fail the OID check", err)
 	}
 
@@ -243,7 +243,7 @@ func TestNewFailsOnLegacyLFSHashMismatchUntilRepaired(t *testing.T) {
 	if err := os.Remove(path); err != nil {
 		t.Fatal(err)
 	}
-	b, err := New(testConfig(dataDir))
+	b, err := New(t.Context(), testConfig(dataDir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -261,7 +261,7 @@ func TestNewFailsOnLegacyLFSHashMismatchUntilRepaired(t *testing.T) {
 	if err := os.WriteFile(path, content, 0644); err != nil {
 		t.Fatal(err)
 	}
-	b, err = New(testConfig(dataDir))
+	b, err = New(t.Context(), testConfig(dataDir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +283,7 @@ func TestNewFailsOnLegacyLFSImportErrorAndRetries(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := New(testConfig(dataDir))
+	_, err := New(t.Context(), testConfig(dataDir))
 	if err == nil || !strings.Contains(err.Error(), oid) || !strings.Contains(err.Error(), legacyLFSPath(dataDir, oid)) {
 		t.Fatalf("New() error = %v, want import failure naming %s", err, oid)
 	}
@@ -294,7 +294,7 @@ func TestNewFailsOnLegacyLFSImportErrorAndRetries(t *testing.T) {
 	if err := os.Remove(spool); err != nil {
 		t.Fatal(err)
 	}
-	b, err := New(testConfig(dataDir))
+	b, err := New(t.Context(), testConfig(dataDir))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -304,20 +304,93 @@ func TestNewFailsOnLegacyLFSImportErrorAndRetries(t *testing.T) {
 }
 
 func TestNewToleratesMissingOrEmptyLegacyLFS(t *testing.T) {
-	if _, err := New(testConfig(t.TempDir())); err != nil {
+	if _, err := New(t.Context(), testConfig(t.TempDir())); err != nil {
 		t.Fatalf("missing legacy root: %v", err)
 	}
 	dataDir := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(dataDir, "lfs", "ab", "cd"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := New(testConfig(dataDir)); err != nil {
+	if _, err := New(t.Context(), testConfig(dataDir)); err != nil {
 		t.Fatalf("empty legacy root: %v", err)
 	}
 }
 
+// A symlinked legacy store is imported through its target; only the link moves aside.
+func TestNewMigratesSymlinkedLegacyLFS(t *testing.T) {
+	dataDir, legacy := t.TempDir(), t.TempDir()
+	content := []byte("linked legacy payload")
+	oid := writeLegacyLFSObject(t, legacy, content)
+	root := filepath.Join(dataDir, "lfs")
+	if err := os.Symlink(filepath.Join(legacy, "lfs"), root); err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := New(t.Context(), testConfig(dataDir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := readObject(t, b, oid); !bytes.Equal(got, content) {
+		t.Fatalf("object served %q, want %q", got, content)
+	}
+	if info, err := os.Lstat(root + ".bak"); err != nil || info.Mode()&os.ModeSymlink == 0 {
+		t.Fatalf("lfs.bak must be the moved symlink: %v, %v", info, err)
+	}
+	if got, err := os.ReadFile(legacyLFSPath(legacy, oid)); err != nil || !bytes.Equal(got, content) {
+		t.Fatalf("symlink target must keep the legacy object: %q, %v", got, err)
+	}
+	if _, err := os.Lstat(root); !os.IsNotExist(err) {
+		t.Fatalf("legacy root must be moved aside, lstat: %v", err)
+	}
+}
+
+func TestNewStopsLegacyLFSImportOnCancel(t *testing.T) {
+	dataDir := t.TempDir()
+	oid := writeLegacyLFSObject(t, dataDir, []byte("not yet imported"))
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := New(ctx, testConfig(dataDir))
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("New() error = %v, want %v", err, context.Canceled)
+	}
+	if _, err := os.Stat(legacyLFSPath(dataDir, oid)); err != nil {
+		t.Fatalf("legacy store must stay in place after a cancelled import: %v", err)
+	}
+	if _, err := os.Lstat(filepath.Join(dataDir, "lfs.bak")); !os.IsNotExist(err) {
+		t.Fatalf("cancelled import must not move the store aside, lstat: %v", err)
+	}
+}
+
+// hfd copies the whole stream before it consults ctx, so the import's reader must stop a copy itself.
+func TestLegacyLFSImportReaderStopsOnCancel(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	source := &cancelAfterFirstRead{Reader: strings.NewReader(strings.Repeat("legacy bytes ", 1024)), cancel: cancel}
+	n, err := io.Copy(io.Discard, &contextReader{ctx: ctx, r: source})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("copy after cancel: err = %v, want %v", err, context.Canceled)
+	}
+	if n == 0 || source.reads != 1 {
+		t.Fatalf("copied %d bytes over %d reads; want one read before the cancellation stopped the copy", n, source.reads)
+	}
+}
+
+// cancelAfterFirstRead cancels its context as soon as the first Read returns.
+type cancelAfterFirstRead struct {
+	io.Reader
+	cancel context.CancelFunc
+	reads  int
+}
+
+func (r *cancelAfterFirstRead) Read(p []byte) (int, error) {
+	r.reads++
+	n, err := r.Reader.Read(p[:min(len(p), 512)])
+	r.cancel()
+	return n, err
+}
+
 func TestNewDoesNotRegisterMirrorReceiveHooks(t *testing.T) {
-	b, _ := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
+	b, _ := New(t.Context(), &config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 
 	m := reflect.ValueOf(b.storage.sharedMirror).Elem()
 	for _, field := range []string{"preReceiveHookFunc", "postReceiveHookFunc"} {
@@ -331,7 +404,7 @@ func TestPreOpenReadDoesNotCreateModel(t *testing.T) {
 	ctx := context.Background()
 	modelService := modelmocks.NewMockIModelService(gomock.NewController(t))
 	modelService.EXPECT().CheckOrSyncFromRemote(ctx, "public", "missing").Return(nil)
-	backend, _ := New(&config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
+	backend, _ := New(ctx, &config.Config{DataDir: t.TempDir(), APIServer: &config.APIServerConfig{TokenSigningSecret: "test-secret"}})
 	backend.modelService = modelService
 
 	if err := backend.preOpenHook(ctx, "public/missing", false); err != nil {
@@ -343,7 +416,7 @@ func TestPreOpenReadDoesNotCreateModel(t *testing.T) {
 // when the mirror has no destination callback, reporting success to the job.
 func TestMirrorPushHonoursExplicitDestination(t *testing.T) {
 	ctx := context.Background()
-	b, err := New(testConfig(t.TempDir()))
+	b, err := New(ctx, testConfig(t.TempDir()))
 	if err != nil {
 		t.Fatal(err)
 	}

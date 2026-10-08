@@ -29,6 +29,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	backendssh "github.com/matrixhub-ai/hfd/pkg/backend/ssh"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -67,6 +68,7 @@ type APIServer struct {
 	port       int
 
 	hfdBackend *hfd.Backend
+	sshServer  *backendssh.Server // nil when SSH is disabled
 	repos      *repo.Repos
 	services   *Services
 	handlers   []handler.IHandler
@@ -76,7 +78,8 @@ type APIServer struct {
 	jobWait   sync.WaitGroup
 }
 
-func NewAPIServer(config *config.Config) (*APIServer, error) {
+// NewAPIServer wires the server; ctx bounds the hfd backend's startup import.
+func NewAPIServer(ctx context.Context, config *config.Config) (*APIServer, error) {
 	if config.APIServer == nil {
 		return nil, fmt.Errorf("apiserver config is nil")
 	}
@@ -105,7 +108,7 @@ func NewAPIServer(config *config.Config) (*APIServer, error) {
 		port:       config.APIServer.Port,
 	}
 
-	hfdBackend, err := hfd.New(config)
+	hfdBackend, err := hfd.New(ctx, config)
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +127,9 @@ func NewAPIServer(config *config.Config) (*APIServer, error) {
 		server.repos.Project,
 		server.repos.Registry,
 	)
+	if server.sshServer, err = hfdBackend.SSHServer(); err != nil {
+		return nil, err
+	}
 
 	// Register authn + authz middleware (must be after initHandlersServicesRepos)
 	streamMiddleware := []grpc.StreamServerInterceptor{
@@ -363,11 +369,11 @@ func (server *APIServer) Start() <-chan error {
 		}
 	}()
 
-	if server.config.APIServer.SSHPort != 0 {
+	if server.sshServer != nil {
 		go func() {
 			sshAddr := fmt.Sprintf(":%d", server.config.APIServer.SSHPort)
 			log.Infof("SSH protocol server is listening on %s", sshAddr)
-			if err := server.hfdBackend.SSHServer().ListenAndServe(context.Background(), sshAddr); err != nil {
+			if err := server.sshServer.ListenAndServe(context.Background(), sshAddr); err != nil {
 				errorCh <- err
 				log.Errorw("run SSH protocol server failed", "addr", sshAddr, "error", err)
 			}

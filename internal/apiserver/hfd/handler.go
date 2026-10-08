@@ -15,6 +15,7 @@
 package hfd
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -24,12 +25,12 @@ import (
 	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	backendlfs "github.com/matrixhub-ai/hfd/pkg/backend/lfs"
 	backendssh "github.com/matrixhub-ai/hfd/pkg/backend/ssh"
+	"github.com/matrixhub-ai/hfd/pkg/permission"
 	hfdssh "github.com/matrixhub-ai/hfd/pkg/ssh"
 	xetauth "github.com/wzshiming/xet/auth"
 	xetserver "github.com/wzshiming/xet/server"
 
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
-	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
 // Handler builds the HTTP protocol chain; call after Bind.
@@ -42,7 +43,8 @@ func (b *Backend) Handler(next http.Handler) http.Handler {
 		backendhf.WithNext(next),
 		backendhf.WithMirror(b.storage.sharedMirror),
 		backendhf.WithPreOpenHookFunc(b.preOpenHook),
-		backendhf.WithPermissionHookFunc(b.permissionHookFunc),
+		// HF API writes to pull mirrors are refused; git push keeps main's behaviour.
+		backendhf.WithPermissionHookFunc(permission.All(b.permissionHookFunc, permission.PullMirrorReadOnly(b.storage.sharedMirror))),
 		backendhf.WithPreReceiveHookFunc(b.preReceiveHook),
 		backendhf.WithPostReceiveHookFunc(b.postReceiveHook),
 		backendhf.WithCreateRepoFunc(b.createRepo),
@@ -128,20 +130,20 @@ func (writer *gitChallengeWriter) Unwrap() http.ResponseWriter {
 
 // SSHServer builds the SSH protocol server, or nil when SSH is disabled.
 // Call after Bind.
-func (b *Backend) SSHServer() *backendssh.Server {
+func (b *Backend) SSHServer() (*backendssh.Server, error) {
 	if b.config.APIServer.SSHPort == 0 {
-		return nil
+		return nil, nil
 	}
 
 	hostKeyPath := b.config.APIServer.SSHHostKeyPath
 
 	data, err := os.ReadFile(hostKeyPath)
 	if err != nil {
-		log.Fatalw("read SSH host key failed", "error", err)
+		return nil, fmt.Errorf("read SSH host key: %w", err)
 	}
 	hostKey, err := hfdssh.ParseHostKeyFile(data)
 	if err != nil {
-		log.Fatalw("parse SSH host key failed", "error", err)
+		return nil, fmt.Errorf("parse SSH host key %s: %w", hostKeyPath, err)
 	}
 
 	return backendssh.NewServer(
@@ -155,5 +157,5 @@ func (b *Backend) SSHServer() *backendssh.Server {
 		backendssh.WithBasicAuthValidator(b.auth.basicAuthValidator),
 		backendssh.WithPublicKeyValidator(b.auth.publicKeyValidator),
 		backendssh.WithTokenSignValidator(b.auth.tokenSignValidator),
-	)
+	), nil
 }

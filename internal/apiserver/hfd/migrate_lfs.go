@@ -18,7 +18,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -29,19 +31,28 @@ import (
 
 // migrateLegacyLFS imports objects left by the pre-xet local LFS store
 // (root/<oid[0:2]>/<oid[2:4]>/<oid[4:]>) into the xet storage. A rerun skips
-// objects the xet storage already serves; a successful pass moves the store to root.bak.
+// objects the xet storage already holds; a successful pass moves the store to
+// root.bak. A symlinked root is walked through its target, and the link itself
+// is what moves.
 func migrateLegacyLFS(ctx context.Context, root string, m *mirror.Mirror) error {
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+	dir, err := filepath.EvalSymlinks(root)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("migrate legacy lfs: resolve %s: %w", root, err)
+	}
+	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return ctxErr
+		}
 		if err != nil {
-			if path == root && os.IsNotExist(err) {
-				return nil
-			}
 			return fmt.Errorf("scan legacy lfs dir %s: %w", path, err)
 		}
 		if !d.Type().IsRegular() {
 			return nil
 		}
-		rel, err := filepath.Rel(root, path)
+		rel, err := filepath.Rel(dir, path)
 		if err != nil {
 			return err
 		}
@@ -84,8 +95,21 @@ func importLegacyLFSObject(ctx context.Context, m *mirror.Mirror, path, oid stri
 	if info.Size() == 0 && oid == fmt.Sprintf("%x", sha256.Sum256(nil)) {
 		return nil
 	}
-	if err := m.PutObject(ctx, oid, f, info.Size()); err != nil {
+	// hfd spools the whole stream before it consults ctx; a SIGTERM must stop a large copy too.
+	if err := m.PutObject(ctx, oid, &contextReader{ctx: ctx, r: f}, info.Size()); err != nil {
 		return fmt.Errorf("migrate legacy lfs object %s from %s: %w", oid, path, err)
 	}
 	return nil
+}
+
+type contextReader struct {
+	ctx context.Context
+	r   io.Reader
+}
+
+func (c *contextReader) Read(p []byte) (int, error) {
+	if err := c.ctx.Err(); err != nil {
+		return 0, err
+	}
+	return c.r.Read(p)
 }
