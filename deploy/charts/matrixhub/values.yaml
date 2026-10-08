@@ -86,6 +86,12 @@ apiserver:
   # affected UI panels. Example: https://matrixhub.example.com
   externalURL: ""
 
+  # -- Signing key for temporary LFS/CAS tokens; empty generates a random key per pod start, so set it when replicaCount > 1.
+  tokenSigningSecret: ""
+
+  # -- Grace window that shields recently written Git and xet/LFS objects from cleanup GC (Go duration; empty = 1h, negative disables)
+  gcGrace: ""
+
   # -- storage configuration for git storage (models, datasets, lfs)
   storage:
     # -- storage mode: none (no persistence), pvc (PersistentVolumeClaim), s3 (object storage)

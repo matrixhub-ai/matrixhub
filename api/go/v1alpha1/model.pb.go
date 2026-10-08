@@ -1072,17 +1072,22 @@ func (x *GetModelTreeRequest) GetPath() string {
 }
 
 type File struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	Name   string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type   FileType               `protobuf:"varint,2,opt,name=type,proto3,enum=matrixhub.v1alpha1.FileType" json:"type,omitempty"`
-	Path   string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	Size   int64                  `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
-	Lfs    bool                   `protobuf:"varint,5,opt,name=lfs,proto3" json:"lfs,omitempty"`
-	Sha256 string                 `protobuf:"bytes,6,opt,name=Sha256,proto3" json:"Sha256,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type  FileType               `protobuf:"varint,2,opt,name=type,proto3,enum=matrixhub.v1alpha1.FileType" json:"type,omitempty"`
+	Path  string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	Size  int64                  `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
+	Lfs   bool                   `protobuf:"varint,5,opt,name=lfs,proto3" json:"lfs,omitempty"`
+	// sha256 of the LFS object; empty when the file is not an LFS pointer
+	Sha256 string `protobuf:"bytes,6,opt,name=sha256,proto3" json:"sha256,omitempty"`
 	// commit with out diffs
 	// only file type have commit
-	Commit        *Commit `protobuf:"bytes,7,opt,name=commit,proto3" json:"commit,omitempty"`
-	Url           string  `protobuf:"bytes,8,opt,name=url,proto3" json:"url,omitempty"`
+	Commit *Commit `protobuf:"bytes,7,opt,name=commit,proto3" json:"commit,omitempty"`
+	Url    string  `protobuf:"bytes,8,opt,name=url,proto3" json:"url,omitempty"`
+	// xet file hash; empty when the object is not in xet storage
+	XetHash string `protobuf:"bytes,9,opt,name=xet_hash,json=xetHash,proto3" json:"xet_hash,omitempty"`
+	// size of the LFS pointer blob; 0 when the file is not an LFS pointer
+	PointerSize   int64 `protobuf:"varint,10,opt,name=pointer_size,json=pointerSize,proto3" json:"pointer_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1171,6 +1176,20 @@ func (x *File) GetUrl() string {
 		return x.Url
 	}
 	return ""
+}
+
+func (x *File) GetXetHash() string {
+	if x != nil {
+		return x.XetHash
+	}
+	return ""
+}
+
+func (x *File) GetPointerSize() int64 {
+	if x != nil {
+		return x.PointerSize
+	}
+	return 0
 }
 
 type GetModelTreeResponse struct {
@@ -1880,16 +1899,19 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12>\n" +
 	"\x04name\x18\x02 \x01(\tB*\xfaB'r%\x10\x01Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\x12\x1a\n" +
 	"\brevision\x18\x03 \x01(\tR\brevision\x12\x12\n" +
-	"\x04path\x18\x04 \x01(\tR\x04path\"\xe4\x01\n" +
+	"\x04path\x18\x04 \x01(\tR\x04path\"\xa2\x02\n" +
 	"\x04File\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x120\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1c.matrixhub.v1alpha1.FileTypeR\x04type\x12\x12\n" +
 	"\x04path\x18\x03 \x01(\tR\x04path\x12\x12\n" +
 	"\x04size\x18\x04 \x01(\x03R\x04size\x12\x10\n" +
 	"\x03lfs\x18\x05 \x01(\bR\x03lfs\x12\x16\n" +
-	"\x06Sha256\x18\x06 \x01(\tR\x06Sha256\x122\n" +
+	"\x06sha256\x18\x06 \x01(\tR\x06sha256\x122\n" +
 	"\x06commit\x18\a \x01(\v2\x1a.matrixhub.v1alpha1.CommitR\x06commit\x12\x10\n" +
-	"\x03url\x18\b \x01(\tR\x03url\"F\n" +
+	"\x03url\x18\b \x01(\tR\x03url\x12\x19\n" +
+	"\bxet_hash\x18\t \x01(\tR\axetHash\x12!\n" +
+	"\fpointer_size\x18\n" +
+	" \x01(\x03R\vpointerSize\"F\n" +
 	"\x14GetModelTreeResponse\x12.\n" +
 	"\x05items\x18\x01 \x03(\v2\x18.matrixhub.v1alpha1.FileR\x05items\"\xa8\x01\n" +
 	"\x13GetModelBlobRequest\x12!\n" +

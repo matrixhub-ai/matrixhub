@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apiserver
+package hfd_test
 
 import (
-	"reflect"
 	"testing"
 
-	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
+	testenv "github.com/matrixhub-ai/matrixhub/test/e2e_apiserver/init"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestInitGitStorageDoesNotRegisterMetadataPostReceiveHook(t *testing.T) {
-	server := &APIServer{
-		config: &config.Config{DataDir: t.TempDir()},
-	}
-	server.initMirrorHooks()
-	server.initGitStorage()
-
-	postReceiveHook := reflect.ValueOf(server.gitStorage.sharedMirror).
-		Elem().FieldByName("postReceiveHookFunc")
-	if !postReceiveHook.IsNil() {
-		t.Fatal("mirror must not register the metadata post-receive hook")
-	}
+func TestGitProto(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "GitProto Suite")
 }
+
+var _ = BeforeSuite(func() {
+	defer GinkgoRecover()
+	testenv.InitTestEnvironment()
+})
+
+var _ = AfterSuite(func() {
+	testenv.CleanupTestEnvironment()
+})

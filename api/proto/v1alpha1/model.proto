@@ -178,11 +178,16 @@ message File {
   string path = 3;
   int64 size = 4;
   bool lfs = 5;
-  string Sha256 = 6;
+  // sha256 of the LFS object; empty when the file is not an LFS pointer
+  string sha256 = 6;
   // commit with out diffs
   // only file type have commit
   Commit commit = 7;
   string url = 8;
+  // xet file hash; empty when the object is not in xet storage
+  string xet_hash = 9;
+  // size of the LFS pointer blob; 0 when the file is not an LFS pointer
+  int64 pointer_size = 10;
 }
 
 message GetModelTreeResponse {
