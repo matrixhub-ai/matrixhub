@@ -10,8 +10,8 @@
 package v1alpha1
 
 type V1alpha1CleanupResult struct {
-	ReposDeleted        int32    `json:"reposDeleted,omitempty"`
-	LfsObjectsDeleted   int32    `json:"lfsObjectsDeleted,omitempty"`
-	SpaceReclaimedBytes string   `json:"spaceReclaimedBytes,omitempty"`
-	Errors              []string `json:"errors,omitempty"`
+	SpaceReclaimedBytes string            `json:"spaceReclaimedBytes,omitempty"`
+	Errors              []string          `json:"errors,omitempty"`
+	OrphanedRepos       []string          `json:"orphanedRepos,omitempty"`
+	Gc                  *V1alpha1GcResult `json:"gc,omitempty"`
 }

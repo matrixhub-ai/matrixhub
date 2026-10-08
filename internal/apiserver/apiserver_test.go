@@ -15,22 +15,55 @@
 package apiserver
 
 import (
-	"reflect"
+	"net/http"
+	"net/http/httptest"
 	"testing"
-
-	"github.com/matrixhub-ai/matrixhub/internal/infra/config"
 )
 
-func TestInitGitStorageDoesNotRegisterMetadataPostReceiveHook(t *testing.T) {
-	server := &APIServer{
-		config: &config.Config{DataDir: t.TempDir()},
+func TestAPIFirstDispatchesOnlyAPIServerPathsToGin(t *testing.T) {
+	tests := []struct {
+		path     string
+		staticUI bool
+		want     string
+	}{
+		{"/healthz", true, "api"},
+		{"/healthzx", true, "protocol"},
+		{"/api/v1alpha1/models", true, "api"},
+		{"/apis/v1alpha1/x", true, "api"},
+		{"/api/models/a/b", true, "protocol"},
+		{"/api/datasets/a/b/revision/main", true, "protocol"},
+		{"/api/whoami-v2", true, "protocol"},
+		{"/api/repos/create", true, "protocol"},
+		{"/api/settings/x", true, "protocol"},
+		{"/assets/app.js", true, "api"},
+		{"/assets/app.js", false, "protocol"},
+		{"/favicon.ico", true, "api"},
+		{"/favicon.ico", false, "protocol"},
+		{"/proj/repo.git/info/refs", true, "protocol"},
+		{"/", true, "protocol"},
+		// Projects named api, apis or assets are shadowed under these prefixes, like v1/v2 are by the CAS routes.
+		{"/api/v1alpha1/resolve/main/README.md", true, "api"},
+		{"/apis/v1alpha1/info/refs", true, "api"},
+		{"/assets/repo/resolve/main/README.md", true, "api"},
+		{"/api/v1alpha1.git/info/refs", true, "protocol"},
 	}
-	server.initMirrorHooks()
-	server.initGitStorage()
+	for _, test := range tests {
+		name := test.path
+		if !test.staticUI {
+			name += " without static dir"
+		}
+		t.Run(name, func(t *testing.T) {
+			var served string
+			record := func(name string) http.Handler {
+				return http.HandlerFunc(func(http.ResponseWriter, *http.Request) { served = name })
+			}
+			handler := apiFirst(record("api"), record("protocol"), apiServerPath(test.staticUI))
 
-	postReceiveHook := reflect.ValueOf(server.gitStorage.sharedMirror).
-		Elem().FieldByName("postReceiveHookFunc")
-	if !postReceiveHook.IsNil() {
-		t.Fatal("mirror must not register the metadata post-receive hook")
+			handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, test.path, nil))
+
+			if served != test.want {
+				t.Fatalf("%s served by %q, want %q", test.path, served, test.want)
+			}
+		})
 	}
 }

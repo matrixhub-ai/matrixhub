@@ -22,7 +22,7 @@ PROJECT_ROOT="${SCRIPT_DIR}/.."
 cd "${PROJECT_ROOT}"
 
 UNIT_TEST_PKGS="${UNIT_TEST_PKGS:-./cmd/... ./internal/...}"
-UNIT_TEST_EXCLUDE_PKGS="${UNIT_TEST_EXCLUDE_PKGS-./internal/apiserver/handler/hf}"
+UNIT_TEST_EXCLUDE_PKGS="${UNIT_TEST_EXCLUDE_PKGS:-}"
 COUNT="${COUNT:-1}"
 VERBOSE="${VERBOSE:-false}"
 RACE="${RACE:-false}"

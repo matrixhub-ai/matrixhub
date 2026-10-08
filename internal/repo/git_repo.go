@@ -26,27 +26,32 @@ import (
 	"strings"
 	"time"
 
-	hfdlfs "github.com/matrixhub-ai/hfd/pkg/lfs"
+	hfdgc "github.com/matrixhub-ai/hfd/pkg/gc"
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
+	xetstorage "github.com/wzshiming/xet/storage"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 )
 
 type gitRepo struct {
-	storage *storage.Storage
-	mirror  *mirror.Mirror
+	storage  *storage.Storage
+	mirror   *mirror.Mirror
+	xetStore xetstorage.Storage
+	gc       *hfdgc.Collector
+	gcGrace  time.Duration
 }
 
 const maxSafetensorsHeaderBytes uint64 = 64 * 1024 * 1024
 
 // safetensorsHeaderReadBudget bounds the time one metadata extraction may spend
-// reading safetensors headers, across all files rather than per file. A read
-// served by the mirror tee cache blocks until the upstream download reaches the
-// header bytes, so extraction must not wait on it indefinitely: it runs inline on
-// the proxy sync path that git and Hugging Face clients wait for. A shared budget
-// also keeps a sharded model from multiplying the wait by its shard count.
+// reading safetensors headers, across all files rather than per file. LFS reads
+// are served from the local xet storage, which only holds fully ingested objects
+// and never waits on an upstream, but reconstructing a large object is slow and
+// extraction must not wait on it indefinitely: it runs inline on the proxy sync
+// path that git and Hugging Face clients wait for. A shared budget also keeps a
+// sharded model from multiplying the wait by its shard count.
 const safetensorsHeaderReadBudget = 10 * time.Second
 
 type safetensorsIndexFiles struct {
@@ -57,10 +62,13 @@ type safetensorsIndexFiles struct {
 }
 
 // NewGitDB creates a new GitRepo instance
-func NewGitDB(storage *storage.Storage, mirror *mirror.Mirror) git.IGitRepo {
+func NewGitDB(storage *storage.Storage, mirror *mirror.Mirror, xetStore xetstorage.Storage, gcGrace time.Duration) git.IGitRepo {
 	return &gitRepo{
-		storage: storage,
-		mirror:  mirror,
+		storage:  storage,
+		mirror:   mirror,
+		xetStore: xetStore,
+		gc:       hfdgc.NewCollector(storage.RepositoriesFS(), xetStore),
+		gcGrace:  gcGrace,
 	}
 }
 
@@ -79,9 +87,17 @@ func repoPrefix(repoType string) string {
 
 func (g *gitRepo) gitPath(repoType string, project, name string) string {
 	repoName := repoPrefix(repoType) + project + "/" + name
-	repoPath := g.storage.ResolvePath(repoName)
-	return repoPath
+	return repository.ResolvePath(repoName)
+}
 
+// openRepo opens the git repository at gitPath on the repositories filesystem.
+func (g *gitRepo) openRepo(gitPath string) (*repository.Repository, error) {
+	return repository.Open(g.storage.RepositoriesFS(), gitPath)
+}
+
+// isRepo reports whether a git repository exists at gitPath.
+func (g *gitRepo) isRepo(gitPath string) bool {
+	return repository.IsRepository(g.storage.RepositoriesFS(), gitPath)
 }
 
 func (g *gitRepo) buildURL(repoType, project, name, revision, path string) string {
@@ -145,12 +161,12 @@ func isCommitSHA(s string) bool {
 // CreateRepository initializes a Git repository
 func (g *gitRepo) CreateRepository(ctx context.Context, repoType, project, name string) error {
 	gitPath := g.gitPath(repoType, project, name)
-	if repository.IsRepository(gitPath) {
+	if g.isRepo(gitPath) {
 		return fmt.Errorf("repository already exists at %s", gitPath)
 	}
 
 	defaultBranch := "main"
-	repo, err := repository.Init(ctx, gitPath, defaultBranch)
+	repo, err := repository.Init(ctx, g.storage.RepositoriesFS(), gitPath, defaultBranch)
 	if err != nil {
 		return err
 	}
@@ -177,16 +193,16 @@ func (g *gitRepo) CreateRepository(ctx context.Context, repoType, project, name 
 
 // RepositoryExists checks whether a Git repository exists on disk.
 func (g *gitRepo) RepositoryExists(ctx context.Context, repoType, project, name string) (bool, error) {
-	return repository.IsRepository(g.gitPath(repoType, project, name)), nil
+	return g.isRepo(g.gitPath(repoType, project, name)), nil
 }
 
 // DeleteRepository removes the Git repository
 func (g *gitRepo) DeleteRepository(ctx context.Context, repoType, project, name string) error {
 	gitPath := g.gitPath(repoType, project, name)
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return fmt.Errorf("repository does not exist at %s", gitPath)
 	}
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return err
 	}
@@ -196,10 +212,10 @@ func (g *gitRepo) DeleteRepository(ctx context.Context, repoType, project, name 
 // ListRevisions returns all branches and tags for a model
 func (g *gitRepo) ListRevisions(ctx context.Context, repoType, project, name string) (*git.Revisions, error) {
 	gitPath := g.gitPath(repoType, project, name)
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return nil, fmt.Errorf("repository does not exist at %s", gitPath)
 	}
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return nil, err
 	}
@@ -234,10 +250,10 @@ func (g *gitRepo) ListRevisions(ctx context.Context, repoType, project, name str
 // ListCommits returns the commit history for a model
 func (g *gitRepo) ListCommits(ctx context.Context, repoType, project, name, revision string, page, pageSize int) ([]*git.Commit, int64, error) {
 	gitPath := g.gitPath(repoType, project, name)
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return nil, 0, fmt.Errorf("repository does not exist at %s", gitPath)
 	}
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -280,10 +296,10 @@ func (g *gitRepo) ListCommits(ctx context.Context, repoType, project, name, revi
 // GetCommit returns a specific commit by ID
 func (g *gitRepo) GetCommit(ctx context.Context, repoType, project, name, commitID string) (*git.Commit, error) {
 	gitPath := g.gitPath(repoType, project, name)
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return nil, fmt.Errorf("repository does not exist at %s", gitPath)
 	}
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return nil, err
 	}
@@ -318,10 +334,10 @@ func (g *gitRepo) GetCommit(ctx context.Context, repoType, project, name, commit
 
 func (g *gitRepo) CreateCommit(ctx context.Context, repoType, project, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error) {
 	gitPath := g.gitPath(repoType, project, name)
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return "", fmt.Errorf("repository does not exist at %s", gitPath)
 	}
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return "", err
 	}
@@ -335,10 +351,10 @@ func (g *gitRepo) CreateCommit(ctx context.Context, repoType, project, name, rev
 // GetTree returns the file tree at a specific revision and path
 func (g *gitRepo) GetTree(ctx context.Context, repoType, project, name, revision, path string) ([]*git.TreeEntry, error) {
 	gitPath := g.gitPath(repoType, project, name)
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return nil, fmt.Errorf("repository does not exist at %s", gitPath)
 	}
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return nil, err
 	}
@@ -358,22 +374,14 @@ func (g *gitRepo) GetTree(ctx context.Context, repoType, project, name, revision
 			if err != nil {
 				return nil, err
 			}
-			size := blob.Size()
-			lfsPointer, _ := blob.LFSPointer()
-			if lfsPointer != nil {
-				size = lfsPointer.Size()
-			}
 
 			lastCommit := e.LastCommit()
 
-			treeEntries = append(treeEntries, &git.TreeEntry{
-				Name:  blob.Name(),
-				Path:  e.Path(),
-				Hash:  blob.Hash().String(),
-				Type:  git.FileTypeFile,
-				Size:  size,
-				IsLFS: lfsPointer != nil,
-				URL:   g.buildURL(repoType, project, name, revision, e.Path()),
+			entry := &git.TreeEntry{
+				Name: blob.Name(),
+				Path: e.Path(),
+				Type: git.FileTypeFile,
+				URL:  g.buildURL(repoType, project, name, revision, e.Path()),
 				Commit: &git.Commit{
 					ID:             lastCommit.Hash().String(),
 					Message:        lastCommit.Message(),
@@ -385,7 +393,9 @@ func (g *gitRepo) GetTree(ctx context.Context, repoType, project, name, revision
 					CommitterDate:  lastCommit.Committer().When(),
 					CreatedAt:      lastCommit.Committer().When(),
 				},
-			})
+			}
+			g.fillBlobFields(ctx, entry, blob)
+			treeEntries = append(treeEntries, entry)
 		} else {
 			lastCommit := e.LastCommit()
 			treeEntries = append(treeEntries, &git.TreeEntry{
@@ -413,10 +423,10 @@ func (g *gitRepo) GetTree(ctx context.Context, repoType, project, name, revision
 // GetBlob returns the content of a file at a specific revision
 func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision, path string) (*git.TreeEntry, error) {
 	gitPath := g.gitPath(repoType, project, name)
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return nil, fmt.Errorf("repository does not exist at %s", gitPath)
 	}
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return nil, err
 	}
@@ -461,19 +471,11 @@ func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision
 	}
 	commit := lastCommit[0]
 
-	size := blob.Size()
-	lfsPointer, _ := blob.LFSPointer()
-	if lfsPointer != nil {
-		size = lfsPointer.Size()
-	}
-	return &git.TreeEntry{
-		Name:  blob.Name(),
-		Path:  path,
-		Hash:  blob.Hash().String(),
-		Type:  git.FileTypeFile,
-		Size:  size,
-		IsLFS: lfsPointer != nil,
-		URL:   g.buildURL(repoType, project, name, revision, path),
+	entry := &git.TreeEntry{
+		Name: blob.Name(),
+		Path: path,
+		Type: git.FileTypeFile,
+		URL:  g.buildURL(repoType, project, name, revision, path),
 		Commit: &git.Commit{
 			ID:             commit.Hash().String(),
 			Message:        commit.Message(),
@@ -485,38 +487,48 @@ func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision
 			CommitterDate:  commit.Committer().When(),
 			CreatedAt:      commit.Committer().When(),
 		},
-	}, nil
+	}
+	g.fillBlobFields(ctx, entry, blob)
+	return entry, nil
+}
+
+// fillBlobFields sets the size and LFS fields; for a pointer, Size is the object size and PointerSize the blob size.
+func (g *gitRepo) fillBlobFields(ctx context.Context, e *git.TreeEntry, blob *repository.Blob) {
+	e.Size = blob.Size()
+	lfsPointer, _ := blob.LFSPointer()
+	if lfsPointer == nil {
+		return
+	}
+	e.IsLFS = true
+	e.Size = lfsPointer.Size()
+	e.Sha256 = lfsPointer.OID()
+	e.PointerSize = blob.Size()
+	if g.mirror != nil {
+		e.XetHash = g.mirror.FileHash(ctx, lfsPointer.OID())
+	}
 }
 
 func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepository) error {
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
-	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
-	sourceURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
-	if !repository.IsRepository(gitPath) {
-		_, err := repository.InitMirror(ctx, gitPath, sourceURL)
-		if err != nil {
-			return err
-		}
-	}
+	localName := repoPrefix(gitRepository.ResourceType) + gitRepository.ProjectName + "/" + gitRepository.ResourceName
+	remoteName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
+	sourceBase := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/")
+	sourceURL := sourceBase + "/" + remoteName
 
 	logWriter := gitRepository.LogWriter
 	if logWriter == nil {
 		logWriter = os.Stderr
 	}
 
-	syncOptions := []mirror.SyncOption{
-		mirror.WithSyncMirrorSourceURL(sourceURL),
-		mirror.WithSyncOutput(logWriter),
+	opts := &mirror.PullOptions{
+		SourceURL: sourceURL,
+		Output:    logWriter,
 	}
-
 	if cred := gitRepository.Credential; cred != nil {
-		syncOptions = append(syncOptions,
-			mirror.WithSyncUserInfo(url.UserPassword(cred.Username, cred.Password)),
-		)
+		opts.UserInfo = url.UserPassword(cred.Username, cred.Password)
 	}
-	return g.mirror.PullFromRemote(ctx, gitPath, repoName,
-		syncOptions...,
-	)
+	// Match the local repo name used by the HTTP data plane.
+	return g.mirror.PullFromRemote(ctx, gitPath, localName, opts)
 }
 
 func (g *gitRepo) readBlobBytes(repo *repository.Repository, rev, path string) ([]byte, error) {
@@ -534,7 +546,7 @@ func (g *gitRepo) readBlobBytes(repo *repository.Repository, rev, path string) (
 	return io.ReadAll(rc)
 }
 
-func (g *gitRepo) openBlobContent(repo *repository.Repository, rev, path string) (io.ReadCloser, error) {
+func (g *gitRepo) openBlobContent(ctx context.Context, repo *repository.Repository, rev, path string) (io.ReadCloser, error) {
 	blob, err := repo.Blob(rev, path)
 	if err != nil {
 		return nil, err
@@ -545,35 +557,25 @@ func (g *gitRepo) openBlobContent(repo *repository.Repository, rev, path string)
 		return blob.NewReader()
 	}
 
-	store := hfdlfs.NewLocal(g.storage.LFSDir())
-	if getter, ok := store.(hfdlfs.Getter); ok {
-		if rc, _, err := getter.Get(ptr.OID()); err == nil {
-			return rc, nil
-		}
+	// LFS content lives in xet storage, reachable only through the mirror.
+	if g.mirror == nil {
+		return nil, fmt.Errorf("cannot read lfs object %s: mirror is not configured", ptr.OID())
 	}
-
-	// The object is not on disk yet. On proxy repositories PullFromRemote only
-	// queues LFS objects for background fetching, so fall back to the mirror tee
-	// cache, which serves in-flight content while the download is still running.
-	// Callers that only need a file prefix, such as a safetensors header, do not
-	// have to wait for the whole object.
-	if g.mirror != nil {
-		if b := g.mirror.Get(ptr.OID()); b != nil {
-			return b.NewReadSeeker(), nil
-		}
+	rc, _, err := g.mirror.OpenObject(ctx, ptr.OID())
+	if err != nil {
+		return nil, err
 	}
-
-	return nil, fmt.Errorf("lfs object %s is not available locally", ptr.OID())
+	return rc, nil
 }
 
 // collectSafetensorsFile records the header of a safetensors file, falling back
 // to the size recorded in its LFS pointer when the header cannot be read. The
 // fallback keeps a parameter count derivable for proxy repositories whose
-// weights have not been fetched yet.
+// weights have not been fetched yet: the xet storage reports them as not found.
 //
-// Once the read budget is spent the header read is skipped entirely: opening a
-// tee cache blob promotes it to a foreground download, which is not worth paying
-// for a read that is about to time out anyway.
+// Once the read budget is spent the header read is skipped entirely: it would
+// reconstruct the object from the xet storage, which is not worth paying for a
+// read that is about to time out anyway.
 func (g *gitRepo) collectSafetensorsFile(ctx context.Context, repo *repository.Repository, rev, path string, metadata *git.RepoMetadataFiles) {
 	if ctx.Err() == nil {
 		if header, err := g.readSafetensorsHeader(ctx, repo, rev, path); err == nil {
@@ -611,12 +613,11 @@ type safetensorsHeaderResult struct {
 }
 
 // readSafetensorsHeader reads the header of a safetensors file, giving up when ctx
-// is done. A tee cache reader blocks until the upstream download produces the
-// bytes and observes neither ctx nor Close, so the read runs on its own goroutine
-// and is abandoned rather than cancelled. That goroutine owns rc and closes it
-// when the read returns, which happens at the latest when the download ends.
+// is done. Reconstructing an LFS object from xet storage can be slow, so the read
+// runs on its own goroutine and is abandoned rather than cancelled. That goroutine
+// owns rc and closes it when the read returns.
 func (g *gitRepo) readSafetensorsHeader(ctx context.Context, repo *repository.Repository, rev, path string) ([]byte, error) {
-	rc, err := g.openBlobContent(repo, rev, path)
+	rc, err := g.openBlobContent(ctx, repo, rev, path)
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +690,7 @@ func (g *gitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitReposi
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
 	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
 	destinationURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
-	if !repository.IsRepository(gitPath) {
+	if !g.isRepo(gitPath) {
 		return fmt.Errorf("local repository does not exist at %s", gitPath)
 	}
 
@@ -698,20 +699,15 @@ func (g *gitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitReposi
 		logWriter = os.Stderr
 	}
 
-	syncOptions := []mirror.SyncOption{
-		mirror.WithSyncMirrorDestinationURL(destinationURL),
-		mirror.WithSyncOutput(logWriter),
+	opts := &mirror.PushOptions{
+		DestinationURL: destinationURL,
+		Output:         logWriter,
 	}
-
 	if cred := gitRepository.Credential; cred != nil {
-		syncOptions = append(syncOptions,
-			mirror.WithSyncUserInfo(url.UserPassword(cred.Username, cred.Password)),
-		)
+		opts.UserInfo = url.UserPassword(cred.Username, cred.Password)
 	}
 
-	return g.mirror.PushToRemote(ctx, gitPath, repoName,
-		syncOptions...,
-	)
+	return g.mirror.PushToRemote(ctx, gitPath, repoName, opts)
 }
 
 // ExtractMetadata reads raw metadata-related files from a Git repository.
@@ -723,7 +719,7 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 
 	// Open Git repository
 	gitPath := g.gitPath(repoType, project, name)
-	repo, err := repository.Open(gitPath)
+	repo, err := g.openRepo(gitPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open git repo: %w", err)
 	}
@@ -740,7 +736,7 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 		metadata.ConfigJSON = content
 	}
 
-	// Header reads share one deadline: they can block on an upstream download, and
+	// Header reads share one deadline: reconstructing a large object is slow, and
 	// this runs inline on the sync path that git and Hugging Face clients wait for.
 	headerCtx, cancelHeaderReads := context.WithTimeout(ctx, safetensorsHeaderReadBudget)
 	defer cancelHeaderReads()
@@ -750,8 +746,8 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 		metadata.SafetensorsIndexJSON = content
 		// An index that carries metadata.total_size is enough on its own, and the
 		// model domain prefers it over scanning shards. Reading shard headers
-		// anyway would promote every shard to a foreground LFS download to
-		// produce a result that is never used.
+		// anyway would reconstruct every shard from the xet storage to produce a
+		// result that is never used.
 		if index := parseSafetensorsIndex(content); index.Metadata.TotalSize <= 0 {
 			for _, path := range index.safetensorsPaths() {
 				g.collectSafetensorsFile(headerCtx, repo, rev, path, metadata)
