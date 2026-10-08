@@ -91,6 +91,9 @@ The following table lists the configurable parameters of the MatrixHub chart and
 | `apiserver.debug` | Debug mode | `false` |
 | `apiserver.logLevel` | Log level (debug/info/warn/error) | `warn` |
 | `apiserver.port` | API server port | `9527` |
+| `apiserver.startupProbe` | Startup probe on `/healthz`; the liveness probe only starts once it passes. Set to `null` to remove it | `httpGet /healthz` |
+| `apiserver.startupProbe.periodSeconds` | Seconds between startup probe attempts | `10` |
+| `apiserver.startupProbe.failureThreshold` | Failed startup probe attempts before the pod is restarted (180 attempts at 10s = 30 minutes) | `180` |
 | `apiserver.tokenSigningSecret` | Signing key for temporary LFS/CAS tokens; empty generates a random key per pod start (set it when replicaCount > 1) | `""` |
 | `apiserver.gcGrace` | Git and LFS cleanup grace period; negative disables | `""` (1 hour) |
 | `apiserver.database.driver` | Database driver (`mysql` or `postgres`) | `mysql` |
@@ -231,6 +234,10 @@ kubectl get storageclass
 ```
 
 Use this for local or test environments only. For production, use a storage provider appropriate for your cluster, such as a cloud CSI driver, Longhorn, OpenEBS, Ceph, or NFS CSI.
+
+### Upgrading to Xet Storage
+
+The first start after upgrading to a release with Xet storage imports the legacy LFS store (`DataDir/lfs`) into `DataDir/xet` before the API server starts listening. The import needs free space of about the legacy store's size on the data volume. The old store is kept as `DataDir/lfs.bak` until you remove it. If the pod restarts during the import, the next start resumes it and skips the objects already imported. The default `apiserver.startupProbe` gives the import 30 minutes before the pod is restarted; large stores may need a higher `apiserver.startupProbe.failureThreshold`.
 
 ## Exposing the Service
 

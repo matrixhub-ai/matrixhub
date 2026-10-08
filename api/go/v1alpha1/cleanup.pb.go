@@ -641,12 +641,12 @@ const file_v1alpha1_cleanup_proto_rawDesc = "" +
 	"\adry_run\x18\x03 \x01(\bR\x06dryRun\x12(\n" +
 	"\vmax_deletes\x18\x04 \x01(\x05B\a\xfaB\x04\x1a\x02(\x00R\n" +
 	"maxDeletes\x12;\n" +
-	"\x06budget\x18\x05 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x022\x00R\x06budget\"\xec\x01\n" +
+	"\x06budget\x18\x05 \x01(\v2\x19.google.protobuf.DurationB\b\xfaB\x05\xaa\x01\x022\x00R\x06budget\"\x90\x02\n" +
 	"\rCleanupResult\x122\n" +
 	"\x15space_reclaimed_bytes\x18\x03 \x01(\x03R\x13spaceReclaimedBytes\x12\x16\n" +
 	"\x06errors\x18\x04 \x03(\tR\x06errors\x12%\n" +
 	"\x0eorphaned_repos\x18\x05 \x03(\tR\rorphanedRepos\x12,\n" +
-	"\x02gc\x18\b \x01(\v2\x1c.matrixhub.v1alpha1.GCResultR\x02gcJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x06\x10\aJ\x04\b\a\x10\bR\tlfs_pruneR\tlfs_sweepR\x05pruneR\x05sweep\"\xdd\x06\n" +
+	"\x02gc\x18\b \x01(\v2\x1c.matrixhub.v1alpha1.GCResultR\x02gcJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x06\x10\aJ\x04\b\a\x10\bR\rrepos_deletedR\x13lfs_objects_deletedR\tlfs_pruneR\tlfs_sweepR\x05pruneR\x05sweep\"\xdd\x06\n" +
 	"\bGCResult\x12\x17\n" +
 	"\adry_run\x18\x01 \x01(\bR\x06dryRun\x12\"\n" +
 	"\frepositories\x18\x02 \x01(\x05R\frepositories\x12.\n" +

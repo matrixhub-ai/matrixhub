@@ -37,7 +37,7 @@ message ExecuteCleanupRequest {
 
 message CleanupResult {
   reserved 1, 2, 6, 7;
-  reserved "lfs_prune", "lfs_sweep", "prune", "sweep";
+  reserved "repos_deleted", "lfs_objects_deleted", "lfs_prune", "lfs_sweep", "prune", "sweep";
   int64 space_reclaimed_bytes = 3;
   repeated string errors = 4;
   repeated string orphaned_repos = 5;

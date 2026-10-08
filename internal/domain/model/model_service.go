@@ -24,7 +24,6 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
-	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
 // IModelService defines the service interface for model operations.
@@ -49,7 +48,6 @@ type IModelService interface {
 	ListModelRevisions(ctx context.Context, project, name string) (*git.Revisions, error)
 	ListModelCommits(ctx context.Context, project, name, revision string, page, pageSize int) ([]*git.Commit, int64, error)
 	GetModelCommit(ctx context.Context, project, name, commitID string) (*git.Commit, error)
-	CreateModelCommit(ctx context.Context, project, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error)
 	GetModelTree(ctx context.Context, project, name, revision, path string) ([]*git.TreeEntry, error)
 	GetModelBlob(ctx context.Context, project, name, revision, path string) (*git.TreeEntry, error)
 
@@ -229,40 +227,6 @@ func (s *ModelService) GetModelCommit(ctx context.Context, project, name, commit
 	}
 
 	return s.gitRepo.GetCommit(ctx, "models", project, name, commitID)
-}
-
-// CreateModelCommit creates a new model commit.
-func (s *ModelService) CreateModelCommit(ctx context.Context, project, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error) {
-	prj, err := s.projectRepo.GetProjectByName(ctx, project)
-	if err != nil {
-		return "", err
-	}
-	if prj.HasProxy() {
-		return "", fmt.Errorf("it is not allowed to upload file to model %s/%s for proxy project  ", project, name)
-	}
-
-	// create model if not exist
-	mod, _ := s.modelRepo.GetByProjectAndName(ctx, project, name)
-	if mod == nil {
-		mod = &Model{
-			Name:        name,
-			ProjectID:   prj.ID,
-			ProjectName: project,
-		}
-		if _, err = s.modelRepo.Create(ctx, mod); err != nil {
-			return "", err
-		}
-	}
-
-	commitHash, err := s.gitRepo.CreateCommit(ctx, "models", project, name, revision, commit, ops)
-	if err != nil {
-		return "", err
-	}
-	if err = s.SyncMetadata(ctx, project, name); err != nil {
-		log.Errorf("failed to sync metadata for %s/%s: %v", project, name, err)
-	}
-
-	return commitHash, nil
 }
 
 // GetModelTree returns the file tree at a specific revision and path.

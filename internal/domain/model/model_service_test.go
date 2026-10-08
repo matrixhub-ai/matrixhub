@@ -671,35 +671,6 @@ func TestModelService_GitReadsCheckModelBeforeDelegating(t *testing.T) {
 	})
 }
 
-func TestModelService_CreateModelCommitCreatesRecordAndSyncsMetadata(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
-	labelRepo := modelmocks.NewMockILabelRepo(ctrl)
-	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
-	projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
-	created := &model.Model{ID: 42, ProjectID: 3, ProjectName: "proj", Name: "model"}
-	commit := &git.Commit{Message: "add README"}
-	ops := []git.CommitOperation{{Type: git.CommitOperationAdd, Path: "README.md", Content: []byte("# Model")}}
-
-	gomock.InOrder(
-		projectRepo.EXPECT().GetProjectByName(ctx, "proj").Return(&project.Project{ID: 3, Name: "proj"}, nil),
-		modelRepo.EXPECT().GetByProjectAndName(ctx, "proj", "model").Return(nil, errors.New("model not found")),
-		modelRepo.EXPECT().Create(ctx, &model.Model{Name: "model", ProjectID: 3, ProjectName: "proj"}).Return(created, nil),
-		gitRepo.EXPECT().CreateCommit(ctx, "models", "proj", "model", "main", commit, ops).Return("commit", nil),
-		modelRepo.EXPECT().GetByProjectAndName(ctx, "proj", "model").Return(created, nil),
-		gitRepo.EXPECT().ExtractMetadata(ctx, "models", "proj", "model").Return(&git.RepoMetadataFiles{}, nil),
-		modelRepo.EXPECT().UpdateMetadata(ctx, int64(42), gomock.Any()).Return(nil),
-		labelRepo.EXPECT().UpdateModelLabels(ctx, int64(42), []int(nil)).Return(nil),
-	)
-	service := model.NewModelService(modelRepo, labelRepo, gitRepo, projectRepo, nil)
-
-	commitID, err := service.CreateModelCommit(ctx, "proj", "model", "main", commit, ops)
-
-	require.NoError(t, err)
-	require.Equal(t, "commit", commitID)
-}
-
 func TestModelService_UpdateModelSettingUsesModelID(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)

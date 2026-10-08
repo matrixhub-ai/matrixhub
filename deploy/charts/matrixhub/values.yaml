@@ -77,6 +77,17 @@ apiserver:
   # -- ssh server port
   sshPort: 22
 
+  # -- Startup probe; the liveness probe only starts once it passes. The first
+  # start after upgrading to Xet storage imports DataDir/lfs before the listener
+  # opens, so large stores may need a higher failureThreshold. Set to null to
+  # remove the probe.
+  startupProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    periodSeconds: 10
+    failureThreshold: 180
+
   # -- Base HTTP URL returned to SSH Git LFS clients. It must be reachable by
   # the client performing the Git operation.
   hostURL: ""
@@ -84,6 +95,10 @@ apiserver:
   # -- externally-reachable base URL of this instance. Surfaced to the frontend
   # (used as `HF_ENDPOINT` for `hf` CLI snippets, etc). Leave empty to hide
   # affected UI panels. Example: https://matrixhub.example.com
+  # It is also the origin of the CAS/bridge URLs handed to HF clients and of the
+  # redirect for stored LFS files, which the browser's LFS preview fetches, so it
+  # must be the origin users browse from (any other origin turns that into a
+  # cross-origin redirect without CORS).
   externalURL: ""
 
   # -- Signing key for temporary LFS/CAS tokens; empty generates a random key per pod start, so set it when replicaCount > 1.

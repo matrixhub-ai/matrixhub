@@ -46,11 +46,12 @@ type gitRepo struct {
 const maxSafetensorsHeaderBytes uint64 = 64 * 1024 * 1024
 
 // safetensorsHeaderReadBudget bounds the time one metadata extraction may spend
-// reading safetensors headers, across all files rather than per file. A read
-// served by the mirror tee cache blocks until the upstream download reaches the
-// header bytes, so extraction must not wait on it indefinitely: it runs inline on
-// the proxy sync path that git and Hugging Face clients wait for. A shared budget
-// also keeps a sharded model from multiplying the wait by its shard count.
+// reading safetensors headers, across all files rather than per file. LFS reads
+// are served from the local xet storage, which only holds fully ingested objects
+// and never waits on an upstream, but reconstructing a large object is slow and
+// extraction must not wait on it indefinitely: it runs inline on the proxy sync
+// path that git and Hugging Face clients wait for. A shared budget also keeps a
+// sharded model from multiplying the wait by its shard count.
 const safetensorsHeaderReadBudget = 10 * time.Second
 
 type safetensorsIndexFiles struct {
@@ -570,11 +571,11 @@ func (g *gitRepo) openBlobContent(ctx context.Context, repo *repository.Reposito
 // collectSafetensorsFile records the header of a safetensors file, falling back
 // to the size recorded in its LFS pointer when the header cannot be read. The
 // fallback keeps a parameter count derivable for proxy repositories whose
-// weights have not been fetched yet.
+// weights have not been fetched yet: the xet storage reports them as not found.
 //
-// Once the read budget is spent the header read is skipped entirely: opening a
-// tee cache blob promotes it to a foreground download, which is not worth paying
-// for a read that is about to time out anyway.
+// Once the read budget is spent the header read is skipped entirely: it would
+// reconstruct the object from the xet storage, which is not worth paying for a
+// read that is about to time out anyway.
 func (g *gitRepo) collectSafetensorsFile(ctx context.Context, repo *repository.Repository, rev, path string, metadata *git.RepoMetadataFiles) {
 	if ctx.Err() == nil {
 		if header, err := g.readSafetensorsHeader(ctx, repo, rev, path); err == nil {
@@ -735,7 +736,7 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 		metadata.ConfigJSON = content
 	}
 
-	// Header reads share one deadline: they can block on an upstream download, and
+	// Header reads share one deadline: reconstructing a large object is slow, and
 	// this runs inline on the sync path that git and Hugging Face clients wait for.
 	headerCtx, cancelHeaderReads := context.WithTimeout(ctx, safetensorsHeaderReadBudget)
 	defer cancelHeaderReads()
@@ -745,8 +746,8 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 		metadata.SafetensorsIndexJSON = content
 		// An index that carries metadata.total_size is enough on its own, and the
 		// model domain prefers it over scanning shards. Reading shard headers
-		// anyway would promote every shard to a foreground LFS download to
-		// produce a result that is never used.
+		// anyway would reconstruct every shard from the xet storage to produce a
+		// result that is never used.
 		if index := parseSafetensorsIndex(content); index.Metadata.TotalSize <= 0 {
 			for _, path := range index.safetensorsPaths() {
 				g.collectSafetensorsFile(headerCtx, repo, rev, path, metadata)

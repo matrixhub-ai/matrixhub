@@ -112,6 +112,10 @@ type APIServerConfig struct {
 	// surfaced to the frontend (e.g. as the `HF_ENDPOINT` for `hf` CLI snippets).
 	// Empty means "not configured" and the API returns an empty string so the
 	// UI can hide affected panels.
+	// It is also the origin of the CAS/bridge URLs handed to HF clients and of
+	// the redirect for stored LFS files, which the browser's LFS preview fetches,
+	// so it must be the origin users browse from (any other origin turns that
+	// into a cross-origin redirect without CORS).
 	ExternalURL string `yaml:"externalURL"`
 }
 

@@ -21,6 +21,7 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -153,7 +154,8 @@ func NewAPIServer(ctx context.Context, config *config.Config) (*APIServer, error
 	)
 	server.grpcServer = grpcServer
 
-	server.httpServer.Handler = server.hfdBackend.Handler(server.httpServer.Handler)
+	// API routes bypass the protocol authentication chain; its fallthrough stays gin for the SPA fallback.
+	server.httpServer.Handler = apiFirst(engine, server.hfdBackend.Handler(engine), apiServerPath(config.UI.StaticDir != ""))
 	server.registerRoutersAndHandlers()
 
 	return server, nil
@@ -274,6 +276,33 @@ func (server *APIServer) initHandlersServicesRepos() {
 
 	server.repos = repos
 	server.handlers = handlers
+}
+
+// apiFirst serves paths the API server owns with api and everything else with the protocol chain.
+func apiFirst(api, protocol http.Handler, isAPIPath func(string) bool) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if isAPIPath(request.URL.Path) {
+			api.ServeHTTP(writer, request)
+			return
+		}
+		protocol.ServeHTTP(writer, request)
+	})
+}
+
+// apiServerPath matches the routes registerRoutersAndHandlers registers (NoRoute excluded); keep the two in step.
+func apiServerPath(staticUI bool) func(string) bool {
+	exact := []string{"/healthz"}
+	prefixes := []string{"/api/v1alpha1/", "/apis/v1alpha1/"}
+	if staticUI {
+		exact = append(exact, "/favicon.ico")
+		prefixes = append(prefixes, "/assets/")
+	}
+	return func(path string) bool {
+		if slices.Contains(exact, path) {
+			return true
+		}
+		return slices.ContainsFunc(prefixes, func(prefix string) bool { return strings.HasPrefix(path, prefix) })
+	}
 }
 
 func (server *APIServer) registerRoutersAndHandlers() {
