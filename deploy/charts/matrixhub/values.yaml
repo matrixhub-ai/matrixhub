@@ -127,6 +127,10 @@ apiserver:
     # Example: 8h
     nonPersistentIdleTimeout: 8h
 
+presets:
+  # -- Seed empty instances with static model metadata and repair local repositories without upstream requests
+  enabled: true
+
 # -- mysql configuration (only when global.storage.apiserver.builtIn is true)
 mysql:
   # -- mysql image registry

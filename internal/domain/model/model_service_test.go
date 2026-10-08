@@ -389,11 +389,16 @@ func TestModelService_SyncMetadataPersistsZeroValues(t *testing.T) {
 	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
 
 	modelRepo.EXPECT().GetByProjectAndName(gomock.Any(), "proj", "empty").
-		Return(&model.Model{ID: 42, Name: "empty", ProjectName: "proj"}, nil)
+		Return(&model.Model{
+			ID: 42, Name: "empty", ProjectName: "proj", Size: 100, ParameterCount: 50,
+			ReadmeContent: "old", Labels: []model.Label{{Name: "old", Category: "other", Scope: "model"}},
+		}, nil)
 	gitRepo.EXPECT().ExtractMetadata(gomock.Any(), "models", "proj", "empty").
 		Return(&git.RepoMetadataFiles{ReadmeContent: []byte("# Empty")}, nil)
 	modelRepo.EXPECT().UpdateMetadata(gomock.Any(), int64(42), gomock.Any()).
 		DoAndReturn(func(_ context.Context, _ int64, update *model.MetadataUpdate) error {
+			require.NotNil(t, update.ReadmeContent)
+			require.Equal(t, "# Empty", *update.ReadmeContent)
 			require.NotNil(t, update.Size)
 			require.Zero(t, *update.Size)
 			require.NotNil(t, update.ParameterCount)
@@ -828,7 +833,10 @@ func TestModelService_SyncMetadataCreatesAndAssignsClassifiedLabels(t *testing.T
 	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
 	labelRepo := modelmocks.NewMockILabelRepo(ctrl)
 	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
-	mod := &model.Model{ID: 42, Name: "model", ProjectName: "proj"}
+	mod := &model.Model{
+		ID: 42, Name: "model", ProjectName: "proj", Size: 1000, ParameterCount: 500,
+		Labels: []model.Label{{Name: "old", Category: "other", Scope: "model"}},
+	}
 	files := &git.RepoMetadataFiles{
 		ReadmeContent: []byte(`---
 pipeline_tag: text-generation

@@ -57,3 +57,29 @@ apiServer:
 	require.Equal(t, "FULL", dsn.Query().Get("_synchronous"))
 	require.Equal(t, "immediate", dsn.Query().Get("_txlock"))
 }
+
+func TestPresetsEnabledConfiguration(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		section string
+		enabled bool
+	}{
+		{name: "omitted", enabled: true},
+		{name: "empty section", section: "presets: {}", enabled: true},
+		{name: "enabled", section: "presets:\n  enabled: true", enabled: true},
+		{name: "disabled", section: "presets:\n  enabled: false", enabled: false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Setenv(db.MATRIXHUB_DSN_ENV, "")
+			dir := t.TempDir()
+			configPath := filepath.Join(dir, "config.yaml")
+			content := fmt.Sprintf("migrationPath: %q\ndataDir: %q\napiServer:\n  port: 3101\n%s\n",
+				dir, dir, test.section)
+			require.NoError(t, os.WriteFile(configPath, []byte(content), 0o600))
+			cfg, err := Init(configPath, "")
+			require.NoError(t, err)
+			require.Equal(t, test.enabled, cfg.Presets.IsEnabled())
+		})
+	}
+	require.True(t, PresetsConfig{}.IsEnabled())
+}

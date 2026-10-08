@@ -39,9 +39,18 @@ type Config struct {
 
 	Database db.Config     `yaml:"database" validate:"required"`
 	Session  SessionConfig `yaml:"session"`
+	Presets  PresetsConfig `yaml:"presets"`
 
 	// JobServer runs delayed sync (and future kinds). If nil, jobserver is disabled.
 	JobServer *JobServerConfig `yaml:"jobServer"`
+}
+
+type PresetsConfig struct {
+	Enabled *bool `yaml:"enabled"`
+}
+
+func (c PresetsConfig) IsEnabled() bool {
+	return c.Enabled == nil || *c.Enabled
 }
 
 // JobServerConfig is the top-level jobserver configuration (YAML key `jobServer`).

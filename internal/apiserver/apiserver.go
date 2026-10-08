@@ -52,6 +52,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/cleanup"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/preset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
@@ -91,6 +92,9 @@ type APIServer struct {
 	jobServer *jobserver.JobServer
 	jobCancel context.CancelFunc
 	jobWait   sync.WaitGroup
+
+	presetCancel context.CancelFunc
+	presetWait   sync.WaitGroup
 }
 
 func NewAPIServer(config *config.Config) *APIServer {
@@ -153,8 +157,23 @@ func NewAPIServer(config *config.Config) *APIServer {
 
 	server.httpServer.Handler = server.initBackends(server.httpServer.Handler)
 	server.registerRoutersAndHandlers()
+	server.initPresets()
 
 	return server
+}
+
+func (server *APIServer) initPresets() {
+	if !server.config.Presets.IsEnabled() {
+		return
+	}
+	service := preset.NewService(true, preset.DefaultManifest(), server.repos.Preset,
+		server.repos.Project, server.repos.Model, server.repos.Git)
+	ctx, cancel := context.WithCancel(context.Background())
+	server.presetCancel = cancel
+	service.Apply(ctx)
+	server.presetWait.Go(func() {
+		service.Reconcile(ctx)
+	})
 }
 
 type gitHooks struct {
@@ -629,6 +648,11 @@ func (server *APIServer) Start() <-chan error {
 
 func (server *APIServer) Shutdown() {
 	log.Info("api server shutdown...")
+
+	if server.presetCancel != nil {
+		server.presetCancel()
+	}
+	server.presetWait.Wait()
 
 	if server.jobCancel != nil {
 		server.jobCancel()
