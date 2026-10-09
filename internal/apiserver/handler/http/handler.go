@@ -15,6 +15,7 @@
 package backend
 
 import (
+	"context"
 	"io"
 	"net/http"
 
@@ -42,6 +43,9 @@ type Handler struct {
 	modelService        model.IModelService
 	gitRepo             git.IGitRepo
 	authzService        authz.IAuthzService
+	// fetchAdmissionFunc gates git-upload-pack (clone/fetch) per repository.
+	// Returning a non-nil error denies the fetch with a stable message.
+	fetchAdmissionFunc func(ctx context.Context, repoName string) error
 }
 
 // Option defines a functional option for configuring the Handler.
@@ -69,6 +73,14 @@ func WithNext(next http.Handler) Option {
 }
 
 // WithPermissionHookFunc sets the permission hook for verifying operations.
+// WithFetchAdmissionFunc sets the security-admission gate evaluated before
+// serving git-upload-pack (clone / fetch).
+func WithFetchAdmissionFunc(fn func(ctx context.Context, repoName string) error) Option {
+	return func(h *Handler) {
+		h.fetchAdmissionFunc = fn
+	}
+}
+
 func WithPermissionHookFunc(fn permission.PermissionHookFunc) Option {
 	return func(h *Handler) {
 		h.permissionHookFunc = fn
