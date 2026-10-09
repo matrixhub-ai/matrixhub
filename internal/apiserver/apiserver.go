@@ -48,9 +48,11 @@ import (
 	backendlfs "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/lfs"
 	backendssh "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh"
 	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/cleanup"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
@@ -88,9 +90,11 @@ type APIServer struct {
 	services *Services
 	handlers []handler.IHandler
 
-	jobServer *jobserver.JobServer
-	jobCancel context.CancelFunc
-	jobWait   sync.WaitGroup
+	jobServer          *jobserver.JobServer
+	jobCancel          context.CancelFunc
+	jobWait            sync.WaitGroup
+	artifactScan       *artifactscan.Service
+	artifactScanWorker *jobserver.ArtifactScanWorker
 }
 
 func NewAPIServer(config *config.Config) *APIServer {
@@ -125,6 +129,7 @@ func NewAPIServer(config *config.Config) *APIServer {
 	server.initMirrorHooks()
 	server.initGitStorage()
 	server.initHandlersServicesRepos()
+	server.initArtifactScan()
 	server.initGitHooks()
 	server.initGitAuth()
 	server.initSSHBackend()
@@ -193,6 +198,15 @@ func (server *APIServer) initGitHooks() {
 		}
 
 		var err error
+		if repoType == "models" && server.artifactScan != nil {
+			for _, update := range updates {
+				if update.NewRev() != receive.ZeroHash {
+					if scanErr := server.artifactScan.Enqueue(ctx, repoName, update.NewRev()); scanErr != nil {
+						log.Warnw("enqueue artifact scan failed", "repo", repoName, "error", scanErr)
+					}
+				}
+			}
+		}
 		switch repoType {
 		case "models":
 			err = server.services.Model.SyncMetadata(ctx, project, name)
@@ -301,6 +315,10 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 	lfsStorage := server.gitStorage.lfsStorage
 	sharedMirror := server.gitStorage.sharedMirror
 	permissionHookFunc := server.gitHooks.permissionHookFunc
+	var readSnapshot git.ReadSnapshotFunc
+	if server.artifactScan != nil {
+		readSnapshot = server.artifactGitSnapshot
+	}
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
 	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
 	basicAuthValidator := server.gitAuth.basicAuthValidator
@@ -317,8 +335,10 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhf.WithLFSStorage(lfsStorage),
 		backendhf.WithMiddlewares(
 			middleware.HFAuthnMiddleware(server.repos.AccessToken, server.repos.Session, server.repos.User, server.repos.Robot),
+			middleware.SecuritySessionMiddleware(server.repos.Session, server.repos.User),
 		),
 		backendhf.WithServices(server.services.Model, server.repos.Git, server.services.Authz),
+		backendhf.WithArtifactScan(server.artifactScan),
 	)
 
 	gitAuthn := func() mux.MiddlewareFunc {
@@ -334,6 +354,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendlfs.WithStorage(storage),
 		backendlfs.WithNext(handler),
 		backendlfs.WithMirror(sharedMirror),
+		backendlfs.WithArtifactScan(server.artifactScan),
 		backendlfs.WithPermissionHookFunc(permissionHookFunc),
 		backendlfs.WithLFSStorage(lfsStorage),
 		backendlfs.WithMirror(sharedMirror),
@@ -345,6 +366,7 @@ func (server *APIServer) initBackends(handler http.Handler) http.Handler {
 		backendhttp.WithNext(handler),
 		backendhttp.WithMirror(sharedMirror),
 		backendhttp.WithPermissionHookFunc(permissionHookFunc),
+		backendhttp.WithReadSnapshot(readSnapshot),
 		backendhttp.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendhttp.WithPostReceiveHookFunc(postReceiveHookFunc),
 		backendhttp.WithMiddlewares(gitAuthn()),
@@ -365,6 +387,10 @@ func (server *APIServer) initSSHBackend() {
 
 	storage := server.gitStorage.storage
 	permissionHookFunc := server.gitHooks.permissionHookFunc
+	var readSnapshot git.ReadSnapshotFunc
+	if server.artifactScan != nil {
+		readSnapshot = server.artifactGitSnapshot
+	}
 	preReceiveHookFunc := server.gitHooks.preReceiveHookFunc
 	postReceiveHookFunc := server.gitHooks.postReceiveHookFunc
 	basicAuthValidator := server.gitAuth.basicAuthValidator
@@ -381,6 +407,7 @@ func (server *APIServer) initSSHBackend() {
 		backendssh.WithMirror(server.gitStorage.sharedMirror),
 		backendssh.WithServices(server.services.Model),
 		backendssh.WithPermissionHookFunc(permissionHookFunc),
+		backendssh.WithReadSnapshot(readSnapshot),
 		backendssh.WithPreReceiveHookFunc(preReceiveHookFunc),
 		backendssh.WithPostReceiveHookFunc(postReceiveHookFunc),
 		backendssh.WithLFSURL(server.config.APIServer.HostURL),
@@ -629,6 +656,9 @@ func (server *APIServer) Start() <-chan error {
 
 func (server *APIServer) Shutdown() {
 	log.Info("api server shutdown...")
+	if server.artifactScanWorker != nil {
+		server.artifactScanWorker.Close()
+	}
 
 	if server.jobCancel != nil {
 		server.jobCancel()

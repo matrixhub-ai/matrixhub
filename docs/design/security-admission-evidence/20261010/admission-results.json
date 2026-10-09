@@ -1,0 +1,84 @@
+{
+  "client": "huggingface_hub/1.29.0 + git",
+  "repo": "mhgate1791565359/safe",
+  "cases": [
+    {
+      "scenario": "lfs-batch-ref-and-scoped-download",
+      "passed": true,
+      "revision": "e7874ee7bdc4b9d7822e001c758a2f08e4a1d389"
+    },
+    {
+      "scenario": "raw-oid-download-denied",
+      "passed": true,
+      "http": 403
+    },
+    {
+      "scenario": "oid-cannot-use-another-repository-context",
+      "passed": true,
+      "http": 403
+    },
+    {
+      "scenario": "explicit-reuse-rescan",
+      "passed": true,
+      "attempt": 2
+    },
+    {
+      "scenario": "forced-rescan-bypasses-cache",
+      "passed": true,
+      "attempt": 3
+    },
+    {
+      "scenario": "streamed-16-mib-weight-container-and-exact-download",
+      "passed": true,
+      "bytes": 16777474,
+      "seconds": 12.687
+    },
+    {
+      "scenario": "real-git-clone-admits-clean-history",
+      "passed": true
+    },
+    {
+      "scenario": "lfs-blocked-revision-denied",
+      "passed": true,
+      "http": 403
+    },
+    {
+      "scenario": "git-denies-dangerous-history-even-after-clean-tip",
+      "passed": true,
+      "old_revision": "c0bf8decff6a81d6a177f7530d0b7200ced554fc",
+      "new_revision": "dc545a8ad5969831187aba737ffe6707bb41c688"
+    },
+    {
+      "scenario": "direct-git-upload-pack-denied",
+      "passed": true,
+      "http": 403
+    },
+    {
+      "scenario": "policy-is-project-scoped-high-risk-stays-blocked",
+      "passed": true
+    },
+    {
+      "scenario": "cancelled-task-remains-denied-after-worker-returns",
+      "passed": true,
+      "attempt": 2
+    },
+    {
+      "scenario": "cancelled-task-can-be-rescanned",
+      "passed": true,
+      "attempt": 3
+    },
+    {
+      "scenario": "private-report-audit-policy-deny-anonymous",
+      "passed": true
+    },
+    {
+      "scenario": "audit-captures-control-and-admission-without-payload",
+      "passed": true,
+      "events": 35
+    }
+  ],
+  "payload_marker_exists": false,
+  "limitations": [
+    "Upstream model-only pre-receive hook rejects dataset commits; dataset end-to-end case not verified."
+  ]
+}

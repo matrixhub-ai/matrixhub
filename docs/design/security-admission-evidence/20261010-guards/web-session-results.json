@@ -1,0 +1,29 @@
+{
+  "cases": [
+    {
+      "scenario": "cookie-authenticated-policy-read",
+      "http": 200,
+      "passed": true
+    },
+    {
+      "scenario": "same-origin-cookie-policy-write",
+      "http": 200,
+      "passed": true
+    },
+    {
+      "scenario": "cookie-write-without-origin-denied",
+      "http": 403,
+      "passed": true
+    },
+    {
+      "scenario": "cross-origin-cookie-write-denied",
+      "http": 403,
+      "passed": true
+    },
+    {
+      "scenario": "explicit-invalid-credential-cannot-fall-back-to-cookie",
+      "http": 403,
+      "passed": true
+    }
+  ]
+}

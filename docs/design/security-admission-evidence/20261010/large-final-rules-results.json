@@ -1,0 +1,30 @@
+{
+  "cases": [
+    {
+      "tier_mib": 256,
+      "passed": true,
+      "status": "passed",
+      "ruleset": "f16964c5df0a980767469fc7e858308a0a4457bdb30c14246205859021d66440",
+      "attempt": 3,
+      "checks": [
+        "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+        "fickling/0.1.12",
+        "pytorch:raw-tensor-storage"
+      ],
+      "seconds": 4.558
+    },
+    {
+      "tier_mib": 1024,
+      "passed": true,
+      "status": "passed",
+      "ruleset": "f16964c5df0a980767469fc7e858308a0a4457bdb30c14246205859021d66440",
+      "attempt": 3,
+      "checks": [
+        "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+        "fickling/0.1.12",
+        "pytorch:raw-tensor-storage"
+      ],
+      "seconds": 24.359
+    }
+  ]
+}

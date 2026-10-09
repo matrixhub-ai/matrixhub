@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "tier_mib": 256,
+      "passed": true,
+      "status": "passed",
+      "ruleset": "68261686c7006b727a5b155ee24b5072323e5d6ec7684760dcfd6ffae88b4c93",
+      "attempt": 4,
+      "checks": [
+        "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+        "fickling/0.1.12"
+      ],
+      "seconds": 7.31
+    },
+    {
+      "tier_mib": 1024,
+      "passed": true,
+      "status": "passed",
+      "ruleset": "68261686c7006b727a5b155ee24b5072323e5d6ec7684760dcfd6ffae88b4c93",
+      "attempt": 4,
+      "checks": [
+        "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+        "fickling/0.1.12"
+      ],
+      "seconds": 38.746
+    }
+  ]
+}

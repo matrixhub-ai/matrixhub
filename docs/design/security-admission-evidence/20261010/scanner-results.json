@@ -1,0 +1,245 @@
+{
+  "cases": [
+    {
+      "case": "plain.json",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "json-by-name",
+      "error": null
+    },
+    {
+      "case": "safe.pkl",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "danger.pkl",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "broken.pkl",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": "static_analysis_incomplete"
+    },
+    {
+      "case": "trailing.pkl",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": "static_analysis_incomplete"
+    },
+    {
+      "case": "safe.pt",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "zip",
+      "error": null
+    },
+    {
+      "case": "danger.pt",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "zip",
+      "error": null
+    },
+    {
+      "case": "opaque.pt",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "zip",
+      "error": "unsupported_serialization"
+    },
+    {
+      "case": "ratio.zip",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "zip",
+      "error": "archive_ratio_limit"
+    },
+    {
+      "case": "members.zip",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "zip",
+      "error": "archive_member_limit"
+    },
+    {
+      "case": "protocol-0.pkl",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "protocol-1.pkl",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "protocol-2.pkl",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "protocol-3.pkl",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "protocol-4.pkl",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "protocol-5.pkl",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "renamed-danger.dat",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "renamed-binary.dat",
+      "status": "passed",
+      "expected": "passed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "renamed-trailing.dat",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": "static_analysis_incomplete"
+    },
+    {
+      "case": "renamed-zip.zip",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "zip",
+      "error": null
+    },
+    {
+      "case": "pickle-too-large.pkl",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "pickle",
+      "error": "pickle_metadata_limit"
+    },
+    {
+      "case": "metadata-too-large.pt",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "zip",
+      "error": "pickle_metadata_limit"
+    },
+    {
+      "case": "encrypted.zip",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "other",
+      "error": "encrypted_archive"
+    },
+    {
+      "case": "matched-then-incomplete.pt",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "zip",
+      "error": "pickle_metadata_limit"
+    },
+    {
+      "case": "nested.zip",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "zip",
+      "error": "unsupported_serialization"
+    },
+    {
+      "case": "renamed-numpy.dat",
+      "status": "failed",
+      "expected": "failed",
+      "passed": true,
+      "file_type": "other",
+      "error": "unsupported_serialization"
+    },
+    {
+      "case": "danger.joblib",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "torch-load.pkl",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "nested-load.pkl",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    },
+    {
+      "case": "ml-mixed-danger.pkl",
+      "status": "blocked",
+      "expected": "blocked",
+      "passed": true,
+      "file_type": "pickle",
+      "error": null
+    }
+  ],
+  "payload_marker_exists": false
+}

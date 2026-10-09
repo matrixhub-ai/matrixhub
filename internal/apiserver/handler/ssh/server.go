@@ -35,6 +35,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/storage"
 	"golang.org/x/crypto/ssh"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
@@ -57,6 +58,7 @@ type Server struct {
 	lfsURL              string
 	mirror              *mirror.Mirror
 	modelService        model.IModelService
+	readSnapshot        git.ReadSnapshotFunc
 }
 
 // Option configures the SSH server.
@@ -76,6 +78,9 @@ func WithPermissionHookFunc(fn permission.PermissionHookFunc) Option {
 		s.permissionHookFunc = fn
 	}
 }
+
+// WithReadSnapshot freezes and admits exactly the repository served by upload-pack.
+func WithReadSnapshot(fn git.ReadSnapshotFunc) Option { return func(s *Server) { s.readSnapshot = fn } }
 
 // WithServices sets the services for the SSH server.
 func WithServices(modelService model.IModelService) Option {
@@ -350,6 +355,12 @@ func (s *Server) handleSession(ctx context.Context, channel ssh.Channel, request
 
 // executeCommand runs a git service command and pipes I/O through the SSH channel.
 func (s *Server) executeCommand(ctx context.Context, channel ssh.Channel, service string, repoName string, env ...string) {
+	canonical, _, valid := utils.CanonicalRepoName(repoName)
+	if !valid {
+		sendExitStatus(channel, 1, "invalid repository path\n")
+		return
+	}
+	repoName = canonical
 	repoPath := s.storage.ResolvePath(repoName)
 	if repoPath == "" {
 		sendExitStatus(channel, 1, "repository not found\n")
@@ -425,6 +436,16 @@ func (s *Server) executeCommand(ctx context.Context, channel ssh.Channel, servic
 		slog.WarnContext(ctx, "ssh protocol: failed to open repository", "repo", repoName, "error", err)
 		sendExitStatus(channel, 1, "")
 		return
+	}
+
+	if service == repository.GitUploadPack && s.readSnapshot != nil {
+		snapshot, release, err := s.readSnapshot(ctx, repoName, repoPath)
+		if err != nil {
+			sendExitStatus(channel, 1, "repository snapshot is not admitted\n")
+			return
+		}
+		defer release()
+		repoPath = snapshot
 	}
 
 	// For receive-pack with permission/receive hooks: use pipe-based approach
@@ -581,6 +602,12 @@ func lfsHref(httpURL, repoName string) string {
 // executeLFSAuthenticate handles the git-lfs-authenticate command by returning
 // a JSON response with the LFS API endpoint URL.
 func (s *Server) executeLFSAuthenticate(ctx context.Context, channel ssh.Channel, repoName string, operation string) {
+	canonical, _, valid := utils.CanonicalRepoName(repoName)
+	if !valid {
+		sendExitStatus(channel, 1, "invalid repository path\n")
+		return
+	}
+	repoName = canonical
 	if s.lfsURL == "" {
 		sendExitStatus(channel, 1, "server not configured for host url")
 		return

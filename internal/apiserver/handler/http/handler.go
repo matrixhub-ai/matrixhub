@@ -42,6 +42,7 @@ type Handler struct {
 	modelService        model.IModelService
 	gitRepo             git.IGitRepo
 	authzService        authz.IAuthzService
+	readSnapshot        git.ReadSnapshotFunc
 }
 
 // Option defines a functional option for configuring the Handler.
@@ -73,6 +74,11 @@ func WithPermissionHookFunc(fn permission.PermissionHookFunc) Option {
 	return func(h *Handler) {
 		h.permissionHookFunc = fn
 	}
+}
+
+// WithReadSnapshot binds Git reads to a snapshot admitted after synchronization.
+func WithReadSnapshot(fn git.ReadSnapshotFunc) Option {
+	return func(h *Handler) { h.readSnapshot = fn }
 }
 
 // WithPreReceiveHookFunc sets the pre-receive hook called before a git push is processed.
