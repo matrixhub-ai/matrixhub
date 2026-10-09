@@ -262,6 +262,26 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 					responseJSON(w, fmt.Errorf("LFS object %q not found for file %q in repository %q at revision %q", ptr.OID(), path, ri.RepoName, rev), http.StatusNotFound)
 					return
 				}
+				// HEAD requests must be handled directly because SignGet()
+				// creates a presigned URL for GET, not HEAD.
+				if r.Method == http.MethodHead {
+					info, err := h.lfsStorage.Info(ptr.OID())
+					if err != nil {
+						if os.IsNotExist(err) {
+							responseJSON(w, fmt.Errorf("LFS object %q not found for file %q in repository %q at revision %q", ptr.OID(), path, ri.RepoName, rev), http.StatusNotFound)
+							return
+						}
+						responseJSON(w, fmt.Errorf("failed to get LFS object %q info: %v", ptr.OID(), err), http.StatusInternalServerError)
+						return
+					}
+
+					w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
+					w.Header().Set("Content-Type", "application/octet-stream")
+					w.Header().Set("Last-Modified", info.ModTime().UTC().Format(http.TimeFormat))
+					w.WriteHeader(http.StatusOK)
+					return
+				}
+
 				if signer, ok := h.lfsStorage.(lfs.SignGetter); ok {
 					url, err := signer.SignGet(ptr.OID())
 					if err != nil {

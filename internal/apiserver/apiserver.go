@@ -272,7 +272,21 @@ func (server *APIServer) initGitStorage() {
 		gitstorage.WithRootDir(server.config.DataDir),
 	)
 
-	lfsStorage := lfs.NewLocal(storage.LFSDir())
+	var lfsStorage lfs.Storage
+
+	if server.config.Storage.LFS.Type == "s3" {
+		lfsStorage = lfs.NewS3(
+			server.config.Storage.LFS.BasePath,
+			server.config.Storage.LFS.Endpoint,
+			server.config.Storage.LFS.AccessKey,
+			server.config.Storage.LFS.SecretKey,
+			server.config.Storage.LFS.Bucket,
+			server.config.Storage.LFS.ForcePathStyle,
+			server.config.Storage.LFS.SignEndpoint,
+		)
+	} else {
+		lfsStorage = lfs.NewLocal(storage.LFSDir())
+	}
 
 	mirrorSourceFunc := server.gitHooks.mirrorSourceFunc
 	mirrorDestinationFunc := server.gitHooks.mirrorDestinationFunc

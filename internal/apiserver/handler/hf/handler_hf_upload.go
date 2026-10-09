@@ -110,10 +110,12 @@ func (h *Handler) handleCreateRepo(w http.ResponseWriter, r *http.Request) {
 	if prefix != "" {
 		storageName = prefix + "/" + repoName
 	}
+
 	perm := role.ModelPush
 	if req.Type == "dataset" {
 		perm = role.DatasetPush
 	}
+
 	if passed, err := h.authzService.VerifyProjectPermissionByName(r.Context(), req.Organization, perm); err != nil {
 		responseJSON(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -123,7 +125,12 @@ func (h *Handler) handleCreateRepo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.permissionHookFunc != nil {
-		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationCreateRepo, storageName, permission.Context{}); err != nil {
+		if ok, err := h.permissionHookFunc(
+			r.Context(),
+			permission.OperationCreateRepo,
+			storageName,
+			permission.Context{},
+		); err != nil {
 			responseJSON(w, err.Error(), http.StatusInternalServerError)
 			return
 		} else if !ok {
@@ -148,7 +155,7 @@ func (h *Handler) handleCreateRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if repository already exists
+	// Check if repository already exists.
 	if repository.IsRepository(repoPath) {
 		resp := createRepoResponse{
 			URL: fmt.Sprintf("%s%s", requestOrigin(r), urlName),
@@ -157,32 +164,52 @@ func (h *Handler) handleCreateRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create repository directory
+	// Create repository directory.
 	if err := os.MkdirAll(filepath.Dir(repoPath), 0755); err != nil {
-		responseJSON(w, fmt.Errorf("failed to create repository directory: %v", err), http.StatusInternalServerError)
+		responseJSON(
+			w,
+			fmt.Errorf("failed to create repository directory: %v", err),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
 	defaultBranch := "main"
 
-	// Initialize bare repository
+	// Initialize bare repository.
 	repo, err := repository.Init(r.Context(), repoPath, defaultBranch)
 	if err != nil {
-		responseJSON(w, fmt.Errorf("failed to initialize repository: %v", err), http.StatusInternalServerError)
+		responseJSON(
+			w,
+			fmt.Errorf("failed to initialize repository: %v", err),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
-	// Create initial commit with default .gitattributes
-	_, err = repo.CreateCommit(context.Background(), defaultBranch, "Initial commit", commitAuthorName(user), user.Email, []repository.CommitOperation{
-		{
-			Type:    repository.CommitOperationAdd,
-			Path:    repository.GitattributesFileName,
-			Content: repository.GitattributesText,
+	// Create initial commit with default .gitattributes.
+	_, err = repo.CreateCommit(
+		context.Background(),
+		defaultBranch,
+		"Initial commit",
+		commitAuthorName(user),
+		user.Email,
+		[]repository.CommitOperation{
+			{
+				Type:    repository.CommitOperationAdd,
+				Path:    repository.GitattributesFileName,
+				Content: repository.GitattributesText,
+			},
 		},
-	}, "")
+		"",
+	)
 	if err != nil {
 		_ = repo.Remove()
-		responseJSON(w, fmt.Errorf("failed to create initial commit: %v", err), http.StatusInternalServerError)
+		responseJSON(
+			w,
+			fmt.Errorf("failed to create initial commit: %v", err),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
@@ -199,7 +226,12 @@ func (h *Handler) handlePreupload(w http.ResponseWriter, r *http.Request) {
 	rev := vars["rev"]
 
 	if h.permissionHookFunc != nil {
-		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{Ref: rev}); err != nil {
+		if ok, err := h.permissionHookFunc(
+			r.Context(),
+			permission.OperationUpdateRepo,
+			ri.RepoName,
+			permission.Context{Ref: rev},
+		); err != nil {
 			responseJSON(w, err.Error(), http.StatusInternalServerError)
 			return
 		} else if !ok {
@@ -223,16 +255,33 @@ func (h *Handler) handlePreupload(w http.ResponseWriter, r *http.Request) {
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			responseJSON(w, fmt.Errorf("repository %q not found", ri.RepoName), http.StatusNotFound)
+			responseJSON(
+				w,
+				fmt.Errorf("repository %q not found", ri.RepoName),
+				http.StatusNotFound,
+			)
 			return
 		}
-		responseJSON(w, fmt.Errorf("failed to open repository %q: %v", ri.RepoName, err), http.StatusInternalServerError)
+
+		responseJSON(
+			w,
+			fmt.Errorf("failed to open repository %q: %v", ri.RepoName, err),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
 	gitAttrs, err := repo.GitAttributes(rev)
 	if err != nil {
-		responseJSON(w, fmt.Errorf("failed to read .gitattributes for repository %q: %v", ri.RepoName, err), http.StatusInternalServerError)
+		responseJSON(
+			w,
+			fmt.Errorf(
+				"failed to read .gitattributes for repository %q: %v",
+				ri.RepoName,
+				err,
+			),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
@@ -252,6 +301,7 @@ func (h *Handler) handlePreupload(w http.ResponseWriter, r *http.Request) {
 	resp := preuploadResponse{
 		Files: respFiles,
 	}
+
 	responseJSON(w, resp, http.StatusOK)
 }
 
@@ -262,9 +312,14 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 	rev := vars["rev"]
 
 	if h.permissionHookFunc != nil {
-		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{
-			Ref: rev,
-		}); err != nil {
+		if ok, err := h.permissionHookFunc(
+			r.Context(),
+			permission.OperationUpdateRepo,
+			ri.RepoName,
+			permission.Context{
+				Ref: rev,
+			},
+		); err != nil {
 			responseJSON(w, err.Error(), http.StatusInternalServerError)
 			return
 		} else if !ok {
@@ -283,50 +338,77 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 
 	repoPath := h.storage.ResolvePath(ri.RepoName)
 	if repoPath == "" {
-		responseJSON(w, fmt.Errorf("repository %q not found", ri.RepoName), http.StatusNotFound)
+		responseJSON(
+			w,
+			fmt.Errorf("repository %q not found", ri.RepoName),
+			http.StatusNotFound,
+		)
 		return
 	}
 
-	// Parse NDJSON body
+	// Parse NDJSON body.
 	scanner := bufio.NewScanner(r.Body)
-	scanner.Buffer(make([]byte, 1024*1024), 100*1024*1024) // Allow up to 100MB lines
+	scanner.Buffer(make([]byte, 1024*1024), 100*1024*1024)
 
 	var header commitHeader
 	var ops []git.CommitOperation
 
 	for scanner.Scan() {
 		line := scanner.Text()
+
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
 
 		var op commitOperation
 		if err := json.Unmarshal([]byte(line), &op); err != nil {
-			responseJSON(w, fmt.Errorf("invalid NDJSON line: %v", err), http.StatusBadRequest)
+			responseJSON(
+				w,
+				fmt.Errorf("invalid NDJSON line: %v", err),
+				http.StatusBadRequest,
+			)
 			return
 		}
 
 		switch op.Key {
 		case "header":
 			if err := json.Unmarshal(op.Value, &header); err != nil {
-				responseJSON(w, fmt.Errorf("invalid header: %v", err), http.StatusBadRequest)
+				responseJSON(
+					w,
+					fmt.Errorf("invalid header: %v", err),
+					http.StatusBadRequest,
+				)
 				return
 			}
 
 		case "file":
 			var file commitFile
 			if err := json.Unmarshal(op.Value, &file); err != nil {
-				responseJSON(w, fmt.Errorf("invalid file operation: %v", err), http.StatusBadRequest)
+				responseJSON(
+					w,
+					fmt.Errorf("invalid file operation: %v", err),
+					http.StatusBadRequest,
+				)
 				return
 			}
 
 			content := []byte(file.Content)
+
 			if file.Encoding == "base64" {
 				decoded, err := base64.StdEncoding.DecodeString(file.Content)
 				if err != nil {
-					responseJSON(w, fmt.Errorf("failed to decode base64 content for %s: %v", file.Path, err), http.StatusBadRequest)
+					responseJSON(
+						w,
+						fmt.Errorf(
+							"failed to decode base64 content for %s: %v",
+							file.Path,
+							err,
+						),
+						http.StatusBadRequest,
+					)
 					return
 				}
+
 				content = decoded
 			}
 
@@ -339,12 +421,21 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 		case "lfsFile":
 			var lfsFile commitLFSFile
 			if err := json.Unmarshal(op.Value, &lfsFile); err != nil {
-				responseJSON(w, fmt.Errorf("invalid LFS file operation: %v", err), http.StatusBadRequest)
+				responseJSON(
+					w,
+					fmt.Errorf("invalid LFS file operation: %v", err),
+					http.StatusBadRequest,
+				)
 				return
 			}
 
-			// Create an LFS pointer content
-			pointerContent := fmt.Sprintf("version https://git-lfs.github.com/spec/v1\noid sha256:%s\nsize %d\n", lfsFile.OID, lfsFile.Size)
+			// Create an LFS pointer content.
+			pointerContent := fmt.Sprintf(
+				"version https://git-lfs.github.com/spec/v1\noid sha256:%s\nsize %d\n",
+				lfsFile.OID,
+				lfsFile.Size,
+			)
+
 			ops = append(ops, git.CommitOperation{
 				Type:    git.CommitOperationAdd,
 				Path:    lfsFile.Path,
@@ -354,7 +445,11 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 		case "deletedFile":
 			var deleted commitDeletedFile
 			if err := json.Unmarshal(op.Value, &deleted); err != nil {
-				responseJSON(w, fmt.Errorf("invalid delete operation: %v", err), http.StatusBadRequest)
+				responseJSON(
+					w,
+					fmt.Errorf("invalid delete operation: %v", err),
+					http.StatusBadRequest,
+				)
 				return
 			}
 
@@ -366,7 +461,11 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		responseJSON(w, fmt.Errorf("failed to read request body: %v", err), http.StatusBadRequest)
+		responseJSON(
+			w,
+			fmt.Errorf("failed to read request body: %v", err),
+			http.StatusBadRequest,
+		)
 		return
 	}
 
@@ -374,40 +473,66 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 	if message == "" {
 		message = "Upload files"
 	}
+
 	if header.Description != "" {
 		message += "\n\n" + header.Description
 	}
 
-	// Open the repository
+	// Open the repository.
 	repo, err := repository.Open(repoPath)
 	if err != nil {
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
-			responseJSON(w, fmt.Errorf("repository %q not found", ri.RepoName), http.StatusNotFound)
+			responseJSON(
+				w,
+				fmt.Errorf("repository %q not found", ri.RepoName),
+				http.StatusNotFound,
+			)
 			return
 		}
-		responseJSON(w, fmt.Errorf("failed to open repository %q: %v", ri.RepoName, err), http.StatusInternalServerError)
+
+		responseJSON(
+			w,
+			fmt.Errorf("failed to open repository %q: %v", ri.RepoName, err),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
-	// Mock pre-receive hook with current branch head as OldRev
+	// Mock pre-receive hook with current branch head as OldRev.
 	if h.preReceiveHookFunc != nil {
 		oldRev := header.ParentCommit
+
 		if oldRev == "" {
 			oldRev, _ = repo.RefHash(plumbing.NewBranchReferenceName(rev))
 			if oldRev == "" {
 				oldRev = receive.ZeroHash
 			}
 		}
-		if ok, err := h.preReceiveHookFunc(r.Context(), ri.RepoName, []receive.RefUpdate{
-			receive.NewRefUpdate(oldRev, receive.ZeroHash, "refs/heads/"+rev, ri.RepoName),
-		}); err != nil {
+
+		if ok, err := h.preReceiveHookFunc(
+			r.Context(),
+			ri.RepoName,
+			[]receive.RefUpdate{
+				receive.NewRefUpdate(
+					oldRev,
+					receive.ZeroHash,
+					"refs/heads/"+rev,
+					ri.RepoName,
+				),
+			},
+		); err != nil {
 			responseJSON(w, err.Error(), http.StatusInternalServerError)
 			return
 		} else if !ok {
-			responseJSON(w, "pre-receive hook denied the commit", http.StatusForbidden)
+			responseJSON(
+				w,
+				"pre-receive hook denied the commit",
+				http.StatusForbidden,
+			)
 			return
 		}
 	}
+
 	commit := &git.Commit{
 		Message:      message,
 		AuthorName:   commitAuthorName(user),
@@ -415,9 +540,70 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 		ParentCommit: header.ParentCommit,
 	}
 
-	commitHash, err := h.modelService.CreateModelCommit(r.Context(), ri.Namespace, ri.Name, rev, commit, ops)
+	// Models go through ModelService because ModelService also handles
+	// model-specific metadata synchronization.
+	//
+	// Datasets and Spaces go directly through the Git repository so
+	// the repository type is preserved and the correct storage path
+	// is used:
+	//
+	//   models   -> <namespace>/<repo>
+	//   datasets -> datasets/<namespace>/<repo>
+	//   spaces   -> spaces/<namespace>/<repo>
+	var commitHash string
+
+	switch ri.RepoType {
+	case "models":
+		commitHash, err = h.modelService.CreateModelCommit(
+			r.Context(),
+			ri.Namespace,
+			ri.Name,
+			rev,
+			commit,
+			ops,
+		)
+
+	case "datasets":
+		commitHash, err = h.gitRepo.CreateCommit(
+			r.Context(),
+			"datasets",
+			ri.Namespace,
+			ri.Name,
+			rev,
+			commit,
+			ops,
+		)
+
+	case "spaces":
+		commitHash, err = h.gitRepo.CreateCommit(
+			r.Context(),
+			"spaces",
+			ri.Namespace,
+			ri.Name,
+			rev,
+			commit,
+			ops,
+		)
+
+	default:
+		responseJSON(
+			w,
+			fmt.Errorf("unsupported repository type %q", ri.RepoType),
+			http.StatusBadRequest,
+		)
+		return
+	}
+
 	if err != nil {
-		responseJSON(w, fmt.Errorf("failed to create commit in repository %q: %v", ri.RepoName, err), http.StatusInternalServerError)
+		responseJSON(
+			w,
+			fmt.Errorf(
+				"failed to create commit in repository %q: %v",
+				ri.RepoName,
+				err,
+			),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
@@ -426,17 +612,40 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 		if oldRev == "" {
 			oldRev = receive.ZeroHash
 		}
-		if hookErr := h.postReceiveHookFunc(r.Context(), ri.RepoName, []receive.RefUpdate{
-			receive.NewRefUpdate(oldRev, commitHash, "refs/heads/"+rev, ri.RepoName),
-		}); hookErr != nil {
-			slog.WarnContext(r.Context(), "post-receive hook error", "repo", ri.RepoName, "error", hookErr)
+
+		if hookErr := h.postReceiveHookFunc(
+			r.Context(),
+			ri.RepoName,
+			[]receive.RefUpdate{
+				receive.NewRefUpdate(
+					oldRev,
+					commitHash,
+					"refs/heads/"+rev,
+					ri.RepoName,
+				),
+			},
+		); hookErr != nil {
+			slog.WarnContext(
+				r.Context(),
+				"post-receive hook error",
+				"repo",
+				ri.RepoName,
+				"error",
+				hookErr,
+			)
 		}
 	}
 
 	resp := commitResponse{
-		CommitURL:     fmt.Sprintf("%s/%s/commit/%s", requestOrigin(r), ri.RepoName, commitHash),
+		CommitURL: fmt.Sprintf(
+			"%s/%s/commit/%s",
+			requestOrigin(r),
+			ri.RepoName,
+			commitHash,
+		),
 		CommitOid:     commitHash,
 		CommitMessage: message,
 	}
+
 	responseJSON(w, resp, http.StatusOK)
 }

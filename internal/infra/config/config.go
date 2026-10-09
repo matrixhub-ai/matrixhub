@@ -28,6 +28,21 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
+type StorageConfig struct {
+	LFS LFSStorageConfig `yaml:"lfs"`
+}
+
+type LFSStorageConfig struct {
+	Type           string `yaml:"type"`
+	Endpoint       string `yaml:"endpoint"`
+	AccessKey      string `yaml:"accessKey"`
+	SecretKey      string `yaml:"secretKey"`
+	Bucket         string `yaml:"bucket"`
+	BasePath       string `yaml:"basePath"`
+	ForcePathStyle bool   `yaml:"forcePathStyle"`
+	SignEndpoint   string `yaml:"signEndpoint"`
+}
+
 type Config struct {
 	Debug         bool             `yaml:"debug"`
 	Log           log.Config       `yaml:"log"`
@@ -39,6 +54,7 @@ type Config struct {
 
 	Database db.Config     `yaml:"database" validate:"required"`
 	Session  SessionConfig `yaml:"session"`
+	Storage  StorageConfig `yaml:"storage"`
 
 	// JobServer runs delayed sync (and future kinds). If nil, jobserver is disabled.
 	JobServer *JobServerConfig `yaml:"jobServer"`

@@ -99,15 +99,7 @@ func (h *Handler) handleBatch(w http.ResponseWriter, r *http.Request) {
 // handlePutContent receives data from the client and puts it into the content store
 func (h *Handler) handlePutContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
-	if signer, ok := h.lfsStorage.(lfs.SignPutter); ok {
-		url, err := signer.SignPut(rv.Oid)
-		if err != nil {
-			responseJSON(w, fmt.Sprintf("failed to sign URL for LFS object %q: %v", rv.Oid, err), http.StatusInternalServerError)
-			return
-		}
-		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-		return
-	}
+
 	if err := h.lfsStorage.Put(rv.Oid, r.Body, r.ContentLength); err != nil {
 		responseJSON(w, fmt.Sprintf("failed to put LFS object %s: %v", rv.Oid, err), http.StatusInternalServerError)
 		return
@@ -117,6 +109,27 @@ func (h *Handler) handlePutContent(w http.ResponseWriter, r *http.Request) {
 // handleGetContent gets the content from the content store
 func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
+
+	// HEAD requests must be handled directly because SignGet()
+	// creates a presigned URL for GET, not HEAD.
+	if r.Method == http.MethodHead {
+		info, err := h.lfsStorage.Info(rv.Oid)
+		if err != nil {
+			if os.IsNotExist(err) {
+				responseJSON(w, fmt.Sprintf("LFS object %s not found", rv.Oid), http.StatusNotFound)
+				return
+			}
+			responseJSON(w, fmt.Sprintf("failed to get LFS object %s info: %v", rv.Oid, err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", info.Size()))
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("ETag", fmt.Sprintf("\"%s\"", rv.Oid))
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	if !h.lfsStorage.Exists(rv.Oid) {
 		if h.mirror != nil {
 			pf := h.mirror.Get(rv.Oid)

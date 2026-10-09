@@ -15,6 +15,7 @@
 package hf
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -23,10 +24,38 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	modelmocks "github.com/matrixhub-ai/matrixhub/internal/domain/model/mocks"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
+	"github.com/matrixhub-ai/matrixhub/internal/repo"
+	"go.uber.org/mock/gomock"
+
 	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	backendlfs "github.com/matrixhub-ai/hfd/pkg/backend/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
 )
+
+type testAuthzService struct{}
+
+func (testAuthzService) GetUserPermissions(context.Context, int, int) ([]role.Permission, error) {
+	return nil, nil
+}
+
+func (testAuthzService) VerifyPlatformPermission(context.Context, role.Permission) (bool, error) {
+	return true, nil
+}
+
+func (testAuthzService) VerifyProjectPermission(context.Context, int, role.Permission) (bool, error) {
+	return true, nil
+}
+
+func (testAuthzService) VerifyProjectPermissionByName(context.Context, string, role.Permission) (bool, error) {
+	return true, nil
+}
+
+func (testAuthzService) GetUserAccessibleProjectIDs(context.Context, int) ([]int, error) {
+	return nil, nil
+}
 
 func setupTestServer(t *testing.T) (*httptest.Server, string) {
 	t.Helper()
@@ -39,11 +68,43 @@ func setupTestServer(t *testing.T) (*httptest.Server, string) {
 
 	storage := storage.NewStorage(storage.WithRootDir(dataDir))
 
+	ctrl := gomock.NewController(t)
+	modelService := modelmocks.NewMockIModelService(ctrl)
+	gitRepo := repo.NewGitDB(storage, nil)
+
+	modelService.EXPECT().
+		CreateModelCommit(
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+		).
+		DoAndReturn(func(
+			ctx context.Context,
+			project, name, revision string,
+			commit *git.Commit,
+			ops []git.CommitOperation,
+		) (string, error) {
+			return gitRepo.CreateCommit(
+				ctx,
+				"models",
+				project,
+				name,
+				revision,
+				commit,
+				ops,
+			)
+		}).
+		AnyTimes()
+
 	// Set up handler chain (same order as main.go)
 	var handler http.Handler
 
 	handler = NewHandler(
 		WithStorage(storage),
+		WithServices(modelService, gitRepo, testAuthzService{}),
 	)
 
 	handler = backendlfs.NewHandler(
@@ -226,6 +287,7 @@ func TestHuggingFaceCommitAndResolve(t *testing.T) {
 	if len(repoInfo.Siblings) != 2 {
 		t.Fatalf("Expected 2 siblings, got %d", len(repoInfo.Siblings))
 	}
+
 	foundGitAttrs := false
 	foundReadme := false
 	for _, s := range repoInfo.Siblings {
@@ -236,6 +298,7 @@ func TestHuggingFaceCommitAndResolve(t *testing.T) {
 			foundReadme = true
 		}
 	}
+
 	if !foundGitAttrs {
 		t.Errorf("Expected a sibling with filename '.gitattributes', but none was found")
 	}
@@ -418,8 +481,9 @@ func TestHuggingFaceDatasetCreateAndCommit(t *testing.T) {
 		t.Fatalf("Failed to decode dataset info: %v", err)
 	}
 	if len(repoInfo.Siblings) != 2 {
-		t.Errorf("Expected 2 siblings, got %v", repoInfo.Siblings)
+		t.Fatalf("Expected 2 siblings, got %v", repoInfo.Siblings)
 	}
+
 	foundGitAttrs := false
 	foundReadme := false
 	for _, s := range repoInfo.Siblings {
@@ -430,6 +494,7 @@ func TestHuggingFaceDatasetCreateAndCommit(t *testing.T) {
 			foundReadme = true
 		}
 	}
+
 	if !foundGitAttrs {
 		t.Errorf("Expected a sibling with filename '.gitattributes', but none was found")
 	}
@@ -493,12 +558,12 @@ func TestHuggingFaceSpaceCreateAndCommit(t *testing.T) {
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		t.Fatalf("Expected 200 for space resolve, got %d: %s", resp.StatusCode, respBody)
+		t.Fatalf("Expected 200 for spaces resolve, got %d: %s", resp.StatusCode, respBody)
 	}
 
 	content, _ := io.ReadAll(resp.Body)
 	if string(content) != "# Test Space\n" {
-		t.Errorf("Unexpected space content: %q", content)
+		t.Errorf("Unexpected content for spaces: %q", content)
 	}
 
 	// Verify space info endpoint works
@@ -520,8 +585,9 @@ func TestHuggingFaceSpaceCreateAndCommit(t *testing.T) {
 		t.Fatalf("Failed to decode space info: %v", err)
 	}
 	if len(repoInfo.Siblings) != 2 {
-		t.Errorf("Expected 2 siblings, got %v", repoInfo.Siblings)
+		t.Fatalf("Expected 2 siblings, got %d", len(repoInfo.Siblings))
 	}
+
 	foundGitAttrs := false
 	foundReadme := false
 	for _, s := range repoInfo.Siblings {
@@ -532,6 +598,7 @@ func TestHuggingFaceSpaceCreateAndCommit(t *testing.T) {
 			foundReadme = true
 		}
 	}
+
 	if !foundGitAttrs {
 		t.Errorf("Expected a sibling with filename '.gitattributes', but none was found")
 	}
@@ -698,7 +765,7 @@ func TestHuggingFaceCommitDeleteFile(t *testing.T) {
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		t.Fatalf("Expected 200 for README.md, got %d: %s", resp.StatusCode, respBody)
+		t.Fatalf("Expected 200 for resolve, got %d: %s", resp.StatusCode, respBody)
 	}
 
 	content, _ := io.ReadAll(resp.Body)
@@ -747,20 +814,23 @@ func TestHuggingFacePreuploadWithGitAttributes(t *testing.T) {
 
 	var result preuploadResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		t.Fatalf("Failed to decode response: %v", err)
+		t.Fatalf("Failed to decode preupload response: %v", err)
 	}
 
 	if len(result.Files) != 3 {
 		t.Fatalf("Expected 3 files, got %d", len(result.Files))
 	}
+
 	// model.bin matches *.bin pattern → lfs (even though size is small)
 	if result.Files[0].UploadMode != "lfs" {
 		t.Errorf("Expected lfs mode for model.bin (matches .gitattributes), got %s", result.Files[0].UploadMode)
 	}
+
 	// README.txt doesn't match any LFS pattern and is small → regular
 	if result.Files[1].UploadMode != "regular" {
 		t.Errorf("Expected regular mode for README.txt, got %s", result.Files[1].UploadMode)
 	}
+
 	// weights.safetensors matches *.safetensors pattern → lfs
 	if result.Files[2].UploadMode != "lfs" {
 		t.Errorf("Expected lfs mode for weights.safetensors (matches .gitattributes), got %s", result.Files[2].UploadMode)
@@ -828,7 +898,7 @@ func TestHuggingFaceTreeSize(t *testing.T) {
 	}
 
 	// "hello\n" = 6 bytes, "world\n" = 6 bytes, ".gitattributes" = len(gitattributesBody) bytes
-	expectedRootSize := int64(6 + 6 + len(gitattributesBody)) // README.md + sub/data.txt + .gitattributes
+	expectedRootSize := int64(6 + 6 + len(gitattributesBody))
 	if result.Size != expectedRootSize {
 		t.Errorf("Expected treesize %d, got %d", expectedRootSize, result.Size)
 	}
