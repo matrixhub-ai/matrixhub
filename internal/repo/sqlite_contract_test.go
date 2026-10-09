@@ -133,6 +133,11 @@ func TestRegistryRepo_DeleteRejectsReferencedRegistry(t *testing.T) {
 	require.ErrorIs(t, repo.DeleteRegistry(ctx, policyReg.ID), registry.ErrInUse)
 	_, err = repo.GetRegistry(ctx, policyReg.ID)
 	require.NoError(t, err)
+
+	require.NoError(t, database.Exec("DELETE FROM sync_policies WHERE registry_id = ?", policyReg.ID).Error)
+	require.NoError(t, repo.DeleteRegistry(ctx, policyReg.ID))
+	_, err = repo.GetRegistry(ctx, policyReg.ID)
+	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
 }
 
 func assertProjectNameSearchIsCaseSensitive(t *testing.T, ctx context.Context, database *gorm.DB) {
