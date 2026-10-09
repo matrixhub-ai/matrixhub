@@ -16,8 +16,12 @@ package registry
 
 import (
 	"context"
+	"errors"
 	"time"
 )
+
+// ErrInUse indicates that a registry is still referenced by another resource.
+var ErrInUse = errors.New("registry is still in use")
 
 type Registry struct {
 	ID             int `gorm:"primarykey"`
