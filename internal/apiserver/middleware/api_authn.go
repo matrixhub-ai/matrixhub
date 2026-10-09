@@ -33,6 +33,12 @@ var publicMethods = map[string]bool{
 	"/matrixhub.v1alpha1.SystemService/GetSystemConfig": true,
 }
 
+// optionalAuthMethods allow anonymous requests while preserving identity when
+// valid credentials are provided.
+var optionalAuthMethods = map[string]bool{
+	"/matrixhub.v1alpha1.Models/ListModels": true,
+}
+
 func AuthInterceptor(sessionRepo user.ISessionRepo, userRepo user.IUserRepo, tokenRepo user.IAccessTokenRepo, robotRepo robot.IRobotRepo) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if publicMethods[info.FullMethod] {
@@ -40,8 +46,15 @@ func AuthInterceptor(sessionRepo user.ISessionRepo, userRepo user.IUserRepo, tok
 		}
 
 		authn := authenticator.NewWebAuthenticator(sessionRepo, userRepo, tokenRepo, robotRepo)
-		succeeded, identity, _, ok, err := authn.Authenticate(ctx, nil)
-		if err != nil || !ok {
+		succeeded, identity, next, ok, err := authn.Authenticate(ctx, nil)
+		if err != nil {
+			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
+		}
+		if !ok && next && optionalAuthMethods[info.FullMethod] {
+			// No credentials were supplied; let the handler apply anonymous access rules.
+			return handler(ctx, req)
+		}
+		if !ok {
 			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 		}
 		ctx = auth.WithIdentity(ctx, identity)
