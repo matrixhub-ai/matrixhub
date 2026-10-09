@@ -151,8 +151,9 @@ administrator. Existing installations with a registry or project are not seeded.
 
 Initialization writes static sizes, parameter counts, and categorized labels
 alongside the model records. README content stays empty and `synced_at` stays
-null. Startup makes no upstream requests; a background pass only creates missing
-local placeholder repositories for existing preset models.
+null. A startup pass creates missing local placeholder repositories for existing
+preset models before the server starts accepting requests, without upstream
+requests.
 These models remain unsynchronized until their first normal download, which can
 take a long time and require substantial disk space (some models are several TB).
 That download replaces the static metadata with the actual repository metadata

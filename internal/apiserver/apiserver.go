@@ -92,9 +92,6 @@ type APIServer struct {
 	jobServer *jobserver.JobServer
 	jobCancel context.CancelFunc
 	jobWait   sync.WaitGroup
-
-	presetCancel context.CancelFunc
-	presetWait   sync.WaitGroup
 }
 
 func NewAPIServer(config *config.Config) *APIServer {
@@ -168,12 +165,9 @@ func (server *APIServer) initPresets() {
 	}
 	service := preset.NewService(true, preset.DefaultManifest(), server.repos.Preset,
 		server.repos.Project, server.repos.Model, server.repos.Git)
-	ctx, cancel := context.WithCancel(context.Background())
-	server.presetCancel = cancel
+	ctx := context.Background()
 	service.Apply(ctx)
-	server.presetWait.Go(func() {
-		service.Reconcile(ctx)
-	})
+	service.Reconcile(ctx)
 }
 
 type gitHooks struct {
@@ -648,11 +642,6 @@ func (server *APIServer) Start() <-chan error {
 
 func (server *APIServer) Shutdown() {
 	log.Info("api server shutdown...")
-
-	if server.presetCancel != nil {
-		server.presetCancel()
-	}
-	server.presetWait.Wait()
 
 	if server.jobCancel != nil {
 		server.jobCancel()
