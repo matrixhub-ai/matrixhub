@@ -128,7 +128,7 @@ export function AllModelList() {
 
         <Space h="lg" />
 
-        <Box miw={780} maw={1380}>
+        <Box w="100%">
           {isLoadingError
             ? (
                 <Alert color="red" title={t('model.list.loadFailed')}>
