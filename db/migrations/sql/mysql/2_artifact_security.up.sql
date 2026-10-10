@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS mh_prototype_artifact_scans (
     repo VARCHAR(255) NOT NULL, revision VARCHAR(40) NOT NULL,
     status VARCHAR(32) NOT NULL, report LONGTEXT,
-    updated_at DATETIME(3), attempt BIGINT NOT NULL DEFAULT 1, force BOOLEAN DEFAULT FALSE,
+    updated_at DATETIME(3), attempt BIGINT NOT NULL DEFAULT 1, `force` BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (repo, revision)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 CREATE TABLE IF NOT EXISTS mh_prototype_scan_attempts (

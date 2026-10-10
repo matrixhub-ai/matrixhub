@@ -1,7 +1,6 @@
 import {
   Alert, Button, Group, Modal, Paper, Stack, Tabs, Text, TextInput, Title,
 } from '@mantine/core'
-import { type ScanFile } from '@matrixhub/api-ts/security'
 import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
@@ -9,6 +8,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
+import { type ScanFile } from '@/features/models/security/security.api'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
 import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'

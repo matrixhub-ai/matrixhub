@@ -1,12 +1,12 @@
 import {
   Badge, Button, Group, Stack, Text,
 } from '@mantine/core'
-import {
-  type ScanAudit, type ScanFile, type ScanStatus,
-} from '@matrixhub/api-ts/security'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  type ScanAudit, type ScanFile, type ScanStatus,
+} from '@/features/models/security/security.api'
 import { CopyValueButton } from '@/shared/components/CopyValueButton'
 import { DataTable } from '@/shared/components/DataTable'
 import { TruncatedText } from '@/shared/components/TruncatedText'

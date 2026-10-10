@@ -94,4 +94,26 @@ Sanitized evidence is under `security-admission-evidence/20261010`, `20261010-gu
 - Snapshot/history admission scope and budgets.
 - Backend/UI split and documentation-website integration.
 
-MySQL, high concurrency, proxy/sync ingestion and Xet uploads are not validated. The upstream E2E suite has not been run against this contribution; recorded verification covers the packages and live probes above.
+MySQL 8.4.11 migration, scan-store persistence and API-server startup have been verified. High concurrency, proxy/sync ingestion and Xet uploads are not validated. The upstream E2E result is reported separately by PR CI; recorded local verification covers the packages and live probes above.
+## CI integration regressions
+
+The hand-written client for the opt-in HTTP API lives in
+`ui/src/features/models/security/security.api.ts` and uses the generated
+`@matrixhub/api-ts/fetch.pb` request runtime. It is outside `api/ts`, which the
+proto generator replaces in full.
+
+MySQL migration 2 quotes the `force` column, preserving its name while avoiding
+the MySQL keyword conflict. The MySQL integration test creates a disposable
+database, applies all migrations, checks version 2 is clean, then exercises
+scan storage, forced rescan, result caching, project policy, audit and reopening.
+It is also run by the `mysql-artifact-security` CI job.
+
+For a local MySQL instance with permission to create a disposable database:
+
+```bash
+MH_MYSQL_TEST_DSN='root:password@tcp(127.0.0.1:3306)/?multiStatements=true&parseTime=true' \
+  go test -race ./internal/repo -run '^TestArtifactStoreMySQLMigrationAndPersistence$' -count=1
+```
+
+The test creates and drops its own schema; it does not change tables in the
+supplied DSN's database. Without the variable, the integration test is skipped.

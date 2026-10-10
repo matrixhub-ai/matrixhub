@@ -1,10 +1,15 @@
 // Copyright The MatrixHub Authors. Licensed under Apache-2.0.
 // Client for api/openapi/artifact-security.json. The existing generated *.pb.ts
 // surface remains untouched while this opt-in API is reviewed.
-import { fetchReq } from './fetch.pb'
+import { fetchReq } from '@matrixhub/api-ts/fetch.pb'
 
 export type ScanStatus = 'unscanned' | 'pending' | 'scanning' | 'passed' | 'warning' | 'blocked' | 'failed' | 'cancelled'
-export interface ScanFinding { scanner: string; version: string; rule: string; severity: string }
+export interface ScanFinding {
+  scanner: string
+  version: string
+  rule: string
+  severity: string
+}
 export interface ScanFile {
   file_type?: string
   checked_at?: string
@@ -49,13 +54,18 @@ export interface ScanAudit {
 function request<T>(project: string, model: string, action: string, revision?: string, method = 'GET', body?: unknown): Promise<T> {
   const path = `/api/security/v1alpha1/models/${encodeURIComponent(project)}/${encodeURIComponent(model)}/${action}`
     + (revision ? `?revision=${encodeURIComponent(revision)}` : '')
+
   return fetchReq<unknown, T>(path, {
     method,
     headers: { 'Content-Type': 'application/json' },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   }).catch((error: unknown) => {
-    if (error instanceof Error) throw error
-    if (typeof error === 'object' && error !== null && 'error' in error) throw new Error(String(error.error))
+    if (error instanceof Error) {
+      throw error
+    }
+    if (typeof error === 'object' && error !== null && 'error' in error) {
+      throw new Error(String(error.error))
+    }
     throw new Error(String(error))
   })
 }

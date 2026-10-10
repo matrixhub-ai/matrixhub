@@ -1,10 +1,10 @@
 import {
   Alert, Button, Select, Stack,
 } from '@mantine/core'
-import { type ScanPolicy } from '@matrixhub/api-ts/security'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
+import { type ScanPolicy } from '@/features/models/security/security.api'
 import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 

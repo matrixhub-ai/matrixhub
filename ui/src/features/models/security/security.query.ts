@@ -1,5 +1,6 @@
-import { ModelSecurity } from '@matrixhub/api-ts/security'
 import { queryOptions } from '@tanstack/react-query'
+
+import { ModelSecurity } from '@/features/models/security/security.api'
 
 export const securityKeys = {
   all: ['model-security'] as const,
