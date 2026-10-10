@@ -1,0 +1,87 @@
+{
+  "scope": "all tests in seven affected Go packages, without test-name filter",
+  "race": true,
+  "previous_failed_top_level_tests": 50,
+  "previous_failures_now_passing": 50,
+  "unresolved_previous_tests": [],
+  "top_level_passed": 120,
+  "hf_top_level_passed": 64,
+  "failed_tests": [],
+  "packages": [
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Elapsed": 1.025
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver",
+      "Elapsed": 1.086
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh",
+      "Elapsed": 1.3940000000000001
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http",
+      "Elapsed": 2.327
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware",
+      "Elapsed": 1.028
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Elapsed": 4.855
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+      "Elapsed": 5.356
+    }
+  ],
+  "authorization_failure_subcases": [
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/model/create/denied"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/model/create/service-error"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/model/delete/denied"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/model/delete/service-error"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/create/denied"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/create/service-error"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/delete/denied"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/delete/service-error"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/space/create/denied"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/space/create/service-error"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/space/delete/denied"
+    },
+    {
+      "Test": "TestHuggingFaceRepoAuthorizationFailure/space/delete/service-error"
+    }
+  ],
+  "fixture_change": "Explicit authz and commit test doubles; real Git writes/reads retained; production permission checks unchanged",
+  "live_rerun": {
+    "guard_edges": 8,
+    "hf_client": 7,
+    "admission": 15,
+    "web_session": 5,
+    "exit_code": 0
+  },
+  "raw_log": ".mh-local/hf-fixture-fix-20261010/expanded-go-tests.jsonl"
+}

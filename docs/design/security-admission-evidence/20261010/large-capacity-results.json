@@ -1,0 +1,2131 @@
+{
+  "scope": "synthetic ZIP_STORED containers with small Pickle metadata; single local queue",
+  "cases": [
+    {
+      "tier_mib": 256,
+      "bytes": 268435456,
+      "revision": "af69242246df2a93d2c1f7c8de24cfd837c7a273",
+      "repo": "mhlarge1791564568/tier256",
+      "sha256": "eed006cfe024e1f5b8c5a4bd0c63eb258e9c52d3bb6867d05ba89a25fed1c9c2",
+      "storage": "lfs",
+      "upload_seconds": 5.151,
+      "scan_after_upload_seconds": 20.755,
+      "download_seconds": 0.296,
+      "status": "passed",
+      "checks": [
+        "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+        "fickling/0.1.12"
+      ],
+      "passed": true
+    },
+    {
+      "tier_mib": 1024,
+      "bytes": 1073741824,
+      "revision": "4afb0c799e4adeacef79397a60edb05ed61044ee",
+      "repo": "mhlarge1791564568/tier1024",
+      "sha256": "3d21c816504ee5cf3ba44cd27f84dc91dde95305c09b37faf8fd0d54edc18026",
+      "storage": "lfs",
+      "upload_seconds": 6.92,
+      "scan_after_upload_seconds": 86.299,
+      "download_seconds": 7.095,
+      "status": "passed",
+      "checks": [
+        "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+        "fickling/0.1.12"
+      ],
+      "passed": true
+    }
+  ],
+  "resource_samples": [
+    {
+      "at": 1791564571.426472,
+      "containers": [
+        {
+          "BlockIO": "4.37MB / 406kB",
+          "CPUPerc": "95.89%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "2.11%",
+          "MemUsage": "21.64MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "111MB / 120kB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 8.39MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "25.3MB / 25.3MB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "75.9MB / 8.4MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.78%",
+          "MemUsage": "948.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "25.3MB / 112kB",
+          "PIDs": "5"
+        }
+      ]
+    },
+    {
+      "at": 1791564574.6326182,
+      "containers": [
+        {
+          "BlockIO": "4.37MB / 159MB",
+          "CPUPerc": "97.31%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "2.50%",
+          "MemUsage": "25.55MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 280kB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "0B / 8.39MB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "25.3MB / 25.3MB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "75.9MB / 8.4MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.78%",
+          "MemUsage": "948.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "25.3MB / 112kB",
+          "PIDs": "5"
+        }
+      ]
+    },
+    {
+      "at": 1791564576.6439874,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 159MB",
+          "CPUPerc": "4.10%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "12.51%",
+          "MemUsage": "128.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 101MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 83.9MB",
+          "CPUPerc": "94.88%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.22%",
+          "MemUsage": "16.49MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "127MB / 25.4MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "75.9MB / 8.4MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.77%",
+          "MemUsage": "948.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "25.3MB / 114kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564579.6620753,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 251MB",
+          "CPUPerc": "4.74%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "23.18%",
+          "MemUsage": "237.3MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 216MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 206MB",
+          "CPUPerc": "77.90%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "4.37%",
+          "MemUsage": "22.36MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 57MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "75.9MB / 8.4MB",
+          "CPUPerc": "26.84%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "62.22%",
+          "MemUsage": "955.7MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "57.3MB / 133kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564583.1282156,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 269MB",
+          "CPUPerc": "0.55%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.65%",
+          "MemUsage": "283.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 269MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 206MB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.92%",
+          "MemUsage": "20.05MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 274MB",
+          "CPUPerc": "92.41%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "62.72%",
+          "MemUsage": "963.4MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 244kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564585.1475968,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 269MB",
+          "CPUPerc": "0.60%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.65%",
+          "MemUsage": "283.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 269MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.92%",
+          "MemUsage": "20.05MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 274MB",
+          "CPUPerc": "92.92%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "65.94%",
+          "MemUsage": "1013MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 244kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564588.4232078,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 269MB",
+          "CPUPerc": "0.52%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.66%",
+          "MemUsage": "283.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 269MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.92%",
+          "MemUsage": "20.05MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "92.67%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "69.64%",
+          "MemUsage": "1.045GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 245kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564588.005613,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 269MB",
+          "CPUPerc": "1.15%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.70%",
+          "MemUsage": "283.7MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 269MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.03%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.92%",
+          "MemUsage": "20.05MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "93.98%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "73.76%",
+          "MemUsage": "1.106GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 245kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564590.0224679,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 269MB",
+          "CPUPerc": "0.52%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.75%",
+          "MemUsage": "284.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 269MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.92%",
+          "MemUsage": "20.05MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "92.95%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "76.83%",
+          "MemUsage": "1.152GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 245kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564592.057603,
+      "containers": [
+        {
+          "BlockIO": "4.38MB / 269MB",
+          "CPUPerc": "0.86%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.76%",
+          "MemUsage": "284.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 269MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.92%",
+          "MemUsage": "20.05MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "96.39%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "79.39%",
+          "MemUsage": "1.191GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 245kB",
+          "PIDs": "7"
+        }
+      ]
+    },
+    {
+      "at": 1791564594.085144,
+      "containers": [
+        {
+          "BlockIO": "4.39MB / 269MB",
+          "CPUPerc": "18.52%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.76%",
+          "MemUsage": "284.3MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 538MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.04%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.77%",
+          "MemUsage": "948.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 246kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564596.1985912,
+      "containers": [
+        {
+          "BlockIO": "4.39MB / 269MB",
+          "CPUPerc": "0.42%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.76%",
+          "MemUsage": "284.3MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "269MB / 538MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.77%",
+          "MemUsage": "948.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 246kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564598.2987676,
+      "containers": [
+        {
+          "BlockIO": "4.39MB / 495MB",
+          "CPUPerc": "111.76%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.69%",
+          "MemUsage": "293.8MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "541MB / 538MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "17.91%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "4.12%",
+          "MemUsage": "21.11MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.77%",
+          "MemUsage": "948.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 246kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564602.2360923,
+      "containers": [
+        {
+          "BlockIO": "4.39MB / 911MB",
+          "CPUPerc": "44.98%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "29.91%",
+          "MemUsage": "306.3MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "984MB / 539MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.77%",
+          "MemUsage": "948.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 247kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564605.5515943,
+      "containers": [
+        {
+          "BlockIO": "714MB / 1.34GB",
+          "CPUPerc": "63.99%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "33.17%",
+          "MemUsage": "339.7MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.34GB / 539MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 277MB",
+          "CPUPerc": "3.99%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "294MB / 294MB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.78%",
+          "MemUsage": "948.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 249kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564607.5698752,
+      "containers": [
+        {
+          "BlockIO": "1.3GB / 1.34GB",
+          "CPUPerc": "33.01%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "29.16%",
+          "MemUsage": "298.6MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.34GB / 770MB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 442MB",
+          "CPUPerc": "61.43%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "4.84%",
+          "MemUsage": "24.76MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "524MB / 294MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "9.31%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.78%",
+          "MemUsage": "948.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 249kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564611.0055764,
+      "containers": [
+        {
+          "BlockIO": "1.81GB / 1.34GB",
+          "CPUPerc": "34.65%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.56%",
+          "MemUsage": "292.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.28GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 795MB",
+          "CPUPerc": "70.21%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "5.27%",
+          "MemUsage": "26.99MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "827MB / 295MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.78%",
+          "MemUsage": "948.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 249kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564614.14708,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "9.53%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.34%",
+          "MemUsage": "290.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "52.7MB / 1.31GB",
+          "CPUPerc": "58.72%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "5.26%",
+          "MemUsage": "26.95MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 348MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 277MB",
+          "CPUPerc": "0.00%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "61.78%",
+          "MemUsage": "948.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "294MB / 249kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564616.164143,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.52%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.36%",
+          "MemUsage": "290.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "454MB / 1.31GB",
+          "CPUPerc": "54.15%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "3.27%",
+          "MemUsage": "16.73MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 750MB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 647MB",
+          "CPUPerc": "41.50%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "62.61%",
+          "MemUsage": "961.7MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "748MB / 837kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564616.7136662,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.47%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.36%",
+          "MemUsage": "290.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "717MB / 1.35GB",
+          "CPUPerc": "70.37%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.92%",
+          "MemUsage": "14.96MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.01GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "76MB / 844MB",
+          "CPUPerc": "95.97%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "63.21%",
+          "MemUsage": "970.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "869MB / 953kB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564618.7153418,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.58%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.36%",
+          "MemUsage": "290.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "40.48%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.81MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "84.5MB / 1.3GB",
+          "CPUPerc": "40.32%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "63.98%",
+          "MemUsage": "982.7MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.63MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564620.7327697,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.44%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.36%",
+          "MemUsage": "290.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.81MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "697MB / 1.35GB",
+          "CPUPerc": "91.38%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "85.18%",
+          "MemUsage": "1.278GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.63MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564623.7746274,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.53%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.27%",
+          "MemUsage": "289.5MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.81MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.13GB / 1.36GB",
+          "CPUPerc": "31.96%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "87.86%",
+          "MemUsage": "1.318GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.63MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564626.9058409,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.57%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.27%",
+          "MemUsage": "289.5MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "11.99%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.18GB / 1.37GB",
+          "CPUPerc": "92.46%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "74.74%",
+          "MemUsage": "1.121GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.63MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564628.9280005,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "1.96%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.27%",
+          "MemUsage": "289.5MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.24GB / 1.37GB",
+          "CPUPerc": "92.85%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "78.49%",
+          "MemUsage": "1.177GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564630.9985573,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.61%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.28GB / 1.37GB",
+          "CPUPerc": "92.72%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "81.11%",
+          "MemUsage": "1.217GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564633.0611207,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.69%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.33GB / 1.37GB",
+          "CPUPerc": "92.23%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "83.90%",
+          "MemUsage": "1.258GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564636.1137037,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.57%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.39GB / 1.38GB",
+          "CPUPerc": "61.54%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "85.56%",
+          "MemUsage": "1.283GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564638.1880715,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.57%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.41GB / 1.39GB",
+          "CPUPerc": "62.04%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "85.19%",
+          "MemUsage": "1.278GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564641.250292,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.57%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.46GB / 1.41GB",
+          "CPUPerc": "70.92%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "84.36%",
+          "MemUsage": "1.265GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564643.2648854,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "2.03%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.49GB / 1.43GB",
+          "CPUPerc": "77.12%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "83.91%",
+          "MemUsage": "1.259GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564645.278283,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.54%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.52GB / 1.44GB",
+          "CPUPerc": "75.76%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "83.39%",
+          "MemUsage": "1.251GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564647.2953985,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.51%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.03%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.55GB / 1.45GB",
+          "CPUPerc": "78.04%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "82.92%",
+          "MemUsage": "1.244GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564646.8140821,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.60%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.61GB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.58GB / 1.47GB",
+          "CPUPerc": "70.74%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "82.45%",
+          "MemUsage": "1.237GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564648.829204,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "43.09%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.23%",
+          "MemUsage": "289.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.61GB / 1.48GB",
+          "CPUPerc": "67.97%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "81.99%",
+          "MemUsage": "1.23GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564650.8423443,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.47%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.64GB / 1.5GB",
+          "CPUPerc": "78.49%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "81.47%",
+          "MemUsage": "1.222GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564652.853452,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.65%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.68GB / 1.51GB",
+          "CPUPerc": "74.80%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "80.85%",
+          "MemUsage": "1.213GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564655.9093604,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.63%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.71GB / 1.53GB",
+          "CPUPerc": "84.57%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "80.36%",
+          "MemUsage": "1.205GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564657.922847,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.61%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.21%",
+          "MemUsage": "288.9MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.76GB / 1.55GB",
+          "CPUPerc": "87.25%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "79.53%",
+          "MemUsage": "1.193GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564660.9528937,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.57%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.26%",
+          "MemUsage": "289.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.79GB / 1.56GB",
+          "CPUPerc": "82.56%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "79.10%",
+          "MemUsage": "1.186GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564662.9652534,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.58%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.32%",
+          "MemUsage": "290MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.84GB / 1.58GB",
+          "CPUPerc": "85.26%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "78.34%",
+          "MemUsage": "1.175GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564664.9793115,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.72%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.33%",
+          "MemUsage": "290.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.87GB / 1.59GB",
+          "CPUPerc": "53.71%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "78.03%",
+          "MemUsage": "1.17GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564666.9925675,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.53%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.34%",
+          "MemUsage": "290.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.9GB / 1.6GB",
+          "CPUPerc": "75.16%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "77.36%",
+          "MemUsage": "1.16GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564669.0117755,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.27%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.36%",
+          "MemUsage": "290.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.94GB / 1.62GB",
+          "CPUPerc": "89.22%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "77.10%",
+          "MemUsage": "1.157GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564671.0258799,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.43%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.33%",
+          "MemUsage": "290.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "1.98GB / 1.63GB",
+          "CPUPerc": "91.28%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "76.65%",
+          "MemUsage": "1.15GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564673.038241,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "1.21%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.33%",
+          "MemUsage": "290.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "2.02GB / 1.64GB",
+          "CPUPerc": "92.89%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "76.26%",
+          "MemUsage": "1.144GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564675.0509076,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.45%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.33%",
+          "MemUsage": "290.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "2.06GB / 1.66GB",
+          "CPUPerc": "92.58%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "75.82%",
+          "MemUsage": "1.137GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564677.0701246,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.54%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.33%",
+          "MemUsage": "290.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "2.09GB / 1.67GB",
+          "CPUPerc": "87.08%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "75.43%",
+          "MemUsage": "1.131GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564679.0974805,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.52%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.33%",
+          "MemUsage": "290.1MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "2.13GB / 1.68GB",
+          "CPUPerc": "91.74%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "74.98%",
+          "MemUsage": "1.125GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564678.655794,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "0.74%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.34%",
+          "MemUsage": "290.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "2.17GB / 1.7GB",
+          "CPUPerc": "89.12%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "74.58%",
+          "MemUsage": "1.119GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564680.6757183,
+      "containers": [
+        {
+          "BlockIO": "2.13GB / 1.34GB",
+          "CPUPerc": "1.72%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.34%",
+          "MemUsage": "290.2MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.62GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.89%",
+          "MemUsage": "14.82MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "2"
+        },
+        {
+          "BlockIO": "2.21GB / 1.71GB",
+          "CPUPerc": "92.23%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "74.21%",
+          "MemUsage": "1.113GiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564682.6898472,
+      "containers": [
+        {
+          "BlockIO": "2.17GB / 1.34GB",
+          "CPUPerc": "41.65%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "28.29%",
+          "MemUsage": "289.7MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 1.66GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "58.54%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "2.22GB / 1.71GB",
+          "CPUPerc": "6.74%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "39.31%",
+          "MemUsage": "603.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564685.8953092,
+      "containers": [
+        {
+          "BlockIO": "2.59GB / 1.34GB",
+          "CPUPerc": "87.85%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.90%",
+          "MemUsage": "285.7MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 2.09GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.02%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "2.22GB / 1.71GB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "39.31%",
+          "MemUsage": "603.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564688.972898,
+      "containers": [
+        {
+          "BlockIO": "3.05GB / 1.34GB",
+          "CPUPerc": "77.16%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.39%",
+          "MemUsage": "280.5MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 2.55GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "2.22GB / 1.71GB",
+          "CPUPerc": "0.01%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "39.31%",
+          "MemUsage": "603.8MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    },
+    {
+      "at": 1791564691.0755622,
+      "containers": [
+        {
+          "BlockIO": "3.18GB / 1.34GB",
+          "CPUPerc": "0.64%",
+          "Container": "mh-security-local-matrixhub-1",
+          "ID": "5f004b60eb18",
+          "MemPerc": "27.29%",
+          "MemUsage": "279.4MiB / 1GiB",
+          "Name": "mh-security-local-matrixhub-1",
+          "NetIO": "1.35GB / 2.69GB",
+          "PIDs": "9"
+        },
+        {
+          "BlockIO": "1.07GB / 1.35GB",
+          "CPUPerc": "0.03%",
+          "Container": "mh-security-local-scanner-1",
+          "ID": "c53b0e4a83e3",
+          "MemPerc": "2.41%",
+          "MemUsage": "12.33MiB / 512MiB",
+          "Name": "mh-security-local-scanner-1",
+          "NetIO": "1.37GB / 1.37GB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "2.22GB / 1.71GB",
+          "CPUPerc": "8.25%",
+          "Container": "mh-security-local-clamav-1",
+          "ID": "c17707e5aa35",
+          "MemPerc": "39.31%",
+          "MemUsage": "603.9MiB / 1.5GiB",
+          "Name": "mh-security-local-clamav-1",
+          "NetIO": "1.37GB / 1.64MB",
+          "PIDs": "6"
+        }
+      ]
+    }
+  ]
+}

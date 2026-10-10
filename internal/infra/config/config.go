@@ -42,6 +42,17 @@ type Config struct {
 
 	// JobServer runs delayed sync (and future kinds). If nil, jobserver is disabled.
 	JobServer *JobServerConfig `yaml:"jobServer"`
+	// ArtifactScan enables the opt-in, single-node feasibility prototype.
+	ArtifactScan *ArtifactScanConfig `yaml:"artifactScan"`
+}
+
+type ArtifactScanConfig struct {
+	Enabled               bool   `yaml:"enabled"`
+	Endpoint              string `yaml:"endpoint"`
+	MaxFileBytes          int64  `yaml:"maxFileBytes"`
+	MaxFiles              int    `yaml:"maxFiles"`
+	TaskTimeoutSeconds    int    `yaml:"taskTimeoutSeconds"`
+	ScannerTimeoutSeconds int    `yaml:"scannerTimeoutSeconds"`
 }
 
 // JobServerConfig is the top-level jobserver configuration (YAML key `jobServer`).

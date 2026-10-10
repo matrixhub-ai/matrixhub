@@ -27,6 +27,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
@@ -47,6 +48,11 @@ type Handler struct {
 	modelService        model.IModelService
 	gitRepo             git.IGitRepo
 	authzService        authz.IAuthzService
+	artifactScan        *artifactscan.Service
+}
+
+func WithArtifactScan(service *artifactscan.Service) Option {
+	return func(h *Handler) { h.artifactScan = service }
 }
 
 // Option defines a functional option for configuring the Handler.
@@ -157,6 +163,9 @@ func (h *Handler) register() {
 // These endpoints allow using huggingface-cli and huggingface_hub library
 // with HF_ENDPOINT pointing to this server.
 func (h *Handler) registryHuggingFace(r *mux.Router) {
+	if h.artifactScan != nil {
+		r.HandleFunc("/api/security/v1alpha1/models/{namespace}/{repo}/{action:report|audit|policy|rescan|cancel}", h.handleSecurity).Methods(http.MethodGet, http.MethodPost, http.MethodPut)
+	}
 	// Auth endpoint - used by huggingface-cli auth commands (login, whoami)
 	r.HandleFunc("/api/whoami-v2", h.handleWhoami).Methods(http.MethodGet)
 

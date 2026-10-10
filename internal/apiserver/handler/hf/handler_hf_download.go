@@ -27,6 +27,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
@@ -217,6 +218,20 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 	if err == nil && len(commits) > 0 {
 		commitHash = commits[0].Hash().String()
 	}
+	if h.artifactScan != nil && ri.RepoType == "models" {
+		user, _ := authenticate.GetUserInfo(r.Context())
+		decision, scanErr := h.artifactScan.Decide(r.Context(), ri.RepoName, commitHash, user.User, "hf-resolve")
+		if scanErr != nil {
+			responseJSON(w, "scan report unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		if !decision.Allowed {
+			responseJSON(w, map[string]any{"error": "RevisionBlocked", "revision": commitHash, "scanStatus": decision.ScanStatus, "reason": decision.Reason, "policy": decision.Policy}, http.StatusForbidden)
+			return
+		}
+		// Serve the admitted immutable version, never a moving branch.
+		rev = commitHash
+	}
 
 	blob, err := repo.Blob(rev, path)
 	if err != nil {
@@ -262,7 +277,7 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 					responseJSON(w, fmt.Errorf("LFS object %q not found for file %q in repository %q at revision %q", ptr.OID(), path, ri.RepoName, rev), http.StatusNotFound)
 					return
 				}
-				if signer, ok := h.lfsStorage.(lfs.SignGetter); ok {
+				if signer, ok := h.lfsStorage.(lfs.SignGetter); ok && h.artifactScan == nil {
 					url, err := signer.SignGet(ptr.OID())
 					if err != nil {
 						responseJSON(w, fmt.Errorf("failed to sign URL for LFS object %q: %v", ptr.OID(), err), http.StatusInternalServerError)

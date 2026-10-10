@@ -1,0 +1,10 @@
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /data && chown 1000:1000 /data
+COPY --chmod=755 matrixhub /usr/local/bin/matrixhub
+COPY migrations /etc/matrixhub/migrations
+COPY ui /app
+USER 1000:1000
+WORKDIR /data
+CMD ["/usr/local/bin/matrixhub", "apiserver", "-c", "/etc/matrixhub/config.yaml"]

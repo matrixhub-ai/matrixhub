@@ -39,3 +39,22 @@ func ParseFromRepoName(repoName string) (repoType, project, name string, ok bool
 	name = strings.TrimSuffix(name, ".git")
 	return
 }
+
+// CanonicalRepoName makes HTTP and SSH repository names share one identity.
+// Reject ambiguous components instead of cleaning traversal into another repo.
+func CanonicalRepoName(name string) (string, string, bool) {
+	repoType, project, model, ok := ParseFromRepoName(strings.TrimPrefix(name, "/"))
+	for _, segment := range []string{project, model} {
+		if segment == "" || segment == "." || segment == ".." || strings.ContainsAny(segment, "/\\\x00\r\n") {
+			return "", "", false
+		}
+	}
+	if !ok {
+		return "", "", false
+	}
+	canonical := project + "/" + model
+	if repoType != "models" {
+		canonical = repoType + "/" + canonical
+	}
+	return canonical, repoType, true
+}

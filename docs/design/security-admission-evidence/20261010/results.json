@@ -1,0 +1,88 @@
+{
+  "client": "huggingface_hub/1.29.0",
+  "repo": "mhprobe1791565356/acceptance",
+  "endpoint": "http://127.0.0.1:13872",
+  "results": [
+    {
+      "scenario": "config.json",
+      "revision": "f53872e859cdfad7f64c0a2a762c916ba53e0317",
+      "status": "passed",
+      "seconds": 0.391,
+      "download": "allowed",
+      "sha256": "7c2c386d75ff6df7c834c09a3b7eeb69acb66d3a276bb225539c2d00937f6d79",
+      "findings": [],
+      "storage": "git"
+    },
+    {
+      "scenario": "weights.pkl",
+      "revision": "f436dacc0d87fb5748acfd66e25abffb2448f616",
+      "status": "passed",
+      "seconds": 0.552,
+      "download": "allowed",
+      "sha256": "6e3c1fcab102c832b6384b1cb784b0823e110a3901702ec25fd0b69cecd160b9",
+      "findings": [],
+      "storage": "lfs"
+    },
+    {
+      "scenario": "weights.pkl",
+      "revision": "1b63817d5d68d7ce75472d40ca04216610f69eec",
+      "status": "blocked",
+      "seconds": 0.348,
+      "download": "403",
+      "sha256": "bb503632d8de3600aa74de77599b15610db743e0a159c9a54b0237adee2d98a4",
+      "findings": [
+        {
+          "scanner": "fickling",
+          "version": "0.1.12",
+          "rule": "LIKELY_OVERTLY_MALICIOUS",
+          "severity": "high"
+        }
+      ],
+      "storage": "lfs"
+    },
+    {
+      "scenario": "weights.pkl",
+      "revision": "4ae4ee73bfebe44669836744116e457a80e4ea3b",
+      "status": "failed",
+      "seconds": 0.322,
+      "download": "403",
+      "sha256": "4d1a07d564f332b1420ac583ade23dc20f3e7a0069752cf84a818a510c22839b",
+      "findings": [],
+      "storage": "lfs"
+    },
+    {
+      "scenario": "weights.pkl",
+      "revision": "02b8fcf7b698cb7777e6dcf3cb8119160b1c56cc",
+      "status": "passed",
+      "seconds": 0.541,
+      "download": "allowed",
+      "sha256": "1f7a132c09f2c34dd67b1b5b66b1d768d21ca4c8f950c662df144c507c36f239",
+      "findings": [],
+      "storage": "lfs"
+    },
+    {
+      "scenario": "historical-revision-isolation",
+      "old_revision": "1b63817d5d68d7ce75472d40ca04216610f69eec",
+      "new_revision": "02b8fcf7b698cb7777e6dcf3cb8119160b1c56cc",
+      "status": "passed",
+      "old_download": "403"
+    },
+    {
+      "scenario": "av-test.txt",
+      "revision": "2f4491a04152cfb56da372d61e9000192563cf13",
+      "status": "blocked",
+      "seconds": 0.544,
+      "download": "403",
+      "sha256": "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f",
+      "findings": [
+        {
+          "scanner": "clamav",
+          "version": "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+          "rule": "CLAMAV_SIGNATURE_MATCH",
+          "severity": "high"
+        }
+      ],
+      "storage": "git"
+    }
+  ]
+}

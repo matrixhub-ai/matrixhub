@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-10",
+  "command": "make verify.go",
+  "go_lint": "passed: 0 issues",
+  "mock_generation": "passed: generated mocks match committed versions",
+  "diff_whitespace": "passed",
+  "formatting_scope": "changed and new Go files only",
+  "changes": [
+    "expanded 15 abbreviated Apache license headers",
+    "formatted imports using repository gci configuration",
+    "explicitly ignored response close error consistent with existing adapters"
+  ],
+  "functional_tests_rerun": false,
+  "existing_functional_evidence": "verification-summary.json: 120 top-level tests in seven packages; previous 50 failures resolved",
+  "public_issue_pr_push_submission": false
+}
