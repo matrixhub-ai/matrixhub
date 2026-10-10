@@ -104,6 +104,7 @@ The following table lists the configurable parameters of the MatrixHub chart and
 | `apiserver.storage.pvc.storageClass` | StorageClass for MatrixHub data PVC | `""` (use default StorageClass) |
 | `apiserver.storage.pvc.size` | MatrixHub data PVC size | `50Gi` |
 | `apiserver.storage.pvc.existingClaim` | Existing PVC for MatrixHub data | `""` |
+| `presets.enabled` | Seed empty instances with static model metadata and repair local repositories without upstream requests | `true` |
 | `mysql.registry` | MySQL image registry | `docker.io` |
 | `mysql.repository` | MySQL image repository | `library/mysql` |
 | `mysql.tag` | MySQL image tag | `8.4` |
@@ -138,6 +139,32 @@ helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
   --namespace ${NAMESPACE} --create-namespace \
   -f values.yaml
 ```
+
+## Preset Models
+
+With `presets.enabled=true` (also the default when omitted), an instance with no
+registries **and** no projects receives three Hugging Face registries
+(`huggingface`, `hf-mirror`, and `hf.m.daocloud`), four public proxy projects
+(`deepseek-ai`, `Qwen`, `MiniMaxAI`, and `zai-org`), and thirteen recommended model records.
+The projects use `https://hf.m.daocloud.io`; the built-in `admin` is their project
+administrator. Existing installations with a registry or project are not seeded.
+
+Initialization writes static sizes, parameter counts, and categorized labels
+alongside the model records. README content stays empty and `synced_at` stays
+null. A startup pass creates missing local placeholder repositories for existing
+preset models before the server starts accepting requests, without upstream
+requests.
+These models remain unsynchronized until their first normal download, which can
+take a long time and require substantial disk space (some models are several TB).
+That download replaces the static metadata with the actual repository metadata
+and README. Manifest updates do not backfill metadata in existing installations.
+Presets are ordinary editable and deletable resources, not protected built-ins.
+Changing the `hf.m.daocloud` registry URL changes the upstream for all four projects.
+
+Set `presets.enabled=false` to skip both initialization and local repository
+repair. Presets also work offline when enabled. Disabling them does not delete existing
+resources or disable normal proxy downloads. Deleting every project and registry
+without disabling presets causes them to be seeded again on the next startup.
 
 ## Storage
 

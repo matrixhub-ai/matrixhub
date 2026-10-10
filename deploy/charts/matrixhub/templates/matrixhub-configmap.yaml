@@ -11,6 +11,8 @@ data:
     log:
       level: {{ .Values.apiserver.logLevel }}
     dataDir: /data/matrixhub
+    presets:
+      enabled: {{ dig "enabled" true (.Values.presets | default dict) }}
     database:
       driver: {{ .Values.apiserver.database.driver }}
       accessType: {{ .Values.apiserver.database.accessType }}

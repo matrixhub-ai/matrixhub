@@ -23,6 +23,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/preset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/robot"
@@ -53,6 +54,7 @@ type Repos struct {
 	SyncJob     syncjob.ISyncJobRepo
 	Authz       authz.IAuthzProjectRepo
 	Robot       robot.IRobotRepo
+	Preset      preset.IPresetRepo
 }
 
 func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror) *Repos {
@@ -89,6 +91,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.SyncJob = NewSyncJobDB(repos.DB)
 	repos.Authz = NewAuthzDBRepo(repos.DB)
 	repos.Robot = NewRobotRepo(repos.DB)
+	repos.Preset = NewPresetDB(repos.DB)
 
 	return repos
 }
