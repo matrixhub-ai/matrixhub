@@ -17,6 +17,8 @@ package hf_cli_test
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/binary"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"time"
@@ -128,6 +130,68 @@ var _ = Describe("HF CLI", Label("hf-cli"), func() {
 		downloaded, err := os.ReadFile(filepath.Join(downloadDir, "weights.safetensors"))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(sha256.Sum256(downloaded)).To(Equal(expectedHash))
+	})
+
+	It("should replace a mixed-precision estimate with the exact uploaded parameter count", Label("HF00004", "model"), func() {
+		model := tools.GenerateTestModelName("hf-mixed-precision")
+		repoID := fixture.Project.Name + "/" + model
+		create := runHF(root, env, "repos", "create", repoID, "--repo-type", "model")
+		Expect(create.Err).NotTo(HaveOccurred(), create.FailureMessage())
+
+		const headerJSON = `{
+			"layers.0.ffn.experts.0.w1.weight":{"dtype":"I8","shape":[2,16],"data_offsets":[0,32]},
+			"layers.0.ffn.experts.0.w1.scale":{"dtype":"F8_E8M0","shape":[2,1],"data_offsets":[32,34]},
+			"layers.0.attn.wkv.weight":{"dtype":"F8_E4M3","shape":[2,8],"data_offsets":[34,50]},
+			"layers.0.attn.wkv.scale":{"dtype":"F8_E8M0","shape":[1,1],"data_offsets":[50,51]},
+			"layers.0.attn_norm.weight":{"dtype":"BF16","shape":[4],"data_offsets":[51,59]},
+			"layers.0.attn.attn_sink":{"dtype":"F32","shape":[2],"data_offsets":[59,67]},
+			"layers.0.ffn.gate.tid2eid":{"dtype":"I64","shape":[2],"data_offsets":[67,83]}
+		}`
+		var tensors map[string]json.RawMessage
+		Expect(json.Unmarshal([]byte(headerJSON), &tensors)).To(Succeed())
+		weightMap := make(map[string]string, len(tensors))
+		for name := range tensors {
+			weightMap[name] = "model.safetensors"
+		}
+		index, err := json.Marshal(map[string]any{
+			"metadata": map[string]int64{"total_size": 83}, "weight_map": weightMap,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		sourceDir := filepath.Join(root, "metadata")
+		Expect(os.MkdirAll(sourceDir, 0750)).To(Succeed())
+		configPath := filepath.Join(sourceDir, "config.json")
+		Expect(os.WriteFile(configPath, []byte(`{"expert_dtype":"fp4","quantization_config":{"quant_method":"fp8"}}`), 0600)).To(Succeed())
+		Expect(os.WriteFile(filepath.Join(sourceDir, "model.safetensors.index.json"), index, 0600)).To(Succeed())
+
+		modelsAPI := tools.CreateModelClientWithCookie(fixture.Cookie)
+		parameterCount := func() (string, error) {
+			result, _, err := modelsAPI.ModelsGetModel(ctx, fixture.Project.Name, model)
+			return result.ParameterCount, err
+		}
+		By("estimating parameters before the indexed shard is present")
+		upload := runHF(root, env, "upload", repoID, sourceDir, ".", "--commit-message", "add mixed-precision metadata")
+		Expect(upload.Err).NotTo(HaveOccurred(), upload.FailureMessage())
+		Eventually(parameterCount, 10*time.Second, 100*time.Millisecond).Should(Equal("156"))
+
+		By("counting packed weights and excluding scales after the shard is uploaded")
+		header := []byte(headerJSON)
+		for len(header)%8 != 0 {
+			header = append(header, ' ')
+		}
+		shard := make([]byte, 8+len(header)+83)
+		binary.LittleEndian.PutUint64(shard[:8], uint64(len(header)))
+		copy(shard[8:], header)
+		Expect(os.WriteFile(filepath.Join(sourceDir, "model.safetensors"), shard, 0600)).To(Succeed())
+		upload = runHF(root, env, "upload", repoID, sourceDir, ".", "--commit-message", "add mixed-precision weights")
+		Expect(upload.Err).NotTo(HaveOccurred(), upload.FailureMessage())
+		Eventually(parameterCount, 10*time.Second, 100*time.Millisecond).Should(Equal("88"))
+
+		By("honoring an updated expert precision without changing the tensor container dtype")
+		Expect(os.WriteFile(configPath, []byte(`{"expert_dtype":"fp8","quantization_config":{"quant_method":"fp8"}}`), 0600)).To(Succeed())
+		upload = runHF(root, env, "upload", repoID, sourceDir, ".", "--commit-message", "update expert precision")
+		Expect(upload.Err).NotTo(HaveOccurred(), upload.FailureMessage())
+		Eventually(parameterCount, 10*time.Second, 100*time.Millisecond).Should(Equal("56"))
 	})
 })
 
