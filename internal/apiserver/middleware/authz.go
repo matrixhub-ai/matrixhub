@@ -24,7 +24,6 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
-	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
@@ -48,30 +47,44 @@ var (
 
 func NewRepoEnforcer(authzSvc authz.IAuthzService) func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (bool, error) {
 	return func(ctx context.Context, op permission.Operation, repoName string, opCtx permission.Context) (passed bool, err error) {
-		userinfo, ok := authenticate.GetUserInfo(ctx)
-		if ok && userinfo.User != authenticate.Anonymous {
-			identity, err := authcodec.Unmarshal(userinfo.User)
-			if err != nil {
-				return false, err
+		switch id := authenticate.IdentityFrom(ctx).(type) {
+		case Principal:
+			ctx = auth.WithIdentity(ctx, id.Identity)
+		default:
+			if !authenticate.IsAnonymous(id) {
+				return false, nil
 			}
-			ctx = auth.WithIdentity(ctx, identity)
 		}
 
-		resourceType := resourceModel
-		if strings.HasPrefix(repoName, resourceDataset) {
-			resourceType = resourceDataset
-			repoName = strings.TrimPrefix(repoName, resourceDataset+"/")
+		resourceType, project := resourceModel, ""
+		if op == permission.OperationListRepos {
+			// repoName is the type segment; hfd only walks the Author namespace.
+			if _, ok := resourcePermissions[repoName]; !ok {
+				return
+			}
+			resourceType, project = repoName, opCtx.Author
+		} else {
+			if strings.HasPrefix(repoName, resourceDataset) {
+				resourceType = resourceDataset
+				repoName = strings.TrimPrefix(repoName, resourceDataset+"/")
+			}
+			infos := strings.SplitN(repoName, "/", 2)
+			if len(infos) != 2 {
+				return
+			}
+			project = infos[0]
 		}
-		infos := strings.SplitN(repoName, "/", 2)
-		if len(infos) != 2 {
-			return
-		}
-
-		project := infos[0]
 		if project == "" {
 			return
 		}
-		ps := resourcePermissions[resourceType][op.IsRead()]
+
+		var ps role.Permission
+		switch {
+		case op.IsRead():
+			ps = resourcePermissions[resourceType][true]
+		case op.IsWrite(): // create, update, delete all require push permission
+			ps = resourcePermissions[resourceType][false]
+		}
 		if ps == "" {
 			return
 		}

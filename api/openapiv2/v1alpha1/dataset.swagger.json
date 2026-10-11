@@ -634,8 +634,9 @@
         "lfs": {
           "type": "boolean"
         },
-        "Sha256": {
-          "type": "string"
+        "sha256": {
+          "type": "string",
+          "title": "sha256 of the LFS object; empty when the file is not an LFS pointer"
         },
         "commit": {
           "$ref": "#/definitions/v1alpha1Commit",
@@ -643,6 +644,15 @@
         },
         "url": {
           "type": "string"
+        },
+        "xetHash": {
+          "type": "string",
+          "title": "xet file hash; empty when the object is not in xet storage"
+        },
+        "pointerSize": {
+          "type": "string",
+          "format": "int64",
+          "title": "size of the LFS pointer blob; 0 when the file is not an LFS pointer"
         }
       }
     },

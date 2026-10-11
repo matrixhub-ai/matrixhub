@@ -61,7 +61,6 @@ var methodPermissions = map[string]role.Permission{
 	"/matrixhub.v1alpha1.Robots/RefreshRobotAccountToken": role.RobotUpdate,
 
 	// Cleanup management
-	"/matrixhub.v1alpha1.Cleanup/PreviewCleanup":  role.CleanupGet,
 	"/matrixhub.v1alpha1.Cleanup/GetStorageStats": role.CleanupGet,
 	"/matrixhub.v1alpha1.Cleanup/ExecuteCleanup":  role.CleanupExecute,
 }

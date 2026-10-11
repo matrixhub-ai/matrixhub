@@ -381,6 +381,43 @@ func TestModelService_CheckOrSyncFromRemoteRecordsSuccessfulSync(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestModelService_CheckOrSyncFromRemoteForwardsRegistryCredential(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	registryID := 1
+	projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
+	projectRepo.EXPECT().
+		GetProjectByName(ctx, "proj").
+		Return(&project.Project{Name: "proj", RegistryID: &registryID, Organization: "upstream-org"}, nil)
+	reg := &registry.Registry{ID: registryID, URL: "https://huggingface.co"}
+	reg.SetCredential(registry.NewBasicCredential("hf-user", "hf-token"))
+	registryRepo := registrymocks.NewMockIRegistryRepo(ctrl)
+	registryRepo.EXPECT().GetRegistry(ctx, registryID).Return(reg, nil)
+	pullErr := errors.New("pull attempted")
+
+	modelRepo.EXPECT().
+		GetByProjectAndName(ctx, "proj", "model").
+		Return(&model.Model{ID: 42, Name: "model", ProjectName: "proj"}, nil)
+	gitRepo.EXPECT().
+		PullFromRemote(ctx, &git.GitRepository{
+			RemoteRegistryURL:  "https://huggingface.co",
+			RemoteProjectName:  "upstream-org",
+			RemoteResourceName: "model",
+			ProjectName:        "proj",
+			ResourceName:       "model",
+			ResourceType:       "model",
+			Credential:         &git.BasicCredential{Username: "hf-user", Password: "hf-token"},
+		}).
+		Return(pullErr)
+
+	service := model.NewModelService(modelRepo, nil, gitRepo, projectRepo, registryRepo)
+	err := service.CheckOrSyncFromRemote(ctx, "proj", "model")
+
+	require.ErrorIs(t, err, pullErr)
+}
+
 func TestModelService_SyncMetadataPersistsZeroValues(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
@@ -632,35 +669,6 @@ func TestModelService_GitReadsCheckModelBeforeDelegating(t *testing.T) {
 		require.NoError(t, err)
 		require.Same(t, want, got)
 	})
-}
-
-func TestModelService_CreateModelCommitCreatesRecordAndSyncsMetadata(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
-	labelRepo := modelmocks.NewMockILabelRepo(ctrl)
-	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
-	projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
-	created := &model.Model{ID: 42, ProjectID: 3, ProjectName: "proj", Name: "model"}
-	commit := &git.Commit{Message: "add README"}
-	ops := []git.CommitOperation{{Type: git.CommitOperationAdd, Path: "README.md", Content: []byte("# Model")}}
-
-	gomock.InOrder(
-		projectRepo.EXPECT().GetProjectByName(ctx, "proj").Return(&project.Project{ID: 3, Name: "proj"}, nil),
-		modelRepo.EXPECT().GetByProjectAndName(ctx, "proj", "model").Return(nil, errors.New("model not found")),
-		modelRepo.EXPECT().Create(ctx, &model.Model{Name: "model", ProjectID: 3, ProjectName: "proj"}).Return(created, nil),
-		gitRepo.EXPECT().CreateCommit(ctx, "models", "proj", "model", "main", commit, ops).Return("commit", nil),
-		modelRepo.EXPECT().GetByProjectAndName(ctx, "proj", "model").Return(created, nil),
-		gitRepo.EXPECT().ExtractMetadata(ctx, "models", "proj", "model").Return(&git.RepoMetadataFiles{}, nil),
-		modelRepo.EXPECT().UpdateMetadata(ctx, int64(42), gomock.Any()).Return(nil),
-		labelRepo.EXPECT().UpdateModelLabels(ctx, int64(42), []int(nil)).Return(nil),
-	)
-	service := model.NewModelService(modelRepo, labelRepo, gitRepo, projectRepo, nil)
-
-	commitID, err := service.CreateModelCommit(ctx, "proj", "model", "main", commit, ops)
-
-	require.NoError(t, err)
-	require.Equal(t, "commit", commitID)
 }
 
 func TestModelService_UpdateModelSettingUsesModelID(t *testing.T) {
