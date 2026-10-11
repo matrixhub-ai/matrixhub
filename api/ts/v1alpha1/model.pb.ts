@@ -122,6 +122,8 @@ export type File = {
   sha256?: string
   commit?: Commit
   url?: string
+  xetHash?: string
+  pointerSize?: string
 }
 
 export type GetModelTreeResponse = {

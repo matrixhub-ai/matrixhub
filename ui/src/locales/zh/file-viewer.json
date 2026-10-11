@@ -4,5 +4,17 @@
   "preview": "预览",
   "code": "代码",
   "fileInfo": "文件信息概览：",
-  "fileSize": "文件大小："
+  "fileSize": "文件大小：",
+  "storedWithXet": "该文件以 Xet 存储。",
+  "storedWithLfs": "该文件以 Git LFS 存储。",
+  "tooBigToDisplay": "无法在线预览，但仍可<download>下载</download>。",
+  "xetPointerDetails": "Xet 指针详情",
+  "lfsDetails": "Git LFS 详情",
+  "xetHash": "Xet 哈希",
+  "sha256": "SHA256",
+  "pointerSize": "指针大小",
+  "remoteFileSize": "文件大小",
+  "xetExplanation": "Xet 将大文件按内容切分为唯一的分块存储在 Git 之外，从而加速上传与下载。",
+  "lfsExplanation": "Git LFS 在 Git 中用文本指针替代大文件，文件内容存放在远端服务器。",
+  "moreInfo": "了解更多"
 }

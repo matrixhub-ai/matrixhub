@@ -16,6 +16,7 @@ package git
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 )
@@ -82,14 +83,16 @@ const (
 
 // TreeEntry represents a file or directory in the Git tree.
 type TreeEntry struct {
-	Name   string   `json:"name"`
-	Type   FileType `json:"type"`
-	Size   int64    `json:"size"`
-	Path   string   `json:"path"`
-	Hash   string   `json:"hash"`
-	IsLFS  bool     `json:"isLFS"`
-	URL    string   `json:"url,omitempty"`
-	Commit *Commit  `json:"commit,omitempty"`
+	Name        string   `json:"name"`
+	Type        FileType `json:"type"`
+	Size        int64    `json:"size"`
+	Path        string   `json:"path"`
+	IsLFS       bool     `json:"isLFS"`
+	PointerSize int64    `json:"pointerSize,omitempty"`
+	Sha256      string   `json:"sha256,omitempty"`
+	XetHash     string   `json:"xetHash,omitempty"`
+	URL         string   `json:"url,omitempty"`
+	Commit      *Commit  `json:"commit,omitempty"`
 }
 
 // RepoMetadataFiles holds raw metadata-related files loaded from a git repo.
@@ -106,22 +109,92 @@ type RepoMetadataFiles struct {
 	Size             int64
 }
 
-// OrphanedRepo represents an orphaned Git repository on disk
-// that has no corresponding record in the database.
+// OrphanedRepo is a repository on disk that no model or dataset row names.
 type OrphanedRepo struct {
-	Path         string
-	Type         string
-	ProjectName  string
-	ResourceName string
-	SizeBytes    int64
+	Path      string // relative to the repositories root, e.g. "project/name.git"
+	SizeBytes int64
 }
 
-// OrphanedLFS represents an orphaned LFS object on disk
-// that is not referenced by any Git repository.
-type OrphanedLFS struct {
-	OID       string
-	SizeBytes int64
-	Path      string
+// ObjectUsage counts stored objects of one kind and their bytes on disk.
+type ObjectUsage struct {
+	Count int64
+	Bytes int64
+}
+
+// GitUsage sums every repository under the repositories root; unreachable objects included, LFS content excluded.
+type GitUsage struct {
+	Objects ObjectUsage // loose and packed Git objects
+	Other   ObjectUsage // everything else in the repository, such as refs and config
+}
+
+// XetUsage is what the xet store holds, by kind.
+type XetUsage struct {
+	Xorbs       ObjectUsage
+	Shards      ObjectUsage
+	FileIndex   ObjectUsage
+	ChunkIndex  ObjectUsage
+	SHA256Index ObjectUsage
+}
+
+// StorageUsage is a non-atomic snapshot of Git and xet storage.
+type StorageUsage struct {
+	Git    GitUsage
+	Xet    XetUsage
+	Spool  ObjectUsage // xet mirror spool files (in-flight and idle ingests)
+	Mirror ObjectUsage // xet mirror engine index (commit and branch manifests)
+}
+
+// PruneOptions configures Git GC and LFS prune; MaxDeletes bounds only the CAS sweep, Budget the CAS, spool and mirror-index sweeps together (0 = unlimited).
+type PruneOptions struct {
+	DryRun     bool
+	Grace      *time.Duration // nil = configured grace; negative disables it, zero = library default
+	MaxDeletes int
+	Budget     time.Duration
+}
+
+// ErrGCBusy reports that another GC run holds the store.
+var ErrGCBusy = errors.New("gc already running")
+
+// SpoolSweepResult reports one sweep of the xet mirror spool.
+type SpoolSweepResult struct {
+	SweptSpools     int
+	ReclaimedBytes  int64
+	Done            bool
+	RemainingSpools int
+}
+
+// MirrorSweepResult reports one sweep of the xet mirror index; it counts files, not bytes.
+type MirrorSweepResult struct {
+	DroppedEntries     int
+	RemovedManifests   int
+	RemovedTempFiles   int
+	Done               bool
+	RemainingTempFiles int
+	RemainingManifests int
+}
+
+// GCResult reports one run of Git GC, LFS prune and the sweeps of already-unlinked data that followed.
+type GCResult struct {
+	DryRun              bool
+	Repositories        int
+	DeletedGitObjects   int
+	DeletedGitBytes     int64 // payload of the deleted Git objects
+	GitReclaimedBytes   int64 // shrink of Git object storage; 0 in a dry run, which repacks nothing
+	Failed              map[string]string
+	LiveObjects         int
+	Unlinked            []string // sorted sha256 hex; dry run: what would be unlinked
+	PruneSkippedInGrace int
+	SweptShards         int
+	SweptXorbs          int
+	XetReclaimedBytes   int64 // shard and xorb bytes; dry run: already-unlinked data, not this run's Unlinked
+	SweepSkippedInGrace int
+	Dangling            []string // OIDs whose data is missing; reported, never deleted
+	UnreadableShards    []string // treated live; no xorb deleted that pass
+	SweepDone           *bool    // nil: no sweep result (prune or sweep failed); false: a bounded sweep left data; true: finished
+	RemainingShards     int
+	RemainingXorbs      int
+	SpoolSweep          *SpoolSweepResult  // nil: did not run; it runs only after a finished CAS sweep
+	MirrorSweep         *MirrorSweepResult // nil: did not run; it runs only after a finished CAS sweep
 }
 
 // BasicCredential holds username/password for remote git authentication.
@@ -189,16 +262,12 @@ type IGitRepo interface {
 	// repoType: "models" or "datasets"
 	ExtractMetadata(ctx context.Context, repoType, project, name string) (*RepoMetadataFiles, error)
 
-	// FindOrphanedRepos finds Git repositories on disk that are not present in valid paths.
-	FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*OrphanedRepo, error)
-	// FindOrphanedLFS finds LFS objects on disk that are not referenced by repositories.
-	FindOrphanedLFS(ctx context.Context) ([]*OrphanedLFS, error)
-	// DeleteRepositoryAtRelPath deletes an orphaned repository by relative path.
-	DeleteRepositoryAtRelPath(ctx context.Context, path string) error
-	// DeleteLFSObject deletes an orphaned LFS object.
-	DeleteLFSObject(ctx context.Context, object *OrphanedLFS) error
-	// RepositoriesSize returns the size of all repositories on disk.
-	RepositoriesSize(ctx context.Context) int64
-	// LFSSize returns the size of all LFS objects on disk.
-	LFSSize(ctx context.Context) int64
+	// PruneRepos removes every repository on disk that neither list names; dryRun only reports them.
+	// Paths are "project/name"; models live at /project/name.git, datasets at /datasets/project/name.git.
+	PruneRepos(ctx context.Context, validModelPaths, validDatasetPaths []string, dryRun bool) ([]*OrphanedRepo, error)
+	// Prune runs Git GC, unlinks LFS objects no surviving pointer references, then sweeps already-unlinked data; DryRun only reports them.
+	// It fails with ErrGCBusy while another run holds the store.
+	Prune(ctx context.Context, opts PruneOptions) (*GCResult, error)
+	// Usage reports Git, xet, spool and mirror-index storage by kind; a category stays zero without its component.
+	Usage(ctx context.Context) (*StorageUsage, error)
 }

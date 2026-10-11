@@ -15,111 +15,851 @@
 package repo
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/matrixhub-ai/hfd/pkg/repository"
-	hfdstorage "github.com/matrixhub-ai/hfd/pkg/storage"
+	"github.com/matrixhub-ai/hfd/pkg/mirror"
+	xetclient "github.com/wzshiming/xet/client"
+	xetmirror "github.com/wzshiming/xet/mirror"
+	"github.com/wzshiming/xet/mirror/spool"
+	xetstorage "github.com/wzshiming/xet/storage"
+	xetlocal "github.com/wzshiming/xet/storage/local"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 )
 
-func TestFindOrphanedLFSShardedObjects(t *testing.T) {
+func TestUsageWithoutXetStore(t *testing.T) {
 	ctx := context.Background()
-	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
-	referencedOID := strings.Repeat("a", 64)
-	orphanedOID := strings.Repeat("b", 64)
-	for _, oid := range []string{referencedOID, orphanedOID} {
-		objectPath := filepath.Join(store.LFSDir(), oid[:2], oid[2:4], oid[4:])
-		if err := os.MkdirAll(filepath.Dir(objectPath), 0750); err != nil {
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{}, 0)
+
+	if err := repo.CreateRepository(ctx, "model", "test-project", "valid"); err != nil {
+		t.Fatalf("CreateRepository() error = %v", err)
+	}
+	usage, err := repo.Usage(ctx)
+	if err != nil {
+		t.Fatalf("Usage() error = %v", err)
+	}
+	// The initial commit stores a blob, a tree and a commit.
+	if usage.Git.Objects.Count != 3 || usage.Git.Objects.Bytes <= 0 || usage.Git.Other.Count <= 0 || usage.Git.Other.Bytes <= 0 {
+		t.Fatalf("Usage() Git = %+v, want 3 objects and other files with bytes", usage.Git)
+	}
+	if usage.Xet != (git.XetUsage{}) {
+		t.Fatalf("Usage() Xet = %+v, want zero without a xet store", usage.Xet)
+	}
+}
+
+func TestUsageExcludesNonRepositoryFiles(t *testing.T) {
+	ctx := context.Background()
+	rootDir := t.TempDir()
+	repo := NewGitDB(newRepoTestStorage(t, rootDir), nil, XetStores{}, 0)
+	for _, repoType := range []string{"model", "dataset", "space"} {
+		if err := repo.CreateRepository(ctx, repoType, "project", "valid"); err != nil {
+			t.Fatalf("CreateRepository(%s) error = %v", repoType, err)
+		}
+	}
+	before, err := repo.Usage(ctx)
+	if err != nil || before.Git.Objects.Count != 9 {
+		t.Fatalf("Usage() = %+v, %v; want the objects of three repositories", before, err)
+	}
+	if err := os.WriteFile(filepath.Join(rootDir, "repositories", "stray"), []byte("not a repository"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	after, err := repo.Usage(ctx)
+	if err != nil || *after != *before {
+		t.Fatalf("Usage() with stray file = %+v, %v; want %+v", after, err, before)
+	}
+}
+
+func TestUsageEmptyStore(t *testing.T) {
+	ctx := context.Background()
+	xs, err := xetlocal.NewStorage(xetlocal.WithBasePath(t.TempDir()))
+	if err != nil {
+		t.Fatalf("NewStorage() error = %v", err)
+	}
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{Storage: xs}, 0)
+
+	if usage, err := repo.Usage(ctx); err != nil || *usage != (git.StorageUsage{}) {
+		t.Fatalf("Usage() = %+v, %v; want all zero", usage, err)
+	}
+}
+
+// Usage maps every Git, store, spool and mirror-index category and follows the data a prune reclaims.
+func TestUsageReportsGitAndXetCategories(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	repo, xs, _, _ := newLFSCollectFixtureIn(t, dir)
+
+	usage, err := repo.Usage(ctx)
+	if err != nil {
+		t.Fatalf("Usage() error = %v", err)
+	}
+	if usage.Spool != (git.ObjectUsage{}) || usage.Mirror != (git.ObjectUsage{}) {
+		t.Fatalf("Usage() spool = %+v, mirror = %+v; want zero before any ingest", usage.Spool, usage.Mirror)
+	}
+	spoolBytes, indexBytes := plantSweepable(t, dir, "idle")
+	usage, err = repo.Usage(ctx)
+	if err != nil {
+		t.Fatalf("Usage() error = %v", err)
+	}
+	if usage.Spool != (git.ObjectUsage{Count: 1, Bytes: spoolBytes}) || usage.Mirror != (git.ObjectUsage{Count: 1, Bytes: indexBytes}) {
+		t.Fatalf("Usage() spool = %+v, mirror = %+v; want the planted files", usage.Spool, usage.Mirror)
+	}
+	// The initial and the pointer commit store two blobs, two trees and two commits.
+	if usage.Git.Objects.Count != 6 || usage.Git.Objects.Bytes <= 0 || usage.Git.Other.Count <= 0 || usage.Git.Other.Bytes <= 0 {
+		t.Fatalf("Usage() Git = %+v, want 6 objects and other files with bytes", usage.Git)
+	}
+	store, err := xs.Usage(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := git.XetUsage{
+		Xorbs:       git.ObjectUsage(store.Xorbs),
+		Shards:      git.ObjectUsage(store.Shards),
+		FileIndex:   git.ObjectUsage(store.FileIndex),
+		ChunkIndex:  git.ObjectUsage(store.ChunkIndex),
+		SHA256Index: git.ObjectUsage(store.SHA256Index),
+	}
+	if usage.Xet != want {
+		t.Fatalf("Usage() Xet = %+v, want the store's %+v", usage.Xet, want)
+	}
+	// Two distinct objects: one xorb, shard, file entry and sha256 entry each, and at least one chunk each.
+	for name, u := range map[string]git.ObjectUsage{"xorbs": usage.Xet.Xorbs, "shards": usage.Xet.Shards, "file index": usage.Xet.FileIndex, "sha256 index": usage.Xet.SHA256Index} {
+		if u.Count != 2 || u.Bytes <= 0 {
+			t.Fatalf("Usage() %s = %+v, want 2 entries with bytes", name, u)
+		}
+	}
+	if usage.Xet.ChunkIndex.Count < 2 || usage.Xet.ChunkIndex.Bytes <= 0 {
+		t.Fatalf("Usage() chunk index = %+v, want >= 2 entries with bytes", usage.Xet.ChunkIndex)
+	}
+
+	if _, err := repo.Prune(ctx, git.PruneOptions{}); err != nil {
+		t.Fatalf("Prune() error = %v", err)
+	}
+	after, err := repo.Usage(ctx)
+	if err != nil {
+		t.Fatalf("Usage() after prune error = %v", err)
+	}
+	for name, u := range map[string]git.ObjectUsage{"xorbs": after.Xet.Xorbs, "shards": after.Xet.Shards, "file index": after.Xet.FileIndex, "sha256 index": after.Xet.SHA256Index} {
+		if u.Count != 1 || u.Bytes <= 0 {
+			t.Fatalf("Usage() %s after prune = %+v, want 1 entry with bytes", name, u)
+		}
+	}
+	if after.Xet.ChunkIndex.Count >= usage.Xet.ChunkIndex.Count || after.Xet.ChunkIndex.Bytes >= usage.Xet.ChunkIndex.Bytes {
+		t.Fatalf("Usage() chunk index after prune = %+v, want fewer than %+v", after.Xet.ChunkIndex, usage.Xet.ChunkIndex)
+	}
+	if after.Spool != (git.ObjectUsage{}) || after.Mirror != (git.ObjectUsage{}) {
+		t.Fatalf("Usage() spool = %+v, mirror = %+v after prune; want swept", after.Spool, after.Mirror)
+	}
+}
+
+type failingUsageStore struct {
+	xetstorage.Storage
+	err error
+}
+
+func (s failingUsageStore) Usage(context.Context) (xetstorage.Usage, error) {
+	return xetstorage.Usage{}, s.err
+}
+
+func TestUsagePropagatesErrors(t *testing.T) {
+	ctx := context.Background()
+	rootDir := t.TempDir()
+	repo := NewGitDB(newRepoTestStorage(t, rootDir), nil, XetStores{}, 0)
+	if err := repo.CreateRepository(ctx, "model", "p", "broken"); err != nil {
+		t.Fatalf("CreateRepository() error = %v", err)
+	}
+
+	canceled, cancel := context.WithCancel(ctx)
+	cancel()
+	if usage, err := repo.Usage(canceled); !errors.Is(err, context.Canceled) || usage != nil {
+		t.Fatalf("Usage(canceled) = %+v, %v; want context.Canceled", usage, err)
+	}
+
+	xs, err := xetlocal.NewStorage(xetlocal.WithBasePath(t.TempDir()))
+	if err != nil {
+		t.Fatalf("NewStorage() error = %v", err)
+	}
+	storeErr := errors.New("store offline")
+	failing := NewGitDB(repo.(*gitRepo).storage, nil, XetStores{Storage: failingUsageStore{Storage: xs, err: storeErr}}, 0)
+	if usage, err := failing.Usage(ctx); !errors.Is(err, storeErr) || usage != nil {
+		t.Fatalf("Usage() with failing store = %+v, %v; want %v", usage, err, storeErr)
+	}
+
+	// A repository whose objects directory is a plain file cannot be measured.
+	objects := filepath.Join(rootDir, "repositories", "p", "broken.git", "objects")
+	if err := os.RemoveAll(objects); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(objects, []byte("not a directory"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if usage, err := repo.Usage(ctx); err == nil || usage != nil {
+		t.Fatalf("Usage() with unreadable repository = %+v, %v; want an error", usage, err)
+	}
+}
+
+func TestPruneRepos(t *testing.T) {
+	ctx := context.Background()
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{}, 0)
+
+	for _, r := range [][3]string{{"model", "test-project", "valid"}, {"dataset", "test-project", "dvalid"}, {"model", "test-project", "orphan"}} {
+		if err := repo.CreateRepository(ctx, r[0], r[1], r[2]); err != nil {
+			t.Fatalf("CreateRepository(%v) error = %v", r, err)
+		}
+	}
+	models := []string{"test-project/valid"}
+	datasets := []string{"test-project/dvalid"}
+
+	orphaned, err := repo.PruneRepos(ctx, models, datasets, true)
+	if err != nil {
+		t.Fatalf("PruneRepos(dry-run) error = %v", err)
+	}
+	if len(orphaned) != 1 || orphaned[0].Path != "test-project/orphan.git" {
+		t.Fatalf("PruneRepos(dry-run) = %+v, want only test-project/orphan.git", orphaned)
+	}
+	if orphaned[0].SizeBytes <= 0 {
+		t.Fatalf("orphaned repo size = %d, want > 0", orphaned[0].SizeBytes)
+	}
+	if exists, err := repo.RepositoryExists(ctx, "model", "test-project", "orphan"); err != nil || !exists {
+		t.Fatalf("RepositoryExists(orphan) after dry-run = %v, %v; want true", exists, err)
+	}
+
+	orphaned, err = repo.PruneRepos(ctx, models, datasets, false)
+	if err != nil {
+		t.Fatalf("PruneRepos() error = %v", err)
+	}
+	if len(orphaned) != 1 || orphaned[0].Path != "test-project/orphan.git" {
+		t.Fatalf("PruneRepos() = %+v, want only test-project/orphan.git", orphaned)
+	}
+	if exists, err := repo.RepositoryExists(ctx, "model", "test-project", "orphan"); err != nil || exists {
+		t.Fatalf("RepositoryExists(orphan) after prune = %v, %v; want false", exists, err)
+	}
+	for _, r := range [][2]string{{"model", "valid"}, {"dataset", "dvalid"}} {
+		if exists, err := repo.RepositoryExists(ctx, r[0], "test-project", r[1]); err != nil || !exists {
+			t.Fatalf("RepositoryExists(%s %s) after prune = %v, %v; want true", r[0], r[1], exists, err)
+		}
+	}
+
+	if orphaned, err := repo.PruneRepos(ctx, models, datasets, true); err != nil || len(orphaned) != 0 {
+		t.Fatalf("PruneRepos(dry-run) after prune = %+v, %v; want none", orphaned, err)
+	}
+}
+
+func TestPruneReposWithoutRepositoriesDir(t *testing.T) {
+	ctx := context.Background()
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{}, 0)
+
+	if orphaned, err := repo.PruneRepos(ctx, nil, nil, false); err != nil || len(orphaned) != 0 {
+		t.Fatalf("PruneRepos() = %+v, %v; want none", orphaned, err)
+	}
+}
+
+func TestPruneReposConfinedToRepositoriesRoot(t *testing.T) {
+	ctx := context.Background()
+	rootDir := t.TempDir()
+	repo := NewGitDB(newRepoTestStorage(t, rootDir), nil, XetStores{}, 0)
+	if err := repo.CreateRepository(ctx, "model", "test-project", "orphan"); err != nil {
+		t.Fatalf("CreateRepository() error = %v", err)
+	}
+	// A HEAD-bearing .git directory beside the repositories root would be pruned if the walk escaped it.
+	sentinel := filepath.Join(rootDir, "stray.git", "HEAD")
+	want := []byte("ref: refs/heads/main\n")
+	if err := os.MkdirAll(filepath.Dir(sentinel), 0750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(sentinel, want, 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	orphaned, err := repo.PruneRepos(ctx, nil, nil, false)
+	if err != nil {
+		t.Fatalf("PruneRepos() error = %v", err)
+	}
+	if len(orphaned) != 1 || orphaned[0].Path != "test-project/orphan.git" {
+		t.Fatalf("PruneRepos() = %+v, want only test-project/orphan.git", orphaned)
+	}
+	if _, err := os.Stat(filepath.Join(rootDir, "repositories", "test-project", "orphan.git", "HEAD")); !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("Stat(orphan HEAD) after prune error = %v, want not exist", err)
+	}
+	if got, err := os.ReadFile(sentinel); err != nil || !bytes.Equal(got, want) {
+		t.Fatalf("sentinel after prune = %q, %v; want unchanged", got, err)
+	}
+	if info, err := os.Stat(filepath.Join(rootDir, "repositories")); err != nil || !info.IsDir() {
+		t.Fatalf("Stat(repositories) after prune = %v, %v; want directory kept", info, err)
+	}
+}
+
+const lfsTestObjectSize = 64 * 1024
+
+// putLFSObject stores a 64 KiB payload derived from seed through the mirror and returns its OID.
+func putLFSObject(t *testing.T, m *mirror.Mirror, seed string) string {
+	t.Helper()
+	data := bytes.Repeat([]byte(seed), lfsTestObjectSize/len(seed)+1)[:lfsTestObjectSize]
+	sum := sha256.Sum256(data)
+	oid := hex.EncodeToString(sum[:])
+	if err := m.PutObject(context.Background(), oid, bytes.NewReader(data), int64(len(data))); err != nil {
+		t.Fatalf("PutObject(%q) error = %v", seed, err)
+	}
+	return oid
+}
+
+// lfsStored reports whether the xet store still resolves oid.
+func lfsStored(t *testing.T, xs *xetlocal.Storage, oid string) bool {
+	t.Helper()
+	raw, err := hex.DecodeString(oid)
+	if err != nil {
+		t.Fatalf("decode oid: %v", err)
+	}
+	_, err = xs.GetFileHashBySHA256(context.Background(), [32]byte(raw))
+	return err == nil
+}
+
+// lfsPayloadBytes sums the shard and xorb bytes a sweep reclaims; index entries stay out of it.
+func lfsPayloadBytes(t *testing.T, repo git.IGitRepo) int64 {
+	t.Helper()
+	usage, err := repo.Usage(context.Background())
+	if err != nil {
+		t.Fatalf("Usage() error = %v", err)
+	}
+	return usage.Xet.Shards.Bytes + usage.Xet.Xorbs.Bytes
+}
+
+// newLFSCollectFixture seeds a xet store with a live object referenced by a repo pointer and an unreferenced dead one.
+func newLFSCollectFixture(t *testing.T) (git.IGitRepo, *xetlocal.Storage, string, string) {
+	t.Helper()
+	return newLFSCollectFixtureIn(t, t.TempDir())
+}
+
+// newXetSweepers builds the spool and the xet mirror engine over xs below dir, laid out as the backend does.
+func newXetSweepers(t *testing.T, dir string, xs xetstorage.Storage) XetStores {
+	t.Helper()
+	sp, err := spool.NewSpool(filepath.Join(dir, "spool"), xs)
+	if err != nil {
+		t.Fatalf("NewSpool() error = %v", err)
+	}
+	xm, err := xetmirror.NewMirror(xetmirror.WithStorage(xs), xetmirror.WithCacheDir(filepath.Join(dir, "mirror")), xetmirror.WithSpool(sp))
+	if err != nil {
+		t.Fatalf("xet NewMirror() error = %v", err)
+	}
+	return XetStores{Storage: xs, Spool: sp, Mirror: xm}
+}
+
+// plantSweepable writes an idle spool file and an interrupted mirror-index temp file below dir and returns their sizes.
+func plantSweepable(t *testing.T, dir, name string) (spoolBytes, indexBytes int64) {
+	t.Helper()
+	files := map[string][]byte{
+		filepath.Join(dir, "spool", name+".spool"):                                bytes.Repeat([]byte("s"), 300),
+		filepath.Join(dir, "mirror", "index", "repo", "commits", "."+name+".tmp"): bytes.Repeat([]byte("i"), 70),
+	}
+	for p, data := range files {
+		if err := os.MkdirAll(filepath.Dir(p), 0750); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(objectPath, []byte("object"), 0600); err != nil {
+		if err := os.WriteFile(p, data, 0600); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if err := os.WriteFile(filepath.Join(store.LFSDir(), "bb", "bb", "lfsd_tmp_x"), []byte("pending"), 0600); err != nil {
-		t.Fatal(err)
+	return 300, 70
+}
+
+// newLFSCollectFixtureIn is newLFSCollectFixture with the xet data (store, spool, mirror index) below dir.
+func newLFSCollectFixtureIn(t *testing.T, dir string) (git.IGitRepo, *xetlocal.Storage, string, string) {
+	t.Helper()
+	ctx := context.Background()
+	xs, err := xetlocal.NewStorage(xetlocal.WithBasePath(dir))
+	if err != nil {
+		t.Fatalf("NewStorage() error = %v", err)
+	}
+	cache := xetclient.NewCache(filepath.Join(dir, "mirror"), 0, 0)
+	m, err := mirror.NewMirror(mirror.WithXETStorage(xs), mirror.WithXETCache(cache), mirror.WithDataDir(dir))
+	if err != nil {
+		t.Fatalf("NewMirror() error = %v", err)
+	}
+	t.Cleanup(m.Wait)
+	live, dead := putLFSObject(t, m, "live "), putLFSObject(t, m, "dead ")
+
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), m, newXetSweepers(t, dir, xs), -1)
+	if err := repo.CreateRepository(ctx, "model", "p", "live"); err != nil {
+		t.Fatalf("CreateRepository() error = %v", err)
+	}
+	pointer := fmt.Sprintf("version https://git-lfs.github.com/spec/v1\noid sha256:%s\nsize %d\n", live, lfsTestObjectSize)
+	if _, err := repo.CreateCommit(ctx, "model", "p", "live", "main", &git.Commit{
+		Message:     "add model",
+		AuthorName:  "test",
+		AuthorEmail: "test@example.com",
+	}, []git.CommitOperation{
+		{Type: git.CommitOperationAdd, Path: "model.bin", Content: []byte(pointer)},
+	}); err != nil {
+		t.Fatalf("CreateCommit() error = %v", err)
+	}
+	return repo, xs, live, dead
+}
+
+// checkPrune asserts the fixture's prune header (one repository, one live object, nothing in grace), the exact Unlinked list and a finished sweep.
+func checkPrune(t *testing.T, res *git.GCResult, dryRun bool, unlinked ...string) {
+	t.Helper()
+	if res.DryRun != dryRun || res.Repositories != 1 || res.LiveObjects != 1 || res.PruneSkippedInGrace != 0 {
+		t.Fatalf("Prune() = %+v, want dryRun=%t repositories=1 live=1 skipped=0", res, dryRun)
+	}
+	if !slices.Equal(res.Unlinked, unlinked) {
+		t.Fatalf("Prune() unlinked = %v, want %v", res.Unlinked, unlinked)
+	}
+	if res.SweepDone == nil || !*res.SweepDone {
+		t.Fatalf("Prune() sweepDone = %v, want true", res.SweepDone)
+	}
+	if res.SpoolSweep == nil || !res.SpoolSweep.Done || res.MirrorSweep == nil || !res.MirrorSweep.Done {
+		t.Fatalf("Prune() spool sweep = %+v, mirror sweep = %+v; want both run and done after a finished CAS sweep", res.SpoolSweep, res.MirrorSweep)
+	}
+}
+
+func TestPruneDryRunListsWithoutDeleting(t *testing.T) {
+	ctx := context.Background()
+	repo, xs, live, dead := newLFSCollectFixture(t)
+	before := lfsPayloadBytes(t, repo)
+	if before <= 0 {
+		t.Fatalf("LFS payload before = %d, want > 0", before)
 	}
 
-	repoPath := store.ResolvePath("test-project/test-model")
-	if err := os.MkdirAll(filepath.Dir(repoPath), 0750); err != nil {
-		t.Fatal(err)
+	res, err := repo.Prune(ctx, git.PruneOptions{DryRun: true})
+	if err != nil {
+		t.Fatalf("Prune() error = %v", err)
 	}
-	repo, err := repository.Init(ctx, repoPath, "main")
+	checkPrune(t, res, true, dead)
+	// The candidate is still linked, so this run's sweep estimate cannot include it.
+	if res.XetReclaimedBytes != 0 {
+		t.Fatalf("dry run sweep = %+v, want 0 bytes", res)
+	}
+	if !lfsStored(t, xs, dead) {
+		t.Fatal("listing unlinked the dead object")
+	}
+	if !lfsStored(t, xs, live) {
+		t.Fatal("listing unlinked the live object")
+	}
+	if after := lfsPayloadBytes(t, repo); after != before {
+		t.Fatalf("LFS payload after listing = %d, want %d", after, before)
+	}
+}
+
+func TestPruneReclaimsUnreferencedObjects(t *testing.T) {
+	ctx := context.Background()
+	repo, xs, live, dead := newLFSCollectFixture(t)
+
+	before := lfsPayloadBytes(t, repo)
+	if before <= 0 {
+		t.Fatalf("LFS payload before = %d, want > 0", before)
+	}
+
+	res, err := repo.Prune(ctx, git.PruneOptions{})
+	if err != nil {
+		t.Fatalf("Prune() error = %v", err)
+	}
+	checkPrune(t, res, false, dead)
+	if lfsStored(t, xs, dead) || !lfsStored(t, xs, live) {
+		t.Fatalf("dead stored = %v, live stored = %v", lfsStored(t, xs, dead), lfsStored(t, xs, live))
+	}
+	after := lfsPayloadBytes(t, repo)
+	if after <= 0 || after >= before {
+		t.Fatalf("LFS payload after = %d, want in (0, %d)", after, before)
+	}
+	if res.XetReclaimedBytes != before-after || res.SweptShards < 1 {
+		t.Fatalf("sweep = %+v, want %d bytes, >= 1 shard", res, before-after)
+	}
+	if res, err := repo.Prune(ctx, git.PruneOptions{DryRun: true}); err != nil || len(res.Unlinked) != 0 || res.XetReclaimedBytes != 0 {
+		t.Fatalf("Prune() dry run after delete = %+v, %v; want none", res, err)
+	}
+	if res, err := repo.Prune(ctx, git.PruneOptions{}); err != nil || len(res.Unlinked) != 0 || res.XetReclaimedBytes != 0 {
+		t.Fatalf("Prune() after prune = %+v, %v; want none", res, err)
+	}
+}
+
+func TestPruneGitGC(t *testing.T) {
+	ctx := context.Background()
+	repo, store, live, dead := newLFSCollectFixture(t)
+	backend := repo.(*gitRepo)
+	repoPath := backend.gitPath("model", "p", "live")
+	gitRepository, err := backend.openRepo(repoPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pointer := "version https://git-lfs.github.com/spec/v1\noid sha256:" + referencedOID + "\nsize 1048576\n"
-	if _, err := repo.CreateCommit(ctx, "main", "add model", "Test", "test@example.com", []repository.CommitOperation{
-		{Type: repository.CommitOperationAdd, Path: "model.bin", Content: []byte(pointer)},
-	}, ""); err != nil {
+	filler := make([]byte, lfsTestObjectSize)
+	if _, err := rand.Read(filler); err != nil {
 		t.Fatal(err)
 	}
-
-	gitRepo := NewGitDB(store, nil)
-	orphaned, err := gitRepo.FindOrphanedLFS(ctx)
+	pointer := fmt.Sprintf("version https://git-lfs.github.com/spec/v1\noid sha256:%s\nsize %d\n", dead, lfsTestObjectSize)
+	orphan, err := repo.CreateCommit(ctx, "model", "p", "live", "orphan", &git.Commit{
+		Message: "orphan", AuthorName: "test", AuthorEmail: "test@example.com",
+	}, []git.CommitOperation{
+		{Type: git.CommitOperationAdd, Path: "dead.bin", Content: []byte(pointer)},
+		{Type: git.CommitOperationAdd, Path: "filler.bin", Content: filler},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(orphaned) != 1 {
-		oids := make([]string, 0, len(orphaned))
-		for _, object := range orphaned {
-			oids = append(oids, object.OID)
+	if err := gitRepository.DeleteBranch("orphan"); err != nil {
+		t.Fatal(err)
+	}
+	before, err := gitRepository.Usage(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	beforeLFS := lfsPayloadBytes(t, repo)
+	hour := time.Hour
+	graced, err := repo.Prune(ctx, git.PruneOptions{DryRun: true, Grace: &hour})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if graced.DeletedGitObjects != 0 || graced.DeletedGitBytes != 0 || graced.GitReclaimedBytes != 0 || len(graced.Unlinked) != 0 || graced.LiveObjects != 2 {
+		t.Fatalf("Prune(grace=1h) = %+v, want fresh Git objects and both LFS pointers kept", graced)
+	}
+
+	preview, err := repo.Prune(ctx, git.PruneOptions{DryRun: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkPrune(t, preview, true, dead)
+	if preview.DeletedGitObjects != 4 || preview.DeletedGitBytes <= lfsTestObjectSize || preview.GitReclaimedBytes != 0 || len(preview.Failed) != 0 {
+		t.Fatalf("Prune(dry-run) = %+v, want four Git objects previewed without reclaiming bytes", preview)
+	}
+	usage, err := repo.Usage(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if usage.Git != (git.GitUsage{Objects: git.ObjectUsage(before.Objects), Other: git.ObjectUsage(before.Other)}) || usage.Xet.Shards.Bytes+usage.Xet.Xorbs.Bytes != beforeLFS || !lfsStored(t, store, dead) {
+		t.Fatal("dry run changed Git or LFS storage")
+	}
+	if _, err := repo.GetCommit(ctx, "model", "p", "live", orphan); err != nil {
+		t.Fatalf("GetCommit(orphan) after dry run: %v", err)
+	}
+
+	result, err := repo.Prune(ctx, git.PruneOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkPrune(t, result, false, dead)
+	gitRepository, err = backend.openRepo(repoPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	after, err := gitRepository.Usage(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.DeletedGitObjects != preview.DeletedGitObjects || result.DeletedGitBytes != preview.DeletedGitBytes || len(result.Failed) != 0 {
+		t.Fatalf("Prune() Git deletions = %+v, want preview %+v", result, preview)
+	}
+	if result.GitReclaimedBytes <= 0 || result.GitReclaimedBytes != before.Objects.Bytes-after.Objects.Bytes {
+		t.Fatalf("Prune() reclaimed %d Git bytes, objects shrank by %d", result.GitReclaimedBytes, before.Objects.Bytes-after.Objects.Bytes)
+	}
+	if result.XetReclaimedBytes != beforeLFS-lfsPayloadBytes(t, repo) || lfsStored(t, store, dead) || !lfsStored(t, store, live) {
+		t.Fatalf("Prune() LFS sweep = %+v, want only dead data reclaimed", result)
+	}
+	if _, err := repo.GetCommit(ctx, "model", "p", "live", orphan); err == nil {
+		t.Fatal("orphan commit survived Git GC")
+	}
+}
+
+func TestPruneDryRunSkipsUnlinkedObjects(t *testing.T) {
+	ctx := context.Background()
+	repo, store, live, dead := newLFSCollectFixture(t)
+	removed, err := store.DeleteSHA256IndexEntry(ctx, dead)
+	if err != nil || !removed {
+		t.Fatalf("unlink dead object = %v, %v", removed, err)
+	}
+	before := lfsPayloadBytes(t, repo)
+	res, err := repo.Prune(ctx, git.PruneOptions{DryRun: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkPrune(t, res, true)
+	if res.XetReclaimedBytes <= 0 {
+		t.Fatalf("dry run sweep = %+v, want > 0 bytes for already-unlinked data", res)
+	}
+	if lfsPayloadBytes(t, repo) != before || !lfsStored(t, store, live) {
+		t.Fatal("listing modified storage")
+	}
+
+	swept, err := repo.Prune(ctx, git.PruneOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkPrune(t, swept, false)
+	if after := lfsPayloadBytes(t, repo); swept.XetReclaimedBytes != before-after || swept.XetReclaimedBytes != res.XetReclaimedBytes {
+		t.Fatalf("sweep reclaimed %d bytes, dry run predicted %d, disk shrank by %d", swept.XetReclaimedBytes, res.XetReclaimedBytes, before-after)
+	}
+}
+
+func TestPruneGraceOverride(t *testing.T) {
+	ctx := context.Background()
+	repo, xs, live, dead := newLFSCollectFixture(t)
+
+	// The fixture disables grace (-1); a 1h override shields the freshly written dead object.
+	hour := time.Hour
+	res, err := repo.Prune(ctx, git.PruneOptions{Grace: &hour})
+	if err != nil {
+		t.Fatalf("Prune() error = %v", err)
+	}
+	if len(res.Unlinked) != 0 || res.PruneSkippedInGrace != 1 || res.SweepDone == nil || res.XetReclaimedBytes != 0 {
+		t.Fatalf("Prune(grace=1h) = %+v, want the dead object skipped in grace", res)
+	}
+	if !lfsStored(t, xs, dead) || !lfsStored(t, xs, live) {
+		t.Fatal("grace override did not preserve the objects")
+	}
+
+	// A configured 1h grace over the same store with no repositories shields both objects until a negative override disables it.
+	graced := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{Storage: xs}, time.Hour)
+	res, err = graced.Prune(ctx, git.PruneOptions{DryRun: true})
+	if err != nil || len(res.Unlinked) != 0 || res.PruneSkippedInGrace != 2 {
+		t.Fatalf("Prune(configured grace) = %+v, %v; want both objects skipped", res, err)
+	}
+	disabled := -time.Second
+	want := []string{live, dead}
+	slices.Sort(want)
+	res, err = graced.Prune(ctx, git.PruneOptions{DryRun: true, Grace: &disabled})
+	if err != nil || !slices.Equal(res.Unlinked, want) || res.PruneSkippedInGrace != 0 {
+		t.Fatalf("Prune(grace=-1s) = %+v, %v; want %v", res, err, want)
+	}
+}
+
+func TestPruneBoundsSweep(t *testing.T) {
+	ctx := context.Background()
+	_, xs, _, _ := newLFSCollectFixture(t)
+	// A GC over an empty repositories root treats both stored objects as garbage: two dead shards to bound.
+	sweepDir := t.TempDir()
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, newXetSweepers(t, sweepDir, xs), -1)
+	plantSweepable(t, sweepDir, "idle")
+	before := lfsPayloadBytes(t, repo)
+
+	dry, err := repo.Prune(ctx, git.PruneOptions{DryRun: true, MaxDeletes: 1, Budget: time.Nanosecond})
+	if err != nil {
+		t.Fatalf("Prune(dry) error = %v", err)
+	}
+	if len(dry.Unlinked) != 2 || dry.SweepDone == nil || !*dry.SweepDone || dry.RemainingShards != 0 || lfsPayloadBytes(t, repo) != before {
+		t.Fatalf("Prune(dry, bounded) = %+v, want bounds ignored and nothing deleted", dry)
+	}
+
+	first, err := repo.Prune(ctx, git.PruneOptions{MaxDeletes: 1})
+	if err != nil {
+		t.Fatalf("Prune(maxDeletes=1) error = %v", err)
+	}
+	if len(first.Unlinked) != 2 || first.SweepDone == nil || *first.SweepDone || first.SweptShards != 1 || first.RemainingShards != 1 {
+		t.Fatalf("Prune(maxDeletes=1) = %+v, want one swept shard, one remaining and sweepDone=false", first)
+	}
+	if first.SpoolSweep != nil || first.MirrorSweep != nil {
+		t.Fatalf("Prune(maxDeletes=1) spool = %+v, mirror = %+v; want neither run before the CAS sweep finished", first.SpoolSweep, first.MirrorSweep)
+	}
+	// The budget is checked once anything was swept, so a 1ns budget stops after the first deletion.
+	second, err := repo.Prune(ctx, git.PruneOptions{Budget: time.Nanosecond})
+	if err != nil {
+		t.Fatalf("Prune(budget) error = %v", err)
+	}
+	if len(second.Unlinked) != 0 || second.SweepDone == nil || *second.SweepDone || second.SweptShards != 1 || second.SpoolSweep != nil || second.MirrorSweep != nil {
+		t.Fatalf("Prune(budget=1ns) = %+v, want one swept shard, sweepDone=false and no later sweeps", second)
+	}
+	if usage, err := repo.Usage(ctx); err != nil || usage.Spool.Count != 1 || usage.Mirror.Count != 1 {
+		t.Fatalf("Usage() = %+v, %v; want the spool and index files kept while the CAS sweep is unfinished", usage, err)
+	}
+	third, err := repo.Prune(ctx, git.PruneOptions{})
+	if err != nil {
+		t.Fatalf("Prune() error = %v", err)
+	}
+	if len(third.Unlinked) != 0 || third.SweepDone == nil || !*third.SweepDone || third.SweptXorbs == 0 {
+		t.Fatalf("Prune() = %+v, want the xorbs swept and sweepDone=true", third)
+	}
+	if third.SpoolSweep == nil || third.SpoolSweep.SweptSpools != 1 || third.MirrorSweep == nil || third.MirrorSweep.RemovedTempFiles != 1 {
+		t.Fatalf("Prune() spool = %+v, mirror = %+v; want both swept once the CAS sweep finished", third.SpoolSweep, third.MirrorSweep)
+	}
+	after := lfsPayloadBytes(t, repo)
+	reclaimed := first.XetReclaimedBytes + second.XetReclaimedBytes + third.XetReclaimedBytes
+	if after >= before || reclaimed != before-after {
+		t.Fatalf("reclaimed %d bytes over three steps, disk shrank from %d to %d", reclaimed, before, after)
+	}
+}
+
+// After a finished CAS sweep the spool and mirror-index sweeps run with the same grace and DryRun; absent components are skipped.
+func TestPruneSweepsSpoolAndMirrorIndex(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	xs, err := xetlocal.NewStorage(xetlocal.WithBasePath(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, newXetSweepers(t, dir, xs), -1)
+	spoolBytes, _ := plantSweepable(t, dir, "idle")
+
+	dry, err := repo.Prune(ctx, git.PruneOptions{DryRun: true})
+	if err != nil {
+		t.Fatalf("Prune(dry) error = %v", err)
+	}
+	wantSpool := &git.SpoolSweepResult{SweptSpools: 1, ReclaimedBytes: spoolBytes, Done: true}
+	wantMirror := &git.MirrorSweepResult{RemovedTempFiles: 1, Done: true}
+	if dry.SweepDone == nil || !*dry.SweepDone || *dry.SpoolSweep != *wantSpool || *dry.MirrorSweep != *wantMirror {
+		t.Fatalf("Prune(dry) = %+v, spool %+v, mirror %+v; want %+v and %+v", dry, dry.SpoolSweep, dry.MirrorSweep, wantSpool, wantMirror)
+	}
+	if usage, err := repo.Usage(ctx); err != nil || usage.Spool.Count != 1 || usage.Mirror.Count != 1 {
+		t.Fatalf("Usage() after dry run = %+v, %v; want the files kept", usage, err)
+	}
+
+	res, err := repo.Prune(ctx, git.PruneOptions{})
+	if err != nil {
+		t.Fatalf("Prune() error = %v", err)
+	}
+	if *res.SpoolSweep != *wantSpool || *res.MirrorSweep != *wantMirror {
+		t.Fatalf("Prune() spool %+v, mirror %+v; want %+v and %+v", res.SpoolSweep, res.MirrorSweep, wantSpool, wantMirror)
+	}
+	if usage, err := repo.Usage(ctx); err != nil || usage.Spool != (git.ObjectUsage{}) || usage.Mirror != (git.ObjectUsage{}) {
+		t.Fatalf("Usage() after prune = %+v, %v; want the files swept", usage, err)
+	}
+
+	// A 1h grace shields the freshly written files.
+	plantSweepable(t, dir, "fresh")
+	hour := time.Hour
+	if res, err := repo.Prune(ctx, git.PruneOptions{Grace: &hour}); err != nil || res.SpoolSweep.SweptSpools != 0 || res.MirrorSweep.RemovedTempFiles != 0 {
+		t.Fatalf("Prune(grace=1h) = %+v, %v; want nothing swept in grace", res, err)
+	}
+
+	bare, err := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{Storage: xs}, -1).Prune(ctx, git.PruneOptions{})
+	if err != nil || bare.SweepDone == nil || !*bare.SweepDone || bare.SpoolSweep != nil || bare.MirrorSweep != nil {
+		t.Fatalf("Prune() without spool and mirror = %+v, %v; want a finished CAS sweep and no later sweeps", bare, err)
+	}
+}
+
+// The later sweeps get what is left of Budget: an expired budget still lets an unswept step make progress, then defers the rest.
+func TestPruneHandsDownRemainingBudget(t *testing.T) {
+	ctx := context.Background()
+	_, xs, _, _ := newLFSCollectFixture(t)
+	// Over an empty repositories root both stored objects are garbage, so the first CAS sweep has work.
+	dir := t.TempDir()
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, newXetSweepers(t, dir, xs), -1)
+	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	// prune sets the clock to the given instants, the last one repeating, and runs Prune with a 1m budget.
+	prune := func(instants ...time.Time) *git.GCResult {
+		t.Helper()
+		repo.(*gitRepo).now = func() time.Time {
+			now := instants[0]
+			if len(instants) > 1 {
+				instants = instants[1:]
+			}
+			return now
 		}
-		t.Fatalf("expected one orphaned LFS object, got %d: %q", len(orphaned), oids)
+		res, err := repo.Prune(ctx, git.PruneOptions{Budget: time.Minute})
+		if err != nil {
+			t.Fatalf("Prune() error = %v", err)
+		}
+		if res.SweepDone == nil || !*res.SweepDone {
+			t.Fatalf("Prune() = %+v, want a finished CAS sweep", res)
+		}
+		return res
 	}
-	wantPath := filepath.Join(store.LFSDir(), orphanedOID[:2], orphanedOID[2:4], orphanedOID[4:])
-	if orphaned[0].OID != orphanedOID || orphaned[0].Path != wantPath {
-		t.Fatalf("expected OID %q at %q, got %+v", orphanedOID, wantPath, orphaned[0])
+	plantSweepable(t, dir, "a")
+	plantSweepable(t, dir, "b")
+
+	// Expired after the CAS sweep swept: both later sweeps are deferred.
+	res := prune(t0, t0.Add(2*time.Minute))
+	if res.SweptShards+res.SweptXorbs == 0 || res.SpoolSweep != nil || res.MirrorSweep != nil {
+		t.Fatalf("Prune(expired after CAS work) = %+v, spool %+v, mirror %+v; want CAS data swept and both later sweeps deferred", res, res.SpoolSweep, res.MirrorSweep)
 	}
-	if err := gitRepo.DeleteLFSObject(ctx, orphaned[0]); err != nil {
-		t.Fatal(err)
+
+	// 1ns left: each later sweep stops after its first removal.
+	left := t0.Add(time.Minute - time.Nanosecond)
+	res = prune(t0, left)
+	if res.SweptShards+res.SweptXorbs != 0 {
+		t.Fatalf("Prune(1ns left) = %+v, want no CAS work", res)
 	}
-	if _, err := os.Stat(wantPath); !os.IsNotExist(err) {
-		t.Fatalf("expected orphaned LFS file removed, got %v", err)
+	if *res.SpoolSweep != (git.SpoolSweepResult{SweptSpools: 1, ReclaimedBytes: 300, RemainingSpools: 1}) {
+		t.Fatalf("Prune(1ns left) spool = %+v, want one swept and one remaining", res.SpoolSweep)
+	}
+	if *res.MirrorSweep != (git.MirrorSweepResult{RemovedTempFiles: 1, RemainingTempFiles: 1}) {
+		t.Fatalf("Prune(1ns left) mirror = %+v, want one removed and one remaining", res.MirrorSweep)
+	}
+
+	// Expired with nothing swept yet: the spool sweep gets 1ns, then the mirror sweep is deferred.
+	plantSweepable(t, dir, "c")
+	res = prune(t0, t0.Add(2*time.Minute))
+	if *res.SpoolSweep != (git.SpoolSweepResult{SweptSpools: 1, ReclaimedBytes: 300, RemainingSpools: 1}) || res.MirrorSweep != nil {
+		t.Fatalf("Prune(expired) spool = %+v, mirror = %+v; want one spool swept and the mirror sweep deferred", res.SpoolSweep, res.MirrorSweep)
+	}
+
+	// Plenty left: everything remaining is swept.
+	res = prune(t0, t0.Add(time.Second))
+	if *res.SpoolSweep != (git.SpoolSweepResult{SweptSpools: 1, ReclaimedBytes: 300, Done: true}) || *res.MirrorSweep != (git.MirrorSweepResult{RemovedTempFiles: 2, Done: true}) {
+		t.Fatalf("Prune(59s left) spool = %+v, mirror = %+v; want the rest swept", res.SpoolSweep, res.MirrorSweep)
 	}
 }
 
-func TestConfinedPathAcceptsRelativePathAlreadyUnderRoot(t *testing.T) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
+// One GC run at a time: a second Prune while one holds the store fails fast with ErrGCBusy.
+func TestPruneBusy(t *testing.T) {
+	ctx := context.Background()
+	repo, _, _, _ := newLFSCollectFixture(t)
+	backend := repo.(*gitRepo)
 
-	root := filepath.Join("data", "lfs")
-	path := filepath.Join("data", "lfs", "fd", "f7", "object")
-	got, err := confinedPath(root, path)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	backend.gcMu.Lock()
+	res, err := repo.Prune(ctx, git.PruneOptions{})
+	backend.gcMu.Unlock()
+	if !errors.Is(err, git.ErrGCBusy) || res != nil {
+		t.Fatalf("Prune() while busy = %+v, %v; want ErrGCBusy", res, err)
 	}
-
-	want := filepath.Join(cwd, path)
-	if got != want {
-		t.Fatalf("expected %q, got %q", want, got)
+	if _, err := repo.Prune(ctx, git.PruneOptions{DryRun: true}); err != nil {
+		t.Fatalf("Prune() after release error = %v", err)
 	}
 }
 
-func TestConfinedPathJoinsObjectRelativePath(t *testing.T) {
-	cwd, err := os.Getwd()
+// A Git GC failure returns the partial prune result with its error; the sweep does not run, so SweepDone stays nil and unlinked data is kept.
+func TestPruneFailedRepositoryHasNoSweepResult(t *testing.T) {
+	ctx := context.Background()
+	repo, xs, live, dead := newLFSCollectFixture(t)
+	backend := repo.(*gitRepo)
+	repoPath := backend.gitPath("model", "p", "live")
+	// A ref to a missing object fails Git GC before it deletes anything.
+	dangling, err := backend.storage.RepositoriesFS().Create(repoPath + "/refs/heads/dangling")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	got, err := confinedPath(filepath.Join("data", "lfs"), filepath.Join("fd", "f7", "object"))
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	if _, err := dangling.Write([]byte(strings.Repeat("1", 40) + "\n")); err != nil {
+		t.Fatal(err)
 	}
+	if err := dangling.Close(); err != nil {
+		t.Fatal(err)
+	}
+	before := lfsPayloadBytes(t, repo)
 
-	want := filepath.Join(cwd, "data", "lfs", "fd", "f7", "object")
-	if got != want {
-		t.Fatalf("expected %q, got %q", want, got)
+	res, err := repo.Prune(ctx, git.PruneOptions{})
+	if err == nil || res == nil {
+		t.Fatalf("Prune() = %+v, %v; want the partial result and the GC failure", res, err)
+	}
+	if res.Repositories != 1 || res.Failed[repoPath] == "" || res.LiveObjects != 1 || !slices.Equal(res.Unlinked, []string{dead}) {
+		t.Fatalf("Prune() = %+v, want the failed repository reported with its pointer live and the dead object unlinked", res)
+	}
+	if res.SweepDone != nil || res.SweptShards != 0 || res.XetReclaimedBytes != 0 || lfsPayloadBytes(t, repo) != before {
+		t.Fatalf("Prune() = %+v, want no sweep result and the unlinked data still stored", res)
+	}
+	if lfsStored(t, xs, dead) || !lfsStored(t, xs, live) {
+		t.Fatalf("dead stored = %v, live stored = %v", lfsStored(t, xs, dead), lfsStored(t, xs, live))
 	}
 }
 
-func TestConfinedPathRejectsEscapedPath(t *testing.T) {
-	if _, err := confinedPath(filepath.Join("data", "lfs"), filepath.Join("..", "repositories", "repo.git")); err == nil {
-		t.Fatal("expected escaped path error")
+func TestLFSCleanupWithoutXetStore(t *testing.T) {
+	ctx := context.Background()
+	repo := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{}, 0)
+
+	if _, err := repo.Prune(ctx, git.PruneOptions{DryRun: true}); err == nil {
+		t.Fatal("expected Prune dry-run to fail without a xet store")
+	}
+	if _, err := repo.Prune(ctx, git.PruneOptions{}); err == nil {
+		t.Fatal("expected Prune to fail without a xet store")
+	}
+	if usage, err := repo.Usage(ctx); err != nil || *usage != (git.StorageUsage{}) {
+		t.Fatalf("Usage() = %+v, %v; want all zero without repositories or a xet store", usage, err)
 	}
 }
