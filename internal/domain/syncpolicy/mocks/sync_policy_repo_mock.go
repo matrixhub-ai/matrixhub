@@ -130,6 +130,21 @@ func (mr *MockISyncPolicyRepoMockRecorder) SelectDuePolicies(ctx, nowMs, limit a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectDuePolicies", reflect.TypeOf((*MockISyncPolicyRepo)(nil).SelectDuePolicies), ctx, nowMs, limit)
 }
 
+// GetSyncPolicyByName mocks base method.
+func (m *MockISyncPolicyRepo) GetSyncPolicyByName(ctx context.Context, name string) (*syncpolicy.SyncPolicy, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSyncPolicyByName", ctx, name)
+	ret0, _ := ret[0].(*syncpolicy.SyncPolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSyncPolicyByName indicates an expected call of GetSyncPolicyByName.
+func (mr *MockISyncPolicyRepoMockRecorder) GetSyncPolicyByName(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSyncPolicyByName", reflect.TypeOf((*MockISyncPolicyRepo)(nil).GetSyncPolicyByName), ctx, name)
+}
+
 // UpdateSyncPolicy mocks base method.
 func (m *MockISyncPolicyRepo) UpdateSyncPolicy(ctx context.Context, policy *syncpolicy.SyncPolicy) error {
 	m.ctrl.T.Helper()
