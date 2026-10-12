@@ -216,6 +216,14 @@ test.e2e.kind: ## Run E2E tests in KIND cluster (setup, deploy, test)
 	@echo "  kind delete cluster --name=$${E2E_CLUSTER_NAME:-matrixhub-e2e}"
 	@echo ""
 
+.PHONY: test.ui-automation
+test.ui-automation: ## Run UI automation locally (requires a running MatrixHub UI)
+	./scripts/run-ui-automation.sh
+
+.PHONY: test.ui-automation.kind
+test.ui-automation.kind: ## Run UI automation in a dedicated KIND cluster (setup, deploy, test)
+	./scripts/setup-ui-automation.sh
+
 .PHONY: chart.build
 chart.build: ## Build Helm chart package
 	helm package ./deploy/charts/matrixhub -d ./deploy/charts
