@@ -55,7 +55,7 @@ type Repos struct {
 	Robot       robot.IRobotRepo
 }
 
-func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror) *Repos {
+func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mirror.Mirror, xet XetStores) *Repos {
 	log.Debug("init database")
 	database, err := db.New(conf.Database)
 	if err != nil {
@@ -81,7 +81,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.SSHKey = NewSSHKeyRepo(repos.DB)
 	repos.Model = NewModelDB(repos.DB)
 	repos.Label = NewLabelDB(repos.DB)
-	repos.Git = NewGitDB(repos.GitStorage, repos.GitMirror)
+	repos.Git = NewGitDB(repos.GitStorage, repos.GitMirror, xet, conf.APIServer.GCGrace)
 	repos.Dataset = NewDatasetDB(repos.DB)
 	repos.Registry = NewRegistryRepo(repos.DB)
 	repos.SyncPolicy = NewSyncPolicyDB(repos.DB)

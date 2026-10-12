@@ -200,9 +200,6 @@ Run all unit tests from the repository root:
 make test.unit
 ```
 
-`make test.unit` temporarily excludes `./internal/apiserver/handler/hf`; 
-add that package back after the HF handler tests are fixed.
-
 Run unit tests with coverage:
 
 ```bash
@@ -223,10 +220,11 @@ unit-test package roots:
 UNIT_TEST_PKGS="./cmd/... ./internal/... ./pkg/..." make test.unit
 ```
 
-Override `UNIT_TEST_EXCLUDE_PKGS` to change the temporary exclusions:
+No packages are excluded by default. Set `UNIT_TEST_EXCLUDE_PKGS` for a focused
+run that intentionally omits a package:
 
 ```bash
-UNIT_TEST_EXCLUDE_PKGS= make test.unit
+UNIT_TEST_EXCLUDE_PKGS="./internal/repo" make test.unit
 ```
 
 When interfaces change, regenerate mocks before running or committing tests:
@@ -319,6 +317,7 @@ Protocol labels and case-ID prefixes are:
 | Hugging Face CLI | `hf-cli` | `HF` |
 | Git over SSH | `git-ssh` | `GS` |
 | HF/Git interoperability | `protocol-interop` | `PI` |
+| HF CLI and Git Xet transfers | `xet` (Git upload: `git-xet`) | `XET` |
 
 Each case receives an isolated user, private project, access token or SSH key,
 working directory, and HF cache. The `lfs` and `slow` labels identify the

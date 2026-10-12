@@ -21,6 +21,8 @@
     "lastCommit": "最近提交",
     "lastUpdate": "最近更新",
     "download": "下载",
+    "xetStored": "以 Xet 存储",
+    "lfsStored": "以 Git LFS 存储",
     "updatedTime": "更新时间：{{time}}",
     "preview": "预览",
     "code": "代码",

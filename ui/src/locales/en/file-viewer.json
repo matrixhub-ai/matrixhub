@@ -4,5 +4,17 @@
   "preview": "Preview",
   "code": "Code",
   "fileInfo": "Overview of file information:",
-  "fileSize": "File size: "
+  "fileSize": "File size: ",
+  "storedWithXet": "This file is stored with Xet.",
+  "storedWithLfs": "This file is stored with Git LFS.",
+  "tooBigToDisplay": "It cannot be displayed here, but you can still <download>download</download> it.",
+  "xetPointerDetails": "Xet Pointer Details",
+  "lfsDetails": "Git LFS Details",
+  "xetHash": "Xet hash",
+  "sha256": "SHA256",
+  "pointerSize": "Pointer size",
+  "remoteFileSize": "Size of file",
+  "xetExplanation": "Xet efficiently stores Large Files inside Git, intelligently splitting files into unique chunks and accelerating uploads and downloads.",
+  "lfsExplanation": "Git Large File Storage (LFS) replaces large files with text pointers inside Git, while storing the file contents on a remote server.",
+  "moreInfo": "More info"
 }

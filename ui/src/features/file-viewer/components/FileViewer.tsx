@@ -13,6 +13,7 @@ import {
 import { classifyFile, getMonacoLanguage } from '../utils'
 import { FallbackCard } from './FallbackCard'
 import { FileToolbar } from './FileToolbar'
+import { LfsDetailsCard } from './LfsDetailsCard'
 
 import type { FileViewerFile } from '../types'
 
@@ -70,6 +71,10 @@ export function FileViewer({
         onViewModeChange={setViewMode}
       />
 
+      {file.lfs
+        ? <LfsDetailsCard file={file} previewable={category !== 'binary'} />
+        : null}
+
       {/* ── Content Area ─────────────────────────────────────── */}
       {loading
         ? (
@@ -87,7 +92,7 @@ export function FileViewer({
             )
           : category === 'binary' || content == null
             ? (
-                <FallbackCard file={file} />
+                file.lfs ? null : <FallbackCard file={file} />
               )
             : (
                 <Suspense fallback={<LazyFallback />}>

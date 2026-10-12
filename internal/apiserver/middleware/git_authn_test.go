@@ -57,9 +57,8 @@ func TestGitAuthRejectsInvalidCredentials(t *testing.T) {
 					if test.status != http.StatusOK {
 						t.Error("invalid credential reached the next handler")
 					}
-					info, ok := authenticate.GetUserInfo(r.Context())
-					if !ok || info.User != authenticate.Anonymous {
-						t.Errorf("user info = %v, present = %v, want anonymous", info, ok)
+					if identity := authenticate.IdentityFrom(r.Context()); !authenticate.IsAnonymous(identity) {
+						t.Errorf("identity = %v, want anonymous", identity)
 					}
 					w.WriteHeader(http.StatusOK)
 				})
@@ -132,4 +131,13 @@ type gitAuthRobotRepo struct {
 
 func (repo *gitAuthRobotRepo) GetRobotByTokenHash(context.Context, string) (*robot.Robot, error) {
 	return repo.robot, repo.err
+}
+
+type gitAuthUserRepo struct {
+	user.IUserRepo
+	user *user.User
+}
+
+func (repo *gitAuthUserRepo) GetUser(context.Context, int) (*user.User, error) {
+	return repo.user, nil
 }
