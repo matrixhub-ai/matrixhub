@@ -31,6 +31,7 @@ const (
 	ProcessorSyncPolicy Processor = "syncPolicy"
 	ProcessorSyncTask   Processor = "syncTask"
 	ProcessorSyncJob    Processor = "syncJob"
+	ProcessorScan       Processor = "scan"
 )
 
 // ExecuteFn runs one claimed policy execution (insert task/jobs + git work happens inside service).
