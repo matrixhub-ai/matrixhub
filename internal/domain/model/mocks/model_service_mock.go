@@ -252,6 +252,20 @@ func (mr *MockIModelServiceMockRecorder) ListModels(ctx, filter any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListModels", reflect.TypeOf((*MockIModelService)(nil).ListModels), ctx, filter)
 }
 
+// RefreshFromRemote mocks base method.
+func (m *MockIModelService) RefreshFromRemote(ctx context.Context, project, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefreshFromRemote", ctx, project, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RefreshFromRemote indicates an expected call of RefreshFromRemote.
+func (mr *MockIModelServiceMockRecorder) RefreshFromRemote(ctx, project, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshFromRemote", reflect.TypeOf((*MockIModelService)(nil).RefreshFromRemote), ctx, project, name)
+}
+
 // SyncMetadata mocks base method.
 func (m *MockIModelService) SyncMetadata(ctx context.Context, project, name string) error {
 	m.ctrl.T.Helper()

@@ -72,6 +72,23 @@ service Models {
       body: "*"
     };
   }
+  // CacheModel pulls a revision of a proxy-project model from upstream into
+  // MatrixHub storage on the server. The model may not exist locally yet.
+  // With dry_run it only lists the upstream files and reports what is already
+  // cached: it never syncs, creates the model, or starts downloads.
+  rpc CacheModel(CacheModelRequest) returns (ModelCacheStatus) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/models/{project}/{name}/cache"
+      body: "*"
+    };
+  }
+  // GetModelCache reports the local cache status of a model revision. It is
+  // read-only: it never contacts upstream and never starts downloads.
+  rpc GetModelCache(GetModelCacheRequest) returns (ModelCacheStatus) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/models/{project}/{name}/cache"
+    };
+  }
 }
 
 message ListModelTaskLabelsRequest {
@@ -263,4 +280,90 @@ message UpdateModelSettingRequest {
 }
 
 message UpdateModelSettingResponse {
+}
+
+enum CacheFileState {
+  CACHE_FILE_STATE_UNSPECIFIED = 0;
+  CACHE_FILE_STATE_CACHED = 1;
+  CACHE_FILE_STATE_DOWNLOADING = 2;
+  // Part of a running cache task, not started yet.
+  CACHE_FILE_STATE_QUEUED = 3;
+  CACHE_FILE_STATE_MISSING = 4;
+  CACHE_FILE_STATE_FAILED = 5;
+}
+
+enum CacheTaskState {
+  CACHE_TASK_STATE_UNSPECIFIED = 0;
+  CACHE_TASK_STATE_IDLE = 1;
+  CACHE_TASK_STATE_RUNNING = 2;
+  CACHE_TASK_STATE_SUCCEEDED = 3;
+  CACHE_TASK_STATE_FAILED = 4;
+}
+
+message CacheModelRequest {
+  string project = 1 [(validate.rules).string.min_len = 1];
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 251,
+    pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
+    not_in: ["models", "datasets", "spaces", "resolve"]
+  }];
+  // Branch, tag or commit. Empty means the default branch.
+  string revision = 3 [(validate.rules).string.max_len = 255];
+  // Narrow the cached files; without patterns every file of the revision is
+  // cached. huggingface_hub fnmatch semantics: '*' also matches '/', and a
+  // trailing '/' selects a whole directory.
+  repeated string allow_patterns = 4 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
+  repeated string ignore_patterns = 5 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
+  bool dry_run = 6;
+}
+
+message GetModelCacheRequest {
+  string project = 1 [(validate.rules).string.min_len = 1];
+  string name = 2 [(validate.rules).string = {min_len: 1, not_in: ["models", "datasets", "spaces", "resolve"]}];
+  string revision = 3 [(validate.rules).string.max_len = 255];
+  repeated string allow_patterns = 4 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
+  repeated string ignore_patterns = 5 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
+}
+
+message ModelCacheFile {
+  string path = 1;
+  int64 size = 2;
+  bool lfs = 3;
+  // LFS object id (sha256). Empty for files stored directly in git.
+  string oid = 4;
+  CacheFileState state = 5;
+  int64 downloaded_bytes = 6;
+  string error = 7;
+}
+
+message ModelCacheTotals {
+  int64 files = 1;
+  int64 bytes = 2;
+  int64 cached_files = 3;
+  int64 cached_bytes = 4;
+  int64 downloading_files = 5;
+  int64 downloading_bytes = 6;
+  int64 queued_files = 7;
+  int64 missing_files = 8;
+  int64 failed_files = 9;
+}
+
+message ModelCacheTask {
+  string id = 1;
+  CacheTaskState state = 2;
+  string started_at = 3;
+  string finished_at = 4;
+  string error = 5;
+}
+
+message ModelCacheStatus {
+  string project = 1;
+  string name = 2;
+  string requested_revision = 3;
+  string commit = 4;
+  ModelCacheTotals totals = 5;
+  repeated ModelCacheFile files = 6;
+  ModelCacheTask task = 7;
+  repeated string warnings = 8;
 }
