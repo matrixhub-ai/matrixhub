@@ -5,6 +5,7 @@ import {
   Button,
   Drawer,
   Group,
+  Radio,
   rem,
   SimpleGrid,
   Skeleton,
@@ -27,17 +28,27 @@ import { ShikiCodeBlock } from '@/shared/components/ShikiCodeBlock'
 import { useForm } from '@/shared/hooks/useForm'
 import { fieldError } from '@/shared/utils/form'
 
-import { buildProxyDownloadCommand } from '../projects.utils'
+import {
+  buildProxyDownloadCommand,
+  getProxyDownloadStepKeys,
+  type ProxyDownloadMethod,
+  resolveProxyDownloadMethod,
+} from '../projects.utils'
+import { ServerPullPanel } from '../server-pull/components/ServerPullPanel'
 
 import type { ReactNode } from 'react'
 
 const MODEL_DOWNLOAD_DOC_URL = '/docs/operations/model-repo/upload-download/'
 const HF_ENDPOINT_PLACEHOLDER = window.location.origin
+const DEFAULT_DOWNLOAD_METHOD: ProxyDownloadMethod = 'server'
 
 interface ProxyProjectDownloadProps {
+  projectId: string
   organization?: string
   remoteOrganization?: string
   requiresToken?: boolean
+  /** Lets the user have MatrixHub pull the model on the server (project admins and editors). */
+  canPullOnServer?: boolean
 }
 
 interface ProxyProjectDownloadDrawerProps extends ProxyProjectDownloadProps {
@@ -63,9 +74,11 @@ function StepTitle({
 }
 
 function ProxyProjectDownloadFlow({
+  projectId,
   organization,
   remoteOrganization,
   requiresToken,
+  canPullOnServer = false,
   layout,
 }: ProxyProjectDownloadProps & {
   layout: 'drawer' | 'guide'
@@ -75,15 +88,54 @@ function ProxyProjectDownloadFlow({
   const form = useForm({
     defaultValues: {
       modelName: '',
+      method: DEFAULT_DOWNLOAD_METHOD,
     },
   })
   const { name: modelNameSchema } = createModelSchema(t).shape
   const hfEndpoint = systemConfigQuery.data?.endpoints?.hfBase || HF_ENDPOINT_PLACEHOLDER
+  const stepKeys = getProxyDownloadStepKeys(canPullOnServer)
+
+  // The server pull only starts from a name that passes validation; '' otherwise.
+  const toValidModelName = (modelName: string) => {
+    const result = modelNameSchema.safeParse(modelName)
+
+    return result.success ? result.data : ''
+  }
+
+  const renderCommand = (modelName: string) => {
+    const command = buildProxyDownloadCommand(
+      hfEndpoint,
+      organization,
+      modelName.trim() || t('projects.detail.proxyDownload.commandPlaceholder'),
+      requiresToken,
+    )
+
+    return (
+      <>
+        {systemConfigQuery.isPending
+          ? <Skeleton h={76} />
+          : <ShikiCodeBlock code={command} lang="bash" />}
+        <Anchor
+          size="sm"
+          c="cyan.6"
+          href={t('common.docs', { doc: MODEL_DOWNLOAD_DOC_URL })}
+          target="_blank"
+          rel="noopener noreferrer"
+          ml="auto"
+        >
+          <Group gap={4} wrap="nowrap">
+            <Text inherit>{t('projects.detail.proxyDownload.viewDocs')}</Text>
+            <IconExternalLink size={14} />
+          </Group>
+        </Anchor>
+      </>
+    )
+  }
 
   const steps = [
     (
       <Stack key="model-name" gap="sm">
-        <StepTitle number={1}>{t('projects.detail.proxyDownload.steps.modelName')}</StepTitle>
+        <StepTitle number={1}>{t(`projects.detail.proxyDownload.steps.${stepKeys[0]}`)}</StepTitle>
         <form.Field
           name="modelName"
           validators={{ onChange: modelNameSchema }}
@@ -96,7 +148,9 @@ function ProxyProjectDownloadFlow({
               leftSectionPointerEvents="none"
               leftSectionWidth={remoteOrganization ? `${remoteOrganization.length + 3}ch` : undefined}
               placeholder={t('projects.detail.proxyDownload.modelNamePlaceholder')}
-              description={t('projects.detail.proxyDownload.modelNameHelper')}
+              description={t(canPullOnServer
+                ? 'projects.detail.proxyDownload.modelNameHelperServer'
+                : 'projects.detail.proxyDownload.modelNameHelper')}
               value={field.state.value}
               onChange={event => field.handleChange(event.currentTarget.value)}
               onBlur={field.handleBlur}
@@ -121,47 +175,50 @@ function ProxyProjectDownloadFlow({
       </Stack>
     ),
     (
-      <form.Subscribe
-        key="command"
-        selector={state => state.values.modelName}
-      >
-        {(modelName) => {
-          const command = buildProxyDownloadCommand(
-            hfEndpoint,
-            organization,
-            modelName.trim() || t('projects.detail.proxyDownload.commandPlaceholder'),
-            requiresToken,
-          )
-
-          return (
-            <Stack gap="xs">
-              <StepTitle number={2}>{t('projects.detail.proxyDownload.steps.command')}</StepTitle>
-              {systemConfigQuery.isPending
-                ? <Skeleton h={76} />
-                : <ShikiCodeBlock code={command} lang="bash" />}
-              <Anchor
-                size="sm"
-                c="cyan.6"
-                href={t('common.docs', { doc: MODEL_DOWNLOAD_DOC_URL })}
-                target="_blank"
-                rel="noopener noreferrer"
-                ml="auto"
+      <Stack key="download" gap={canPullOnServer ? 'sm' : 'xs'}>
+        <StepTitle number={2}>{t(`projects.detail.proxyDownload.steps.${stepKeys[1]}`)}</StepTitle>
+        {canPullOnServer && (
+          <form.Field name="method">
+            {field => (
+              <Radio.Group
+                value={field.state.value}
+                onChange={value => field.handleChange(value as ProxyDownloadMethod)}
+                onBlur={field.handleBlur}
               >
-                <Group gap={4} wrap="nowrap">
-                  <Text inherit>{t('projects.detail.proxyDownload.viewDocs')}</Text>
-                  <IconExternalLink size={14} />
-                </Group>
-              </Anchor>
-            </Stack>
-          )
-        }}
-      </form.Subscribe>
+                <Stack gap="sm">
+                  <Radio
+                    value="server"
+                    label={t('projects.detail.proxyDownload.methods.server')}
+                    description={t('projects.detail.proxyDownload.methods.serverDescription')}
+                  />
+                  <Radio
+                    value="cli"
+                    label={t('projects.detail.proxyDownload.methods.cli')}
+                    description={t('projects.detail.proxyDownload.methods.cliDescription')}
+                  />
+                </Stack>
+              </Radio.Group>
+            )}
+          </form.Field>
+        )}
+        <form.Subscribe
+          selector={state => [state.values.modelName, state.values.method] as const}
+        >
+          {([modelName, method]) => resolveProxyDownloadMethod(canPullOnServer, method) === 'server'
+            ? <ServerPullPanel projectId={projectId} modelName={toValidModelName(modelName)} />
+            : renderCommand(modelName)}
+        </form.Subscribe>
+      </Stack>
     ),
     (
       <Stack key="completion" gap="xs">
-        <StepTitle number={3}>{t('projects.detail.proxyDownload.steps.completion')}</StepTitle>
+        <StepTitle number={3}>{t(`projects.detail.proxyDownload.steps.${stepKeys[2]}`)}</StepTitle>
         <Alert color="cyan" variant="light" icon={<IconInfoCircle size={18} />}>
-          {t('projects.detail.proxyDownload.completionNotice')}
+          <form.Subscribe selector={state => state.values.method}>
+            {method => t(resolveProxyDownloadMethod(canPullOnServer, method) === 'server'
+              ? 'projects.detail.proxyDownload.completionNoticeServer'
+              : 'projects.detail.proxyDownload.completionNotice')}
+          </form.Subscribe>
         </Alert>
       </Stack>
     ),
@@ -183,9 +240,11 @@ function ProxyProjectDownloadFlow({
 }
 
 export function ProxyProjectDownloadGuide({
+  projectId,
   organization,
   remoteOrganization,
   requiresToken,
+  canPullOnServer = false,
 }: ProxyProjectDownloadProps) {
   const { t } = useTranslation()
 
@@ -202,9 +261,9 @@ export function ProxyProjectDownloadGuide({
             {t('projects.detail.proxyDownload.guideDescription')}
           </Text>
           <Stack gap="lg" mt="md">
-            {[1, 2, 3].map(number => (
-              <StepTitle key={number} number={number}>
-                {t(`projects.detail.proxyDownload.steps.${['modelName', 'command', 'completion'][number - 1]}`)}
+            {getProxyDownloadStepKeys(canPullOnServer).map((stepKey, index) => (
+              <StepTitle key={stepKey} number={index + 1}>
+                {t(`projects.detail.proxyDownload.steps.${stepKey}`)}
               </StepTitle>
             ))}
           </Stack>
@@ -214,9 +273,11 @@ export function ProxyProjectDownloadGuide({
       <Box>
         <Title order={4} mb="md">{t('projects.detail.proxyDownload.quickDownload')}</Title>
         <ProxyProjectDownloadFlow
+          projectId={projectId}
           organization={organization}
           remoteOrganization={remoteOrganization}
           requiresToken={requiresToken}
+          canPullOnServer={canPullOnServer}
           layout="guide"
         />
       </Box>
@@ -226,9 +287,11 @@ export function ProxyProjectDownloadGuide({
 
 export function ProxyProjectDownloadDrawer({
   opened,
+  projectId,
   organization,
   remoteOrganization,
   requiresToken,
+  canPullOnServer = false,
   onClose,
 }: ProxyProjectDownloadDrawerProps) {
   const { t } = useTranslation()
@@ -261,13 +324,17 @@ export function ProxyProjectDownloadDrawer({
       >
         <Stack gap="sm">
           <Alert color="cyan" variant="light" icon={<IconInfoCircle size={18} />}>
-            {t('projects.detail.proxyDownload.drawerNotice')}
+            {t(canPullOnServer
+              ? 'projects.detail.proxyDownload.drawerNoticeServer'
+              : 'projects.detail.proxyDownload.drawerNotice')}
           </Alert>
 
           <ProxyProjectDownloadFlow
+            projectId={projectId}
             organization={organization}
             remoteOrganization={remoteOrganization}
             requiresToken={requiresToken}
+            canPullOnServer={canPullOnServer}
             layout="drawer"
           />
         </Stack>

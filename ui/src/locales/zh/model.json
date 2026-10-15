@@ -93,6 +93,23 @@
         "localPathHint": "请替换为本机模型文件夹路径，例如：",
         "localPathExample": "/Users/yourname/models/{{name}}"
       }
+    },
+    "cache": {
+      "label": "缓存状态",
+      "states": {
+        "cached": "已缓存 {{done}}/{{total}}",
+        "partial": "部分缓存 {{done}}/{{total}}",
+        "uncached": "未缓存 {{done}}/{{total}}",
+        "running": "拉取中 {{percent}}%",
+        "failed": "拉取失败 {{done}}/{{total}}"
+      },
+      "tooltips": {
+        "cached": "默认分支的全部文件已缓存在 MatrixHub，工作负载下载时不会回源。",
+        "partial": "未缓存的文件会在首次下载时从上游拉取，速度取决于上游。可在项目页「下载模型」中选择服务端拉取，提前缓存。",
+        "uncached": "未缓存的文件会在首次下载时从上游拉取，速度取决于上游。可在项目页「下载模型」中选择服务端拉取，提前缓存。",
+        "running": "MatrixHub 正在从上游拉取该模型，状态会自动更新。",
+        "failed": "上次服务端拉取失败，未缓存的文件会在首次下载时从上游拉取。可在项目页「下载模型」中重新拉取。"
+      }
     }
   },
   "settings": {

@@ -20,18 +20,72 @@
       "guideDescription": "Proxy projects do not require manual model creation. Refresh this page after the download to create the model card automatically.",
       "quickDownload": "Quick Download",
       "drawerNotice": "Proxy projects do not require model creation. Enter the upstream model name to get the download command.",
+      "drawerNoticeServer": "Proxy projects do not require model creation. Enter the upstream model name to let MatrixHub pull the model on the server, or get a download command to run locally.",
       "steps": {
         "modelName": "Enter the upstream model name",
         "command": "Copy and run the download command",
+        "method": "Choose a download method",
         "completion": "Refresh the list after the download"
       },
       "modelNameLabel": "Upstream model name",
       "modelNamePlaceholder": "For example: Qwen0.6B",
       "modelNameHelper": "Enter the upstream model name to generate the download command.",
+      "modelNameHelperServer": "Enter the upstream model name to pull it on the server or generate a download command.",
       "commandPlaceholder": "<model-name>",
       "completionNotice": "The command downloads the model from the configured target registry. Refresh the model list after it completes.",
+      "completionNoticeServer": "After a server-side pull completes, the model appears in this project's model list automatically. Refresh the list if it does not show up.",
       "viewDocs": "View download instructions",
-      "acknowledge": "Got it"
+      "acknowledge": "Got it",
+      "methods": {
+        "server": "Pull on server (recommended)",
+        "serverDescription": "MatrixHub pulls the model files from the upstream registry and caches them. No local environment needed.",
+        "cli": "Download with the command line",
+        "cliDescription": "Run the hf download command locally to download the model."
+      },
+      "serverPull": {
+        "enterName": "Enter the upstream model name to see which files will be pulled.",
+        "revision": "Revision",
+        "revisionPlaceholder": "Default branch (e.g. main)",
+        "summary": {
+          "revision": "Revision",
+          "defaultBranch": "Default branch",
+          "files": "Files",
+          "filesValue": "{{files}} files · {{size}}",
+          "cached": "Cached",
+          "cachedValue": "{{cached}} / {{files}} files · {{size}}",
+          "warnings": "Notes"
+        },
+        "start": "Start pull",
+        "resume": "Resume pull",
+        "retry": "Retry pull",
+        "nothingToPull": "This revision has no files to pull.",
+        "alreadyCached": "All files of this revision are already cached and ready to use.",
+        "succeeded": "Pull completed. The model has been added to this project.",
+        "backgroundHint": "The task keeps running on the server after you close this panel.",
+        "viewModel": "View model",
+        "progress": {
+          "label": "Pull progress",
+          "running": "Pulling",
+          "succeeded": "Completed",
+          "failed": "Failed",
+          "stopped": "Not running",
+          "files": "{{done}} / {{total}} files",
+          "bytes": "{{done}} / {{total}}"
+        },
+        "failedTitle": "Some files failed to pull",
+        "moreFailed": "{{rest}} more files failed",
+        "errors": {
+          "notFound": "The model or revision was not found upstream. Check the name.",
+          "permissionDenied": "You do not have permission to pull models into this project.",
+          "invalidArgument": "The model name or revision is invalid.",
+          "failedPrecondition": "The model cannot be pulled right now. It may require authorized access, or the upstream sync failed.",
+          "resourceExhausted": "Too many pull tasks are running. Try again later.",
+          "unavailable": "The upstream registry is unreachable. Try again later.",
+          "unknown": "Failed to check the model."
+        },
+        "retryCheck": "Check again",
+        "startError": "Failed to start the pull"
+      }
     },
     "settingsPage": {
       "projectType": "Project Type",

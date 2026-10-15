@@ -204,9 +204,11 @@ export function ProjectModelsPage() {
           : showProxyDownloadGuide
             ? (
                 <ProxyProjectDownloadGuide
+                  projectId={projectId}
                   remoteOrganization={project.organization}
                   organization={project.name}
                   requiresToken={project.type === ProjectType.PROJECT_TYPE_PRIVATE}
+                  canPullOnServer={canCreateModel}
                 />
               )
             : (
@@ -240,9 +242,11 @@ export function ProjectModelsPage() {
       {isProxy && (
         <ProxyProjectDownloadDrawer
           opened={downloadDrawerOpened}
+          projectId={projectId}
           remoteOrganization={project.organization}
           organization={project.name}
           requiresToken={project.type === ProjectType.PROJECT_TYPE_PRIVATE}
+          canPullOnServer={canCreateModel}
           onClose={() => setDownloadDrawerOpened(false)}
         />
       )}
