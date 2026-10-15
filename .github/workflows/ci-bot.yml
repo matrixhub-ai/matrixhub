@@ -47,6 +47,11 @@ env:
     cc
     label-kind
     check-dco
+    label-area
+    label-priority
+    label-good-first-issue
+    label-help-wanted
+    hold
 
   # This plugins is for author of issue or PR
   AUTHOR_PLUGINS: |-
@@ -59,19 +64,13 @@ env:
 
   # This plugins is for previous contributors (had commits merged) and members
   CONTRIBUTORS_PLUGINS: |-
-    label-kind
     retest
 
   # This plugins is for organization member or repository member
   MEMBERS_PLUGINS: |-
-    label-area
     label-committee
     label-duplicate
-    label-good-first-issue
-    label-help-wanted
     label-invalid
-    label-kind
-    label-priority
     label-sig
     label-triage
     label-wg
@@ -80,7 +79,6 @@ env:
     label-documentation
     label-enhancement
     label-question
-    hold
     lifecycle
     release-note
     retest
