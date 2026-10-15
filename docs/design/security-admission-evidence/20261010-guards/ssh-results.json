@@ -1,0 +1,14 @@
+{
+  "cases": [
+    {
+      "scenario": "ssh-clean-history-allowed",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "scenario": "ssh-dangerous-history-denied",
+      "exit_code": 128,
+      "passed": true
+    }
+  ]
+}

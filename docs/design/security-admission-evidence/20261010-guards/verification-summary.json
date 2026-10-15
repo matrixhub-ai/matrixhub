@@ -1,0 +1,435 @@
+{
+  "scope": "focused security regression",
+  "packages": [
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Elapsed": 1.036
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver",
+      "Elapsed": 1.082
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+      "Elapsed": 1.064
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http",
+      "Elapsed": 1.5550000000000002
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Elapsed": 3.03
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh",
+      "Elapsed": 1.178
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware",
+      "Elapsed": 1.031
+    }
+  ],
+  "tests": [
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactPolicies"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestKnownFindingsSurviveIncompleteStatus"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestIncompleteRiskRecommendation"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactRulesChangingDuringScan"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestRulesetFailurePreservesRisk"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactLimitsValidation"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactFailedScanPreservesEvidence"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactContextReaderStopsBeforeReading"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactConfiguredCapacity"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactAdmission"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactScanFailuresRemainClosed"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactIntegrityAndBudgets"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+      "Test": "TestArtifactSnapshotAdmissionBindsEveryRevision"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactScannerLifecycleOfflineRulesAndRecovery"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver",
+      "Test": "TestArtifactRepoName"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactStoreRevisionPersistenceAndRecovery"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http",
+      "Test": "TestGitSnapshotHTTPCloneDoesNotReadLaterPush"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http",
+      "Test": "TestGitSnapshotHTTPBothReadEndpointsFailClosed"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactOldAttemptCannotOverwriteRescanOrCancel"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactClaimAuditFailureRollsBack"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactCacheIsolationAndProjectPolicies"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactStoreRequiresMigration"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactScannerSafeFailureCodes"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+      "Test": "TestArtifactScannerTimeoutCode"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh",
+      "Test": "TestGitSnapshotSSHUsesCapturedRefsAndRejectsNewHistory"
+    },
+    {
+      "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware",
+      "Test": "TestSecuritySameOrigin"
+    }
+  ],
+  "failures": [],
+  "backend_build": "passed",
+  "frontend_eslint_typecheck_build": "passed",
+  "ruleset": "68261686c7006b727a5b155ee24b5072323e5d6ec7684760dcfd6ffae88b4c93",
+  "expanded_run_before_fixture_fix": {
+    "failed_tests": [
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModels"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsFilterByAuthor"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsSearch"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsLimit"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsResponseFormat"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListDatasets"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListDatasetsFilterByAuthor"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListSpaces"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListSpacesSearch"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsPagination"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsNoLinkHeaderWhenAllResultsFit"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsNoLinkHeaderWithoutLimit"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsFilterByTag"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsSortByCreatedAt"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsExpand"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsSortByLikes"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHandleListModelsSortByTrendingScore"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceDeleteRepo"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceDeleteRepoNotFound"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceDeleteDatasetRepo"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceMoveRepo"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceRepoSettings"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCreateAndDeleteBranch"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCreateBranchFromRevision"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceDeleteDefaultBranch"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCreateAndDeleteTag"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceListRefs"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceRepoInfoUsedStorage"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceDatasetBranchAndTag"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceSuperSquash"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceSuperSquashDefaultMessage"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCompare"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCompareWithChanges"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCompareInvalidFormat"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCompareDatasets"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceListCommits"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceListCommitsPagination"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceListCommitsDatasets"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCreateRepo"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFacePreupload"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCommitAndResolve"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCommitMultipleFiles"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCommitLFSFile"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceDatasetCreateAndCommit"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceSpaceCreateAndCommit"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceDatasetPreupload"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceRepoTypeIsolation"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceCommitDeleteFile"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFacePreuploadWithGitAttributes"
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Test": "TestHuggingFaceTreeSize"
+      }
+    ],
+    "cause": "Initial storage-only HF fixture omitted required authz/commit services. Resolved by explicit test service wiring; see 20261010-hf-fixture/verification-summary.json."
+  },
+  "latest_expanded_run": {
+    "scope": "all tests in seven affected Go packages, without test-name filter",
+    "race": true,
+    "previous_failed_top_level_tests": 50,
+    "previous_failures_now_passing": 50,
+    "unresolved_previous_tests": [],
+    "top_level_passed": 120,
+    "hf_top_level_passed": 64,
+    "failed_tests": [],
+    "packages": [
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan",
+        "Elapsed": 1.025
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver",
+        "Elapsed": 1.086
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh",
+        "Elapsed": 1.3940000000000001
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http",
+        "Elapsed": 2.327
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware",
+        "Elapsed": 1.028
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/repo",
+        "Elapsed": 4.855
+      },
+      {
+        "Package": "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/hf",
+        "Elapsed": 5.356
+      }
+    ],
+    "authorization_failure_subcases": [
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/model/create/denied"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/model/create/service-error"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/model/delete/denied"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/model/delete/service-error"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/create/denied"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/create/service-error"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/delete/denied"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/dataset/delete/service-error"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/space/create/denied"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/space/create/service-error"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/space/delete/denied"
+      },
+      {
+        "Test": "TestHuggingFaceRepoAuthorizationFailure/space/delete/service-error"
+      }
+    ],
+    "fixture_change": "Explicit authz and commit test doubles; real Git writes/reads retained; production permission checks unchanged",
+    "live_rerun": {
+      "guard_edges": 8,
+      "hf_client": 7,
+      "admission": 15,
+      "web_session": 5,
+      "exit_code": 0
+    },
+    "raw_log": ".mh-local/hf-fixture-fix-20261010/expanded-go-tests.jsonl"
+  }
+}

@@ -71,7 +71,7 @@ func TestNewSQLiteMigratesDatabase(t *testing.T) {
 	require.NoError(t, database.Table("schema_migrations").
 		Select("version, dirty").
 		Row().Scan(&migrationVersion, &dirty))
-	require.Equal(t, uint(1), migrationVersion)
+	require.Equal(t, uint(2), migrationVersion)
 	require.False(t, dirty)
 
 	var userCount int64

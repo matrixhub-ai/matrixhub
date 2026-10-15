@@ -1,0 +1,27 @@
+debug: false
+migrationPath: /etc/matrixhub/migrations
+dataDir: /data
+log:
+  level: warn
+database:
+  driver: sqlite
+  dsn: "file:/data/matrixhub.db?_busy_timeout=5000&_foreign_keys=on&_journal_mode=WAL&_synchronous=FULL&_txlock=immediate"
+  maxOpenConns: 1
+  maxIdleConns: 1
+  migrate: true
+apiServer:
+  port: 3001
+  sshPort: 2222
+  hostURL: http://127.0.0.1:13872
+  externalURL: http://127.0.0.1:13872
+jobServer:
+  enabled: false
+artifactScan:
+  enabled: true
+  maxFileBytes: 1073741824
+  maxFiles: 256
+  taskTimeoutSeconds: 900
+  scannerTimeoutSeconds: 600
+  endpoint: http://scanner:8080
+ui:
+  staticDir: /app

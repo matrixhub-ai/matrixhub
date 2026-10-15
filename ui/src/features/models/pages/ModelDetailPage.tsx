@@ -81,6 +81,16 @@ export function ModelDetailPage({
         _splat: '',
       },
     },
+    {
+      id: 'security',
+      label: t('security.tab'),
+      to: '/projects/$projectId/models/$modelId/security',
+      params: {
+        projectId,
+        modelId,
+      },
+      search: { revision: model.defaultBranch ?? 'main' },
+    },
     ...(hasSettingsRight
       ? [{
           id: 'settings',

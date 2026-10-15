@@ -24,6 +24,8 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan"
 )
 
 // Handler handles HTTP requests for Git LFS API endpoints, including batch operations and object content management.
@@ -37,6 +39,11 @@ type Handler struct {
 	permissionHookFunc permission.PermissionHookFunc
 	tokenSignValidator authenticate.TokenSignValidator
 	mirror             *mirror.Mirror
+	artifactScan       *artifactscan.Service
+}
+
+func WithArtifactScan(service *artifactscan.Service) Option {
+	return func(h *Handler) { h.artifactScan = service }
 }
 
 // Option defines a functional option for configuring the Handler.

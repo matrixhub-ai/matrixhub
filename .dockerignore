@@ -1,3 +1,8 @@
 .git
 node_modules
 data
+.mh-local
+.pnpm-store
+**/__pycache__
+**/*.pyc
+.mh-local-ui-build.log

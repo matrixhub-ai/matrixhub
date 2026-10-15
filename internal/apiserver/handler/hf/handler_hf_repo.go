@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	lfserrors "github.com/git-lfs/git-lfs/v3/errors"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/gorilla/mux"
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
@@ -30,6 +31,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
 
@@ -69,6 +71,11 @@ func (h *Handler) handleInfoRevision(w http.ResponseWriter, r *http.Request) {
 	if rev == "" {
 		rev = repo.DefaultBranch()
 	}
+	// Pin the symbolic reference once, so metadata, files and scan share a SHA.
+	resolved, resolveErr := repo.Commits(rev, &repository.CommitsOptions{Limit: 1})
+	if resolveErr == nil && len(resolved) > 0 {
+		rev = resolved[0].Hash().String()
+	}
 
 	// Get list of files in the repository at the specified revision (recursive to include files in subdirectories)
 	// An empty repository (no commits yet) is a valid state; treat it as having no files.
@@ -81,9 +88,28 @@ func (h *Handler) handleInfoRevision(w http.ResponseWriter, r *http.Request) {
 	var siblings []sibling
 	for _, entry := range hfEntries {
 		if entry.Type() == repository.EntryTypeFile {
-			siblings = append(siblings, sibling{
-				RFilename: entry.Path(),
-			})
+			item := sibling{RFilename: entry.Path()}
+			q := r.URL.Query()
+			if q.Get("blobs") == "true" || q.Get("files_metadata") == "true" {
+				blob, blobErr := entry.Blob()
+				if blobErr != nil {
+					responseJSON(w, "file metadata unavailable", http.StatusInternalServerError)
+					return
+				}
+				size := blob.Size()
+				item.Size, item.BlobID = &size, blob.Hash().String()
+				pointer, ptrErr := blob.LFSPointer()
+				if ptrErr != nil && !lfserrors.IsNotAPointerError(ptrErr) {
+					responseJSON(w, "LFS metadata unavailable", http.StatusInternalServerError)
+					return
+				}
+				if pointer != nil {
+					pointerSize := size
+					size = pointer.Size()
+					item.LFS = map[string]any{"sha256": pointer.OID(), "size": size, "pointerSize": pointerSize}
+				}
+			}
+			siblings = append(siblings, item)
 		}
 	}
 
@@ -121,6 +147,17 @@ func (h *Handler) handleInfoRevision(w http.ResponseWriter, r *http.Request) {
 	// For models, also set the modelId field which is required by some HuggingFace clients. For datasets and spaces, the client doesn't require it and it can be confusing to have it be different from the ID, so we leave it empty.
 	if ri.RepoType == "models" {
 		hfInfo.ModelID = hfInfo.ID
+		if h.artifactScan != nil && r.URL.Query().Get("securityStatus") == "true" {
+			report, scanErr := h.artifactScan.Get(r.Context(), ri.RepoName, commitHash)
+			if scanErr != nil {
+				responseJSON(w, "scan report unavailable", http.StatusServiceUnavailable)
+				return
+			}
+			hfInfo.SecurityRepoStatus = map[string]any{
+				"kind": "malware", "status": artifactscan.HFStatus(report.Status),
+				"details": report,
+			}
+		}
 	}
 
 	responseJSON(w, hfInfo, http.StatusOK)
