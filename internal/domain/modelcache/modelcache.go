@@ -53,14 +53,26 @@ const (
 	FileFailed
 )
 
-// TaskState is the state of the cache task of a selection.
+// TaskState is the state of one run of a cache task.
 type TaskState int
 
 const (
-	TaskIdle TaskState = iota
-	TaskRunning
+	TaskRunning TaskState = iota + 1
 	TaskSucceeded
 	TaskFailed
+)
+
+// CacheState tells how much of a selection is in MatrixHub storage. Files
+// stored in git are present once the commit is synced, so LFS objects decide
+// between missing and partial.
+type CacheState int
+
+const (
+	// CacheStateMissing means no LFS object of the selection is cached.
+	CacheStateMissing CacheState = iota + 1
+	CacheStatePartial
+	// CacheStateCached means every selected file is cached.
+	CacheStateCached
 )
 
 // FileStatus is the cache status of one selected file.
@@ -87,11 +99,13 @@ type Totals struct {
 	FailedFiles      int64
 }
 
-// TaskStatus describes the cache task of a selection.
+// TaskStatus describes one run of a cache task.
 type TaskStatus struct {
+	// ID is opaque and unique per run: retrying a failed pull starts a new
+	// run with a new ID.
 	ID         string
 	State      TaskState
-	StartedAt  *time.Time
+	StartedAt  time.Time
 	FinishedAt *time.Time
 	Error      string
 }
@@ -102,10 +116,13 @@ type CacheStatus struct {
 	Name              string
 	RequestedRevision string
 	Commit            string
+	State             CacheState
 	Totals            Totals
 	Files             []FileStatus
-	Task              TaskStatus
-	Warnings          []string
+	// Task is the latest run known for the selection; nil when there is
+	// none.
+	Task     *TaskStatus
+	Warnings []string
 }
 
 var (
@@ -113,6 +130,8 @@ var (
 	ErrNotProxyProject      = errors.New("project is not a proxy project")
 	ErrModelNotFound        = errors.New("model not found")
 	ErrRevisionNotFound     = errors.New("model or revision not found")
+	ErrUnsupportedRevision  = errors.New("only branches, tags and commits can be cached")
+	ErrRevisionNotMirrored  = errors.New("revision is not on a branch or tag that MatrixHub mirrors")
 	ErrUpstreamSync         = errors.New("upstream sync failed")
 	ErrUpstreamAccessDenied = errors.New("upstream registry denied access")
 	ErrUpstreamUnavailable  = errors.New("upstream registry unavailable")
@@ -125,9 +144,10 @@ type IModelCacheService interface {
 	// CacheModel starts, or attaches to, the task that pulls the selected
 	// files of a revision into local storage. With DryRun it is read-only.
 	CacheModel(ctx context.Context, req *Request) (*CacheStatus, error)
-	// GetModelCache reports the local cache status of a selection. It never
-	// contacts upstream and never starts downloads.
-	GetModelCache(ctx context.Context, project, name, revision string, sel Selection) (*CacheStatus, error)
+	// GetModelCache reports the local cache status of every file of a
+	// revision and the latest task of that commit. It never contacts
+	// upstream and never starts downloads.
+	GetModelCache(ctx context.Context, project, name, revision string) (*CacheStatus, error)
 	// Close stops running tasks and waits for them to exit.
 	Close()
 }

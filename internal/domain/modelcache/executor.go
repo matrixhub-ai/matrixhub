@@ -16,6 +16,7 @@ package modelcache
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"sync"
@@ -38,8 +39,11 @@ type objectState struct {
 	err        string
 }
 
-// task pulls the missing LFS objects of one selection.
+// task is one run that pulls the missing LFS objects of one selection.
 type task struct {
+	// id identifies the run; key identifies the selection, so that requests
+	// for the same files attach to a running task.
+	id        string
 	key       string
 	project   string
 	name      string
@@ -56,6 +60,7 @@ type task struct {
 
 func newTask(key, project, name, commit string, oids []string, sizes map[string]int64, now time.Time) *task {
 	t := &task{
+		id:        rand.Text(),
 		key:       key,
 		project:   project,
 		name:      name,
@@ -101,12 +106,16 @@ func (t *task) snapshotObjects() map[string]objectState {
 	return out
 }
 
+// snapshot copies the objects and the status under one lock, so a finished
+// status never comes with objects from before the end.
 func (t *task) snapshot() (map[string]objectState, TaskStatus) {
-	objects := t.snapshotObjects()
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	started := t.startedAt
-	st := TaskStatus{ID: t.key, State: t.state, StartedAt: &started, Error: t.err}
+	objects := make(map[string]objectState, len(t.objects))
+	for oid, o := range t.objects {
+		objects[oid] = *o
+	}
+	st := TaskStatus{ID: t.id, State: t.state, StartedAt: t.startedAt, Error: t.err}
 	if t.finishedAt != nil {
 		finished := *t.finishedAt
 		st.FinishedAt = &finished
@@ -177,7 +186,7 @@ func (s *Service) finish(t *task) {
 		t.state = TaskSucceeded
 	}
 	t.finishedAt = &now
-	log.Infof("model cache: task %s finished: state=%d failed=%d", t.key, t.state, failed)
+	log.Infof("model cache: task %s (%s) finished: state=%d failed=%d", t.id, t.key, t.state, failed)
 }
 
 func (s *Service) fetchWithRetry(t *task, oid string) {
@@ -192,7 +201,9 @@ func (s *Service) fetchWithRetry(t *task, oid string) {
 			})
 			return
 		}
-		if s.ctx.Err() != nil || attempt == s.opts.MaxAttempts {
+		// The mirror cannot cancel a stalled download, and a retry would
+		// attach to the same download, so a stall ends the object.
+		if s.ctx.Err() != nil || attempt == s.opts.MaxAttempts || errors.Is(err, errStalled) {
 			log.Warnf("model cache: object %s of %s/%s failed after %d attempts: %v", oid, t.project, t.name, attempt, err)
 			t.update(oid, func(o *objectState) {
 				o.state, o.err = FileFailed, err.Error()

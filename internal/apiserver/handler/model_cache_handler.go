@@ -17,7 +17,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -69,32 +68,40 @@ func (mh *ModelHandler) GetModelCache(ctx context.Context, request *modelv1alpha
 		return nil, status.Error(codes.Unimplemented, "model cache is not enabled")
 	}
 
-	st, err := mh.cache.GetModelCache(ctx, request.Project, request.Name, request.Revision, modelcache.Selection{
-		AllowPatterns:  request.AllowPatterns,
-		IgnorePatterns: request.IgnorePatterns,
-	})
+	st, err := mh.cache.GetModelCache(ctx, request.Project, request.Name, request.Revision)
 	if err != nil {
 		return nil, modelCacheErrorToStatus(err)
 	}
 	return modelCacheStatusToProto(st), nil
 }
 
+// modelCacheErrorToStatus maps service errors to gRPC statuses. Errors that
+// wrap local storage or sync failures can carry server paths, so they are
+// logged and answered with the sentinel message only.
 func modelCacheErrorToStatus(err error) error {
 	switch {
-	case errors.Is(err, modelcache.ErrInvalidSelection):
+	case errors.Is(err, modelcache.ErrInvalidSelection), errors.Is(err, modelcache.ErrUnsupportedRevision):
 		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, modelcache.ErrModelNotFound), errors.Is(err, modelcache.ErrRevisionNotFound):
-		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, modelcache.ErrModelNotFound):
+		return status.Error(codes.NotFound, modelcache.ErrModelNotFound.Error())
+	case errors.Is(err, modelcache.ErrRevisionNotFound):
+		log.Debugf("model cache: %v", err)
+		return status.Error(codes.NotFound, modelcache.ErrRevisionNotFound.Error())
+	case errors.Is(err, modelcache.ErrUpstreamSync):
+		log.Warnf("model cache: %v", err)
+		return status.Error(codes.FailedPrecondition, modelcache.ErrUpstreamSync.Error())
 	case errors.Is(err, modelcache.ErrNotProxyProject),
-		errors.Is(err, modelcache.ErrUpstreamSync),
+		errors.Is(err, modelcache.ErrRevisionNotMirrored),
 		errors.Is(err, modelcache.ErrUpstreamAccessDenied):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, modelcache.ErrUpstreamUnavailable), errors.Is(err, modelcache.ErrClosed):
 		return status.Error(codes.Unavailable, err.Error())
 	case errors.Is(err, modelcache.ErrTooManyTasks):
 		return status.Error(codes.ResourceExhausted, err.Error())
-	case strings.Contains(err.Error(), "not found"):
-		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, context.Canceled):
+		return status.Error(codes.Canceled, "request canceled")
+	case errors.Is(err, context.DeadlineExceeded):
+		return status.Error(codes.DeadlineExceeded, "request timed out")
 	default:
 		log.Errorf("model cache operation failed: %v", err)
 		return status.Error(codes.Internal, "model cache operation failed")
@@ -125,7 +132,33 @@ func cacheTaskStateToProto(s modelcache.TaskState) modelv1alpha1.CacheTaskState 
 	case modelcache.TaskFailed:
 		return modelv1alpha1.CacheTaskState_CACHE_TASK_STATE_FAILED
 	default:
-		return modelv1alpha1.CacheTaskState_CACHE_TASK_STATE_IDLE
+		return modelv1alpha1.CacheTaskState_CACHE_TASK_STATE_UNSPECIFIED
+	}
+}
+
+func cacheStateToProto(s modelcache.CacheState) modelv1alpha1.CacheState {
+	switch s {
+	case modelcache.CacheStateCached:
+		return modelv1alpha1.CacheState_CACHE_STATE_CACHED
+	case modelcache.CacheStatePartial:
+		return modelv1alpha1.CacheState_CACHE_STATE_PARTIAL
+	case modelcache.CacheStateMissing:
+		return modelv1alpha1.CacheState_CACHE_STATE_MISSING
+	default:
+		return modelv1alpha1.CacheState_CACHE_STATE_UNSPECIFIED
+	}
+}
+
+func modelCacheTaskToProto(t *modelcache.TaskStatus) *modelv1alpha1.ModelCacheTask {
+	if t == nil {
+		return nil
+	}
+	return &modelv1alpha1.ModelCacheTask{
+		Id:         t.ID,
+		State:      cacheTaskStateToProto(t.State),
+		StartedAt:  formatOptionalTime(&t.StartedAt),
+		FinishedAt: formatOptionalTime(t.FinishedAt),
+		Error:      t.Error,
 	}
 }
 
@@ -147,6 +180,7 @@ func modelCacheStatusToProto(st *modelcache.CacheStatus) *modelv1alpha1.ModelCac
 		Name:              st.Name,
 		RequestedRevision: st.RequestedRevision,
 		Commit:            st.Commit,
+		State:             cacheStateToProto(st.State),
 		Totals: &modelv1alpha1.ModelCacheTotals{
 			Files:            st.Totals.Files,
 			Bytes:            st.Totals.Bytes,
@@ -158,14 +192,8 @@ func modelCacheStatusToProto(st *modelcache.CacheStatus) *modelv1alpha1.ModelCac
 			MissingFiles:     st.Totals.MissingFiles,
 			FailedFiles:      st.Totals.FailedFiles,
 		},
-		Files: files,
-		Task: &modelv1alpha1.ModelCacheTask{
-			Id:         st.Task.ID,
-			State:      cacheTaskStateToProto(st.Task.State),
-			StartedAt:  formatOptionalTime(st.Task.StartedAt),
-			FinishedAt: formatOptionalTime(st.Task.FinishedAt),
-			Error:      st.Task.Error,
-		},
+		Files:    files,
+		Task:     modelCacheTaskToProto(st.Task),
 		Warnings: st.Warnings,
 	}
 }

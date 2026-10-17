@@ -282,7 +282,7 @@
     },
     "/api/v1alpha1/models/{project}/{name}/cache": {
       "get": {
-        "summary": "GetModelCache reports the local cache status of a model revision. It is\nread-only: it never contacts upstream and never starts downloads.",
+        "summary": "GetModelCache reports the local cache status of every file of a model\nrevision, and the latest pull of that commit. It is read-only: it never\ncontacts upstream and never starts downloads.",
         "operationId": "Models_GetModelCache",
         "responses": {
           "200": {
@@ -313,29 +313,10 @@
           },
           {
             "name": "revision",
+            "description": "Branch, tag or commit. Empty means the default branch.",
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "allowPatterns",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "ignorePatterns",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
           }
         ],
         "tags": [
@@ -626,14 +607,14 @@
       "properties": {
         "revision": {
           "type": "string",
-          "description": "Branch, tag or commit. Empty means the default branch."
+          "description": "Branch, tag or commit. Empty means the default branch. Other refs, such as\nrefs/pr/1, are rejected: MatrixHub mirrors only branches and tags."
         },
         "allowPatterns": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Narrow the cached files; without patterns every file of the revision is\ncached. huggingface_hub fnmatch semantics: '*' also matches '/', and a\ntrailing '/' selects a whole directory."
+          "description": "Narrow the cached files; without patterns every file of the revision is\ncached. huggingface_hub fnmatch semantics: '*' and '?' also match '/', and\na trailing '/' selects a whole directory. A pattern holds at most 16\nwildcards ('*', '?' and classes)."
         },
         "ignorePatterns": {
           "type": "array",
@@ -716,11 +697,21 @@
       "default": "CACHE_FILE_STATE_UNSPECIFIED",
       "description": " - CACHE_FILE_STATE_QUEUED: Part of a running cache task, not started yet."
     },
+    "v1alpha1CacheState": {
+      "type": "string",
+      "enum": [
+        "CACHE_STATE_UNSPECIFIED",
+        "CACHE_STATE_MISSING",
+        "CACHE_STATE_PARTIAL",
+        "CACHE_STATE_CACHED"
+      ],
+      "default": "CACHE_STATE_UNSPECIFIED",
+      "description": "How much of the selected files is in MatrixHub storage. Files stored in git\nare present once the commit is synced, so LFS objects decide between\nMISSING and PARTIAL.\n\n - CACHE_STATE_MISSING: No LFS object of the selection is cached.\n - CACHE_STATE_CACHED: Every selected file is cached."
+    },
     "v1alpha1CacheTaskState": {
       "type": "string",
       "enum": [
         "CACHE_TASK_STATE_UNSPECIFIED",
-        "CACHE_TASK_STATE_IDLE",
         "CACHE_TASK_STATE_RUNNING",
         "CACHE_TASK_STATE_SUCCEEDED",
         "CACHE_TASK_STATE_FAILED"
@@ -1010,6 +1001,9 @@
         "commit": {
           "type": "string"
         },
+        "state": {
+          "$ref": "#/definitions/v1alpha1CacheState"
+        },
         "totals": {
           "$ref": "#/definitions/v1alpha1ModelCacheTotals"
         },
@@ -1021,7 +1015,8 @@
           }
         },
         "task": {
-          "$ref": "#/definitions/v1alpha1ModelCacheTask"
+          "$ref": "#/definitions/v1alpha1ModelCacheTask",
+          "description": "The latest pull that the server knows of: of the requested selection for\nCacheModel, of the commit for GetModelCache. Unset when there is none, for\nexample when no pull was started, the last one finished more than an hour\nago, or the server restarted since."
         },
         "warnings": {
           "type": "array",
@@ -1035,7 +1030,8 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "Opaque and unique per run: retrying a failed pull starts a new run."
         },
         "state": {
           "$ref": "#/definitions/v1alpha1CacheTaskState"
@@ -1049,7 +1045,8 @@
         "error": {
           "type": "string"
         }
-      }
+      },
+      "description": "One run of a pull."
     },
     "v1alpha1ModelCacheTotals": {
       "type": "object",

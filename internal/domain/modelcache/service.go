@@ -48,12 +48,21 @@ type Service struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 
-	// mu guards tasks and lastRequeue. Lock order: s.mu, then task.mu.
+	// mu guards tasks, lastRequeue and modelLocks. Lock order: s.mu, then
+	// task.mu.
 	mu           sync.Mutex
 	tasks        map[string]*task
 	lastRequeue  map[string]time.Time
+	modelLocks   map[string]*modelLock
 	global       chan struct{}
 	requeueGroup singleflight.Group
+}
+
+// modelLock serializes the pulls of one model. A channel, unlike a mutex,
+// lets a waiting request give up when its context ends.
+type modelLock struct {
+	ch   chan struct{}
+	refs int
 }
 
 // NewModelCacheService creates the service. Call Close on shutdown.
@@ -64,7 +73,7 @@ func NewModelCacheService(
 	gitRepo git.IGitRepo,
 	lister registrydiscovery.RemoteFileLister,
 	opts Options,
-) *Service {
+) IModelCacheService {
 	opts = opts.withDefaults()
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Service{
@@ -78,11 +87,15 @@ func NewModelCacheService(
 		cancel:      cancel,
 		tasks:       map[string]*task{},
 		lastRequeue: map[string]time.Time{},
+		modelLocks:  map[string]*modelLock{},
 		global:      make(chan struct{}, opts.GlobalConcurrency),
 	}
 }
 
 func (s *Service) CacheModel(ctx context.Context, req *Request) (*CacheStatus, error) {
+	if err := validateRevision(req.Revision); err != nil {
+		return nil, err
+	}
 	sel, err := compileSelection(req.Selection)
 	if err != nil {
 		return nil, err
@@ -104,14 +117,30 @@ func (s *Service) CacheModel(ctx context.Context, req *Request) (*CacheStatus, e
 		return s.buildStatus(ctx, req.Project, req.Name, req.Revision, remote.Commit, p, s.lookupTask(key), gitCached), nil
 	}
 
+	// Pulls of one model take turns, so a pull never deletes a model that a
+	// concurrent pull created.
+	unlock, err := s.lockModel(ctx, req.Project+"/"+req.Name)
+	if err != nil {
+		return nil, err
+	}
+	defer unlock()
+
 	existed, err := s.modelExists(ctx, req.Project, req.Name)
 	if err != nil {
 		return nil, err
 	}
+	// remote is only listed for a new model: the sync creates the model, so
+	// everything that upstream can tell is checked first, and a request that
+	// cannot succeed leaves nothing behind.
+	var remote *git.RevisionFiles
 	if !existed {
-		// Check upstream before the sync creates anything, so a mistyped name
-		// leaves no model behind.
-		if _, err := s.listUpstream(ctx, prj, reg, req.Name, req.Revision); err != nil {
+		if remote, err = s.listUpstream(ctx, prj, reg, req.Name, req.Revision); err != nil {
+			return nil, err
+		}
+		if len(sel.plan(remote.Files).files) == 0 {
+			return nil, fmt.Errorf("%w: the selection matched no files", ErrInvalidSelection)
+		}
+		if err := s.checkCapacity(); err != nil {
 			return nil, err
 		}
 	}
@@ -129,6 +158,9 @@ func (s *Service) CacheModel(ctx context.Context, req *Request) (*CacheStatus, e
 			return nil, fmt.Errorf("%w: %w", ErrUpstreamSync, rerr)
 		}
 		local, err = s.listLocal(ctx, req.Project, req.Name, req.Revision)
+	}
+	if errors.Is(err, ErrRevisionNotFound) {
+		return nil, s.explainMissingRevision(ctx, prj, reg, req, remote, err)
 	}
 	if err != nil {
 		return nil, err
@@ -154,11 +186,7 @@ func (s *Service) CacheModel(ctx context.Context, req *Request) (*CacheStatus, e
 	return s.buildStatus(ctx, req.Project, req.Name, req.Revision, local.Commit, p, t, true), nil
 }
 
-func (s *Service) GetModelCache(ctx context.Context, project, name, revision string, selection Selection) (*CacheStatus, error) {
-	sel, err := compileSelection(selection)
-	if err != nil {
-		return nil, err
-	}
+func (s *Service) GetModelCache(ctx context.Context, project, name, revision string) (*CacheStatus, error) {
 	exists, err := s.modelExists(ctx, project, name)
 	if err != nil {
 		return nil, err
@@ -170,15 +198,82 @@ func (s *Service) GetModelCache(ctx context.Context, project, name, revision str
 	if err != nil {
 		return nil, err
 	}
-	p := sel.plan(local.Files)
-	key := taskKey(project, name, local.Commit, p.objects)
 	s.gc()
-	return s.buildStatus(ctx, project, name, revision, local.Commit, p, s.lookupTask(key), true), nil
+	t := s.latestTask(project, name, local.Commit)
+	return s.buildStatus(ctx, project, name, revision, local.Commit, selectAll.plan(local.Files), t, true), nil
 }
 
 func (s *Service) Close() {
+	// startOrAttach checks the context and adds to s.wg under s.mu, so no
+	// task starts once Close waits.
+	s.mu.Lock()
 	s.cancel()
+	s.mu.Unlock()
 	s.wg.Wait()
+}
+
+// validateRevision rejects refs that are not branches or tags: MatrixHub
+// mirrors only those, so a ref such as refs/pr/1 could be previewed upstream
+// but never pulled.
+func validateRevision(revision string) error {
+	if strings.HasPrefix(revision, "refs/") &&
+		!strings.HasPrefix(revision, "refs/heads/") &&
+		!strings.HasPrefix(revision, "refs/tags/") {
+		return fmt.Errorf("%w: %s", ErrUnsupportedRevision, revision)
+	}
+	return nil
+}
+
+// explainMissingRevision tells a revision that upstream does not have from
+// one it has outside the mirrored branches and tags, such as a commit that is
+// only reachable from a pull request. remote is the upstream listing of the
+// revision when the caller already has it.
+func (s *Service) explainMissingRevision(ctx context.Context, prj *project.Project, reg *registry.Registry, req *Request, remote *git.RevisionFiles, notFound error) error {
+	if remote == nil {
+		var err error
+		if remote, err = s.listUpstream(ctx, prj, reg, req.Name, req.Revision); err != nil {
+			return notFound
+		}
+	}
+	return fmt.Errorf("%w: %s resolves to %s upstream", ErrRevisionNotMirrored, revisionLabel(req.Revision), remote.Commit)
+}
+
+func revisionLabel(revision string) string {
+	if revision == "" {
+		return "the default branch"
+	}
+	return revision
+}
+
+// lockModel serializes the pulls of one model until the returned function is
+// called.
+func (s *Service) lockModel(ctx context.Context, key string) (func(), error) {
+	s.mu.Lock()
+	l := s.modelLocks[key]
+	if l == nil {
+		l = &modelLock{ch: make(chan struct{}, 1)}
+		s.modelLocks[key] = l
+	}
+	l.refs++
+	s.mu.Unlock()
+
+	release := func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if l.refs--; l.refs == 0 {
+			delete(s.modelLocks, key)
+		}
+	}
+	select {
+	case l.ch <- struct{}{}:
+		return func() {
+			<-l.ch
+			release()
+		}, nil
+	case <-ctx.Done():
+		release()
+		return nil, ctx.Err()
+	}
 }
 
 // upstream returns the proxy project and its registry.
@@ -243,8 +338,8 @@ func (s *Service) modelExists(ctx context.Context, project, name string) (bool, 
 	return false, err
 }
 
-// rollbackNewModel removes a model created by a failed first sync, unless a
-// concurrent request synced it in the meantime.
+// rollbackNewModel removes a model whose first sync failed, unless the model
+// was synced in the meantime, e.g. by a proxy download.
 func (s *Service) rollbackNewModel(ctx context.Context, project, name string) {
 	mod, err := s.models.GetModel(ctx, project, name)
 	if err != nil || mod.SyncedAt != nil {
@@ -259,6 +354,48 @@ func (s *Service) lookupTask(key string) *task {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.tasks[key]
+}
+
+// latestTask returns the task of a commit that is running, or else the one
+// started last. Tasks of narrower selections count too.
+func (s *Service) latestTask(project, name, commit string) *task {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var latest *task
+	latestRunning := false
+	for _, t := range s.tasks {
+		if t.project != project || t.name != name || t.commit != commit {
+			continue
+		}
+		running := t.running()
+		if latest == nil ||
+			(running && !latestRunning) ||
+			(running == latestRunning && t.startedAt.After(latest.startedAt)) {
+			latest, latestRunning = t, running
+		}
+	}
+	return latest
+}
+
+// checkCapacity reports ErrTooManyTasks before a new model is created;
+// startOrAttach checks again when it starts the task.
+func (s *Service) checkCapacity() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if n := s.runningTasksLocked(); n >= s.opts.MaxRunningTasks {
+		return fmt.Errorf("%w: %d running", ErrTooManyTasks, n)
+	}
+	return nil
+}
+
+func (s *Service) runningTasksLocked() int {
+	running := 0
+	for _, t := range s.tasks {
+		if t.running() {
+			running++
+		}
+	}
+	return running
 }
 
 // startOrAttach returns the running task of key, or starts one for the
@@ -276,21 +413,17 @@ func (s *Service) startOrAttach(key, project, name, commit string, missing []str
 	if len(missing) == 0 {
 		return s.tasks[key], nil
 	}
-	running := 0
-	for _, t := range s.tasks {
-		if t.running() {
-			running++
-		}
-	}
-	if running >= s.opts.MaxRunningTasks {
+	if running := s.runningTasksLocked(); running >= s.opts.MaxRunningTasks {
 		return nil, fmt.Errorf("%w: %d running", ErrTooManyTasks, running)
 	}
 
+	// A new run replaces the finished one of the same key and gets its own
+	// ID.
 	t := newTask(key, project, name, commit, missing, sizes, s.opts.Now())
 	s.tasks[key] = t
 	s.wg.Add(1)
 	go s.run(t)
-	log.Infof("model cache: started task %s for %d objects", key, len(missing))
+	log.Infof("model cache: started task %s (%s) for %d objects", t.id, key, len(missing))
 	return t, nil
 }
 
@@ -343,13 +476,16 @@ func (s *Service) buildStatus(ctx context.Context, project, name, revision, comm
 	}
 
 	var objects map[string]objectState
-	var ts TaskStatus
 	if t != nil {
+		var ts TaskStatus
 		objects, ts = t.snapshot()
+		st.Task = &ts
 	}
+	running := st.Task != nil && st.Task.State == TaskRunning
 	others := s.runningObjects(project, name, t)
 
-	allCached := true
+	allCached := len(p.files) > 0
+	cachedObjects := 0
 	for _, f := range p.files {
 		fs := FileStatus{Path: f.Path, Size: f.Size, IsLFS: f.IsLFS, OID: f.OID, State: FileMissing}
 		o, tracked := objects[f.OID]
@@ -365,27 +501,26 @@ func (s *Service) buildStatus(ctx context.Context, project, name, revision, comm
 		case hasKey(others, f.OID):
 			fs.State, fs.DownloadedBytes = FileDownloading, others[f.OID]
 		}
-		if fs.State == FileQueued && ts.State != TaskRunning {
+		if fs.State == FileQueued && !running {
 			fs.State = FileMissing
 		}
 		addTotals(&st.Totals, fs)
-		if fs.State != FileCached {
+		switch {
+		case fs.State != FileCached:
 			allCached = false
+		case f.IsLFS:
+			cachedObjects++
 		}
 		st.Files = append(st.Files, fs)
 	}
 
 	switch {
-	case t != nil && ts.State == TaskRunning:
-		st.Task = ts
 	case allCached:
-		st.Task = ts
-		st.Task.State = TaskSucceeded
-		st.Task.Error = ""
-	case t != nil && ts.State == TaskFailed:
-		st.Task = ts
+		st.State = CacheStateCached
+	case cachedObjects > 0:
+		st.State = CacheStatePartial
 	default:
-		st.Task = TaskStatus{State: TaskIdle}
+		st.State = CacheStateMissing
 	}
 	return st
 }

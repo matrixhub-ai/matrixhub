@@ -15,14 +15,17 @@
 package modelcache
 
 import (
+	"fmt"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 )
 
-func TestFnmatchRegexp(t *testing.T) {
+func TestGlob(t *testing.T) {
 	tests := []struct {
 		pattern string
 		path    string
@@ -44,19 +47,62 @@ func TestFnmatchRegexp(t *testing.T) {
 		{"a.b", "a.b", true},
 		{"a.b", "axb", false},
 		{"*.JSON", "config.json", false},
+		{"model?safetensors", "model/safetensors", true},
+		{"*", "", true},
+		{"a*b*c", "abc", true},
+		{"a*b*c", "aXbYbZc", true},
+		{"a*b*c", "acb", false},
+		{"a**b", "a/x/b", true},
+		{"*a*a*", "a", false},
+		{"*a*a*", "aa", true},
+		{"[a-c]x", "bx", true},
+		{"[a-c]x", "dx", false},
+		{"[!a-c]x", "dx", true},
+		{"[a-]x", "-x", true},
+		{"[^a]", "^", true},
+		{"[^a]", "b", false},
+		{`a\b`, `a\b`, true},
+		{"[!]", "[!]", true},
+		{"模型/*.bin", "模型/权重.bin", true},
+		{"???", "ab", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.pattern+"~"+tt.path, func(t *testing.T) {
-			re, err := fnmatchRegexp(tt.pattern)
+			g, err := compileGlob(tt.pattern)
 			require.NoError(t, err)
-			require.Equal(t, tt.want, re.MatchString(tt.path))
+			require.Equal(t, tt.want, g.match([]rune(tt.path)))
 		})
 	}
 }
 
-func TestFnmatchRegexpRejectsInvalidClass(t *testing.T) {
-	_, err := fnmatchRegexp("[z-a]")
-	require.ErrorIs(t, err, ErrInvalidSelection)
+func TestGlobRejectsInvalidPatterns(t *testing.T) {
+	for _, pattern := range []string{"[z-a]", "\xff*", strings.Repeat("?", maxPatternWildcards+1)} {
+		_, err := compileGlob(pattern)
+		require.ErrorIs(t, err, ErrInvalidSelection, pattern)
+	}
+	// A run of '*' counts as one wildcard.
+	_, err := compileGlob(strings.Repeat("*", 500) + "zz")
+	require.NoError(t, err)
+}
+
+// The regular expressions that patterns used to compile to took seconds to
+// plan such a selection.
+func TestPlanStaysCheapWithPathologicalPatterns(t *testing.T) {
+	var allow, ignore []string
+	for i := 0; i < 16; i++ {
+		allow = append(allow, strings.Repeat("*[!/]", 7)+"*zz")
+		ignore = append(ignore, strings.Repeat("*?", 8)+"zz")
+	}
+	sel, err := compileSelection(Selection{AllowPatterns: allow, IgnorePatterns: ignore})
+	require.NoError(t, err)
+	files := make([]git.RevisionFile, 1000)
+	for i := range files {
+		files[i] = git.RevisionFile{Path: fmt.Sprintf("%05d/", i) + strings.Repeat("abcdefgh/", 22)}
+	}
+
+	start := time.Now()
+	sel.plan(files)
+	require.Less(t, time.Since(start), 2*time.Second)
 }
 
 func paths(files []git.RevisionFile) []string {

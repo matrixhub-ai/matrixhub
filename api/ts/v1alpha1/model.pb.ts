@@ -30,9 +30,15 @@ export enum CacheFileState {
   CACHE_FILE_STATE_FAILED = "CACHE_FILE_STATE_FAILED",
 }
 
+export enum CacheState {
+  CACHE_STATE_UNSPECIFIED = "CACHE_STATE_UNSPECIFIED",
+  CACHE_STATE_MISSING = "CACHE_STATE_MISSING",
+  CACHE_STATE_PARTIAL = "CACHE_STATE_PARTIAL",
+  CACHE_STATE_CACHED = "CACHE_STATE_CACHED",
+}
+
 export enum CacheTaskState {
   CACHE_TASK_STATE_UNSPECIFIED = "CACHE_TASK_STATE_UNSPECIFIED",
-  CACHE_TASK_STATE_IDLE = "CACHE_TASK_STATE_IDLE",
   CACHE_TASK_STATE_RUNNING = "CACHE_TASK_STATE_RUNNING",
   CACHE_TASK_STATE_SUCCEEDED = "CACHE_TASK_STATE_SUCCEEDED",
   CACHE_TASK_STATE_FAILED = "CACHE_TASK_STATE_FAILED",
@@ -220,8 +226,6 @@ export type GetModelCacheRequest = {
   project?: string
   name?: string
   revision?: string
-  allowPatterns?: string[]
-  ignorePatterns?: string[]
 }
 
 export type ModelCacheFile = {
@@ -259,6 +263,7 @@ export type ModelCacheStatus = {
   name?: string
   requestedRevision?: string
   commit?: string
+  state?: CacheState
   totals?: ModelCacheTotals
   files?: ModelCacheFile[]
   task?: ModelCacheTask

@@ -17,8 +17,6 @@ package modelcache
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
-	"regexp"
 	"slices"
 	"strings"
 
@@ -32,99 +30,30 @@ var weightExts = []string{
 }
 
 type compiledSelection struct {
-	allow  []*regexp.Regexp
-	ignore []*regexp.Regexp
+	allow  []*glob
+	ignore []*glob
 }
+
+// selectAll selects every file of a revision.
+var selectAll = &compiledSelection{}
 
 func compileSelection(sel Selection) (*compiledSelection, error) {
 	c := &compiledSelection{}
 	for _, p := range sel.AllowPatterns {
-		re, err := fnmatchRegexp(p)
+		g, err := compileGlob(p)
 		if err != nil {
 			return nil, err
 		}
-		c.allow = append(c.allow, re)
+		c.allow = append(c.allow, g)
 	}
 	for _, p := range sel.IgnorePatterns {
-		re, err := fnmatchRegexp(p)
+		g, err := compileGlob(p)
 		if err != nil {
 			return nil, err
 		}
-		c.ignore = append(c.ignore, re)
+		c.ignore = append(c.ignore, g)
 	}
 	return c, nil
-}
-
-// fnmatchRegexp translates a pattern with huggingface_hub semantics: fnmatch
-// rules where '*' also matches '/', and a trailing '/' selects a directory.
-func fnmatchRegexp(pattern string) (*regexp.Regexp, error) {
-	if strings.HasSuffix(pattern, "/") {
-		pattern += "*"
-	}
-	var b strings.Builder
-	runes := []rune(pattern)
-	for i := 0; i < len(runes); i++ {
-		switch r := runes[i]; r {
-		case '*':
-			b.WriteString(".*")
-		case '?':
-			b.WriteString(".")
-		case '[':
-			end := classEnd(runes, i)
-			if end < 0 {
-				b.WriteString(`\[`)
-				continue
-			}
-			b.WriteString(translateClass(runes[i+1 : end]))
-			i = end
-		default:
-			b.WriteString(regexp.QuoteMeta(string(r)))
-		}
-	}
-	re, err := regexp.Compile(`^(?s:` + b.String() + `)$`)
-	if err != nil {
-		return nil, fmt.Errorf("%w: pattern %q: %v", ErrInvalidSelection, pattern, err)
-	}
-	return re, nil
-}
-
-// classEnd returns the index of the ']' closing the class opened at start, or
-// -1 when the class is not closed. As in fnmatch, a ']' right after '[' or
-// "[!" is a literal.
-func classEnd(runes []rune, start int) int {
-	j := start + 1
-	if j < len(runes) && runes[j] == '!' {
-		j++
-	}
-	if j < len(runes) && runes[j] == ']' {
-		j++
-	}
-	for ; j < len(runes); j++ {
-		if runes[j] == ']' {
-			return j
-		}
-	}
-	return -1
-}
-
-func translateClass(body []rune) string {
-	var b strings.Builder
-	b.WriteByte('[')
-	for i, r := range body {
-		switch {
-		case i == 0 && r == '!':
-			b.WriteByte('^')
-		case i == 0 && r == '^':
-			b.WriteString(`\^`)
-		case r == '\\' || r == '[' || r == ']':
-			b.WriteByte('\\')
-			b.WriteRune(r)
-		default:
-			b.WriteRune(r)
-		}
-	}
-	b.WriteByte(']')
-	return b.String()
 }
 
 // plan is the result of applying a selection to the files of a revision.
@@ -149,10 +78,7 @@ func (c *compiledSelection) plan(files []git.RevisionFile) *plan {
 	for _, f := range sorted {
 		weight := hasAnySuffix(f.Path, weightExts)
 		hasWeights = hasWeights || weight
-		if len(c.allow) > 0 && !matchAny(c.allow, f.Path) {
-			continue
-		}
-		if matchAny(c.ignore, f.Path) {
+		if !c.selects(f.Path) {
 			continue
 		}
 		selectedWeights = selectedWeights || weight
@@ -174,6 +100,17 @@ func (c *compiledSelection) plan(files []git.RevisionFile) *plan {
 	return p
 }
 
+func (c *compiledSelection) selects(path string) bool {
+	if len(c.allow) == 0 && len(c.ignore) == 0 {
+		return true
+	}
+	runes := []rune(path)
+	if len(c.allow) > 0 && !matchAny(c.allow, runes) {
+		return false
+	}
+	return !matchAny(c.ignore, runes)
+}
+
 func hasAnySuffix(p string, suffixes []string) bool {
 	for _, s := range suffixes {
 		if strings.HasSuffix(p, s) {
@@ -183,17 +120,18 @@ func hasAnySuffix(p string, suffixes []string) bool {
 	return false
 }
 
-func matchAny(res []*regexp.Regexp, p string) bool {
-	for _, re := range res {
-		if re.MatchString(p) {
+func matchAny(globs []*glob, path []rune) bool {
+	for _, g := range globs {
+		if g.match(path) {
 			return true
 		}
 	}
 	return false
 }
 
-// taskKey identifies the cache task of a selection: selections that pick the
-// same objects of the same commit share a task.
+// taskKey identifies the files a task pulls: requests that pick the same
+// objects of the same commit attach to one running task. It is internal; task
+// IDs identify runs.
 func taskKey(project, name, commit string, objects []string) string {
 	sorted := slices.Clone(objects)
 	slices.Sort(sorted)

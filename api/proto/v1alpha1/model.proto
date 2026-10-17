@@ -82,8 +82,9 @@ service Models {
       body: "*"
     };
   }
-  // GetModelCache reports the local cache status of a model revision. It is
-  // read-only: it never contacts upstream and never starts downloads.
+  // GetModelCache reports the local cache status of every file of a model
+  // revision, and the latest pull of that commit. It is read-only: it never
+  // contacts upstream and never starts downloads.
   rpc GetModelCache(GetModelCacheRequest) returns (ModelCacheStatus) {
     option (google.api.http) = {
       get: "/api/v1alpha1/models/{project}/{name}/cache"
@@ -292,12 +293,23 @@ enum CacheFileState {
   CACHE_FILE_STATE_FAILED = 5;
 }
 
+// How much of the selected files is in MatrixHub storage. Files stored in git
+// are present once the commit is synced, so LFS objects decide between
+// MISSING and PARTIAL.
+enum CacheState {
+  CACHE_STATE_UNSPECIFIED = 0;
+  // No LFS object of the selection is cached.
+  CACHE_STATE_MISSING = 1;
+  CACHE_STATE_PARTIAL = 2;
+  // Every selected file is cached.
+  CACHE_STATE_CACHED = 3;
+}
+
 enum CacheTaskState {
   CACHE_TASK_STATE_UNSPECIFIED = 0;
-  CACHE_TASK_STATE_IDLE = 1;
-  CACHE_TASK_STATE_RUNNING = 2;
-  CACHE_TASK_STATE_SUCCEEDED = 3;
-  CACHE_TASK_STATE_FAILED = 4;
+  CACHE_TASK_STATE_RUNNING = 1;
+  CACHE_TASK_STATE_SUCCEEDED = 2;
+  CACHE_TASK_STATE_FAILED = 3;
 }
 
 message CacheModelRequest {
@@ -308,22 +320,23 @@ message CacheModelRequest {
     pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
     not_in: ["models", "datasets", "spaces", "resolve"]
   }];
-  // Branch, tag or commit. Empty means the default branch.
+  // Branch, tag or commit. Empty means the default branch. Other refs, such as
+  // refs/pr/1, are rejected: MatrixHub mirrors only branches and tags.
   string revision = 3 [(validate.rules).string.max_len = 255];
   // Narrow the cached files; without patterns every file of the revision is
-  // cached. huggingface_hub fnmatch semantics: '*' also matches '/', and a
-  // trailing '/' selects a whole directory.
-  repeated string allow_patterns = 4 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
-  repeated string ignore_patterns = 5 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
+  // cached. huggingface_hub fnmatch semantics: '*' and '?' also match '/', and
+  // a trailing '/' selects a whole directory. A pattern holds at most 16
+  // wildcards ('*', '?' and classes).
+  repeated string allow_patterns = 4 [(validate.rules).repeated = {max_items: 16, items: {string: {min_len: 1, max_len: 256}}}];
+  repeated string ignore_patterns = 5 [(validate.rules).repeated = {max_items: 16, items: {string: {min_len: 1, max_len: 256}}}];
   bool dry_run = 6;
 }
 
 message GetModelCacheRequest {
   string project = 1 [(validate.rules).string.min_len = 1];
   string name = 2 [(validate.rules).string = {min_len: 1, not_in: ["models", "datasets", "spaces", "resolve"]}];
+  // Branch, tag or commit. Empty means the default branch.
   string revision = 3 [(validate.rules).string.max_len = 255];
-  repeated string allow_patterns = 4 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
-  repeated string ignore_patterns = 5 [(validate.rules).repeated = {max_items: 64, items: {string: {min_len: 1, max_len: 512}}}];
 }
 
 message ModelCacheFile {
@@ -349,7 +362,9 @@ message ModelCacheTotals {
   int64 failed_files = 9;
 }
 
+// One run of a pull.
 message ModelCacheTask {
+  // Opaque and unique per run: retrying a failed pull starts a new run.
   string id = 1;
   CacheTaskState state = 2;
   string started_at = 3;
@@ -362,8 +377,13 @@ message ModelCacheStatus {
   string name = 2;
   string requested_revision = 3;
   string commit = 4;
+  CacheState state = 9;
   ModelCacheTotals totals = 5;
   repeated ModelCacheFile files = 6;
+  // The latest pull that the server knows of: of the requested selection for
+  // CacheModel, of the commit for GetModelCache. Unset when there is none, for
+  // example when no pull was started, the last one finished more than an hour
+  // ago, or the server restarted since.
   ModelCacheTask task = 7;
   repeated string warnings = 8;
 }

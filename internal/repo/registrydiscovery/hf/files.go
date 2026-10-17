@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
@@ -136,6 +137,8 @@ func (d *Discovery) getJSON(ctx context.Context, reg *registry.Registry, u strin
 		return nil, fmt.Errorf("%w: repository does not exist, or is private and needs a credential (%s)", registrydiscovery.ErrRemoteNotFound, u)
 	case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
 		return nil, fmt.Errorf("%w: status %d for %s", registrydiscovery.ErrRemoteAccessDenied, resp.StatusCode, u)
+	case resp.StatusCode == http.StatusTooManyRequests:
+		return nil, fmt.Errorf("%w: rate limited%s (%s)", registrydiscovery.ErrRemoteUnavailable, retryAfterHint(resp.Header), u)
 	case resp.StatusCode >= http.StatusInternalServerError:
 		return nil, fmt.Errorf("%w: status %d for %s", registrydiscovery.ErrRemoteUnavailable, resp.StatusCode, u)
 	case resp.StatusCode != http.StatusOK:
@@ -183,4 +186,16 @@ func nextLink(header string) string {
 		}
 	}
 	return ""
+}
+
+// retryAfterHint renders a Retry-After header, in seconds or as an HTTP date.
+func retryAfterHint(h http.Header) string {
+	after := h.Get("Retry-After")
+	if after == "" {
+		return ""
+	}
+	if secs, err := strconv.Atoi(after); err == nil {
+		return fmt.Sprintf("; retry after %ds", secs)
+	}
+	return "; retry after " + after
 }

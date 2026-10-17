@@ -3858,10 +3858,10 @@ func (m *CacheModelRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetAllowPatterns()) > 64 {
+	if len(m.GetAllowPatterns()) > 16 {
 		err := CacheModelRequestValidationError{
 			field:  "AllowPatterns",
-			reason: "value must contain no more than 64 item(s)",
+			reason: "value must contain no more than 16 item(s)",
 		}
 		if !all {
 			return err
@@ -3872,10 +3872,10 @@ func (m *CacheModelRequest) validate(all bool) error {
 	for idx, item := range m.GetAllowPatterns() {
 		_, _ = idx, item
 
-		if l := utf8.RuneCountInString(item); l < 1 || l > 512 {
+		if l := utf8.RuneCountInString(item); l < 1 || l > 256 {
 			err := CacheModelRequestValidationError{
 				field:  fmt.Sprintf("AllowPatterns[%v]", idx),
-				reason: "value length must be between 1 and 512 runes, inclusive",
+				reason: "value length must be between 1 and 256 runes, inclusive",
 			}
 			if !all {
 				return err
@@ -3885,10 +3885,10 @@ func (m *CacheModelRequest) validate(all bool) error {
 
 	}
 
-	if len(m.GetIgnorePatterns()) > 64 {
+	if len(m.GetIgnorePatterns()) > 16 {
 		err := CacheModelRequestValidationError{
 			field:  "IgnorePatterns",
-			reason: "value must contain no more than 64 item(s)",
+			reason: "value must contain no more than 16 item(s)",
 		}
 		if !all {
 			return err
@@ -3899,10 +3899,10 @@ func (m *CacheModelRequest) validate(all bool) error {
 	for idx, item := range m.GetIgnorePatterns() {
 		_, _ = idx, item
 
-		if l := utf8.RuneCountInString(item); l < 1 || l > 512 {
+		if l := utf8.RuneCountInString(item); l < 1 || l > 256 {
 			err := CacheModelRequestValidationError{
 				field:  fmt.Sprintf("IgnorePatterns[%v]", idx),
-				reason: "value length must be between 1 and 512 runes, inclusive",
+				reason: "value length must be between 1 and 256 runes, inclusive",
 			}
 			if !all {
 				return err
@@ -4067,60 +4067,6 @@ func (m *GetModelCacheRequest) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-	}
-
-	if len(m.GetAllowPatterns()) > 64 {
-		err := GetModelCacheRequestValidationError{
-			field:  "AllowPatterns",
-			reason: "value must contain no more than 64 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	for idx, item := range m.GetAllowPatterns() {
-		_, _ = idx, item
-
-		if l := utf8.RuneCountInString(item); l < 1 || l > 512 {
-			err := GetModelCacheRequestValidationError{
-				field:  fmt.Sprintf("AllowPatterns[%v]", idx),
-				reason: "value length must be between 1 and 512 runes, inclusive",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
-
-	if len(m.GetIgnorePatterns()) > 64 {
-		err := GetModelCacheRequestValidationError{
-			field:  "IgnorePatterns",
-			reason: "value must contain no more than 64 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	for idx, item := range m.GetIgnorePatterns() {
-		_, _ = idx, item
-
-		if l := utf8.RuneCountInString(item); l < 1 || l > 512 {
-			err := GetModelCacheRequestValidationError{
-				field:  fmt.Sprintf("IgnorePatterns[%v]", idx),
-				reason: "value length must be between 1 and 512 runes, inclusive",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
 	}
 
 	if len(errors) > 0 {
@@ -4581,6 +4527,8 @@ func (m *ModelCacheStatus) validate(all bool) error {
 	// no validation rules for RequestedRevision
 
 	// no validation rules for Commit
+
+	// no validation rules for State
 
 	if all {
 		switch v := interface{}(m.GetTotals()).(type) {

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
@@ -120,6 +121,7 @@ func TestDiscovery_ListRevisionFiles_Errors(t *testing.T) {
 		{"gated", http.StatusForbidden, "GatedRepo", "", registrydiscovery.ErrRemoteAccessDenied},
 		{"403", http.StatusForbidden, "", "", registrydiscovery.ErrRemoteAccessDenied},
 		{"502", http.StatusBadGateway, "", "", registrydiscovery.ErrRemoteUnavailable},
+		{"rate limited", http.StatusTooManyRequests, "", "", registrydiscovery.ErrRemoteUnavailable},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -139,6 +141,19 @@ func TestDiscovery_ListRevisionFiles_Errors(t *testing.T) {
 				t.Fatalf("error = %v, want %v", err, tt.want)
 			}
 		})
+	}
+}
+
+func TestDiscovery_ListRevisionFiles_RateLimited(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Retry-After", "30")
+		w.WriteHeader(http.StatusTooManyRequests)
+	}))
+	defer ts.Close()
+
+	_, err := New().ListRevisionFiles(context.Background(), &registry.Registry{URL: ts.URL}, "Qwen", "Qwen3-0.6B", "")
+	if !errors.Is(err, registrydiscovery.ErrRemoteUnavailable) || !strings.Contains(err.Error(), "retry after 30s") {
+		t.Fatalf("error = %v, want a rate limit with its retry delay", err)
 	}
 }
 
