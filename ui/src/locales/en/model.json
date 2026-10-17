@@ -93,6 +93,23 @@
         "localPathHint": "Replace it with the model folder on this machine, for example:",
         "localPathExample": "/Users/yourname/models/{{name}}"
       }
+    },
+    "cache": {
+      "label": "Cache status",
+      "states": {
+        "cached": "Cached {{done}}/{{total}}",
+        "partial": "Partially cached {{done}}/{{total}}",
+        "uncached": "Not cached",
+        "running": "Pulling {{percent}}%",
+        "failed": "Pull failed {{done}}/{{total}}"
+      },
+      "tooltips": {
+        "cached": "Every file of the default branch is stored in MatrixHub, so workloads download the files from MatrixHub instead of the upstream registry. MatrixHub still checks upstream for new commits.",
+        "partial": "Files that are not cached are fetched from the upstream registry on first download, at upstream speed. To cache them in advance, pull on the server from the project's Download Model drawer.",
+        "uncached": "Files that are not cached are fetched from the upstream registry on first download, at upstream speed. To cache them in advance, pull on the server from the project's Download Model drawer.",
+        "running": "MatrixHub is pulling this model from the upstream registry. The status updates automatically.",
+        "failed": "The last server-side pull failed, so files that are not cached are fetched from the upstream registry on first download. Retry the pull from the project's Download Model drawer."
+      }
     }
   },
   "settings": {

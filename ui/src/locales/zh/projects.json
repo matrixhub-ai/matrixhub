@@ -20,18 +20,71 @@
       "guideDescription": "代理项目无需手动创建模型，下载模型后刷新页面将自动生成模型卡片。",
       "quickDownload": "快速下载",
       "drawerNotice": "代理项目无需创建模型，输入上游模型名称，即可直接获取下载命令。",
+      "drawerNoticeServer": "代理项目无需创建模型。输入上游模型名称后，可由 MatrixHub 服务端直接拉取，或获取下载命令在本地执行。",
       "steps": {
         "modelName": "输入上游模型名称",
         "command": "复制并执行下载命令",
+        "method": "选择下载方式",
         "completion": "下载完成后刷新列表"
       },
       "modelNameLabel": "上游模型名称",
       "modelNamePlaceholder": "例如：Qwen0.6B",
       "modelNameHelper": "输入上游模型名称即可生成下载命令",
+      "modelNameHelperServer": "输入上游模型名称，即可由服务端拉取或生成下载命令",
       "commandPlaceholder": "<模型名称>",
       "completionNotice": "执行命令后，模型将从已配置的目标仓库下载。下载完成后请刷新模型列表。",
+      "completionNoticeServer": "服务端拉取完成后，模型会自动出现在当前项目的模型列表中；如未显示，请刷新列表。",
       "viewDocs": "查看下载说明",
-      "acknowledge": "知道了"
+      "acknowledge": "知道了",
+      "methods": {
+        "server": "服务端拉取（推荐）",
+        "serverDescription": "由 MatrixHub 从上游仓库拉取并缓存模型文件，无需准备本地环境",
+        "cli": "命令行下载",
+        "cliDescription": "在本地执行 hf download 命令下载模型"
+      },
+      "serverPull": {
+        "enterName": "输入上游模型名称后，即可查看需要拉取的文件。",
+        "revision": "版本",
+        "revisionPlaceholder": "默认分支（如 main）",
+        "summary": {
+          "revision": "版本",
+          "defaultBranch": "默认分支",
+          "files": "文件",
+          "filesValue": "{{files}} 个文件 · {{size}}",
+          "cached": "已缓存",
+          "cachedValue": "{{cached}} / {{files}} 个文件 · {{size}}",
+          "warnings": "提示"
+        },
+        "start": "开始拉取",
+        "retry": "重新拉取",
+        "nothingToPull": "该版本没有需要拉取的文件。",
+        "alreadyCached": "该版本的全部文件均已缓存，可直接使用。",
+        "succeeded": "拉取完成，模型已添加到当前项目。",
+        "backgroundHint": "关闭后任务仍会在服务端继续运行。",
+        "viewModel": "查看模型",
+        "progress": {
+          "label": "拉取进度",
+          "running": "拉取中",
+          "succeeded": "已完成",
+          "failed": "拉取失败",
+          "stopped": "未在运行",
+          "files": "{{done}} / {{total}} 个文件",
+          "bytes": "{{done}} / {{total}}"
+        },
+        "failedTitle": "部分文件拉取失败",
+        "moreFailed": "另有 {{rest}} 个文件拉取失败",
+        "errors": {
+          "notFound": "上游仓库中未找到该模型或版本，请检查名称",
+          "permissionDenied": "没有权限向当前项目拉取模型",
+          "invalidArgument": "模型名称或版本无效，版本需为分支、标签或提交",
+          "failedPrecondition": "暂时无法拉取该模型：可能需要授权访问、上游同步失败，或该版本不在任何分支或标签上",
+          "resourceExhausted": "同时运行的拉取任务过多，请稍后再试",
+          "unavailable": "上游仓库暂时无法访问，请稍后重试",
+          "unknown": "检查模型失败"
+        },
+        "retryCheck": "重新检查",
+        "startError": "启动拉取失败"
+      }
     },
     "settingsPage": {
       "projectType": "项目类型",

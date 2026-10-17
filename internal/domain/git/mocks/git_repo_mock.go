@@ -17,6 +17,58 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
+// MockLFSDownload is a mock of LFSDownload interface.
+type MockLFSDownload struct {
+	ctrl     *gomock.Controller
+	recorder *MockLFSDownloadMockRecorder
+	isgomock struct{}
+}
+
+// MockLFSDownloadMockRecorder is the mock recorder for MockLFSDownload.
+type MockLFSDownloadMockRecorder struct {
+	mock *MockLFSDownload
+}
+
+// NewMockLFSDownload creates a new mock instance.
+func NewMockLFSDownload(ctrl *gomock.Controller) *MockLFSDownload {
+	mock := &MockLFSDownload{ctrl: ctrl}
+	mock.recorder = &MockLFSDownloadMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLFSDownload) EXPECT() *MockLFSDownloadMockRecorder {
+	return m.recorder
+}
+
+// Downloaded mocks base method.
+func (m *MockLFSDownload) Downloaded() int64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Downloaded")
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// Downloaded indicates an expected call of Downloaded.
+func (mr *MockLFSDownloadMockRecorder) Downloaded() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Downloaded", reflect.TypeOf((*MockLFSDownload)(nil).Downloaded))
+}
+
+// Total mocks base method.
+func (m *MockLFSDownload) Total() int64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Total")
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// Total indicates an expected call of Total.
+func (mr *MockLFSDownloadMockRecorder) Total() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Total", reflect.TypeOf((*MockLFSDownload)(nil).Total))
+}
+
 // MockIGitRepo is a mock of IGitRepo interface.
 type MockIGitRepo struct {
 	ctrl     *gomock.Controller
@@ -127,6 +179,20 @@ func (mr *MockIGitRepoMockRecorder) ExtractMetadata(ctx, repoType, project, name
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractMetadata", reflect.TypeOf((*MockIGitRepo)(nil).ExtractMetadata), ctx, repoType, project, name)
 }
 
+// FetchLFSObject mocks base method.
+func (m *MockIGitRepo) FetchLFSObject(ctx context.Context, oid string) git.LFSDownload {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchLFSObject", ctx, oid)
+	ret0, _ := ret[0].(git.LFSDownload)
+	return ret0
+}
+
+// FetchLFSObject indicates an expected call of FetchLFSObject.
+func (mr *MockIGitRepoMockRecorder) FetchLFSObject(ctx, oid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchLFSObject", reflect.TypeOf((*MockIGitRepo)(nil).FetchLFSObject), ctx, oid)
+}
+
 // FindOrphanedLFS mocks base method.
 func (m *MockIGitRepo) FindOrphanedLFS(ctx context.Context) ([]*git.OrphanedLFS, error) {
 	m.ctrl.T.Helper()
@@ -202,6 +268,20 @@ func (mr *MockIGitRepoMockRecorder) GetTree(ctx, repoType, project, name, revisi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTree", reflect.TypeOf((*MockIGitRepo)(nil).GetTree), ctx, repoType, project, name, revision, path)
 }
 
+// LFSObjectExists mocks base method.
+func (m *MockIGitRepo) LFSObjectExists(ctx context.Context, oid string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LFSObjectExists", ctx, oid)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// LFSObjectExists indicates an expected call of LFSObjectExists.
+func (mr *MockIGitRepoMockRecorder) LFSObjectExists(ctx, oid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LFSObjectExists", reflect.TypeOf((*MockIGitRepo)(nil).LFSObjectExists), ctx, oid)
+}
+
 // LFSSize mocks base method.
 func (m *MockIGitRepo) LFSSize(ctx context.Context) int64 {
 	m.ctrl.T.Helper()
@@ -230,6 +310,21 @@ func (m *MockIGitRepo) ListCommits(ctx context.Context, repoType, project, name,
 func (mr *MockIGitRepoMockRecorder) ListCommits(ctx, repoType, project, name, revision, page, pageSize any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommits", reflect.TypeOf((*MockIGitRepo)(nil).ListCommits), ctx, repoType, project, name, revision, page, pageSize)
+}
+
+// ListRevisionFiles mocks base method.
+func (m *MockIGitRepo) ListRevisionFiles(ctx context.Context, repoType, project, name, revision string) (*git.RevisionFiles, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListRevisionFiles", ctx, repoType, project, name, revision)
+	ret0, _ := ret[0].(*git.RevisionFiles)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListRevisionFiles indicates an expected call of ListRevisionFiles.
+func (mr *MockIGitRepoMockRecorder) ListRevisionFiles(ctx, repoType, project, name, revision any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRevisionFiles", reflect.TypeOf((*MockIGitRepo)(nil).ListRevisionFiles), ctx, repoType, project, name, revision)
 }
 
 // ListRevisions mocks base method.

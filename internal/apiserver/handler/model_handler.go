@@ -27,6 +27,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/modelcache"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -35,12 +36,14 @@ import (
 
 type ModelHandler struct {
 	ms           model.IModelService
+	cache        modelcache.IModelCacheService
 	authzService authz.IAuthzService
 }
 
-func NewModelHandler(modelService model.IModelService, authzService authz.IAuthzService) IHandler {
+func NewModelHandler(modelService model.IModelService, cacheService modelcache.IModelCacheService, authzService authz.IAuthzService) IHandler {
 	handler := &ModelHandler{
 		ms:           modelService,
+		cache:        cacheService,
 		authzService: authzService,
 	}
 	return handler

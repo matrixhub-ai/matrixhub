@@ -21,6 +21,9 @@ import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
+import { resolveModelCacheIndicator } from '@/features/models/cache/cache.utils'
+import { ModelCacheIndicator } from '@/features/models/cache/components/ModelCacheIndicator'
+import { useProxyModelCacheStatus } from '@/features/models/cache/hooks/useProxyModelCacheStatus'
 import { type ModelCommandType } from '@/features/models/command-guide/commandGuides'
 import { ModelCommandDrawer } from '@/features/models/command-guide/ModelCommandDrawer'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
@@ -59,6 +62,19 @@ export function ModelDetailPage({
   const projectRole = useProjectRole(projectId)
   const hasSettingsRight = projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
   const modelPath = `${model.project ?? projectId}/${model.name?.trim() || modelId}`
+  const cacheStatus = useProxyModelCacheStatus(projectId, modelId)
+  const cacheIndicator = resolveModelCacheIndicator(cacheStatus)
+  const baseMetaItems = buildModelMetaItems(model, projectId, i18n.t.bind(i18n))
+  // Proxy-project models also show, next to their size, whether their files are cached in MatrixHub.
+  const metaItems = cacheIndicator
+    ? baseMetaItems.flatMap(item => (item.key === 'size'
+        ? [item, {
+            key: 'cache',
+            label: t('model.detail.cache.label'),
+            value: <ModelCacheIndicator indicator={cacheIndicator} />,
+          }]
+        : [item]))
+    : baseMetaItems
 
   const tabRoutes = linkOptions([
     {
@@ -113,7 +129,7 @@ export function ModelDetailPage({
           projectId={projectId}
           name={modelId}
           badges={buildModelBadges(model)}
-          metaItems={buildModelMetaItems(model, projectId, i18n.t.bind(i18n))}
+          metaItems={metaItems}
           actions={(
             <>
               <Button

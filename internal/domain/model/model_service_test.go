@@ -330,6 +330,40 @@ func TestModelService_CheckOrSyncFromRemoteSyncsStaleExistingModel(t *testing.T)
 	require.ErrorIs(t, err, pullErr)
 }
 
+func TestModelService_RefreshFromRemoteIgnoresSyncTTL(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	projectRepo, registryRepo := newProxyRepoMocks(ctrl)
+	pullErr := errors.New("pull attempted")
+	syncedAt := time.Now()
+
+	modelRepo.EXPECT().
+		GetByProjectAndName(ctx, "proj", "model").
+		Return(&model.Model{
+			ID:          42,
+			Name:        "model",
+			ProjectName: "proj",
+			SyncedAt:    &syncedAt,
+		}, nil)
+	gitRepo.EXPECT().
+		PullFromRemote(ctx, gomock.Any()).
+		Return(pullErr)
+
+	service := model.NewModelService(
+		modelRepo,
+		nil,
+		gitRepo,
+		projectRepo,
+		registryRepo,
+	)
+
+	err := service.RefreshFromRemote(ctx, "proj", "model")
+
+	require.ErrorIs(t, err, pullErr)
+}
+
 func TestModelService_CheckOrSyncFromRemoteRecordsSuccessfulSync(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)

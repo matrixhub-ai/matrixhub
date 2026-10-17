@@ -3780,3 +3780,922 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateModelSettingResponseValidationError{}
+
+// Validate checks the field values on CacheModelRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *CacheModelRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CacheModelRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CacheModelRequestMultiError, or nil if none found.
+func (m *CacheModelRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CacheModelRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetProject()) < 1 {
+		err := CacheModelRequestValidationError{
+			field:  "Project",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _CacheModelRequest_Name_NotInLookup[m.GetName()]; ok {
+		err := CacheModelRequestValidationError{
+			field:  "Name",
+			reason: "value must not be in list [models datasets spaces resolve]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 251 {
+		err := CacheModelRequestValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 251 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CacheModelRequest_Name_Pattern.MatchString(m.GetName()) {
+		err := CacheModelRequestValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9][A-Za-z0-9_.-]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetRevision()) > 255 {
+		err := CacheModelRequestValidationError{
+			field:  "Revision",
+			reason: "value length must be at most 255 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetAllowPatterns()) > 16 {
+		err := CacheModelRequestValidationError{
+			field:  "AllowPatterns",
+			reason: "value must contain no more than 16 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetAllowPatterns() {
+		_, _ = idx, item
+
+		if l := utf8.RuneCountInString(item); l < 1 || l > 256 {
+			err := CacheModelRequestValidationError{
+				field:  fmt.Sprintf("AllowPatterns[%v]", idx),
+				reason: "value length must be between 1 and 256 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(m.GetIgnorePatterns()) > 16 {
+		err := CacheModelRequestValidationError{
+			field:  "IgnorePatterns",
+			reason: "value must contain no more than 16 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetIgnorePatterns() {
+		_, _ = idx, item
+
+		if l := utf8.RuneCountInString(item); l < 1 || l > 256 {
+			err := CacheModelRequestValidationError{
+				field:  fmt.Sprintf("IgnorePatterns[%v]", idx),
+				reason: "value length must be between 1 and 256 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	// no validation rules for DryRun
+
+	if len(errors) > 0 {
+		return CacheModelRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CacheModelRequestMultiError is an error wrapping multiple validation errors
+// returned by CacheModelRequest.ValidateAll() if the designated constraints
+// aren't met.
+type CacheModelRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CacheModelRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CacheModelRequestMultiError) AllErrors() []error { return m }
+
+// CacheModelRequestValidationError is the validation error returned by
+// CacheModelRequest.Validate if the designated constraints aren't met.
+type CacheModelRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CacheModelRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CacheModelRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CacheModelRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CacheModelRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CacheModelRequestValidationError) ErrorName() string {
+	return "CacheModelRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CacheModelRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCacheModelRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CacheModelRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CacheModelRequestValidationError{}
+
+var _CacheModelRequest_Name_NotInLookup = map[string]struct{}{
+	"models":   {},
+	"datasets": {},
+	"spaces":   {},
+	"resolve":  {},
+}
+
+var _CacheModelRequest_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+
+// Validate checks the field values on GetModelCacheRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetModelCacheRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetModelCacheRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetModelCacheRequestMultiError, or nil if none found.
+func (m *GetModelCacheRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetModelCacheRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetProject()) < 1 {
+		err := GetModelCacheRequestValidationError{
+			field:  "Project",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _GetModelCacheRequest_Name_NotInLookup[m.GetName()]; ok {
+		err := GetModelCacheRequestValidationError{
+			field:  "Name",
+			reason: "value must not be in list [models datasets spaces resolve]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		err := GetModelCacheRequestValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetRevision()) > 255 {
+		err := GetModelCacheRequestValidationError{
+			field:  "Revision",
+			reason: "value length must be at most 255 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetModelCacheRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetModelCacheRequestMultiError is an error wrapping multiple validation
+// errors returned by GetModelCacheRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetModelCacheRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetModelCacheRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetModelCacheRequestMultiError) AllErrors() []error { return m }
+
+// GetModelCacheRequestValidationError is the validation error returned by
+// GetModelCacheRequest.Validate if the designated constraints aren't met.
+type GetModelCacheRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetModelCacheRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetModelCacheRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetModelCacheRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetModelCacheRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetModelCacheRequestValidationError) ErrorName() string {
+	return "GetModelCacheRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetModelCacheRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetModelCacheRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetModelCacheRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetModelCacheRequestValidationError{}
+
+var _GetModelCacheRequest_Name_NotInLookup = map[string]struct{}{
+	"models":   {},
+	"datasets": {},
+	"spaces":   {},
+	"resolve":  {},
+}
+
+// Validate checks the field values on ModelCacheFile with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ModelCacheFile) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ModelCacheFile with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ModelCacheFileMultiError,
+// or nil if none found.
+func (m *ModelCacheFile) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ModelCacheFile) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Path
+
+	// no validation rules for Size
+
+	// no validation rules for Lfs
+
+	// no validation rules for Oid
+
+	// no validation rules for State
+
+	// no validation rules for DownloadedBytes
+
+	// no validation rules for Error
+
+	if len(errors) > 0 {
+		return ModelCacheFileMultiError(errors)
+	}
+
+	return nil
+}
+
+// ModelCacheFileMultiError is an error wrapping multiple validation errors
+// returned by ModelCacheFile.ValidateAll() if the designated constraints
+// aren't met.
+type ModelCacheFileMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ModelCacheFileMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ModelCacheFileMultiError) AllErrors() []error { return m }
+
+// ModelCacheFileValidationError is the validation error returned by
+// ModelCacheFile.Validate if the designated constraints aren't met.
+type ModelCacheFileValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ModelCacheFileValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ModelCacheFileValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ModelCacheFileValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ModelCacheFileValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ModelCacheFileValidationError) ErrorName() string { return "ModelCacheFileValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ModelCacheFileValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sModelCacheFile.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ModelCacheFileValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ModelCacheFileValidationError{}
+
+// Validate checks the field values on ModelCacheTotals with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ModelCacheTotals) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ModelCacheTotals with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ModelCacheTotalsMultiError, or nil if none found.
+func (m *ModelCacheTotals) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ModelCacheTotals) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Files
+
+	// no validation rules for Bytes
+
+	// no validation rules for CachedFiles
+
+	// no validation rules for CachedBytes
+
+	// no validation rules for DownloadingFiles
+
+	// no validation rules for DownloadingBytes
+
+	// no validation rules for QueuedFiles
+
+	// no validation rules for MissingFiles
+
+	// no validation rules for FailedFiles
+
+	if len(errors) > 0 {
+		return ModelCacheTotalsMultiError(errors)
+	}
+
+	return nil
+}
+
+// ModelCacheTotalsMultiError is an error wrapping multiple validation errors
+// returned by ModelCacheTotals.ValidateAll() if the designated constraints
+// aren't met.
+type ModelCacheTotalsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ModelCacheTotalsMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ModelCacheTotalsMultiError) AllErrors() []error { return m }
+
+// ModelCacheTotalsValidationError is the validation error returned by
+// ModelCacheTotals.Validate if the designated constraints aren't met.
+type ModelCacheTotalsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ModelCacheTotalsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ModelCacheTotalsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ModelCacheTotalsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ModelCacheTotalsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ModelCacheTotalsValidationError) ErrorName() string { return "ModelCacheTotalsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ModelCacheTotalsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sModelCacheTotals.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ModelCacheTotalsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ModelCacheTotalsValidationError{}
+
+// Validate checks the field values on ModelCacheTask with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ModelCacheTask) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ModelCacheTask with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ModelCacheTaskMultiError,
+// or nil if none found.
+func (m *ModelCacheTask) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ModelCacheTask) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for State
+
+	// no validation rules for StartedAt
+
+	// no validation rules for FinishedAt
+
+	// no validation rules for Error
+
+	if len(errors) > 0 {
+		return ModelCacheTaskMultiError(errors)
+	}
+
+	return nil
+}
+
+// ModelCacheTaskMultiError is an error wrapping multiple validation errors
+// returned by ModelCacheTask.ValidateAll() if the designated constraints
+// aren't met.
+type ModelCacheTaskMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ModelCacheTaskMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ModelCacheTaskMultiError) AllErrors() []error { return m }
+
+// ModelCacheTaskValidationError is the validation error returned by
+// ModelCacheTask.Validate if the designated constraints aren't met.
+type ModelCacheTaskValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ModelCacheTaskValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ModelCacheTaskValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ModelCacheTaskValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ModelCacheTaskValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ModelCacheTaskValidationError) ErrorName() string { return "ModelCacheTaskValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ModelCacheTaskValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sModelCacheTask.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ModelCacheTaskValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ModelCacheTaskValidationError{}
+
+// Validate checks the field values on ModelCacheStatus with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ModelCacheStatus) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ModelCacheStatus with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ModelCacheStatusMultiError, or nil if none found.
+func (m *ModelCacheStatus) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ModelCacheStatus) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Project
+
+	// no validation rules for Name
+
+	// no validation rules for RequestedRevision
+
+	// no validation rules for Commit
+
+	// no validation rules for State
+
+	if all {
+		switch v := interface{}(m.GetTotals()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ModelCacheStatusValidationError{
+					field:  "Totals",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ModelCacheStatusValidationError{
+					field:  "Totals",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTotals()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ModelCacheStatusValidationError{
+				field:  "Totals",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetFiles() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ModelCacheStatusValidationError{
+						field:  fmt.Sprintf("Files[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ModelCacheStatusValidationError{
+						field:  fmt.Sprintf("Files[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ModelCacheStatusValidationError{
+					field:  fmt.Sprintf("Files[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetTask()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ModelCacheStatusValidationError{
+					field:  "Task",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ModelCacheStatusValidationError{
+					field:  "Task",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTask()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ModelCacheStatusValidationError{
+				field:  "Task",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ModelCacheStatusMultiError(errors)
+	}
+
+	return nil
+}
+
+// ModelCacheStatusMultiError is an error wrapping multiple validation errors
+// returned by ModelCacheStatus.ValidateAll() if the designated constraints
+// aren't met.
+type ModelCacheStatusMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ModelCacheStatusMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ModelCacheStatusMultiError) AllErrors() []error { return m }
+
+// ModelCacheStatusValidationError is the validation error returned by
+// ModelCacheStatus.Validate if the designated constraints aren't met.
+type ModelCacheStatusValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ModelCacheStatusValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ModelCacheStatusValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ModelCacheStatusValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ModelCacheStatusValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ModelCacheStatusValidationError) ErrorName() string { return "ModelCacheStatusValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ModelCacheStatusValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sModelCacheStatus.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ModelCacheStatusValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ModelCacheStatusValidationError{}
