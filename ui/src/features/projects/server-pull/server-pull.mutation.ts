@@ -34,7 +34,8 @@ export function cacheModelMutationOptions() {
     },
     meta: {
       errorMessage: i18n.t('projects.detail.proxyDownload.serverPull.startError'),
-      invalidates: [modelKeys.lists(), modelCacheKeys.all],
+      // Statuses only: invalidating the preview would repeat its upstream dry run.
+      invalidates: [modelKeys.lists(), modelCacheKeys.statuses()],
     } satisfies NotificationMeta,
   })
 }

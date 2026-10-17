@@ -1,5 +1,6 @@
 import {
   CacheFileState,
+  CacheState,
   CacheTaskState,
   type ModelCacheFile,
   type ModelCacheStatus,
@@ -68,6 +69,10 @@ export function isFinishedTaskState(state: CacheTaskState | null | undefined) {
     || state === CacheTaskState.CACHE_TASK_STATE_FAILED
 }
 
+/**
+ * The server decides how much is cached (`state`, counted by LFS objects); the latest pull
+ * (`task`) only matters while it runs, or when it failed and files are still missing.
+ */
 export function resolveModelCacheState(status: ModelCacheStatus | null | undefined): ModelCacheState {
   if (!status) {
     return 'unknown'
@@ -77,10 +82,7 @@ export function resolveModelCacheState(status: ModelCacheStatus | null | undefin
     return 'running'
   }
 
-  const files = toSafeNumber(status.totals?.files)
-  const cachedFiles = toSafeNumber(status.totals?.cachedFiles)
-
-  if (files > 0 && cachedFiles >= files) {
+  if (status.state === CacheState.CACHE_STATE_CACHED) {
     return 'cached'
   }
 
@@ -88,7 +90,14 @@ export function resolveModelCacheState(status: ModelCacheStatus | null | undefin
     return 'failed'
   }
 
-  return cachedFiles > 0 ? 'partial' : 'uncached'
+  switch (status.state) {
+    case CacheState.CACHE_STATE_PARTIAL:
+      return 'partial'
+    case CacheState.CACHE_STATE_MISSING:
+      return 'uncached'
+    default:
+      return 'unknown'
+  }
 }
 
 function sumFiles(files: readonly ModelCacheFile[], pick: (file: ModelCacheFile) => number) {
@@ -119,8 +128,7 @@ export function computeCacheProgress(status: ModelCacheStatus | null | undefined
     ? sumFiles(files, fileDoneBytes)
     : toSafeNumber(totals?.cachedBytes)
   const doneBytes = totalBytes > 0 ? Math.min(rawDoneBytes, totalBytes) : rawDoneBytes
-  const complete = resolveModelCacheState(status) === 'cached'
-    || status?.task?.state === CacheTaskState.CACHE_TASK_STATE_SUCCEEDED
+  const complete = status?.state === CacheState.CACHE_STATE_CACHED
 
   let rawPercent = 0
 

@@ -50,7 +50,7 @@ export function shortCommit(sha: string | null | undefined) {
 export function listFailedFiles(status: ModelCacheStatus | null | undefined, limit: number): FailedFilesSummary {
   const failed = (status?.files ?? []).filter(file => file.state === CacheFileState.CACHE_FILE_STATE_FAILED)
   const items = failed.slice(0, Math.max(0, limit))
-  // `files` may be trimmed by the server; the totals still count every failure.
+  // The totals count every failure, also when `files` is missing.
   const totalFailed = Math.max(failed.length, toSafeNumber(status?.totals?.failedFiles))
 
   return {

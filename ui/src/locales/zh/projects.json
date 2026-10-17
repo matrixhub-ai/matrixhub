@@ -77,8 +77,8 @@
         "errors": {
           "notFound": "上游仓库中未找到该模型或版本，请检查名称",
           "permissionDenied": "没有权限向当前项目拉取模型",
-          "invalidArgument": "模型名称或版本无效",
-          "failedPrecondition": "暂时无法拉取该模型，可能需要授权访问或上游同步失败",
+          "invalidArgument": "模型名称或版本无效，版本需为分支、标签或提交",
+          "failedPrecondition": "暂时无法拉取该模型：可能需要授权访问、上游同步失败，或该版本不在任何分支或标签上",
           "resourceExhausted": "同时运行的拉取任务过多，请稍后再试",
           "unavailable": "上游仓库暂时无法访问，请稍后重试",
           "unknown": "检查模型失败"

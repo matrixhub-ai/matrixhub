@@ -77,8 +77,8 @@
         "errors": {
           "notFound": "The model or revision was not found upstream. Check the name.",
           "permissionDenied": "You do not have permission to pull models into this project.",
-          "invalidArgument": "The model name or revision is invalid.",
-          "failedPrecondition": "The model cannot be pulled right now. It may require authorized access, or the upstream sync failed.",
+          "invalidArgument": "The model name or revision is invalid. The revision must be a branch, a tag or a commit.",
+          "failedPrecondition": "The model cannot be pulled right now. It may require authorized access, the upstream sync failed, or the revision is not on a branch or tag.",
           "resourceExhausted": "Too many pull tasks are running. Try again later.",
           "unavailable": "The upstream registry is unreachable. Try again later.",
           "unknown": "Failed to check the model."

@@ -1,5 +1,6 @@
 import {
   CacheFileState,
+  CacheState,
   CacheTaskState,
   type ModelCacheFile,
   type ModelCacheStatus,
@@ -18,17 +19,18 @@ import {
 
 function cacheStatus(
   totals: ModelCacheTotals | undefined,
-  taskState: CacheTaskState = CacheTaskState.CACHE_TASK_STATE_IDLE,
+  taskState: CacheTaskState,
   files?: ModelCacheFile[],
 ): ModelCacheStatus {
   return {
     project: 'hf-proxy',
     name: 'Qwen3-0.6B',
     commit: 'c1a2b3d4e5f60718293a4b5c6d7e8f9012345678',
+    state: CacheState.CACHE_STATE_PARTIAL,
     totals,
     files,
     task: {
-      id: 'task-1',
+      id: 'run-1',
       state: taskState,
     },
   }
