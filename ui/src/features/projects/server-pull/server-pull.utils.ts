@@ -14,7 +14,7 @@ import {
 export type ServerPullErrorKind = 'notFound' | 'permissionDenied' | 'invalidArgument' | 'failedPrecondition' | 'resourceExhausted' | 'unavailable' | 'unknown'
 
 /** Locale key suffix of the button that starts a pull. */
-export type ServerPullActionKey = 'start' | 'resume' | 'retry'
+export type ServerPullActionKey = 'start' | 'retry'
 
 export interface FailedFilesSummary {
   items: ModelCacheFile[]
@@ -59,14 +59,16 @@ export function listFailedFiles(status: ModelCacheStatus | null | undefined, lim
   }
 }
 
-/** Label of the start button for a state; `null` when there is nothing to start. */
+/**
+ * Label of the start button for a state; `null` when there is nothing to start. A partially
+ * cached model gets "start" too: its cached files may come from other models that share LFS
+ * objects, and a pull skips them either way.
+ */
 export function getServerPullActionKey(state: ModelCacheState): ServerPullActionKey | null {
   switch (state) {
     case 'running':
     case 'cached':
       return null
-    case 'partial':
-      return 'resume'
     case 'failed':
       return 'retry'
     default:

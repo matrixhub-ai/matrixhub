@@ -125,10 +125,11 @@ describe('listFailedFiles', () => {
 })
 
 describe('getServerPullActionKey', () => {
-  it('starts, resumes or retries a pull depending on the state', () => {
+  it('retries a failed pull and starts one otherwise', () => {
     expect(getServerPullActionKey('uncached')).toBe('start')
     expect(getServerPullActionKey('unknown')).toBe('start')
-    expect(getServerPullActionKey('partial')).toBe('resume')
+    // Cached files may belong to other models that share LFS objects.
+    expect(getServerPullActionKey('partial')).toBe('start')
     expect(getServerPullActionKey('failed')).toBe('retry')
   })
 

@@ -56,7 +56,6 @@
           "warnings": "提示"
         },
         "start": "开始拉取",
-        "resume": "继续拉取",
         "retry": "重新拉取",
         "nothingToPull": "该版本没有需要拉取的文件。",
         "alreadyCached": "该版本的全部文件均已缓存，可直接使用。",

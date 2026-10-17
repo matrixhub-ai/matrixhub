@@ -56,7 +56,6 @@
           "warnings": "Notes"
         },
         "start": "Start pull",
-        "resume": "Resume pull",
         "retry": "Retry pull",
         "nothingToPull": "This revision has no files to pull.",
         "alreadyCached": "All files of this revision are already cached and ready to use.",
