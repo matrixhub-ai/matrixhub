@@ -87,18 +87,22 @@ triage includes checking for duplicates, asking for missing reproduction steps o
 logs, confirming whether a bug can be reproduced, and suggesting the most relevant
 labels.
 
-Anyone may add or remove existing public `kind/*`, `area/*`, `priority/*`, and
-`triage/*` labels with commands such as `/kind bug` and `/remove-kind bug`:
+Anyone may add or remove existing public `kind/*`, `area/*`, and `priority/*`
+labels with commands such as `/kind bug` and `/remove-kind bug`:
 
 - **Type:** `kind/bug`, `kind/feature`, `kind/design`, `kind/dependency`,
   `kind/documentation`, `kind/support`, `kind/cleanup`, `kind/flake`,
   `kind/regression`, `kind/api-change`, `kind/failing-test`, or
   `kind/deprecation`.
 - **Area:** `area/ui` or `area/test`.
-- **Triage state:** `triage/needs-information`, `triage/not-reproducible`, or
-  `triage/duplicate`.
 - **Priority:** `priority/backlog`, `priority/important-soon`,
   `priority/important-longterm`, or `priority/critical-urgent`.
+
+Triage state labels are reserved for organization members and repository
+collaborators, because `triage/accepted` records that a maintainer has confirmed
+the issue is ready to work on. They add and remove `triage/accepted`,
+`triage/needs-information`, `triage/not-reproducible`, and `triage/duplicate`
+with commands such as `/triage accepted` and `/remove-triage accepted`.
 
 On issues, anyone may also use `/good-first-issue`, `/help-wanted`, and their
 `/remove-*` forms. Reserve them for clear starter work or issues seeking help.
