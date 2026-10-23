@@ -72,6 +72,24 @@ service Models {
       body: "*"
     };
   }
+  // CacheModel pulls a revision of a proxy-project model from upstream into
+  // MatrixHub storage on the server. The model may not exist locally yet.
+  // With dry_run it only lists the upstream files and reports what is already
+  // cached: it never syncs, creates the model, or starts downloads.
+  rpc CacheModel(CacheModelRequest) returns (ModelCacheStatus) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/models/{project}/{name}/cache"
+      body: "*"
+    };
+  }
+  // GetModelCache reports the local cache status of every file of a model
+  // revision, and the latest pull of that commit. It is read-only: it never
+  // contacts upstream and never starts downloads.
+  rpc GetModelCache(GetModelCacheRequest) returns (ModelCacheStatus) {
+    option (google.api.http) = {
+      get: "/api/v1alpha1/models/{project}/{name}/cache"
+    };
+  }
 }
 
 message ListModelTaskLabelsRequest {
@@ -263,4 +281,131 @@ message UpdateModelSettingRequest {
 }
 
 message UpdateModelSettingResponse {
+}
+
+enum CacheFileState {
+  CACHE_FILE_STATE_UNSPECIFIED = 0;
+  CACHE_FILE_STATE_CACHED = 1;
+  CACHE_FILE_STATE_DOWNLOADING = 2;
+  // Part of a running cache task, not started yet.
+  CACHE_FILE_STATE_QUEUED = 3;
+  CACHE_FILE_STATE_MISSING = 4;
+  CACHE_FILE_STATE_FAILED = 5;
+}
+
+// How much of the selected files is in MatrixHub storage. Files stored in git
+// are present once the commit is synced, so LFS objects decide between
+// MISSING and PARTIAL.
+enum CacheState {
+  CACHE_STATE_UNSPECIFIED = 0;
+  // No LFS object of the selection is cached.
+  CACHE_STATE_MISSING = 1;
+  CACHE_STATE_PARTIAL = 2;
+  // Every selected file is cached.
+  CACHE_STATE_CACHED = 3;
+}
+
+enum CacheTaskState {
+  CACHE_TASK_STATE_UNSPECIFIED = 0;
+  CACHE_TASK_STATE_RUNNING = 1;
+  CACHE_TASK_STATE_SUCCEEDED = 2;
+  CACHE_TASK_STATE_FAILED = 3;
+}
+
+message CacheModelRequest {
+  string project = 1 [(validate.rules).string.min_len = 1];
+  // Name of the model. As on Hugging Face, it may start with '_'.
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 251,
+    pattern: "^[A-Za-z0-9_][A-Za-z0-9_.-]*$",
+    not_in: ["models", "datasets", "spaces", "resolve"]
+  }];
+  // Branch, tag or commit. Empty means the default branch. Other refs, such as
+  // refs/pr/1, are rejected: MatrixHub mirrors only branches and tags. So are
+  // revision expressions such as main~1, which upstream does not resolve.
+  string revision = 3 [(validate.rules).string.max_len = 255];
+  // Narrow the cached files; without patterns every file of the revision is
+  // cached. Patterns follow huggingface_hub fnmatch semantics: '*' and '?'
+  // also match '/', and a trailing '/' selects a whole directory. A list
+  // holds at most 16 patterns, and a pattern at most 256 characters and 16
+  // wildcards ('*', '?' and classes).
+  repeated string allow_patterns = 4 [(validate.rules).repeated = {max_items: 16, items: {string: {min_len: 1, max_len: 256}}}];
+  // Files that match an ignore pattern are not cached, even when they match
+  // an allow pattern. Same syntax and limits as allow_patterns.
+  repeated string ignore_patterns = 5 [(validate.rules).repeated = {max_items: 16, items: {string: {min_len: 1, max_len: 256}}}];
+  // Only report what a pull would do: the upstream files of the revision and
+  // which of them are cached. A dry run creates nothing and downloads
+  // nothing.
+  bool dry_run = 6;
+}
+
+message GetModelCacheRequest {
+  string project = 1 [(validate.rules).string.min_len = 1];
+  // Name of the model. As on Hugging Face, it may start with '_'.
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 251,
+    pattern: "^[A-Za-z0-9_][A-Za-z0-9_.-]*$",
+    not_in: ["models", "datasets", "spaces", "resolve"]
+  }];
+  // Branch, tag or commit. Empty means the default branch.
+  string revision = 3 [(validate.rules).string.max_len = 255];
+}
+
+message ModelCacheFile {
+  string path = 1;
+  int64 size = 2;
+  bool lfs = 3;
+  // LFS object id (sha256). Empty for files stored directly in git.
+  string oid = 4;
+  CacheFileState state = 5;
+  int64 downloaded_bytes = 6;
+  string error = 7;
+}
+
+message ModelCacheTotals {
+  int64 files = 1;
+  // Total size of the files.
+  int64 bytes = 2;
+  int64 cached_files = 3;
+  int64 cached_bytes = 4;
+  int64 downloading_files = 5;
+  // Bytes downloaded so far of the files in DOWNLOADING state, not their
+  // size.
+  int64 downloading_bytes = 6;
+  int64 queued_files = 7;
+  int64 missing_files = 8;
+  int64 failed_files = 9;
+}
+
+// One run of a pull.
+message ModelCacheTask {
+  // Opaque and unique per run: retrying a failed pull starts a new run.
+  string id = 1;
+  CacheTaskState state = 2;
+  string started_at = 3;
+  string finished_at = 4;
+  string error = 5;
+}
+
+message ModelCacheStatus {
+  string project = 1;
+  string name = 2;
+  string requested_revision = 3;
+  // The branch, tag or commit that was listed: requested_revision, or the name
+  // of the default branch when none was requested. A dry run leaves it empty
+  // when the registry does not name its default branch.
+  string revision = 4;
+  string commit = 5;
+  // How much of the selected files is cached; see CacheState.
+  CacheState state = 6;
+  ModelCacheTotals totals = 7;
+  repeated ModelCacheFile files = 8;
+  // The latest pull that the server knows of: of the requested selection for
+  // CacheModel, of the commit for GetModelCache. Unset when there is none, for
+  // example when no pull was started, the last one finished more than an hour
+  // ago, or the server restarted since.
+  ModelCacheTask task = 9;
+  repeated string warnings = 10;
 }

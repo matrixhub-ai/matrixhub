@@ -21,6 +21,29 @@ export enum Category {
   OTHER = "OTHER",
 }
 
+export enum CacheFileState {
+  CACHE_FILE_STATE_UNSPECIFIED = "CACHE_FILE_STATE_UNSPECIFIED",
+  CACHE_FILE_STATE_CACHED = "CACHE_FILE_STATE_CACHED",
+  CACHE_FILE_STATE_DOWNLOADING = "CACHE_FILE_STATE_DOWNLOADING",
+  CACHE_FILE_STATE_QUEUED = "CACHE_FILE_STATE_QUEUED",
+  CACHE_FILE_STATE_MISSING = "CACHE_FILE_STATE_MISSING",
+  CACHE_FILE_STATE_FAILED = "CACHE_FILE_STATE_FAILED",
+}
+
+export enum CacheState {
+  CACHE_STATE_UNSPECIFIED = "CACHE_STATE_UNSPECIFIED",
+  CACHE_STATE_MISSING = "CACHE_STATE_MISSING",
+  CACHE_STATE_PARTIAL = "CACHE_STATE_PARTIAL",
+  CACHE_STATE_CACHED = "CACHE_STATE_CACHED",
+}
+
+export enum CacheTaskState {
+  CACHE_TASK_STATE_UNSPECIFIED = "CACHE_TASK_STATE_UNSPECIFIED",
+  CACHE_TASK_STATE_RUNNING = "CACHE_TASK_STATE_RUNNING",
+  CACHE_TASK_STATE_SUCCEEDED = "CACHE_TASK_STATE_SUCCEEDED",
+  CACHE_TASK_STATE_FAILED = "CACHE_TASK_STATE_FAILED",
+}
+
 export type ListModelTaskLabelsRequest = {
 }
 
@@ -190,6 +213,64 @@ export type UpdateModelSettingRequest = {
 export type UpdateModelSettingResponse = {
 }
 
+export type CacheModelRequest = {
+  project?: string
+  name?: string
+  revision?: string
+  allowPatterns?: string[]
+  ignorePatterns?: string[]
+  dryRun?: boolean
+}
+
+export type GetModelCacheRequest = {
+  project?: string
+  name?: string
+  revision?: string
+}
+
+export type ModelCacheFile = {
+  path?: string
+  size?: string
+  lfs?: boolean
+  oid?: string
+  state?: CacheFileState
+  downloadedBytes?: string
+  error?: string
+}
+
+export type ModelCacheTotals = {
+  files?: string
+  bytes?: string
+  cachedFiles?: string
+  cachedBytes?: string
+  downloadingFiles?: string
+  downloadingBytes?: string
+  queuedFiles?: string
+  missingFiles?: string
+  failedFiles?: string
+}
+
+export type ModelCacheTask = {
+  id?: string
+  state?: CacheTaskState
+  startedAt?: string
+  finishedAt?: string
+  error?: string
+}
+
+export type ModelCacheStatus = {
+  project?: string
+  name?: string
+  requestedRevision?: string
+  revision?: string
+  commit?: string
+  state?: CacheState
+  totals?: ModelCacheTotals
+  files?: ModelCacheFile[]
+  task?: ModelCacheTask
+  warnings?: string[]
+}
+
 export class Models {
   static ListModelTaskLabels(req: ListModelTaskLabelsRequest, initReq?: fm.InitReq): Promise<ListModelTaskLabelsResponse> {
     return fm.fetchReq<ListModelTaskLabelsRequest, ListModelTaskLabelsResponse>(`/api/v1alpha1/models/task-labels?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -226,5 +307,11 @@ export class Models {
   }
   static UpdateModelSetting(req: UpdateModelSettingRequest, initReq?: fm.InitReq): Promise<UpdateModelSettingResponse> {
     return fm.fetchReq<UpdateModelSettingRequest, UpdateModelSettingResponse>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/setting`, {...initReq, method: "PUT", body: JSON.stringify(req, fm.replacer)})
+  }
+  static CacheModel(req: CacheModelRequest, initReq?: fm.InitReq): Promise<ModelCacheStatus> {
+    return fm.fetchReq<CacheModelRequest, ModelCacheStatus>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/cache`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static GetModelCache(req: GetModelCacheRequest, initReq?: fm.InitReq): Promise<ModelCacheStatus> {
+    return fm.fetchReq<GetModelCacheRequest, ModelCacheStatus>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/cache?${fm.renderURLSearchParams(req, ["project", "name"])}`, {...initReq, method: "GET"})
   }
 }

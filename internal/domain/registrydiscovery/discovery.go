@@ -16,9 +16,42 @@ package registrydiscovery
 
 import (
 	"context"
+	"errors"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
 )
+
+// Errors returned by RemoteFileLister implementations, wrapped with details.
+var (
+	// ErrRemoteNotFound means the remote repository or revision does not exist.
+	ErrRemoteNotFound = errors.New("remote repository or revision not found")
+	// ErrRemoteAccessDenied means the registry refused access, e.g. a gated
+	// or private repository without a usable credential.
+	ErrRemoteAccessDenied = errors.New("remote registry denied access")
+	// ErrRemoteUnavailable means the registry could not be reached, or did
+	// not answer with a listing.
+	ErrRemoteUnavailable = errors.New("remote registry unavailable")
+	// ErrRemoteTooLarge means the revision has more files than a listing
+	// holds.
+	ErrRemoteTooLarge = errors.New("remote revision has too many files")
+	// ErrRemoteGated comes with ErrRemoteAccessDenied for a gated repository,
+	// whose files need a credential that accepted its terms.
+	ErrRemoteGated = errors.New("gated repository needs an authorized credential")
+	// ErrRemoteRateLimited comes with ErrRemoteUnavailable when the registry
+	// asks to retry later.
+	ErrRemoteRateLimited = errors.New("rate limited")
+)
+
+// RemoteFileLister lists the files of a remote repository revision through a
+// registry's Hugging Face-compatible API. It is read-only.
+//
+//go:generate go tool mockgen -source=discovery.go -destination=mocks/discovery_mock.go -package=mocks
+type RemoteFileLister interface {
+	// ListRevisionFiles resolves revision (empty means the default branch) on
+	// the registry and lists every file of that commit with LFS details.
+	ListRevisionFiles(ctx context.Context, reg *registry.Registry, namespace, name, revision string) (*git.RevisionFiles, error)
+}
 
 // Discovery discovers remote repositories for a given registry type.
 type Discovery interface {

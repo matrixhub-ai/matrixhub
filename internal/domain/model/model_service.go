@@ -62,6 +62,13 @@ type IModelService interface {
 	// CheckOrSyncFromRemote ensures the model exists and synchronizes proxy models
 	// from their remote registry when needed.
 	CheckOrSyncFromRemote(ctx context.Context, project, name string) error
+
+	// RefreshFromRemote is CheckOrSyncFromRemote without the sync TTL: it
+	// synchronizes a proxy model now, which also re-queues every LFS object
+	// that is not stored locally. Unlike CheckOrSyncFromRemote, it never
+	// creates the model: it fails with ErrModelNotFound when the model does
+	// not exist.
+	RefreshFromRemote(ctx context.Context, project, name string) error
 }
 
 // ModelService implements the model service operations.
@@ -363,6 +370,14 @@ func (s *ModelService) updateModelLabels(ctx context.Context, modelID int64, tag
 }
 
 func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name string) error {
+	return s.syncFromRemote(ctx, project, name, false)
+}
+
+func (s *ModelService) RefreshFromRemote(ctx context.Context, project, name string) error {
+	return s.syncFromRemote(ctx, project, name, true)
+}
+
+func (s *ModelService) syncFromRemote(ctx context.Context, project, name string, force bool) error {
 	prj, err := s.projectRepo.GetProjectByName(ctx, project)
 	if err != nil {
 		return err
@@ -371,12 +386,24 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 		return nil
 	}
 
-	mod, err := s.ensureModelRecord(ctx, project, name)
-	if err != nil {
-		return fmt.Errorf("ensure model %s/%s: %w", project, name, err)
-	}
-	if !mod.ShouldSync() {
-		return nil
+	var mod *Model
+	if force {
+		// A refresh never creates the model: it may have been deleted since
+		// the caller looked it up.
+		var exists bool
+		if mod, exists, err = s.findModel(ctx, project, name); err != nil {
+			return err
+		}
+		if !exists {
+			return fmt.Errorf("%w: %s/%s", ErrModelNotFound, project, name)
+		}
+	} else {
+		if mod, err = s.ensureModelRecord(ctx, project, name); err != nil {
+			return fmt.Errorf("ensure model %s/%s: %w", project, name, err)
+		}
+		if !mod.ShouldSync() {
+			return nil
+		}
 	}
 
 	reg, err := s.registryRepo.GetRegistry(ctx, *prj.RegistryID)

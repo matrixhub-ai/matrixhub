@@ -16,9 +16,14 @@ package git
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 )
+
+// ErrRevisionNotFound reports that a repository, or a revision in it, does
+// not exist locally.
+var ErrRevisionNotFound = errors.New("revision not found")
 
 // Git-related types for model version control
 
@@ -124,6 +129,32 @@ type OrphanedLFS struct {
 	Path      string
 }
 
+// RevisionFile is a file of a repository revision. For LFS files Size is the
+// object size and OID its sha256; for regular files Size is the blob size.
+type RevisionFile struct {
+	Path  string
+	Size  int64
+	IsLFS bool
+	OID   string
+}
+
+// RevisionFiles lists every file of a resolved revision.
+type RevisionFiles struct {
+	// Revision is the effective revision name (the default branch when the
+	// requested revision was empty).
+	Revision string
+	Commit   string
+	Files    []RevisionFile
+}
+
+// LFSDownload observes an in-flight LFS object download.
+type LFSDownload interface {
+	// Downloaded returns the number of contiguous bytes written so far.
+	Downloaded() int64
+	// Total returns the object size.
+	Total() int64
+}
+
 // BasicCredential holds username/password for remote git authentication.
 type BasicCredential struct {
 	Username string
@@ -201,4 +232,22 @@ type IGitRepo interface {
 	RepositoriesSize(ctx context.Context) int64
 	// LFSSize returns the size of all LFS objects on disk.
 	LFSSize(ctx context.Context) int64
+
+	// ListRevisionFiles resolves revision (branch, tag or commit; empty means
+	// the default branch) in the local repository and lists every file of
+	// that commit recursively, with LFS pointer details.
+	// It fails with ErrRevisionNotFound when the repository or the revision
+	// does not exist.
+	ListRevisionFiles(ctx context.Context, repoType, project, name, revision string) (*RevisionFiles, error)
+	// HasCommit reports whether the local repository has the commit, given as
+	// a full commit id. It does not read the commit's files.
+	HasCommit(ctx context.Context, repoType, project, name, commit string) bool
+	// LFSObjectExists reports whether an LFS object is fully stored locally.
+	// It never contacts upstream.
+	LFSObjectExists(ctx context.Context, oid string) bool
+	// FetchLFSObject returns the in-flight download of an LFS object,
+	// promoting it to a foreground download when it is queued by the proxy
+	// mirror. It returns nil when the object is neither queued nor
+	// downloading (already stored, never queued, or its last attempt failed).
+	FetchLFSObject(ctx context.Context, oid string) LFSDownload
 }

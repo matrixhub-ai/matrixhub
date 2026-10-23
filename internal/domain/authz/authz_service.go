@@ -29,6 +29,8 @@ import (
 )
 
 // IAuthzService permission verification service interface
+//
+//go:generate go tool mockgen -source=authz_service.go -destination=mocks/authz_service_mock.go -package=mocks
 type IAuthzService interface {
 	// GetUserPermissions gets user's permission list in a project
 	GetUserPermissions(ctx context.Context, userID int, projectID int) ([]role.Permission, error)

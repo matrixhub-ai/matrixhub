@@ -16,10 +16,15 @@ package model
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
 const modelSyncTTL = time.Minute
+
+// ErrModelNotFound reports that a model does not exist. RefreshFromRemote
+// wraps it, so that callers tell a deleted model from a failed sync.
+var ErrModelNotFound = errors.New("model not found")
 
 // Model represents an AI model in the system.
 type Model struct {
