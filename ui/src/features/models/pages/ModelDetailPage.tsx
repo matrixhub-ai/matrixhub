@@ -11,6 +11,7 @@ import {
   IconDownload,
   IconTerminal2,
 } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Link,
   getRouteApi,
@@ -21,9 +22,13 @@ import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
+import { resolveModelCacheIndicator } from '@/features/models/cache/cache.utils'
+import { ModelCacheIndicator } from '@/features/models/cache/components/ModelCacheIndicator'
+import { useProxyModelCacheStatus } from '@/features/models/cache/hooks/useProxyModelCacheStatus'
 import { type ModelCommandType } from '@/features/models/command-guide/commandGuides'
 import { ModelCommandDrawer } from '@/features/models/command-guide/ModelCommandDrawer'
 import { buildModelBadges, buildModelMetaItems } from '@/features/models/models.utils'
+import { ModelDownloadDrawer } from '@/features/models/server-pull/components/ModelDownloadDrawer'
 import { UseModelDrawer } from '@/features/models/use-model/UseModelDrawer'
 import {
   ENGINE_LABELS,
@@ -31,6 +36,8 @@ import {
   USE_MODEL_ENGINES,
   type UseModelEngine,
 } from '@/features/models/use-model/useModelGuides'
+import { projectDetailQueryOptions } from '@/features/projects/projects.query'
+import { isProxyProject } from '@/features/projects/projects.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
 import { usePayloadModal } from '@/shared/hooks/usePayloadModal'
 
@@ -58,7 +65,26 @@ export function ModelDetailPage({
   const useModelDrawer = usePayloadModal<UseModelEngine>()
   const projectRole = useProjectRole(projectId)
   const hasSettingsRight = projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
+  const { data: project } = useQuery(projectDetailQueryOptions(projectId))
+  // Admins and editors of a proxy project can have MatrixHub pull the model on the server.
+  const canPullOnServer = isProxyProject(project?.registryUrl) && (
+    projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
+    || projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_EDITOR
+  )
   const modelPath = `${model.project ?? projectId}/${model.name?.trim() || modelId}`
+  const cacheStatus = useProxyModelCacheStatus(projectId, modelId)
+  const cacheIndicator = resolveModelCacheIndicator(cacheStatus)
+  const baseMetaItems = buildModelMetaItems(model, projectId, i18n.t.bind(i18n))
+  // Proxy-project models also show, next to their size, whether their files are cached in MatrixHub.
+  const metaItems = cacheIndicator
+    ? baseMetaItems.flatMap(item => (item.key === 'size'
+        ? [item, {
+            key: 'cache',
+            label: t('model.detail.cache.label'),
+            value: <ModelCacheIndicator indicator={cacheIndicator} canPull={canPullOnServer} />,
+          }]
+        : [item]))
+    : baseMetaItems
 
   const tabRoutes = linkOptions([
     {
@@ -113,7 +139,7 @@ export function ModelDetailPage({
           projectId={projectId}
           name={modelId}
           badges={buildModelBadges(model)}
-          metaItems={buildModelMetaItems(model, projectId, i18n.t.bind(i18n))}
+          metaItems={metaItems}
           actions={(
             <>
               <Button
@@ -175,14 +201,25 @@ export function ModelDetailPage({
       </Tabs>
 
       {children}
-      {commandDialog.payload && (
-        <ModelCommandDrawer
-          opened={commandDialog.opened}
-          type={commandDialog.payload}
-          modelPath={modelPath}
-          onClose={commandDialog.close}
-        />
-      )}
+      {commandDialog.payload === 'download' && canPullOnServer
+        ? (
+            <ModelDownloadDrawer
+              opened={commandDialog.opened}
+              projectId={projectId}
+              modelId={modelId}
+              modelPath={modelPath}
+              defaultBranch={model.defaultBranch || 'main'}
+              onClose={commandDialog.close}
+            />
+          )
+        : commandDialog.payload && (
+          <ModelCommandDrawer
+            opened={commandDialog.opened}
+            type={commandDialog.payload}
+            modelPath={modelPath}
+            onClose={commandDialog.close}
+          />
+        )}
       {useModelDrawer.payload && (
         <UseModelDrawer
           key={useModelDrawer.payload}

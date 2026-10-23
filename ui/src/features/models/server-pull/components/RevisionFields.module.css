@@ -1,0 +1,4 @@
+/* An empty revision is a choice, the default branch, so its placeholder reads as a value. */
+.input {
+  --input-placeholder-color: var(--mantine-color-text);
+}

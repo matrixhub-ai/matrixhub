@@ -1,0 +1,18 @@
+/* The upstream organization in front of the model name input, styled like a read-only input. */
+.organization {
+  display: flex;
+  flex: none;
+  align-items: center;
+  max-width: 40%;
+  padding: 0 var(--mantine-spacing-sm);
+  overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
+  white-space: nowrap;
+  background: var(--app-color-gray-10);
+  border: 1px solid var(--app-color-gray-30);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.separator {
+  align-self: center;
+}

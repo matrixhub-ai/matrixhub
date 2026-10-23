@@ -36,9 +36,6 @@ export function ModelCommandDrawer({
   onClose,
 }: ModelCommandDrawerProps) {
   const { t } = useTranslation()
-  const systemConfigQuery = useSystemConfig()
-  const hfEndpoint = systemConfigQuery.data?.endpoints?.hfBase || window.location.origin
-  const localPath = buildLocalPathPlaceholder(modelPath)
 
   return (
     <GuideDrawer
@@ -47,6 +44,23 @@ export function ModelCommandDrawer({
       title={t(`model.detail.commandGuide.${type}.title`)}
       intro={t(`model.detail.commandGuide.${type}.intro`)}
     >
+      <ModelCommandSteps type={type} modelPath={modelPath} />
+    </GuideDrawer>
+  )
+}
+
+/** The `hf` CLI steps of a command guide; the download drawer of proxy models reuses them. */
+export function ModelCommandSteps({
+  type,
+  modelPath,
+}: Pick<ModelCommandDrawerProps, 'type' | 'modelPath'>) {
+  const { t } = useTranslation()
+  const systemConfigQuery = useSystemConfig()
+  const hfEndpoint = systemConfigQuery.data?.endpoints?.hfBase || window.location.origin
+  const localPath = buildLocalPathPlaceholder(modelPath)
+
+  return (
+    <Stack gap="sm">
       <GuideStep
         index={1}
         title={t(type === 'download'
@@ -107,6 +121,6 @@ export function ModelCommandDrawer({
               </GuideNote>
             </Stack>
           )}
-    </GuideDrawer>
+    </Stack>
   )
 }

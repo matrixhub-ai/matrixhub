@@ -1,0 +1,30 @@
+/* Header, scrolling body and pinned footer stack in one column, whatever the header height. */
+.drawerContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--app-color-gray-30);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--mantine-spacing-lg);
+}
+
+.footer {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  border-top: 1px solid var(--app-color-gray-30);
+}

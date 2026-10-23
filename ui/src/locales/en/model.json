@@ -93,7 +93,111 @@
         "localPathHint": "Replace it with the model folder on this machine, for example:",
         "localPathExample": "/Users/yourname/models/{{name}}"
       }
+    },
+    "cache": {
+      "label": "Cache status",
+      "states": {
+        "cached": "Cached",
+        "partial": "Partially cached {{percent}}%",
+        "uncached": "Not cached",
+        "running": "Pulling {{percent}}%",
+        "failed": "Pull failed ({{percent}}% cached)"
+      },
+      "tooltips": {
+        "cached": "Every file of the default branch is stored in MatrixHub, so workloads download the files from MatrixHub instead of the upstream registry. MatrixHub still checks upstream for new commits.",
+        "partial": "Files that are not cached are fetched from the upstream registry on first download, at upstream speed.",
+        "uncached": "Files that are not cached are fetched from the upstream registry on first download, at upstream speed.",
+        "running": "MatrixHub is pulling this model from the upstream registry. The status updates automatically.",
+        "failed": "The last server-side pull failed, so files that are not cached are fetched from the upstream registry on first download.",
+        "hints": {
+          "pull": "To cache them in advance, click Download Model on this page and choose Pull to server.",
+          "retry": "To retry, click Download Model on this page and choose Pull to server.",
+          "askToPull": "Project members with the Admin or Editor role can pull the model to the server in advance."
+        }
+      }
     }
+  },
+  "serverPull": {
+    "method": {
+      "label": "Download method",
+      "server": "Pull to server",
+      "serverDescription": "MatrixHub pulls the model files from the upstream registry and caches them. No local environment needed.",
+      "recommended": "Recommended",
+      "cli": "Download with the command line",
+      "cliDescription": "Run the hf download command locally to download the model."
+    },
+    "revision": {
+      "label": "Revision",
+      "description": "Choose the revision to cache.",
+      "defaultBranch": "Default branch",
+      "defaultBranchOf": "{{branch}} (default branch)",
+      "useTyped": "Use \"{{revision}}\"",
+      "typeHint": "Type a branch, a tag or a commit to pull another revision."
+    },
+    "summary": {
+      "location": "Saved to",
+      "locationValue": "MatrixHub server cache",
+      "scope": "Pull scope",
+      "scopeValue": "All model files of the selected revision",
+      "revision": "Revision",
+      "files": "Files",
+      "filesValue_one": "{{count}} file · {{size}}",
+      "filesValue_other": "{{count}} files · {{size}}",
+      "cached": "Cached",
+      "cachedValue_one": "{{cached}} / {{count}} file · {{size}}",
+      "cachedValue_other": "{{cached}} / {{count}} files · {{size}}",
+      "warnings": "Notes",
+      "enterName": "Enter the upstream model name to see which files will be pulled."
+    },
+    "states": {
+      "nothingToPull": "This revision has no files to pull.",
+      "alreadyCached": "All files of this revision are already cached and ready to use.",
+      "succeeded": "Pull completed. All files of the selected revision are cached."
+    },
+    "actions": {
+      "start": "Start pull",
+      "retry": "Retry pull",
+      "viewModel": "View model",
+      "close": "Close",
+      "recheck": "Check again"
+    },
+    "hints": {
+      "server": "The task keeps running on the server after you close this panel.",
+      "cli": "Refresh the page after the download completes."
+    },
+    "progress": {
+      "label": "Pull progress",
+      "running": "Pulling",
+      "succeeded": "Completed",
+      "failed": "Failed",
+      "stopped": "Not running",
+      "frozen": "Progress unavailable",
+      "files_one": "{{done}} / {{count}} file",
+      "files_other": "{{done}} / {{count}} files",
+      "bytes": "{{done}} / {{total}}"
+    },
+    "failedTitle": "Some files failed to pull",
+    "moreFailed_one": "{{count}} more file failed",
+    "moreFailed_other": "{{count}} more files failed",
+    "errors": {
+      "notFound": "The model or revision was not found upstream. Check the name.",
+      "permissionDenied": "You do not have permission to pull models into this project.",
+      "unauthenticated": "Your session has expired. Sign in again.",
+      "invalidArgument": "The request is invalid. Check the model name and the revision.",
+      "failedPrecondition": "The model cannot be pulled. It may require authorized access, the revision may not be on a branch or tag, or the revision may have too many files.",
+      "unavailable": "The upstream registry is unreachable. Try again later.",
+      "unknown": "Failed to check the model."
+    },
+    "pollErrors": {
+      "notFound": "The model is no longer in MatrixHub, so its progress cannot be shown.",
+      "permissionDenied": "You no longer have access to this model.",
+      "unauthenticated": "Your session has expired. Sign in again to see the progress.",
+      "invalidArgument": "Failed to get the pull progress.",
+      "failedPrecondition": "Failed to get the pull progress.",
+      "unavailable": "MatrixHub is unreachable. Try again later.",
+      "unknown": "Failed to get the pull progress."
+    },
+    "startError": "Failed to start the pull"
   },
   "settings": {
     "delete": {
