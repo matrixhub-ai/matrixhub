@@ -21,7 +21,7 @@ import (
 
 type Registry struct {
 	ID             int `gorm:"primarykey"`
-	Name           string
+	Name           string `gorm:"uniqueIndex:idx_registries_name"`
 	Description    string
 	Type           string
 	URL            string
@@ -60,5 +60,6 @@ type IRegistryRepo interface {
 	CreateRegistry(ctx context.Context, registry Registry) (*Registry, error)
 	UpdateRegistry(ctx context.Context, registry Registry) error
 	DeleteRegistry(ctx context.Context, id int) error
+	GetRegistryByName(ctx context.Context, name string) (*Registry, error)
 	PingRegistry(ctx context.Context, reg Registry) (int, string, error)
 }
