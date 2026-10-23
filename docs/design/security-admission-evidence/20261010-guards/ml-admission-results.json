@@ -1,0 +1,24 @@
+{
+  "repo": "mhml1791567912/checkpoint-review",
+  "source_sha256": "545d8feae7cdaa752dfcecd8d480928b31a0f7a0b494877c9ab5ddf504906703",
+  "cases": [
+    {
+      "scenario": "public-checkpoint-warning-strict-policy-denies",
+      "passed": true,
+      "revision": "88629328c3dba24757586f562ea8e60e89e5e43e"
+    },
+    {
+      "scenario": "review-warning-high-threshold-allows-exact-bytes",
+      "passed": true
+    },
+    {
+      "scenario": "extra-dangerous-pickle-blocks-whole-revision-even-with-high-threshold",
+      "passed": true,
+      "revision": "a85b154aa6f4906e3ee392d60d983e2b253b6a9f"
+    },
+    {
+      "scenario": "strict-policy-restored-denies-warning-again",
+      "passed": true
+    }
+  ]
+}

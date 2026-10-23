@@ -1,0 +1,67 @@
+{
+  "phase": "after",
+  "repo": "mhguard1791567885/mixed-failure",
+  "cases": [
+    {
+      "scenario": "spoof-layout.pt",
+      "status": "blocked",
+      "not_clean": true,
+      "rules": [
+        "LIKELY_OVERTLY_MALICIOUS"
+      ]
+    },
+    {
+      "scenario": "spoof-layout.zip",
+      "status": "blocked",
+      "not_clean": true,
+      "rules": [
+        "LIKELY_OVERTLY_MALICIOUS"
+      ]
+    },
+    {
+      "scenario": "spoof-before-metadata.pt",
+      "status": "blocked",
+      "not_clean": true,
+      "rules": [
+        "LIKELY_OVERTLY_MALICIOUS"
+      ]
+    },
+    {
+      "scenario": "spoof-broken-metadata.pt",
+      "status": "failed",
+      "not_clean": true,
+      "rules": []
+    },
+    {
+      "scenario": "spoof-ml-layout.pt",
+      "status": "blocked",
+      "not_clean": true,
+      "rules": [
+        "ML_CONSTRUCTION_REVIEW",
+        "LIKELY_OVERTLY_MALICIOUS"
+      ]
+    },
+    {
+      "scenario": "spoof-ml-layout.zip",
+      "status": "blocked",
+      "not_clean": true,
+      "rules": [
+        "ML_CONSTRUCTION_REVIEW",
+        "LIKELY_OVERTLY_MALICIOUS"
+      ]
+    },
+    {
+      "scenario": "duplicate-metadata.pt",
+      "status": "failed",
+      "not_clean": true,
+      "rules": []
+    },
+    {
+      "scenario": "high-finding-in-failed-file-with-failure-allow",
+      "http": 403,
+      "passed": true,
+      "revision": "3d376a22b84e66fc7fa54b38cb02b97f283454f0"
+    }
+  ],
+  "payload_marker_exists": false
+}

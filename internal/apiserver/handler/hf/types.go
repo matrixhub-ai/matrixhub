@@ -91,25 +91,29 @@ type repoListItem struct {
 
 // repoInfo represents the info response for HuggingFace API
 type repoInfo struct {
-	ID           string    `json:"id"`
-	ModelID      string    `json:"modelId,omitempty"`
-	SHA          string    `json:"sha"`
-	Private      bool      `json:"private"`
-	Disabled     bool      `json:"disabled"`
-	Gated        bool      `json:"gated"`
-	Downloads    int       `json:"downloads"`
-	Likes        int       `json:"likes"`
-	Tags         []string  `json:"tags"` // This is not git tags, but the tags in HuggingFace card metadata
-	CardData     any       `json:"cardData,omitempty"`
-	Siblings     []sibling `json:"siblings"`
-	CreatedAt    string    `json:"createdAt,omitempty"`
-	LastModified string    `json:"lastModified,omitempty"`
-	UsedStorage  int64     `json:"usedStorage"`
+	ID                 string    `json:"id"`
+	ModelID            string    `json:"modelId,omitempty"`
+	SHA                string    `json:"sha"`
+	Private            bool      `json:"private"`
+	Disabled           bool      `json:"disabled"`
+	Gated              bool      `json:"gated"`
+	Downloads          int       `json:"downloads"`
+	Likes              int       `json:"likes"`
+	Tags               []string  `json:"tags"` // This is not git tags, but the tags in HuggingFace card metadata
+	CardData           any       `json:"cardData,omitempty"`
+	Siblings           []sibling `json:"siblings"`
+	CreatedAt          string    `json:"createdAt,omitempty"`
+	LastModified       string    `json:"lastModified,omitempty"`
+	UsedStorage        int64     `json:"usedStorage"`
+	SecurityRepoStatus any       `json:"securityRepoStatus,omitempty"`
 }
 
 // sibling represents a file in the model repository
 type sibling struct {
 	RFilename string `json:"rfilename"`
+	Size      *int64 `json:"size,omitempty"`
+	BlobID    string `json:"blobId,omitempty"`
+	LFS       any    `json:"lfs,omitempty"`
 }
 
 // deleteRepoRequest represents the delete repo request body.

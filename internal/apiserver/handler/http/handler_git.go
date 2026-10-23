@@ -29,6 +29,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
@@ -128,8 +129,12 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repoInfo := getRepoInformation(r)
-	repo, err := h.openRepo(r.Context(), repoPath, repoInfo, service)
+	repo, release, err := h.openRepo(r.Context(), repoPath, repoInfo, service)
 	if err != nil {
+		if errors.Is(err, git.ErrReadNotAdmitted) {
+			responseText(w, "repository snapshot is not admitted", http.StatusForbidden)
+			return
+		}
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
 			responseText(w, fmt.Sprintf("repository %q not found", repoName), http.StatusNotFound)
 			return
@@ -138,6 +143,7 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer release()
 	w.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-advertisement", service))
 	w.Header().Set("Cache-Control", "no-cache")
 
@@ -207,8 +213,12 @@ func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service 
 	}
 
 	repoInfo := getRepoInformation(r)
-	repo, err := h.openRepo(r.Context(), repoPath, repoInfo, service)
+	repo, release, err := h.openRepo(r.Context(), repoPath, repoInfo, service)
 	if err != nil {
+		if errors.Is(err, git.ErrReadNotAdmitted) {
+			responseText(w, "repository snapshot is not admitted", http.StatusForbidden)
+			return
+		}
 		if errors.Is(err, repository.ErrRepositoryNotExists) {
 			responseText(w, fmt.Sprintf("repository %q not found", repoName), http.StatusNotFound)
 			return
@@ -217,6 +227,7 @@ func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service 
 		return
 	}
 
+	defer release()
 	w.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", service))
 	w.Header().Set("Cache-Control", "no-cache")
 
@@ -233,13 +244,25 @@ func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service 
 	}
 }
 
-func (h *Handler) openRepo(ctx context.Context, repoPath string, ri repoInformation, service string) (*repository.Repository, error) {
-	if ri.RepoType != "models" || h.mirror == nil || service != repository.GitUploadPack {
-		return repository.Open(repoPath)
+func (h *Handler) openRepo(ctx context.Context, repoPath string, ri repoInformation, service string) (*repository.Repository, func(), error) {
+	if ri.RepoType == "models" && h.mirror != nil && service == repository.GitUploadPack {
+		if err := h.modelService.CheckOrSyncFromRemote(ctx, ri.Namespace, ri.Name); err != nil {
+			log.Errorf("failed to sync from remote for %s/%s: %v", ri.Namespace, ri.Name, err)
+			return nil, nil, err
+		}
 	}
-	if err := h.modelService.CheckOrSyncFromRemote(ctx, ri.Namespace, ri.Name); err != nil {
-		log.Errorf("failed to sync from remote for %s/%s: %v", ri.Namespace, ri.Name, err)
-		return nil, err
+	release := func() {}
+	if service == repository.GitUploadPack && h.readSnapshot != nil {
+		var err error
+		repoPath, release, err = h.readSnapshot(ctx, ri.FullName, repoPath)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
-	return repository.Open(repoPath)
+	repo, err := repository.Open(repoPath)
+	if err != nil {
+		release()
+		return nil, nil, err
+	}
+	return repo, release, nil
 }

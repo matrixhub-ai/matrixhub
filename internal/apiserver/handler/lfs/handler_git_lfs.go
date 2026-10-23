@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -28,6 +29,10 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
+	"github.com/matrixhub-ai/hfd/pkg/repository"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/artifactscan"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
 const (
@@ -55,6 +60,47 @@ func (h *Handler) handleBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var responseObjects []*lfsRepresentation
+	if h.artifactScan != nil && bv.Operation == "download" {
+		repoType, _, _, valid := utils.ParseFromRepoName(bv.repoName())
+		if valid && (repoType == "models" || repoType == "datasets") {
+			path := h.storage.ResolvePath(bv.repoName())
+			repo, err := repository.Open(path)
+			if err != nil {
+				responseJSON(w, "revision unavailable", http.StatusServiceUnavailable)
+				return
+			}
+			revision := r.URL.Query().Get("revision")
+			if revision == "" {
+				revision = bv.Ref.Name
+			}
+			if revision == "" {
+				revision = repo.DefaultBranch()
+			}
+			commits, err := repo.Commits(revision, &repository.CommitsOptions{Limit: 1})
+			if err != nil || len(commits) == 0 {
+				responseJSON(w, "revision unavailable", http.StatusBadRequest)
+				return
+			}
+			revision = commits[0].Hash().String()
+			user, _ := authenticate.GetUserInfo(r.Context())
+			for _, object := range bv.Objects {
+				decision, err := h.admitObject(r.Context(), bv.repoName(), revision, object.Oid, user.User)
+				if err != nil {
+					responseJSON(w, "admission unavailable", http.StatusServiceUnavailable)
+					return
+				}
+				if !decision.Allowed {
+					responseObjects = append(responseObjects, &lfsRepresentation{Oid: object.Oid, Size: object.Size, Error: &lfsObjectError{Code: 403, Message: "RevisionBlocked: " + decision.Reason}})
+					continue
+				}
+				object.SecurityRevision = revision
+				responseObjects = append(responseObjects, h.lfsRepresent(r.Context(), bv.Operation, object, true, false))
+			}
+			w.Header().Set("Content-Type", metaMediaType)
+			responseJSON(w, &lfsBatchResponse{Transfer: "basic", Objects: responseObjects}, http.StatusOK)
+			return
+		}
+	}
 
 	// Create a response object
 	for _, object := range bv.Objects {
@@ -117,6 +163,32 @@ func (h *Handler) handlePutContent(w http.ResponseWriter, r *http.Request) {
 // handleGetContent gets the content from the content store
 func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 	rv := unpack(r)
+	if h.artifactScan != nil {
+		name, revision := r.URL.Query().Get("repo"), r.URL.Query().Get("revision")
+		if name == "" || revision == "" {
+			responseJSON(w, "object download requires repository and revision", http.StatusForbidden)
+			return
+		}
+		if h.permissionHookFunc == nil {
+			responseJSON(w, "authorization unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		allowed, err := h.permissionHookFunc(r.Context(), permission.OperationReadRepo, name, permission.Context{Ref: revision})
+		if err != nil || !allowed {
+			responseJSON(w, "permission denied", http.StatusForbidden)
+			return
+		}
+		user, _ := authenticate.GetUserInfo(r.Context())
+		decision, err := h.admitObject(r.Context(), name, revision, rv.Oid, user.User)
+		if err != nil {
+			responseJSON(w, "admission unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		if !decision.Allowed {
+			responseJSON(w, map[string]any{"error": "RevisionBlocked", "revision": revision, "scanStatus": decision.ScanStatus, "reason": decision.Reason}, http.StatusForbidden)
+			return
+		}
+	}
 	if !h.lfsStorage.Exists(rv.Oid) {
 		if h.mirror != nil {
 			pf := h.mirror.Get(rv.Oid)
@@ -132,7 +204,7 @@ func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 		responseJSON(w, fmt.Sprintf("LFS object %s not found", rv.Oid), http.StatusNotFound)
 		return
 	}
-	if signer, ok := h.lfsStorage.(lfs.SignGetter); ok {
+	if signer, ok := h.lfsStorage.(lfs.SignGetter); ok && h.artifactScan == nil {
 		url, err := signer.SignGet(rv.Oid)
 		if err != nil {
 			responseJSON(w, fmt.Sprintf("failed to sign URL for LFS object %q: %v", rv.Oid, err), http.StatusInternalServerError)
@@ -160,6 +232,17 @@ func (h *Handler) handleGetContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responseJSON(w, fmt.Sprintf("LFS storage does not support direct content retrieval for object %s", rv.Oid), http.StatusNotImplemented)
+}
+
+func (h *Handler) admitObject(ctx context.Context, name, revision, oid, actor string) (artifactscan.Decision, error) {
+	repoType, _, _, valid := utils.ParseFromRepoName(name)
+	if !valid {
+		return artifactscan.Decision{}, fmt.Errorf("invalid repository")
+	}
+	if repoType == "datasets" {
+		return h.artifactScan.AdmitDatasetObject(ctx, name, revision, oid, actor)
+	}
+	return h.artifactScan.AdmitObject(ctx, name, revision, oid, actor)
 }
 
 func (h *Handler) handleVerifyObject(w http.ResponseWriter, r *http.Request) {
@@ -302,12 +385,17 @@ type lfsRequestVars struct {
 	Oid    string
 	Size   int64
 
-	Repo          string
-	Authorization string
+	Repo             string
+	Authorization    string
+	SecurityRevision string
 }
 
 func (v *lfsRequestVars) objectsLink() string {
-	return fmt.Sprintf("%s/objects/%s", v.Origin, v.Oid)
+	link := fmt.Sprintf("%s/objects/%s", v.Origin, v.Oid)
+	if v.SecurityRevision != "" {
+		link += "?" + url.Values{"repo": {v.Repo}, "revision": {v.SecurityRevision}}.Encode()
+	}
+	return link
 }
 
 func (v *lfsRequestVars) verifyLink() string {
@@ -315,6 +403,9 @@ func (v *lfsRequestVars) verifyLink() string {
 }
 
 type lfsBatchVars struct {
+	Ref struct {
+		Name string `json:"name"`
+	} `json:"ref"`
 	Transfers []string          `json:"transfers,omitempty"`
 	Operation string            `json:"operation"`
 	Objects   []*lfsRequestVars `json:"objects"`

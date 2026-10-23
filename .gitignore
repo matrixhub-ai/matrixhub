@@ -43,3 +43,10 @@ web/node_modules
 website/node_modules
 
 /tmp
+
+# Local security prototype runtime, credentials and build caches
+.mh-local/
+.pnpm-store/
+.mh-local-ui-build.log
+**/__pycache__/
+**/*.pyc

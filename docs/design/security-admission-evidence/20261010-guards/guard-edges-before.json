@@ -1,0 +1,37 @@
+{
+  "phase": "before",
+  "repo": "mhguard1791567121/mixed-failure",
+  "cases": [
+    {
+      "scenario": "spoof-layout.pt",
+      "status": "passed",
+      "not_clean": false,
+      "rules": []
+    },
+    {
+      "scenario": "spoof-layout.zip",
+      "status": "passed",
+      "not_clean": false,
+      "rules": []
+    },
+    {
+      "scenario": "spoof-before-metadata.pt",
+      "status": "passed",
+      "not_clean": false,
+      "rules": []
+    },
+    {
+      "scenario": "spoof-broken-metadata.pt",
+      "status": "failed",
+      "not_clean": true,
+      "rules": []
+    },
+    {
+      "scenario": "high-finding-in-failed-file-with-failure-allow",
+      "http": 200,
+      "passed": false,
+      "revision": "ff55b3d06e337289d40db860d082a4ae1646d1c3"
+    }
+  ],
+  "payload_marker_exists": false
+}

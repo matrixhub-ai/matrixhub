@@ -1,0 +1,28 @@
+{
+  "scope": "one public Hugging Face test checkpoint; characterization, no model loading or inference",
+  "source": "hf-internal-testing/tiny-random-BertModel",
+  "source_url": "https://huggingface.co/hf-internal-testing/tiny-random-BertModel/resolve/fc08ad9cc33be9aef4f55cc80e16ef5ae3d5981c/pytorch_model.bin",
+  "revision": "fc08ad9cc33be9aef4f55cc80e16ef5ae3d5981c",
+  "sha256": "545d8feae7cdaa752dfcecd8d480928b31a0f7a0b494877c9ab5ddf504906703",
+  "bytes": 383481,
+  "result": {
+    "status": "warning",
+    "findings": [
+      {
+        "scanner": "fickling",
+        "version": "0.1.12",
+        "rule": "ML_CONSTRUCTION_REVIEW",
+        "severity": "medium"
+      }
+    ],
+    "checks": [
+      "ClamAV 1.5.4/28148/Fri Oct  9 06:25:40 2026",
+      "fickling/0.1.12",
+      "pytorch:raw-tensor-storage"
+    ],
+    "file_type": "zip",
+    "sha256": "545d8feae7cdaa752dfcecd8d480928b31a0f7a0b494877c9ab5ddf504906703",
+    "size": 383481,
+    "ruleset": "f16964c5df0a980767469fc7e858308a0a4457bdb30c14246205859021d66440"
+  }
+}
