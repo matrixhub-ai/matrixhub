@@ -98,10 +98,13 @@ type RepoMetadataFiles struct {
 	ReadmeContent        []byte
 	ConfigJSON           []byte
 	SafetensorsIndexJSON []byte
-	SafetensorsFiles     map[string][]byte
-	// SafetensorsSizes holds LFS pointer sizes for safetensors files whose
-	// headers could not be read. It lets the model domain fall back to a
-	// size-based estimate instead of reporting no parameter count at all.
+	// SafetensorsFiles holds length-prefixed headers, not complete weight files.
+	// With a positive index total_size, headers are included only when every
+	// referenced shard is locally readable, without accessing the mirror cache.
+	SafetensorsFiles map[string][]byte
+	// SafetensorsSizes holds full file sizes from Git blobs or LFS pointers,
+	// including files with readable headers. It supports header validation and
+	// size-based estimates for unreadable files; a missing entry means unknown.
 	SafetensorsSizes map[string]int64
 	Size             int64
 }

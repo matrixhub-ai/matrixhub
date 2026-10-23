@@ -16,7 +16,6 @@ package model
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"math"
 	"strings"
@@ -24,6 +23,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/hf"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
 // ClassifiedTag represents model metadata tags after applying model-domain rules.
@@ -44,10 +44,7 @@ type safetensorsIndex struct {
 	Metadata struct {
 		TotalSize int64 `json:"total_size"`
 	} `json:"metadata"`
-}
-
-type safetensorsTensor struct {
-	Shape []int64 `json:"shape"`
+	WeightMap json.RawMessage `json:"weight_map"`
 }
 
 // AnalyzeRepoMetadata converts raw repo files into model-domain metadata.
@@ -86,7 +83,8 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 	// Default to fp16/bf16-sized parameters when config.json does not expose
 	// enough dtype/quantization information. This is a pragmatic default for
 	// modern Hugging Face model repos.
-	parameterBytes := int64(2)
+	var config parameterConfig
+	configValid := true
 	if len(files.ConfigJSON) > 0 {
 		if cfg, err := hf.ParseConfigData(bytes.NewReader(files.ConfigJSON)); err == nil {
 			if cfg.ModelType != "" {
@@ -96,31 +94,17 @@ func AnalyzeRepoMetadata(files *git.RepoMetadataFiles) (*RepoMetadata, error) {
 				tags = append(tags, ClassifiedTag{Name: cfg.QuantizationConfig.QuantMethod, Category: "other"})
 			}
 		}
-		if inferred := inferParameterBytes(files.ConfigJSON); inferred > 0 {
-			parameterBytes = inferred
+		if err := json.Unmarshal(files.ConfigJSON, &config); err != nil {
+			log.Warnw("Cannot read parameter counting config", "error", err)
+			configValid = false
 		}
 	}
-
-	if len(files.SafetensorsIndexJSON) > 0 {
-		// For most sharded HF models, model.safetensors.index.json metadata.total_size
-		// gives total tensor bytes. Dividing by bytes-per-parameter gives a cheap,
-		// usually-good parameter_count estimate without scanning all shards.
-		var index safetensorsIndex
-		if err := json.Unmarshal(files.SafetensorsIndexJSON, &index); err == nil && index.Metadata.TotalSize > 0 {
-			metadata.ParameterCount = estimateParameterCount(index.Metadata.TotalSize, parameterBytes)
-		}
+	rules, err := resolveParameterRules(config)
+	if err != nil {
+		log.Warnw("Cannot resolve parameter counting quantization", "error", err)
+		configValid = false
 	}
-	if metadata.ParameterCount == 0 {
-		// Header scans are exact but only cover files whose weights were readable.
-		// Files that fell back to the size recorded in their LFS pointer are
-		// estimated from that size instead, using the same arithmetic as the index
-		// path above. The two sets are disjoint — the git layer records each file
-		// as one or the other — so counting both is what keeps a partly-fetched
-		// sharded model from reporting only the shards it could read.
-		exact := countSafetensorsParameters(files.SafetensorsFiles)
-		estimated := estimateParameterCount(sumSafetensorsSizes(files.SafetensorsSizes), parameterBytes)
-		metadata.ParameterCount = addParameterCounts(exact, estimated)
-	}
+	metadata.ParameterCount = inferSafetensorsParameters(files, rules, inferParameterBytes(config, rules), configValid)
 
 	metadata.Tags = deduplicateClassifiedTags(tags)
 	return metadata, nil
@@ -150,130 +134,58 @@ func deduplicateClassifiedTags(tags []ClassifiedTag) []ClassifiedTag {
 	return result
 }
 
-func inferParameterBytes(configBytes []byte) int64 {
-	var raw map[string]any
-	if err := json.Unmarshal(configBytes, &raw); err != nil {
-		return 0
+func inferParameterBytes(config parameterConfig, rules parameterRules) parameterRatio {
+	if rules.method == "fp8" && rules.expertBits == 4 {
+		// Packed FP4 experts use half a byte plus one E8M0 scale per 32 values.
+		return parameterRatio{17, 32}
 	}
 
-	if quantCfg, ok := raw["quantization_config"].(map[string]any); ok {
-		if bits := extractBits(quantCfg); bits > 0 {
-			return int64(math.Ceil(float64(bits) / 8.0))
+	if quantConfig := config.object("quantization_config"); quantConfig != nil {
+		if bits := estimatedParameterBits(quantConfig); bits > 0 {
+			return parameterRatio{uint64(bits/8 + min(1, bits%8)), 1}
 		}
-		if method, ok := quantCfg["quant_method"].(string); ok {
-			switch strings.ToLower(method) {
-			case "gptq", "awq", "int4", "nf4", "fp4", "int8", "fp8":
-				return 1
-			}
+		switch strings.ToLower(quantConfig.text("quant_method")) {
+		case "gptq", "awq", "int4", "nf4", "fp4", "int8", "fp8":
+			return parameterRatio{1, 1}
 		}
 	}
 
 	for _, key := range []string{"torch_dtype", "dtype"} {
-		if val, ok := raw[key].(string); ok {
-			switch strings.ToLower(val) {
-			case "float32", "fp32":
-				return 4
-			case "float16", "fp16", "bfloat16", "bf16", "half":
-				return 2
-			case "int8", "uint8", "fp8":
-				return 1
-			}
+		switch strings.ToLower(config.text(key)) {
+		case "float32", "fp32":
+			return parameterRatio{4, 1}
+		case "float16", "fp16", "bfloat16", "bf16", "half":
+			return parameterRatio{2, 1}
+		case "int8", "uint8", "fp8":
+			return parameterRatio{1, 1}
 		}
 	}
-
-	return 0
+	return parameterRatio{2, 1}
 }
 
-func extractBits(quantCfg map[string]any) int {
+func estimatedParameterBits(config parameterConfig) int64 {
 	for _, key := range []string{"bits", "w_bit", "weight_bit_width"} {
-		switch v := quantCfg[key].(type) {
-		case float64:
-			if v > 0 {
-				return int(v)
-			}
-		case int:
-			if v > 0 {
-				return v
-			}
+		var value float64
+		if json.Unmarshal(config[key], &value) == nil && value > 0 && value < math.MaxInt64 {
+			return int64(value)
 		}
 	}
 	return 0
 }
 
-func estimateParameterCount(totalSize, parameterBytes int64) int64 {
-	if totalSize <= 0 || parameterBytes <= 0 {
-		return 0
+func estimateParameterCount(totalSize int64, parameterBytes parameterRatio) (int64, error) {
+	if totalSize == 0 {
+		return 0, nil
 	}
-	return totalSize / parameterBytes
+	return (parameterRatio{parameterBytes.denominator, parameterBytes.numerator}).apply(totalSize, false)
 }
 
 // addParameterCounts adds two parameter counts, returning 0 when either is
 // invalid or the sum would overflow. 0 means "unknown" throughout this file.
 func addParameterCounts(a, b int64) int64 {
 	if a < 0 || b < 0 || a > math.MaxInt64-b {
+		log.Warnw("Parameter count sum is invalid", "exact", a, "estimated", b)
 		return 0
 	}
 	return a + b
-}
-
-func sumSafetensorsSizes(sizes map[string]int64) int64 {
-	var total int64
-	for _, size := range sizes {
-		if size <= 0 || size > math.MaxInt64-total {
-			return 0
-		}
-		total += size
-	}
-	return total
-}
-
-func countSafetensorsParameters(files map[string][]byte) int64 {
-	var total int64
-	for _, content := range files {
-		count, ok := countSafetensorsHeaderParameters(content)
-		if !ok {
-			continue
-		}
-		if count > math.MaxInt64-total {
-			return 0
-		}
-		total += count
-	}
-	return total
-}
-
-func countSafetensorsHeaderParameters(content []byte) (int64, bool) {
-	if len(content) < 8 {
-		return 0, false
-	}
-
-	headerLength := binary.LittleEndian.Uint64(content[:8])
-	if headerLength > uint64(len(content)-8) || headerLength > uint64(math.MaxInt64) {
-		return 0, false
-	}
-
-	var tensors map[string]safetensorsTensor
-	if err := json.Unmarshal(content[8:8+int(headerLength)], &tensors); err != nil {
-		return 0, false
-	}
-
-	var total int64
-	for name, tensor := range tensors {
-		if name == "__metadata__" {
-			continue
-		}
-
-		count := int64(1)
-		for _, dim := range tensor.Shape {
-			if dim < 0 || dim > math.MaxInt64/count {
-				return 0, false
-			}
-			count *= dim
-		}
-		if count > math.MaxInt64-total {
-			return 0, false
-		}
-		total += count
-	}
-	return total, true
 }
