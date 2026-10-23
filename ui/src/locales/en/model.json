@@ -93,7 +93,8 @@
         "localPathHint": "Replace it with the model folder on this machine, for example:",
         "localPathExample": "/Users/yourname/models/{{name}}"
       }
-    }
+    },
+    "security": "Security"
   },
   "settings": {
     "delete": {
@@ -132,5 +133,29 @@
     "modelNameInvalid": "Invalid model name format",
     "success": "Model created successfully",
     "error": "Failed to create model"
+  },
+  "security": {
+    "file": "File",
+    "severity": "Severity",
+    "rules": "Detection rules",
+    "digest": "Digest (sha256)",
+    "size": "Size",
+    "findings": "File-level findings",
+    "audit": "Audit trail",
+    "rescan": "Rescan",
+    "scanners": "Scanners",
+    "scannedAt": "Scanned at",
+    "noAudit": "No audit events yet",
+    "noFindingsYet": "No scan results yet.",
+    "blockedNotice": "This revision is blocked by security policy: downloads are denied.",
+    "loadFailed": "Failed to load scan report",
+    "status": {
+      "unscanned": "Unscanned",
+      "scanning": "Scanning…",
+      "pass": "Passed",
+      "warning": "Warning",
+      "blocked": "Blocked",
+      "failed": "Scan failed"
+    }
   }
 }
