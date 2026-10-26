@@ -1,0 +1,77 @@
+name: mh-security-local
+services:
+  matrixhub:
+    image: mh-security-local:stage2
+    build:
+      context: ../../.mh-local/runtime-bundle
+      dockerfile: Dockerfile.runtime
+    ports:
+      - "127.0.0.1:13872:3001"
+      - "127.0.0.1:13873:2222"
+    volumes:
+      - hub-data:/data
+      - ./config-compose.yaml:/etc/matrixhub/config.yaml:ro
+    networks: [scan, update]
+    depends_on:
+      scanner:
+        condition: service_healthy
+    cpus: 2
+    mem_limit: 1g
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+  scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      CLAMD_HOST: clamav
+      SCAN_SPOOL_DIR: /spool
+      SCAN_MAX_FILE_BYTES: "1073741824"
+      SCAN_ARCHIVE_BYTES: "1342177280"
+      SCAN_TIMEOUT_SECONDS: "540"
+    networks: [scan]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    volumes:
+      - scanner-spool:/spool
+      - ./clamd-security.conf:/app/clamd-security.conf:ro
+    cpus: 1
+    mem_limit: 512m
+    pids_limit: 32
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      clamav:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -B, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/identity', timeout=8).read()"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+  clamav:
+    image: clamav/clamav@sha256:ebec5bc138401b36ae987caa1a3fa3c3b2a21ed3d51f0bfa5852825e663e67b0
+    networks: [scan, update]
+    volumes:
+      - signature-db:/var/lib/clamav
+      - ./clamd-security.conf:/etc/clamav/clamd.conf:ro
+    cpus: 1
+    mem_limit: 1536m
+    healthcheck:
+      test: [CMD, clamdscan, --config-file=/etc/clamav/clamd.conf, --ping=1]
+      interval: 15s
+      timeout: 10s
+      start_period: 180s
+      retries: 5
+    restart: unless-stopped
+networks:
+  scan:
+    internal: true
+  update: {}
+volumes:
+  hub-data: {}
+  signature-db: {}
+  scanner-spool: {}

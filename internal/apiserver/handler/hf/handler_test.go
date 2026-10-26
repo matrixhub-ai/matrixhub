@@ -15,7 +15,9 @@
 package hf
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -23,10 +25,73 @@ import (
 	"strings"
 	"testing"
 
+	"go.uber.org/mock/gomock"
+
 	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	backendlfs "github.com/matrixhub-ai/hfd/pkg/backend/lfs"
+	"github.com/matrixhub-ai/hfd/pkg/repository"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	modelmocks "github.com/matrixhub-ai/matrixhub/internal/domain/model/mocks"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
+
+// These are HTTP transport tests with disposable Git storage. Explicit service
+// doubles fill the handler's ports; production auth and DB wiring are exercised
+// by separate live-server acceptance probes.
+type transportTestAuthz struct {
+	allowed bool
+	err     error
+	verify  func(string, role.Permission)
+}
+
+var _ authz.IAuthzService = (*transportTestAuthz)(nil)
+
+func (a *transportTestAuthz) VerifyProjectPermissionByName(_ context.Context, name string, perm role.Permission) (bool, error) {
+	if a.verify != nil {
+		a.verify(name, perm)
+	}
+	return a.allowed, a.err
+}
+func (*transportTestAuthz) GetUserPermissions(context.Context, int, int) ([]role.Permission, error) {
+	return nil, errors.New("unexpected GetUserPermissions in HF transport fixture")
+}
+func (*transportTestAuthz) VerifyPlatformPermission(context.Context, role.Permission) (bool, error) {
+	return false, errors.New("unexpected VerifyPlatformPermission in HF transport fixture")
+}
+func (*transportTestAuthz) VerifyProjectPermission(context.Context, int, role.Permission) (bool, error) {
+	return false, errors.New("unexpected VerifyProjectPermission in HF transport fixture")
+}
+func (*transportTestAuthz) GetUserAccessibleProjectIDs(context.Context, int) ([]int, error) {
+	return nil, errors.New("unexpected GetUserAccessibleProjectIDs in HF transport fixture")
+}
+
+type transportTestRepoKey struct{}
+
+func transportTestCommitService(t *testing.T, store *storage.Storage) *modelmocks.MockIModelService {
+	t.Helper()
+	service := modelmocks.NewMockIModelService(gomock.NewController(t))
+	service.EXPECT().CreateModelCommit(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().DoAndReturn(
+		func(ctx context.Context, namespace, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error) {
+			ri, ok := ctx.Value(transportTestRepoKey{}).(repoInformation)
+			if !ok || ri.Namespace != namespace || ri.Name != name {
+				return "", errors.New("commit does not match routed test repository")
+			}
+			repo, err := repository.Open(store.ResolvePath(ri.RepoName))
+			if err != nil {
+				return "", err
+			}
+			operations := make([]repository.CommitOperation, 0, len(ops))
+			for _, op := range ops {
+				operations = append(operations, repository.CommitOperation{
+					Type: repository.CommitOperationType(op.Type), Path: op.Path, Content: op.Content,
+				})
+			}
+			return repo.CreateCommit(ctx, revision, commit.Message, commit.AuthorName, commit.AuthorEmail, operations, commit.ParentCommit)
+		})
+	return service
+}
 
 func setupTestServer(t *testing.T) (*httptest.Server, string) {
 	t.Helper()
@@ -44,6 +109,13 @@ func setupTestServer(t *testing.T) (*httptest.Server, string) {
 
 	handler = NewHandler(
 		WithStorage(storage),
+		WithServices(transportTestCommitService(t, storage), nil, &transportTestAuthz{allowed: true}),
+		WithMiddlewares(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				ctx := context.WithValue(r.Context(), transportTestRepoKey{}, getRepoInformation(r))
+				next.ServeHTTP(w, r.WithContext(ctx))
+			})
+		}),
 	)
 
 	handler = backendlfs.NewHandler(

@@ -1,0 +1,22 @@
+{
+  "repo": "mhstage3life1791565660/lifecycle",
+  "cases": [
+    {
+      "scenario": "real-scanner-offline-denies",
+      "passed": true,
+      "revision": "a714bbfd58bda8c97f119d9250ede2b22173ce3b"
+    },
+    {
+      "scenario": "restored-scanner-and-complete-file-report",
+      "passed": true,
+      "revision": "3d2a4789bddad5ca64521cdaa5a8d6275e306eb2",
+      "file_type": "json-by-name",
+      "checked_at": "2026-10-09T17:07:54.242754057Z",
+      "recommended_action": "distribute_by_policy"
+    },
+    {
+      "scenario": "real-server-restart-preserves-failed-passed-blocked",
+      "passed": true
+    }
+  ]
+}

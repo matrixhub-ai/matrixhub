@@ -49,3 +49,28 @@ jobs:
 
       - name: Run unit tests
         run: make test.unit
+
+  mysql-artifact-security:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: mysql-test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pmysql-test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Verify MySQL security migration and persistence
+        env:
+          MH_MYSQL_TEST_DSN: root:mysql-test@tcp(127.0.0.1:3306)/?multiStatements=true&parseTime=true
+        run: go test -race ./internal/repo -run '^TestArtifactStoreMySQLMigrationAndPersistence$' -count=1
