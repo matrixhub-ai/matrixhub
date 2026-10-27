@@ -335,16 +335,16 @@ func (sps *SyncPolicyService) ExecuteSyncTask(ctx context.Context, taskID int) e
 // time. The repository applies them one after another, so the last one sees
 // the final status of every job and cannot be overwritten by an earlier one.
 func (sps *SyncPolicyService) ReportTaskStatus(ctx context.Context, taskID int) error {
-	return sps.syncTaskRepo.RecountTask(ctx, taskID, func(task *SyncTask, jobs map[syncjob.SyncJobStatus]int) {
+	return sps.syncTaskRepo.RecountTask(ctx, taskID, func(task *SyncTask, counts map[syncjob.SyncJobStatus]int) {
 		var total int
-		for _, n := range jobs {
+		for _, n := range counts {
 			total += n
 		}
-		succeeded := jobs[syncjob.SyncJobStatusSucceeded]
-		failed := jobs[syncjob.SyncJobStatusFailed]
-		stopped := jobs[syncjob.SyncJobStatusStopped]
-		running := jobs[syncjob.SyncJobStatusRunning]
-		pending := jobs[syncjob.SyncJobStatusPending]
+		succeeded := counts[syncjob.SyncJobStatusSucceeded]
+		failed := counts[syncjob.SyncJobStatusFailed]
+		stopped := counts[syncjob.SyncJobStatusStopped]
+		running := counts[syncjob.SyncJobStatusRunning]
+		pending := counts[syncjob.SyncJobStatusPending]
 
 		task.TotalItems = total
 		task.SuccessfulItems = succeeded

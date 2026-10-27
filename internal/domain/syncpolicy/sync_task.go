@@ -94,7 +94,6 @@ type ISyncTaskRepo interface {
 	// update sets. It does all of this in one transaction that locks the task
 	// row, so concurrent recounts of a task apply one after another, and each
 	// counts every job status committed before it started. update runs while
-	// the transaction holds the lock, and on SQLite the only connection, so it
-	// must not use the database or block.
-	RecountTask(ctx context.Context, taskID int, update func(task *SyncTask, jobs map[syncjob.SyncJobStatus]int)) error
+	// the transaction holds the lock, so it must not use the database or block.
+	RecountTask(ctx context.Context, taskID int, update func(task *SyncTask, counts map[syncjob.SyncJobStatus]int)) error
 }
