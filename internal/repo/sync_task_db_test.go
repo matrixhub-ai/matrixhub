@@ -16,11 +16,14 @@ package repo
 
 import (
 	"context"
+	"regexp"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
@@ -114,6 +117,87 @@ func TestSyncTaskDB_RecountTask(t *testing.T) {
 			require.Equal(t, 100, saved.CompletePercents)
 		}
 	})
+
+	t.Run("a recount waits for the one in progress, then counts the job that ended meanwhile", func(t *testing.T) {
+		database, _ := newSQLiteRepositoryTestDatabase(t)
+		tasks := NewSyncTaskDB(database)
+		jobRepo := NewSyncJobDB(database)
+		policyID := createRecountTestPolicy(t, database)
+		task, jobs := createRecountTestTask(t, database, policyID,
+			syncjob.SyncJobStatusSucceeded, syncjob.SyncJobStatusRunning)
+		countSucceeded := func(locked *syncpolicy.SyncTask, counts map[syncjob.SyncJobStatus]int) {
+			locked.SuccessfulItems = counts[syncjob.SyncJobStatusSucceeded]
+		}
+
+		// The second job ends and reports while the first recount, which saw
+		// it running, is still in its transaction. Without the transaction,
+		// that report would be saved first, and the first recount would then
+		// save its stale count over it.
+		inRecount := make(chan struct{})
+		reported := make(chan error, 1)
+		go func() {
+			<-inRecount
+			jobs[1].Status = syncjob.SyncJobStatusSucceeded
+			if err := jobRepo.UpdateSyncJob(ctx, jobs[1]); err != nil {
+				reported <- err
+				return
+			}
+			reported <- tasks.RecountTask(ctx, task.ID, countSucceeded)
+		}()
+		require.NoError(t, tasks.RecountTask(ctx, task.ID, func(locked *syncpolicy.SyncTask, counts map[syncjob.SyncJobStatus]int) {
+			close(inRecount)
+			time.Sleep(100 * time.Millisecond) // time for the other report to try to run
+			countSucceeded(locked, counts)
+		}))
+		require.NoError(t, <-reported)
+
+		saved, err := tasks.GetSyncTask(ctx, task.ID)
+		require.NoError(t, err)
+		require.Equal(t, 2, saved.SuccessfulItems)
+	})
+}
+
+// TestSyncTaskDB_RecountTaskSQL checks the statements a recount sends on
+// MySQL, which the SQLite tests above cannot show: the task row is read with
+// FOR UPDATE before the jobs are counted, and only the recounted columns are
+// updated.
+func TestSyncTaskDB_RecountTaskSQL(t *testing.T) {
+	sqlDB, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		mock.ExpectClose()
+		require.NoError(t, sqlDB.Close())
+	})
+	database, err := gorm.Open(mysql.New(mysql.Config{
+		Conn:                      sqlDB,
+		SkipInitializeWithVersion: true,
+	}), &gorm.Config{SkipDefaultTransaction: true})
+	require.NoError(t, err)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `sync_tasks` WHERE `sync_tasks`.`id` = ? ORDER BY `sync_tasks`.`id` LIMIT ? FOR UPDATE")).
+		WithArgs(7, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "status", "started_timestamp", "total_items", "stopped_items"}).
+			AddRow(7, int64(syncpolicy.SyncTaskStatusRunning), 123, 3, 2))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT status, COUNT(*) AS jobs FROM `sync_jobs` WHERE sync_task_id = ? GROUP BY `status`")).
+		WithArgs(7).
+		WillReturnRows(sqlmock.NewRows([]string{"status", "jobs"}).AddRow(int64(syncjob.SyncJobStatusSucceeded), 3))
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `sync_tasks` SET `status`=?,`completed_timestamp`=?,`total_items`=?,`successful_items`=?,`stopped_items`=?,`failed_items`=?,`complete_percents`=?,`updated_at`=? WHERE `id` = ?")).
+		WithArgs(syncpolicy.SyncTaskStatusSucceeded, 456, 3, 3, 0, 0, 100, sqlmock.AnyArg(), 7).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectCommit()
+
+	err = NewSyncTaskDB(database).RecountTask(context.Background(), 7, func(task *syncpolicy.SyncTask, jobs map[syncjob.SyncJobStatus]int) {
+		require.Equal(t, map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 3}, jobs)
+		task.Status = syncpolicy.SyncTaskStatusSucceeded
+		task.CompletedTimestamp = 456
+		task.SuccessfulItems = 3
+		task.StoppedItems = 0 // a zero is written too
+		task.CompletePercents = 100
+		task.StartedTimestamp = 999 // not a recounted column, so not written
+	})
+	require.NoError(t, err)
+	require.NoError(t, mock.ExpectationsWereMet())
 }
 
 func createRecountTestPolicy(t *testing.T, database *gorm.DB) int {

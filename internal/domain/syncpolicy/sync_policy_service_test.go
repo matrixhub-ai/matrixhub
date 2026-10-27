@@ -226,47 +226,66 @@ func TestSyncPolicyService_ExecuteSyncTaskMarksFailureWhenJobBatchCreationFails(
 func TestSyncPolicyService_ReportTaskStatus(t *testing.T) {
 	ctx := context.Background()
 
-	// Each case gives the job counts the repository found for a running task
-	// of three jobs, and the task it must save.
+	// Each case gives the job counts the repository found for a running task,
+	// and the task it must save. The task starts with a stale total, which the
+	// recount must replace.
 	cases := []struct {
-		name    string
-		jobs    map[syncjob.SyncJobStatus]int
-		want    syncpolicy.SyncTask
-		ended   bool // the task ended, so its completion time is set
+		name  string
+		jobs  map[syncjob.SyncJobStatus]int
+		want  syncpolicy.SyncTask
+		ended bool // the task ended, so its completion time is set
 	}{
 		{
 			name: "a running job keeps the task running",
 			jobs: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusRunning: 1},
-			want: syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusRunning, SuccessfulItems: 2, CompletePercents: 66},
+			want: syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusRunning, TotalItems: 3, SuccessfulItems: 2, CompletePercents: 66},
 		},
 		{
 			name: "a pending job keeps the task running",
 			jobs: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 1, syncjob.SyncJobStatusPending: 2},
-			want: syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusRunning, SuccessfulItems: 1, CompletePercents: 33},
+			want: syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusRunning, TotalItems: 3, SuccessfulItems: 1, CompletePercents: 33},
 		},
 		{
-			name:    "the task succeeds when every job succeeded",
-			jobs:    map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 3},
-			want:    syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded, SuccessfulItems: 3, CompletePercents: 100},
-			ended:   true,
+			name:  "the task succeeds when every job succeeded",
+			jobs:  map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 3},
+			want:  syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded, TotalItems: 3, SuccessfulItems: 3, CompletePercents: 100},
+			ended: true,
 		},
 		{
-			name:    "a failed job fails the task",
-			jobs:    map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusFailed: 1},
-			want:    syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusFailed, SuccessfulItems: 2, FailedItems: 1, CompletePercents: 100},
-			ended:   true,
+			name:  "a failed job fails the task",
+			jobs:  map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusFailed: 1},
+			want:  syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusFailed, TotalItems: 3, SuccessfulItems: 2, FailedItems: 1, CompletePercents: 100},
+			ended: true,
 		},
 		{
-			name:    "the task stops when every job stopped",
-			jobs:    map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusStopped: 3},
-			want:    syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusStopped, StoppedItems: 3, CompletePercents: 100},
-			ended:   true,
+			name:  "a failed job fails the task even when the others stopped",
+			jobs:  map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusFailed: 1, syncjob.SyncJobStatusStopped: 2},
+			want:  syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusFailed, TotalItems: 3, FailedItems: 1, StoppedItems: 2, CompletePercents: 100},
+			ended: true,
 		},
 		{
-			name:    "the task succeeds when some jobs succeeded and the rest stopped",
-			jobs:    map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusStopped: 1},
-			want:    syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded, SuccessfulItems: 2, StoppedItems: 1, CompletePercents: 100},
-			ended:   true,
+			name:  "the task stops when every job stopped",
+			jobs:  map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusStopped: 3},
+			want:  syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusStopped, TotalItems: 3, StoppedItems: 3, CompletePercents: 100},
+			ended: true,
+		},
+		{
+			name:  "the task succeeds when some jobs succeeded and the rest stopped",
+			jobs:  map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusStopped: 1},
+			want:  syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded, TotalItems: 3, SuccessfulItems: 2, StoppedItems: 1, CompletePercents: 100},
+			ended: true,
+		},
+		{
+			name:  "a job in an unknown status counts but does not keep the task running",
+			jobs:  map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusUnspecified: 1},
+			want:  syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded, TotalItems: 3, SuccessfulItems: 2, CompletePercents: 66},
+			ended: true,
+		},
+		{
+			name:  "a task without jobs succeeds",
+			jobs:  map[syncjob.SyncJobStatus]int{},
+			want:  syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded},
+			ended: true,
 		},
 	}
 	for _, tc := range cases {
@@ -276,7 +295,7 @@ func TestSyncPolicyService_ReportTaskStatus(t *testing.T) {
 
 			// The repository passes the locked task and the job counts to the
 			// update function, and saves what it sets.
-			task := &syncpolicy.SyncTask{ID: 7, Status: syncpolicy.SyncTaskStatusRunning, TotalItems: 3}
+			task := &syncpolicy.SyncTask{ID: 7, Status: syncpolicy.SyncTaskStatusRunning, TotalItems: 9}
 			taskRepo.EXPECT().
 				RecountTask(gomock.Any(), 7, gomock.Any()).
 				DoAndReturn(func(_ context.Context, _ int, update func(*syncpolicy.SyncTask, map[syncjob.SyncJobStatus]int)) error {
@@ -288,7 +307,7 @@ func TestSyncPolicyService_ReportTaskStatus(t *testing.T) {
 			require.NoError(t, svc.ReportTaskStatus(ctx, 7))
 
 			require.Equal(t, tc.ended, task.CompletedTimestamp != 0)
-			tc.want.ID, tc.want.TotalItems, tc.want.CompletedTimestamp = 7, 3, task.CompletedTimestamp
+			tc.want.ID, tc.want.CompletedTimestamp = 7, task.CompletedTimestamp
 			require.Equal(t, tc.want, *task)
 		})
 	}

@@ -106,8 +106,11 @@ func (r *syncTaskDB) UpdateTaskStatusCAS(ctx context.Context, taskID int, fromSt
 
 // RecountTask locks the task row before it counts the jobs. A recount that
 // starts while another one is in progress therefore waits for it to commit,
-// and then counts the job statuses committed in the meantime. SQLite has no
-// row locks, and its driver drops the locking clause, but it runs on a single
+// and then counts the job statuses committed in the meantime. The locking read
+// must stay the first statement of the transaction: under REPEATABLE READ,
+// MySQL takes the snapshot at the first plain read, so a plain read before the
+// lock would count the job statuses from before the wait. SQLite has no row
+// locks, and its driver drops the locking clause, but it runs on a single
 // connection, so the transaction alone serializes recounts there.
 func (r *syncTaskDB) RecountTask(ctx context.Context, taskID int, update func(*syncpolicy.SyncTask, map[syncjob.SyncJobStatus]int)) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
