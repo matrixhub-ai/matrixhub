@@ -19,6 +19,8 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"time"
+
+	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 )
 
 type SyncTaskStatus int
@@ -86,4 +88,11 @@ type ISyncTaskRepo interface {
 
 	SelectPendingTasks(ctx context.Context, limit int) ([]*SyncTask, error)
 	UpdateTaskStatusCAS(ctx context.Context, taskID int, fromStatus, toStatus SyncTaskStatus) (bool, error)
+
+	// RecountTask counts the task's jobs by status, passes the task and the
+	// counts to update, and saves the status, completion time and counts that
+	// update sets. It does all of this in one transaction that locks the task
+	// row, so concurrent recounts of a task apply one after another, and each
+	// counts every job status committed before it started.
+	RecountTask(ctx context.Context, taskID int, update func(task *SyncTask, jobs map[syncjob.SyncJobStatus]int)) error
 }
