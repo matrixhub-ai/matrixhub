@@ -41,6 +41,7 @@ type SessionConfig struct {
 	NonPersistentIdleTimeout     time.Duration
 }
 
+//go:generate go tool mockgen -source=session.go -destination=mocks/session_repo_mock.go -package=mocks
 type ISessionRepo interface {
 	GetSessionCookie() scs.SessionCookie
 	GetSessionConfig() SessionConfig

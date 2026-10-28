@@ -40,6 +40,7 @@ func (User) TableName() string {
 	return "users"
 }
 
+//go:generate go tool mockgen -source=user.go -destination=mocks/user_repo_mock.go -package=mocks
 type IUserRepo interface {
 	CreateUser(ctx context.Context, user *User) error
 	GetUser(ctx context.Context, id int) (*User, error)

@@ -19,6 +19,7 @@ import (
 	"time"
 )
 
+//go:generate go tool mockgen -source=ssh_key_service.go -destination=mocks/ssh_key_service_mock.go -package=mocks
 type ISSHKeyService interface {
 	CreateSSHKey(ctx context.Context, key SSHKey) error
 }

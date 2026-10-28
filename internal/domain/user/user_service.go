@@ -27,6 +27,7 @@ var (
 	InvalidUsernameOrPassword = errors.New("invalid username or password")
 )
 
+//go:generate go tool mockgen -source=user_service.go -destination=mocks/user_service_mock.go -package=mocks
 type IUserService interface {
 	LoginUser(ctx context.Context, username, password string, rememberMe bool) error
 	LogoutUser(ctx context.Context) error
