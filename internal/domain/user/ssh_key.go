@@ -43,6 +43,7 @@ func (SSHKey) TableName() string {
 	return "ssh_keys"
 }
 
+//go:generate go tool mockgen -source=ssh_key.go -destination=mocks/ssh_key_repo_mock.go -package=mocks
 type ISSHKeyRepo interface {
 	GetByFingerprint(ctx context.Context, fingerprint string) (*SSHKey, error)
 	ListSSHKeys(ctx context.Context, userId int) ([]*SSHKey, error)

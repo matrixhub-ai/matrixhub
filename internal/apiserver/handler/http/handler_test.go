@@ -10,9 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
+
+	backendhttp "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http"
 )
 
 // runGitCmd runs a git command in the specified directory.

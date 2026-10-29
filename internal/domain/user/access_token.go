@@ -41,6 +41,7 @@ func (AccessToken) TableName() string {
 	return "access_tokens"
 }
 
+//go:generate go tool mockgen -source=access_token.go -destination=mocks/access_token_repo_mock.go -package=mocks
 type IAccessTokenRepo interface {
 	GetByTokenHash(ctx context.Context, hash string) (*AccessToken, error)
 	GetAccessToken(ctx context.Context, userId, id int) (*AccessToken, error)

@@ -1,0 +1,13 @@
+ignore:
+  # Generated protobuf, gRPC gateway, OpenAPI, and TypeScript SDK artifacts.
+  - "api/go"
+  - "api/openapiv2"
+  - "api/ts"
+
+  # Vendored protocol definitions and generated test clients.
+  - "api/proto/vendor"
+  - "test/client"
+
+  # Generated gomock implementations and the TanStack Router route tree.
+  - "**/mocks/**"
+  - "ui/src/routeTree.gen.ts"

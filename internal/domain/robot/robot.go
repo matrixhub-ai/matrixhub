@@ -78,6 +78,7 @@ func (RobotPoject) TableName() string {
 	return "robots_projects"
 }
 
+//go:generate go tool mockgen -source=robot.go -destination=mocks/robot_repo_mock.go -package=mocks
 type IRobotRepo interface {
 	CreateRobot(ctx context.Context, robot *Robot) error
 	GetRobot(ctx context.Context, id int) (*Robot, error)

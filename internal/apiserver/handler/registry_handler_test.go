@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	v1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
 	registrymocks "github.com/matrixhub-ai/matrixhub/internal/domain/registry/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -43,4 +44,16 @@ func TestUpdateRegistryRejectsIncompletePut(t *testing.T) {
 			require.Contains(t, status.Convert(err).Message(), "name and url are required")
 		})
 	}
+}
+
+func TestDeleteRegistryReturnsFailedPreconditionWhenInUse(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	repo := registrymocks.NewMockIRegistryRepo(ctrl)
+	repo.EXPECT().DeleteRegistry(gomock.Any(), 7).Return(registry.ErrInUse)
+
+	h := &RegistryHandler{registryRepo: repo}
+	_, err := h.DeleteRegistry(t.Context(), &v1alpha1.DeleteRegistryRequest{Id: 7})
+
+	require.Equal(t, codes.FailedPrecondition, status.Code(err))
+	require.Contains(t, status.Convert(err).Message(), "referenced")
 }

@@ -225,6 +225,11 @@ unit-test package roots:
 UNIT_TEST_PKGS="./cmd/... ./internal/... ./pkg/..." make test.unit
 ```
 
+Generated packages whose import path ends in `/mocks` are excluded from coverage
+runs by default. They contain test scaffolding rather than production logic.
+Regular unit-test runs still compile these packages, and mock generation
+consistency is checked by `make generate-mocks` and `make verify.go`.
+
 Set `UNIT_TEST_EXCLUDE_PKGS` to exclude selected package roots when needed:
 
 ```bash

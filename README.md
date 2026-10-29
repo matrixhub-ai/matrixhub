@@ -3,7 +3,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/matrixhub-ai/matrixhub)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13641/badge)](https://www.bestpractices.dev/projects/13641)
 [![Unit tests](https://github.com/matrixhub-ai/matrixhub/actions/workflows/unit-test.yml/badge.svg?branch=main)](https://github.com/matrixhub-ai/matrixhub/actions/workflows/unit-test.yml)
-[![codecov](https://codecov.io/gh/matrixhub-ai/matrixhub/branch/main/graph/badge.svg)](https://codecov.io/gh/matrixhub-ai/matrixhub)
+[![codecov](https://codecov.io/gh/matrixhub-ai/matrixhub/branch/main/graph/badge.svg)](https://codecov.io/github/matrixhub-ai/matrixhub)
 
 **MatrixHub** is an open-source, self-hosted AI model registry engineered for large-scale enterprise inference. It serves as a drop-in private replacement for Hugging Face, purpose-built to accelerate **vLLM** and **SGLang** workloads.
 
