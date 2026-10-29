@@ -56,6 +56,13 @@ fi
 
 packages=()
 while IFS= read -r pkg; do
+	# Generated mock packages contain test scaffolding rather than production
+	# logic. Tests that use them still compile them as dependencies, while
+	# excluding the packages themselves keeps unit-test coverage meaningful and
+	# consistent with codecov.yml.
+	if [[ "${COVERAGE}" == "true" && "${pkg}" == */mocks ]]; then
+		continue
+	fi
 	packages+=("${pkg}")
 done < <(go list "${package_patterns[@]}")
 
@@ -89,6 +96,9 @@ fi
 
 echo "Running unit tests:"
 echo "  packages: ${UNIT_TEST_PKGS}"
+if [[ "${COVERAGE}" == "true" ]]; then
+	echo "  coverage excludes: */mocks"
+fi
 if [[ -n "${UNIT_TEST_EXCLUDE_PKGS}" ]]; then
 	echo "  excludes: ${UNIT_TEST_EXCLUDE_PKGS}"
 fi
