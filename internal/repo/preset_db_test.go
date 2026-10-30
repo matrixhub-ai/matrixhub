@@ -16,9 +16,11 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
@@ -238,6 +240,96 @@ func TestPresetDBPreservesRegistrySequence(t *testing.T) {
 			next, err := NewRegistryRepo(database).CreateRegistry(ctx, registry.Registry{Name: "next"})
 			require.NoError(t, err)
 			require.Equal(t, max(3, initialID)+1, next.ID)
+		})
+	}
+}
+
+func TestPresetDBSeedIfEmptyRollsBackOnLookupAndManifestErrors(t *testing.T) {
+	dbErr := errors.New("database unavailable")
+	countRows := func(count int) *sqlmock.Rows {
+		return sqlmock.NewRows([]string{"count(*)"}).AddRow(count)
+	}
+	expectEmptyInstance := func(mock sqlmock.Sqlmock) {
+		mock.ExpectQuery(exactSQL("SELECT count(*) FROM `registries`")).WillReturnRows(countRows(0))
+		mock.ExpectQuery(exactSQL("SELECT count(*) FROM `projects`")).WillReturnRows(countRows(0))
+	}
+	expectAdminLookup := func(mock sqlmock.Sqlmock) *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(exactSQL("SELECT * FROM `users` WHERE username = ? LIMIT ?")).WithArgs("admin", 1)
+	}
+
+	for _, test := range []struct {
+		name     string
+		manifest *preset.Manifest
+		expect   func(sqlmock.Sqlmock)
+		wantErr  error
+		wantMsg  string
+	}{
+		{
+			name:     "registry count error",
+			manifest: &preset.Manifest{},
+			expect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(exactSQL("SELECT count(*) FROM `registries`")).WillReturnError(dbErr)
+			},
+			wantErr: dbErr,
+		},
+		{
+			name:     "project count error",
+			manifest: &preset.Manifest{},
+			expect: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(exactSQL("SELECT count(*) FROM `registries`")).WillReturnRows(countRows(0))
+				mock.ExpectQuery(exactSQL("SELECT count(*) FROM `projects`")).WillReturnError(dbErr)
+			},
+			wantErr: dbErr,
+		},
+		{
+			name:     "administrator lookup error",
+			manifest: &preset.Manifest{},
+			expect: func(mock sqlmock.Sqlmock) {
+				expectEmptyInstance(mock)
+				expectAdminLookup(mock).WillReturnError(dbErr)
+			},
+			wantErr: dbErr,
+			wantMsg: "find preset project administrator",
+		},
+		{
+			name: "project references an unknown registry",
+			manifest: &preset.Manifest{
+				Projects: []preset.ProjectSpec{{Name: "proj", Registry: "missing"}},
+			},
+			expect: func(mock sqlmock.Sqlmock) {
+				expectEmptyInstance(mock)
+				expectAdminLookup(mock).WillReturnRows(sqlmock.NewRows([]string{"id"}))
+			},
+			wantMsg: "preset project proj references unknown registry missing",
+		},
+		{
+			name: "model references an unknown project",
+			manifest: &preset.Manifest{
+				Models: []preset.ModelSpec{{Project: "missing", Name: "model"}},
+			},
+			expect: func(mock sqlmock.Sqlmock) {
+				expectEmptyInstance(mock)
+				expectAdminLookup(mock).WillReturnRows(sqlmock.NewRows([]string{"id"}))
+			},
+			wantMsg: "preset model model references unknown project missing",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			db, mock := newMockGormDB(t)
+			mock.ExpectBegin()
+			test.expect(mock)
+			mock.ExpectRollback()
+
+			applied, err := NewPresetDB(db).SeedIfEmpty(context.Background(), test.manifest)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+			}
+			if test.wantMsg != "" {
+				require.ErrorContains(t, err, test.wantMsg)
+			}
+			require.False(t, applied)
+			require.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
 }

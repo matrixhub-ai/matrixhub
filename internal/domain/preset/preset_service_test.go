@@ -175,3 +175,43 @@ func TestReconcileConcurrencyAndCancellation(t *testing.T) {
 		t.Fatal("reconciliation did not stop after cancellation")
 	}
 }
+
+// cancelOnErrContext cancels itself when a caller checks Err, so cancellation
+// lands deterministically between handing a job to a worker and the worker's
+// cancellation check.
+type cancelOnErrContext struct {
+	context.Context
+	cancel context.CancelFunc
+}
+
+func (c cancelOnErrContext) Err() error {
+	c.cancel()
+	return c.Context.Err()
+}
+
+func TestReconcileDropsJobsReceivedAfterCancellation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	// No expectations: a job received after cancellation must not reach any repository.
+	models := modelmocks.NewMockIModelRepo(ctrl)
+	projects := projectmocks.NewMockIProjectRepo(ctrl)
+	git := gitmocks.NewMockIGitRepo(ctrl)
+	manifest := &preset.Manifest{}
+	for i := range 4 {
+		manifest.Models = append(manifest.Models, preset.ModelSpec{Project: "project", Name: strconv.Itoa(i)})
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	service := preset.NewService(true, manifest, nil, projects, models, git)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		service.Reconcile(cancelOnErrContext{Context: ctx, cancel: cancel})
+	}()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		require.FailNow(t, "reconciliation did not stop after cancellation")
+	}
+	require.ErrorIs(t, ctx.Err(), context.Canceled)
+}

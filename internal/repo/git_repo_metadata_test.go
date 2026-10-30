@@ -255,6 +255,7 @@ func initRepoTestRepository(t *testing.T, ctx context.Context, store *hfdstorage
 	if err != nil {
 		t.Fatalf("repository.Init() error = %v", err)
 	}
+	evictRepoTestRepository(t, repo)
 	return repo
 }
 

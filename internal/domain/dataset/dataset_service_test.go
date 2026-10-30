@@ -16,6 +16,7 @@ package dataset_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -97,4 +98,87 @@ func TestDatasetService_SyncMetadataPersistsZeroSize(t *testing.T) {
 
 	svc := dataset.NewDatasetService(datasetRepo, labelRepo, gitRepo)
 	require.NoError(t, svc.SyncMetadata(ctx, "proj", "empty"))
+}
+
+func TestDatasetService_SyncMetadataStopsAtFailedDependency(t *testing.T) {
+	ctx := context.Background()
+	failure := errors.New("dependency unavailable")
+	found := &dataset.Dataset{ID: 5, Name: "ds", ProjectName: "proj"}
+	// The card yields a license label followed by an "other" label.
+	files := &gitdomain.RepoMetadataFiles{ReadmeContent: []byte("---\nlicense: mit\ntags:\n- tabular\n---\n")}
+
+	for _, tc := range []struct {
+		name    string
+		setup   func(datasetRepo *datasetmocks.MockIDatasetRepo, labelRepo *modelmocks.MockILabelRepo, gitRepo *gitmocks.MockIGitRepo)
+		wantErr string
+	}{
+		{
+			name: "dataset lookup",
+			setup: func(datasetRepo *datasetmocks.MockIDatasetRepo, _ *modelmocks.MockILabelRepo, _ *gitmocks.MockIGitRepo) {
+				datasetRepo.EXPECT().GetByProjectAndName(ctx, "proj", "ds").Return(nil, failure)
+			},
+			wantErr: "dataset not found: dependency unavailable",
+		},
+		{
+			name: "metadata extraction",
+			setup: func(datasetRepo *datasetmocks.MockIDatasetRepo, _ *modelmocks.MockILabelRepo, gitRepo *gitmocks.MockIGitRepo) {
+				gomock.InOrder(
+					datasetRepo.EXPECT().GetByProjectAndName(ctx, "proj", "ds").Return(found, nil),
+					gitRepo.EXPECT().ExtractMetadata(ctx, "datasets", "proj", "ds").Return(nil, failure),
+				)
+			},
+			wantErr: "failed to read metadata files: dependency unavailable",
+		},
+		{
+			name: "metadata update",
+			setup: func(datasetRepo *datasetmocks.MockIDatasetRepo, _ *modelmocks.MockILabelRepo, gitRepo *gitmocks.MockIGitRepo) {
+				gomock.InOrder(
+					datasetRepo.EXPECT().GetByProjectAndName(ctx, "proj", "ds").Return(found, nil),
+					gitRepo.EXPECT().ExtractMetadata(ctx, "datasets", "proj", "ds").Return(files, nil),
+					datasetRepo.EXPECT().UpdateMetadata(ctx, int64(5), gomock.Any()).Return(failure),
+				)
+			},
+			wantErr: "failed to update dataset metadata: dependency unavailable",
+		},
+		{
+			name: "label creation",
+			setup: func(datasetRepo *datasetmocks.MockIDatasetRepo, labelRepo *modelmocks.MockILabelRepo, gitRepo *gitmocks.MockIGitRepo) {
+				gomock.InOrder(
+					datasetRepo.EXPECT().GetByProjectAndName(ctx, "proj", "ds").Return(found, nil),
+					gitRepo.EXPECT().ExtractMetadata(ctx, "datasets", "proj", "ds").Return(files, nil),
+					datasetRepo.EXPECT().UpdateMetadata(ctx, int64(5), gomock.Any()).Return(nil),
+					labelRepo.EXPECT().GetOrCreateByName(ctx, "mit", "license", "dataset").Return(&modeldomain.Label{ID: 1}, nil),
+					labelRepo.EXPECT().GetOrCreateByName(ctx, "tabular", "other", "dataset").Return(nil, failure),
+				)
+			},
+			wantErr: "failed to get/create label tabular (category=other): dependency unavailable",
+		},
+		{
+			name: "label assignment",
+			setup: func(datasetRepo *datasetmocks.MockIDatasetRepo, labelRepo *modelmocks.MockILabelRepo, gitRepo *gitmocks.MockIGitRepo) {
+				gomock.InOrder(
+					datasetRepo.EXPECT().GetByProjectAndName(ctx, "proj", "ds").Return(found, nil),
+					gitRepo.EXPECT().ExtractMetadata(ctx, "datasets", "proj", "ds").Return(files, nil),
+					datasetRepo.EXPECT().UpdateMetadata(ctx, int64(5), gomock.Any()).Return(nil),
+					labelRepo.EXPECT().GetOrCreateByName(ctx, "mit", "license", "dataset").Return(&modeldomain.Label{ID: 1}, nil),
+					labelRepo.EXPECT().GetOrCreateByName(ctx, "tabular", "other", "dataset").Return(&modeldomain.Label{ID: 2}, nil),
+					labelRepo.EXPECT().UpdateDatasetLabels(ctx, int64(5), []int{1, 2}).Return(failure),
+				)
+			},
+			wantErr: "dependency unavailable",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			datasetRepo := datasetmocks.NewMockIDatasetRepo(ctrl)
+			labelRepo := modelmocks.NewMockILabelRepo(ctrl)
+			gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+			tc.setup(datasetRepo, labelRepo, gitRepo)
+
+			err := dataset.NewDatasetService(datasetRepo, labelRepo, gitRepo).SyncMetadata(ctx, "proj", "ds")
+
+			require.ErrorIs(t, err, failure)
+			require.EqualError(t, err, tc.wantErr)
+		})
+	}
 }

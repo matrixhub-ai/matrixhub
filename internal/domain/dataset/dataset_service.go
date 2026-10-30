@@ -25,6 +25,8 @@ import (
 )
 
 // IDatasetService defines the service interface for dataset operations.
+//
+//go:generate go tool mockgen -source=dataset_service.go -destination=mocks/dataset_service_mock.go -package=mocks
 type IDatasetService interface {
 	// Dataset CRUD operations
 	CreateDataset(ctx context.Context, project, name string) (*Dataset, error)
