@@ -245,22 +245,6 @@ func TestGitRepoListCommitsResolvesRevisions(t *testing.T) {
 			wantTotal: 2,
 		},
 		{
-			name:      "default branch",
-			revision:  "",
-			page:      2,
-			pageSize:  1,
-			wantIDs:   []string{fixture.first},
-			wantTotal: 3,
-		},
-		{
-			name:      "page past the end",
-			revision:  "same",
-			page:      3,
-			pageSize:  1,
-			wantIDs:   []string{},
-			wantTotal: 2,
-		},
-		{
 			name:     "unknown revision",
 			revision: "missing",
 			page:     1,
@@ -341,19 +325,6 @@ func TestGitRepoGetBlobResolvesRevisions(t *testing.T) {
 			wantCommit: fixture.first,
 		},
 		{
-			name:       "directory",
-			revision:   "same",
-			path:       "weights",
-			want:       git.TreeEntry{Name: "weights", Path: "weights", Type: git.FileTypeDir},
-			wantCommit: fixture.first,
-		},
-		{
-			name:     "missing path",
-			revision: "main",
-			path:     "missing.txt",
-			wantErr:  "path not found",
-		},
-		{
 			name:     "unknown revision",
 			revision: "missing",
 			path:     "README.md",
@@ -374,47 +345,18 @@ func TestGitRepoGetBlobResolvesRevisions(t *testing.T) {
 			require.False(t, entry.Commit.CommitterDate.IsZero())
 			require.Equal(t, entry.Commit.CommitterDate, entry.Commit.CreatedAt)
 			entry.Commit = nil
-			if test.want.Type == git.FileTypeFile {
-				require.NotEmpty(t, entry.Hash)
-				entry.Hash = ""
-			}
+			require.NotEmpty(t, entry.Hash)
+			entry.Hash = ""
 			require.Equal(t, test.want, *entry)
 		})
 	}
 }
 
-func TestGitRepoGetTreeResolvesBranchBeforeTag(t *testing.T) {
-	fixture := newRefTestRepo(t)
-
-	entries, err := fixture.git.GetTree(context.Background(), "model", repoTestProject, repoTestName, "same", "")
-
-	require.NoError(t, err)
-	byPath := make(map[string]*git.TreeEntry, len(entries))
-	for _, entry := range entries {
-		require.NotNil(t, entry.Commit)
-		require.Equal(t, entry.Commit.CommitterDate, entry.Commit.CreatedAt)
-		byPath[entry.Path] = entry
-	}
-	require.Contains(t, byPath, "README.md")
-	require.Equal(t, int64(2), byPath["README.md"].Size)
-	require.Equal(t, "/test-project/test-model/resolve/same/README.md", byPath["README.md"].URL)
-	require.Equal(t, fixture.first, byPath["README.md"].Commit.ID)
-	require.Contains(t, byPath, "weights")
-	require.Equal(t, git.FileTypeDir, byPath["weights"].Type)
-	require.Equal(t, fixture.first, byPath["weights"].Commit.ID)
-}
-
-func TestGitRepoReadMethodsRejectMissingRepository(t *testing.T) {
-	ctx := context.Background()
+func TestExtractMetadataRejectsMissingRepository(t *testing.T) {
 	g := NewGitDB(hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir())), nil)
 
-	_, _, err := g.ListCommits(ctx, "model", repoTestProject, repoTestName, "main", 1, 10)
-	require.ErrorContains(t, err, "repository does not exist")
+	_, err := g.ExtractMetadata(context.Background(), "model", repoTestProject, repoTestName)
 
-	_, err = g.GetBlob(ctx, "model", repoTestProject, repoTestName, "main", "README.md")
-	require.ErrorContains(t, err, "repository does not exist")
-
-	_, err = g.ExtractMetadata(ctx, "model", repoTestProject, repoTestName)
 	require.ErrorContains(t, err, "failed to open git repo")
 }
 

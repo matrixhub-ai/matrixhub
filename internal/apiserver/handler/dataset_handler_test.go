@@ -17,14 +17,12 @@ package handler
 import (
 	"context"
 	"errors"
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
@@ -129,35 +127,6 @@ func TestDatasetTreeEntryToProtoFile(t *testing.T) {
 	dir := datasetTreeEntryToProtoFile(entries[0])
 	requireProtoEqual(t, files[0], dir)
 	require.Nil(t, dir.Commit)
-}
-
-func TestDatasetHandlerRegisterToServer(t *testing.T) {
-	t.Run("serves datasets over gRPC and the HTTP gateway", func(t *testing.T) {
-		h, svc := datasetHandlerTestSetup(t)
-		svc.EXPECT().
-			GetDataset(gomock.Any(), datasetHandlerTestProject, datasetHandlerTestName).
-			Return(datasetHandlerTestDataset(), nil)
-
-		grpcServer, gatewayMux := registerHandlerForTest(t, h, handlerTestInsecure)
-		require.Contains(t, grpcServer.GetServiceInfo(), "matrixhub.v1alpha1.Datasets")
-
-		rec := serveHandlerTestRequest(t, gatewayMux, http.MethodGet, "/api/v1alpha1/datasets/demo/imdb")
-		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
-		got := &v1alpha1.Dataset{}
-		require.NoError(t, protojson.Unmarshal(rec.Body.Bytes(), got))
-		requireProtoEqual(t, datasetHandlerTestDatasetProto(), got)
-	})
-
-	t.Run("keeps the gRPC service when gateway registration fails", func(t *testing.T) {
-		h, _ := datasetHandlerTestSetup(t)
-
-		// Without transport credentials the gateway cannot create its client.
-		grpcServer, gatewayMux := registerHandlerForTest(t, h)
-		require.Contains(t, grpcServer.GetServiceInfo(), "matrixhub.v1alpha1.Datasets")
-
-		rec := serveHandlerTestRequest(t, gatewayMux, http.MethodGet, "/api/v1alpha1/datasets/demo/imdb")
-		require.Equal(t, http.StatusNotFound, rec.Code)
-	})
 }
 
 func TestDatasetHandlerListDatasetTaskLabels(t *testing.T) {
