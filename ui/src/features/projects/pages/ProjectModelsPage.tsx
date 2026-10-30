@@ -26,10 +26,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useProjectRole } from '@/features/auth/useProjectRole'
 import { projectModelsQueryOptions } from '@/features/models/models.query.ts'
-import {
-  ProxyProjectDownloadDrawer,
-  ProxyProjectDownloadGuide,
-} from '@/features/projects/components/ProxyProjectDownload'
+import { ProxyProjectDownloadDrawer } from '@/features/projects/components/ProxyProjectDownload'
 import { projectDetailQueryOptions } from '@/features/projects/projects.query'
 import { isProxyProject } from '@/features/projects/projects.utils'
 import { Pagination } from '@/shared/components/Pagination'
@@ -80,7 +77,8 @@ export function ProjectModelsPage() {
   const showSkeletons = isPending && !data
   const isRefreshing = isFetching && !showSkeletons
   const isProxy = isProxyProject(project.registryUrl)
-  const showProxyDownloadGuide = isProxy && !isPending && !isError && project.modelCount === 0
+  // Proxy projects get their models by downloading them, which the empty state points to.
+  const isEmptyProxyProject = isProxy && project.modelCount === 0
 
   const sortFieldOptions: SortDropdownOption[] = [
     {
@@ -201,48 +199,44 @@ export function ProjectModelsPage() {
                 </Button>
               </Alert>
             )
-          : showProxyDownloadGuide
-            ? (
-                <ProxyProjectDownloadGuide
-                  remoteOrganization={project.organization}
-                  organization={project.name}
-                  requiresToken={project.type === ProjectType.PROJECT_TYPE_PRIVATE}
+          : (
+              <>
+                <Space h="lg" />
+
+                <ResourceCardGrid
+                  loading={showSkeletons}
+                  skeletonCount={DEFAULT_PAGE_SIZE}
+                  emptyTitle={isEmptyProxyProject ? t('projects.detail.proxyDownload.emptyTitle') : undefined}
+                  emptyHelper={isEmptyProxyProject ? t('projects.detail.proxyDownload.emptyHelper') : undefined}
+                >
+                  {cardElements}
+                </ResourceCardGrid>
+
+                <Pagination
+                  total={total}
+                  totalPages={totalPages}
+                  page={page}
+                  onPageChange={(nextPage) => {
+                    void navigate({
+                      search: prev => ({
+                        ...prev,
+                        page: nextPage,
+                      }),
+                    })
+                  }}
                 />
-              )
-            : (
-                <>
-                  <Space h="lg" />
-
-                  <ResourceCardGrid
-                    loading={showSkeletons}
-                    skeletonCount={DEFAULT_PAGE_SIZE}
-                  >
-                    {cardElements}
-                  </ResourceCardGrid>
-
-                  <Pagination
-                    total={total}
-                    totalPages={totalPages}
-                    page={page}
-                    onPageChange={(nextPage) => {
-                      void navigate({
-                        search: prev => ({
-                          ...prev,
-                          page: nextPage,
-                        }),
-                      })
-                    }}
-                  />
-                </>
-              )}
+              </>
+            )}
       </Stack>
 
       {isProxy && (
         <ProxyProjectDownloadDrawer
           opened={downloadDrawerOpened}
+          projectId={projectId}
           remoteOrganization={project.organization}
           organization={project.name}
           requiresToken={project.type === ProjectType.PROJECT_TYPE_PRIVATE}
+          canPullOnServer={canCreateModel}
           onClose={() => setDownloadDrawerOpened(false)}
         />
       )}

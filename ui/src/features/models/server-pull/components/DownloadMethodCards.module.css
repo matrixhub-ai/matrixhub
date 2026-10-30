@@ -1,0 +1,9 @@
+.card {
+  padding: var(--mantine-spacing-md);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.card[data-checked] {
+  border-color: var(--mantine-primary-color-filled);
+  background-color: var(--mantine-primary-color-light);
+}

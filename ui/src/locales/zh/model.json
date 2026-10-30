@@ -93,7 +93,111 @@
         "localPathHint": "请替换为本机模型文件夹路径，例如：",
         "localPathExample": "/Users/yourname/models/{{name}}"
       }
+    },
+    "cache": {
+      "label": "缓存状态",
+      "states": {
+        "cached": "已缓存",
+        "partial": "部分缓存 {{percent}}%",
+        "uncached": "未缓存",
+        "running": "拉取中 {{percent}}%",
+        "failed": "拉取失败（已缓存 {{percent}}%）"
+      },
+      "tooltips": {
+        "cached": "默认分支的全部文件已存储在 MatrixHub，工作负载直接从 MatrixHub 下载文件，不经过上游。MatrixHub 仍会向上游检查是否有新提交。",
+        "partial": "未缓存的文件会在首次下载时从上游拉取，速度取决于上游。",
+        "uncached": "未缓存的文件会在首次下载时从上游拉取，速度取决于上游。",
+        "running": "MatrixHub 正在从上游拉取该模型，状态会自动更新。",
+        "failed": "上次服务端拉取失败，未缓存的文件会在首次下载时从上游拉取。",
+        "hints": {
+          "pull": "可点击本页「下载模型文件」，选择「拉取到服务器」提前缓存。",
+          "retry": "可点击本页「下载模型文件」，选择「拉取到服务器」重新拉取。",
+          "askToPull": "具有管理员或开发权限的项目成员可提前将模型拉取到服务器。"
+        }
+      }
     }
+  },
+  "serverPull": {
+    "method": {
+      "label": "下载方式",
+      "server": "拉取到服务器",
+      "serverDescription": "MatrixHub 会从上游注册表中拉取模型文件并进行缓存，无需本地环境。",
+      "recommended": "推荐使用",
+      "cli": "通过命令行下载",
+      "cliDescription": "在本地运行 hf download 命令以下载模型。"
+    },
+    "revision": {
+      "label": "版本",
+      "description": "选择需要缓存的版本。",
+      "defaultBranch": "默认分支",
+      "defaultBranchOf": "{{branch}}（默认分支）",
+      "useTyped": "使用“{{revision}}”",
+      "typeHint": "也可输入分支、标签或提交，拉取其他版本。"
+    },
+    "summary": {
+      "location": "保存位置",
+      "locationValue": "MatrixHub 服务器缓存",
+      "scope": "拉取范围",
+      "scopeValue": "所选版本的全部模型文件",
+      "revision": "版本",
+      "files": "文件",
+      "filesValue_one": "{{count}} 个文件 · {{size}}",
+      "filesValue_other": "{{count}} 个文件 · {{size}}",
+      "cached": "已缓存",
+      "cachedValue_one": "{{cached}} / {{count}} 个文件 · {{size}}",
+      "cachedValue_other": "{{cached}} / {{count}} 个文件 · {{size}}",
+      "warnings": "提示",
+      "enterName": "输入上游模型名称后，即可查看需要拉取的文件。"
+    },
+    "states": {
+      "nothingToPull": "该版本没有需要拉取的文件。",
+      "alreadyCached": "该版本的全部文件均已缓存，可直接使用。",
+      "succeeded": "拉取完成，所选版本的全部文件均已缓存。"
+    },
+    "actions": {
+      "start": "开始拉取",
+      "retry": "重新拉取",
+      "viewModel": "查看模型",
+      "close": "关闭",
+      "recheck": "重新检查"
+    },
+    "hints": {
+      "server": "关闭后任务仍会在服务端继续运行。",
+      "cli": "下载完成后，请刷新页面。"
+    },
+    "progress": {
+      "label": "拉取进度",
+      "running": "拉取中",
+      "succeeded": "已完成",
+      "failed": "拉取失败",
+      "stopped": "未在运行",
+      "frozen": "无法获取进度",
+      "files_one": "{{done}} / {{count}} 个文件",
+      "files_other": "{{done}} / {{count}} 个文件",
+      "bytes": "{{done}} / {{total}}"
+    },
+    "failedTitle": "部分文件拉取失败",
+    "moreFailed_one": "另有 {{count}} 个文件拉取失败",
+    "moreFailed_other": "另有 {{count}} 个文件拉取失败",
+    "errors": {
+      "notFound": "上游仓库中未找到该模型或版本，请检查名称",
+      "permissionDenied": "没有权限向当前项目拉取模型",
+      "unauthenticated": "登录已过期，请重新登录",
+      "invalidArgument": "请求无效，请检查模型名称和版本",
+      "failedPrecondition": "无法拉取该模型：可能需要授权访问、该版本不在任何分支或标签上，或该版本的文件数量超出上限",
+      "unavailable": "上游仓库暂时无法访问，请稍后重试",
+      "unknown": "检查模型失败"
+    },
+    "pollErrors": {
+      "notFound": "该模型已不在 MatrixHub 中，无法显示拉取进度",
+      "permissionDenied": "你已没有该模型的访问权限",
+      "unauthenticated": "登录已过期，请重新登录后查看进度",
+      "invalidArgument": "获取拉取进度失败",
+      "failedPrecondition": "获取拉取进度失败",
+      "unavailable": "暂时无法连接 MatrixHub，请稍后重试",
+      "unknown": "获取拉取进度失败"
+    },
+    "startError": "启动拉取失败"
   },
   "settings": {
     "delete": {
