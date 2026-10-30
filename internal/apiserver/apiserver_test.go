@@ -48,6 +48,23 @@ func TestInitGitStorageDoesNotRegisterMetadataPostReceiveHook(t *testing.T) {
 	}
 }
 
+func TestInitPresetsSkipsDisabledPresets(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	disabled := false
+	server := &APIServer{
+		config: &config.Config{Presets: config.PresetsConfig{Enabled: &disabled}},
+		repos: &repo.Repos{
+			Preset:  presetmocks.NewMockIPresetRepo(ctrl),
+			Project: projectmocks.NewMockIProjectRepo(ctrl),
+			Model:   modelmocks.NewMockIModelRepo(ctrl),
+			Git:     gitmocks.NewMockIGitRepo(ctrl),
+		},
+	}
+
+	// No expectations are registered, so any repository access fails the test.
+	server.initPresets()
+}
+
 func TestInitPresetsWaitsForRepositoryReconciliation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	presetRepo := presetmocks.NewMockIPresetRepo(ctrl)
