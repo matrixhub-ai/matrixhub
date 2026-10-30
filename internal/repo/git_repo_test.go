@@ -700,15 +700,30 @@ func TestReadSafetensorsHeaderGivesUpOnStalledMirrorDownload(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, rc.Close())
 
-	// The header bytes never arrive, so the read must give up once the budget
-	// is spent instead of blocking metadata extraction.
-	readCtx, cancel := context.WithCancel(ctx)
-	cancel()
-	header, err := g.readSafetensorsHeader(readCtx, repo, "main", "model.safetensors")
+	// The header bytes never arrive, so the read must give up when its budget
+	// expires during the stalled download instead of blocking metadata
+	// extraction. The wait is bounded so a regression fails instead of hanging.
+	readCtx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+	type headerResult struct {
+		header []byte
+		err    error
+	}
+	done := make(chan headerResult, 1)
+	go func() {
+		header, err := g.readSafetensorsHeader(readCtx, repo, "main", "model.safetensors")
+		done <- headerResult{header: header, err: err}
+	}()
+	var result headerResult
+	select {
+	case result = <-done:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "readSafetensorsHeader did not return after its context expired")
+	}
 
-	require.ErrorIs(t, err, context.Canceled)
-	require.ErrorContains(t, err, "read safetensors header model.safetensors")
-	require.Nil(t, header)
+	require.ErrorIs(t, result.err, context.DeadlineExceeded)
+	require.ErrorContains(t, result.err, "read safetensors header model.safetensors")
+	require.Nil(t, result.header)
 }
 
 func initRepoTestRepositoryAt(t *testing.T, ctx context.Context, store *hfdstorage.Storage, name string) *repository.Repository {

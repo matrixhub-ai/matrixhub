@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -86,6 +87,9 @@ func requireProtoEqual(t *testing.T, want, got proto.Message) {
 
 // registerHandlerForTest registers h on a fresh gRPC server and grpc-gateway
 // mux the way APIServer does, with gRPC served over an in-memory listener.
+// RegisterToServer dials the gateway client with context.Background(), so the
+// generated gateway code never closes it; the helper captures that client from
+// the calls it makes and closes it when the test ends.
 func registerHandlerForTest(t *testing.T, h IHandler, dialOpts ...grpc.DialOption) (*grpc.Server, *runtime.ServeMux) {
 	t.Helper()
 	listener := bufconn.Listen(1 << 20)
@@ -94,16 +98,33 @@ func registerHandlerForTest(t *testing.T, h IHandler, dialOpts ...grpc.DialOptio
 	dialer := grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
 		return listener.DialContext(ctx)
 	})
+	var (
+		clientsMu sync.Mutex
+		clients   = map[*grpc.ClientConn]struct{}{}
+	)
+	trackClients := grpc.WithChainUnaryInterceptor(func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		clientsMu.Lock()
+		clients[cc] = struct{}{}
+		clientsMu.Unlock()
+		return invoker(ctx, method, req, reply, cc, opts...)
+	})
 	h.RegisterToServer(&ServerOptions{
 		GatewayMux:  gatewayMux,
 		GRPCServer:  grpcServer,
 		GRPCAddr:    "passthrough:///bufconn",
-		GRPCDialOpt: append([]grpc.DialOption{dialer}, dialOpts...),
+		GRPCDialOpt: append([]grpc.DialOption{dialer, trackClients}, dialOpts...),
 	})
 	go func() {
 		_ = grpcServer.Serve(listener)
 	}()
-	t.Cleanup(grpcServer.Stop)
+	t.Cleanup(func() {
+		clientsMu.Lock()
+		defer clientsMu.Unlock()
+		for cc := range clients {
+			_ = cc.Close()
+		}
+		grpcServer.Stop()
+	})
 	return grpcServer, gatewayMux
 }
 
