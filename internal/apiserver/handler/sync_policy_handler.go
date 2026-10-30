@@ -281,7 +281,20 @@ func (h *SyncPolicyHandler) GetSyncTask(ctx context.Context, request *v1alpha1.G
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	task, err := h.syncPolicyService.GetSyncTask(ctx, int(request.SyncTaskId))
+	task, err := h.getTaskOfPolicy(ctx, request.SyncPolicyId, request.SyncTaskId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1alpha1.GetSyncTaskResponse{
+		SyncTask: syncTaskToProto(task),
+	}, nil
+}
+
+// getTaskOfPolicy returns the sync task, which must belong to the policy:
+// the task APIs address a task by its policy and its ID.
+func (h *SyncPolicyHandler) getTaskOfPolicy(ctx context.Context, policyID, taskID int32) (*syncpolicy.SyncTask, error) {
+	task, err := h.syncPolicyService.GetSyncTask(ctx, int(taskID))
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return nil, status.Error(codes.NotFound, "sync task not found")
@@ -289,13 +302,10 @@ func (h *SyncPolicyHandler) GetSyncTask(ctx context.Context, request *v1alpha1.G
 		return nil, status.Error(codes.Internal, "failed to get sync task")
 	}
 
-	if task.SyncPolicyID != int(request.SyncPolicyId) {
+	if task.SyncPolicyID != int(policyID) {
 		return nil, status.Error(codes.InvalidArgument, "sync task does not belong to the specified policy")
 	}
-
-	return &v1alpha1.GetSyncTaskResponse{
-		SyncTask: syncTaskToProto(task),
-	}, nil
+	return task, nil
 }
 
 // UpdateSyncPolicySwitch toggles a sync policy's enable/disable state
@@ -329,16 +339,9 @@ func (h *SyncPolicyHandler) StopSyncTask(ctx context.Context, request *v1alpha1.
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	task, err := h.syncPolicyService.GetSyncTask(ctx, int(request.SyncTaskId))
+	task, err := h.getTaskOfPolicy(ctx, request.SyncPolicyId, request.SyncTaskId)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return nil, status.Error(codes.NotFound, "sync task not found")
-		}
-		return nil, status.Error(codes.Internal, "failed to get sync task")
-	}
-
-	if task.SyncPolicyID != int(request.SyncPolicyId) {
-		return nil, status.Error(codes.InvalidArgument, "sync task does not belong to the specified policy")
+		return nil, err
 	}
 
 	// Cancel running jobs and mark pending jobs as stopped.
@@ -403,6 +406,10 @@ func (h *SyncPolicyHandler) ListSyncJobs(ctx context.Context, request *v1alpha1.
 		resourceTypeFilter = resourceTypeProtoToString(request.ResourceType)
 	}
 
+	if _, err := h.getTaskOfPolicy(ctx, request.SyncPolicyId, request.SyncTaskId); err != nil {
+		return nil, err
+	}
+
 	jobs, total, err := h.syncJobService.ListSyncJobsByTaskID(ctx, int(request.SyncTaskId), page, pageSize, statusFilter, resourceTypeFilter)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to list sync jobs")
@@ -430,12 +437,20 @@ func (h *SyncPolicyHandler) GetSyncJobLog(ctx context.Context, request *v1alpha1
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	_, err := h.syncJobService.GetSyncJob(ctx, int(request.SyncJobId))
+	if _, err := h.getTaskOfPolicy(ctx, request.SyncPolicyId, request.SyncTaskId); err != nil {
+		return nil, err
+	}
+
+	job, err := h.syncJobService.GetSyncJob(ctx, int(request.SyncJobId))
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return nil, status.Error(codes.NotFound, "sync job not found")
 		}
 		return nil, status.Error(codes.Internal, "failed to get sync job")
+	}
+
+	if job.SyncTaskID != int(request.SyncTaskId) {
+		return nil, status.Error(codes.InvalidArgument, "sync job does not belong to the specified task")
 	}
 
 	rc, err := h.logStore.Reader(int(request.SyncJobId))
