@@ -37,7 +37,7 @@
     "typescript": "~7.0.2"
   },
   "overrides": {
-    "qs": "6.16.0"
+    "tinypool": "^2.1.2"
   },
   "browserslist": {
     "production": [
