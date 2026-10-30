@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	syncjob "github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	syncpolicy "github.com/matrixhub-ai/matrixhub/internal/domain/syncpolicy"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -99,6 +100,20 @@ func (m *MockISyncTaskRepo) ListSyncTasksByPolicyID(ctx context.Context, policyI
 func (mr *MockISyncTaskRepoMockRecorder) ListSyncTasksByPolicyID(ctx, policyID, page, pageSize, status any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSyncTasksByPolicyID", reflect.TypeOf((*MockISyncTaskRepo)(nil).ListSyncTasksByPolicyID), ctx, policyID, page, pageSize, status)
+}
+
+// RecountTask mocks base method.
+func (m *MockISyncTaskRepo) RecountTask(ctx context.Context, taskID int, update func(*syncpolicy.SyncTask, map[syncjob.SyncJobStatus]int)) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecountTask", ctx, taskID, update)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RecountTask indicates an expected call of RecountTask.
+func (mr *MockISyncTaskRepoMockRecorder) RecountTask(ctx, taskID, update any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecountTask", reflect.TypeOf((*MockISyncTaskRepo)(nil).RecountTask), ctx, taskID, update)
 }
 
 // SelectPendingTasks mocks base method.

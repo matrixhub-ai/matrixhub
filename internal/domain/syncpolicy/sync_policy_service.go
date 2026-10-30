@@ -329,53 +329,39 @@ func (sps *SyncPolicyService) ExecuteSyncTask(ctx context.Context, taskID int) e
 }
 
 // ReportTaskStatus aggregates job statuses for a task and updates the task record.
+// Every job reports when it ends, so reports of one task can run at the same
+// time. The repository applies them one after another, so the last one sees
+// the final status of every job and cannot be overwritten by an earlier one.
 func (sps *SyncPolicyService) ReportTaskStatus(ctx context.Context, taskID int) error {
-	jobs, _, err := sps.syncJobService.ListSyncJobsByTaskID(ctx, taskID, 1, 10000, syncjob.SyncJobStatusUnspecified, "")
-	if err != nil {
-		return err
-	}
-
-	var total, succeeded, failed, stopped, running, pending int
-	for _, j := range jobs {
-		total++
-		switch j.Status {
-		case syncjob.SyncJobStatusSucceeded:
-			succeeded++
-		case syncjob.SyncJobStatusFailed:
-			failed++
-		case syncjob.SyncJobStatusStopped:
-			stopped++
-		case syncjob.SyncJobStatusRunning:
-			running++
-		case syncjob.SyncJobStatusPending:
-			pending++
+	return sps.syncTaskRepo.RecountTask(ctx, taskID, func(task *SyncTask, counts map[syncjob.SyncJobStatus]int) {
+		var total int
+		for _, n := range counts {
+			total += n
 		}
-	}
+		succeeded := counts[syncjob.SyncJobStatusSucceeded]
+		failed := counts[syncjob.SyncJobStatusFailed]
+		stopped := counts[syncjob.SyncJobStatusStopped]
+		running := counts[syncjob.SyncJobStatusRunning]
+		pending := counts[syncjob.SyncJobStatusPending]
 
-	task, err := sps.syncTaskRepo.GetSyncTask(ctx, taskID)
-	if err != nil {
-		return err
-	}
-
-	task.TotalItems = total
-	task.SuccessfulItems = succeeded
-	task.FailedItems = failed
-	task.StoppedItems = stopped
-	if total > 0 {
-		task.CompletePercents = (succeeded + failed + stopped) * 100 / total
-	}
-
-	if running == 0 && pending == 0 {
-		task.CompletedTimestamp = time.Now().Unix()
-		switch {
-		case failed > 0:
-			task.Status = SyncTaskStatusFailed
-		case stopped > 0 && succeeded == 0:
-			task.Status = SyncTaskStatusStopped
-		default:
-			task.Status = SyncTaskStatusSucceeded
+		task.TotalItems = total
+		task.SuccessfulItems = succeeded
+		task.FailedItems = failed
+		task.StoppedItems = stopped
+		if total > 0 {
+			task.CompletePercents = (succeeded + failed + stopped) * 100 / total
 		}
-	}
 
-	return sps.syncTaskRepo.UpdateSyncTask(ctx, task)
+		if running == 0 && pending == 0 {
+			task.CompletedTimestamp = time.Now().Unix()
+			switch {
+			case failed > 0:
+				task.Status = SyncTaskStatusFailed
+			case stopped > 0 && succeeded == 0:
+				task.Status = SyncTaskStatusStopped
+			default:
+				task.Status = SyncTaskStatusSucceeded
+			}
+		}
+	})
 }
