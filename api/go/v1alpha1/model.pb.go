@@ -125,6 +125,175 @@ func (Category) EnumDescriptor() ([]byte, []int) {
 	return file_v1alpha1_model_proto_rawDescGZIP(), []int{1}
 }
 
+type CacheFileState int32
+
+const (
+	CacheFileState_CACHE_FILE_STATE_UNSPECIFIED CacheFileState = 0
+	CacheFileState_CACHE_FILE_STATE_CACHED      CacheFileState = 1
+	CacheFileState_CACHE_FILE_STATE_DOWNLOADING CacheFileState = 2
+	// Part of a running cache task, not started yet, or waiting for its next
+	// attempt; error then tells why the last attempt failed.
+	CacheFileState_CACHE_FILE_STATE_QUEUED  CacheFileState = 3
+	CacheFileState_CACHE_FILE_STATE_MISSING CacheFileState = 4
+	CacheFileState_CACHE_FILE_STATE_FAILED  CacheFileState = 5
+)
+
+// Enum value maps for CacheFileState.
+var (
+	CacheFileState_name = map[int32]string{
+		0: "CACHE_FILE_STATE_UNSPECIFIED",
+		1: "CACHE_FILE_STATE_CACHED",
+		2: "CACHE_FILE_STATE_DOWNLOADING",
+		3: "CACHE_FILE_STATE_QUEUED",
+		4: "CACHE_FILE_STATE_MISSING",
+		5: "CACHE_FILE_STATE_FAILED",
+	}
+	CacheFileState_value = map[string]int32{
+		"CACHE_FILE_STATE_UNSPECIFIED": 0,
+		"CACHE_FILE_STATE_CACHED":      1,
+		"CACHE_FILE_STATE_DOWNLOADING": 2,
+		"CACHE_FILE_STATE_QUEUED":      3,
+		"CACHE_FILE_STATE_MISSING":     4,
+		"CACHE_FILE_STATE_FAILED":      5,
+	}
+)
+
+func (x CacheFileState) Enum() *CacheFileState {
+	p := new(CacheFileState)
+	*p = x
+	return p
+}
+
+func (x CacheFileState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CacheFileState) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1alpha1_model_proto_enumTypes[2].Descriptor()
+}
+
+func (CacheFileState) Type() protoreflect.EnumType {
+	return &file_v1alpha1_model_proto_enumTypes[2]
+}
+
+func (x CacheFileState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CacheFileState.Descriptor instead.
+func (CacheFileState) EnumDescriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{2}
+}
+
+// How much of the selected files is in MatrixHub storage. Files stored in git
+// are present once the commit is synced, so LFS objects decide between
+// MISSING and PARTIAL.
+type CacheState int32
+
+const (
+	CacheState_CACHE_STATE_UNSPECIFIED CacheState = 0
+	// No LFS object of the selection is cached.
+	CacheState_CACHE_STATE_MISSING CacheState = 1
+	CacheState_CACHE_STATE_PARTIAL CacheState = 2
+	// Every selected file is cached.
+	CacheState_CACHE_STATE_CACHED CacheState = 3
+)
+
+// Enum value maps for CacheState.
+var (
+	CacheState_name = map[int32]string{
+		0: "CACHE_STATE_UNSPECIFIED",
+		1: "CACHE_STATE_MISSING",
+		2: "CACHE_STATE_PARTIAL",
+		3: "CACHE_STATE_CACHED",
+	}
+	CacheState_value = map[string]int32{
+		"CACHE_STATE_UNSPECIFIED": 0,
+		"CACHE_STATE_MISSING":     1,
+		"CACHE_STATE_PARTIAL":     2,
+		"CACHE_STATE_CACHED":      3,
+	}
+)
+
+func (x CacheState) Enum() *CacheState {
+	p := new(CacheState)
+	*p = x
+	return p
+}
+
+func (x CacheState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CacheState) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1alpha1_model_proto_enumTypes[3].Descriptor()
+}
+
+func (CacheState) Type() protoreflect.EnumType {
+	return &file_v1alpha1_model_proto_enumTypes[3]
+}
+
+func (x CacheState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CacheState.Descriptor instead.
+func (CacheState) EnumDescriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{3}
+}
+
+type CacheTaskState int32
+
+const (
+	CacheTaskState_CACHE_TASK_STATE_UNSPECIFIED CacheTaskState = 0
+	CacheTaskState_CACHE_TASK_STATE_RUNNING     CacheTaskState = 1
+	CacheTaskState_CACHE_TASK_STATE_SUCCEEDED   CacheTaskState = 2
+	CacheTaskState_CACHE_TASK_STATE_FAILED      CacheTaskState = 3
+)
+
+// Enum value maps for CacheTaskState.
+var (
+	CacheTaskState_name = map[int32]string{
+		0: "CACHE_TASK_STATE_UNSPECIFIED",
+		1: "CACHE_TASK_STATE_RUNNING",
+		2: "CACHE_TASK_STATE_SUCCEEDED",
+		3: "CACHE_TASK_STATE_FAILED",
+	}
+	CacheTaskState_value = map[string]int32{
+		"CACHE_TASK_STATE_UNSPECIFIED": 0,
+		"CACHE_TASK_STATE_RUNNING":     1,
+		"CACHE_TASK_STATE_SUCCEEDED":   2,
+		"CACHE_TASK_STATE_FAILED":      3,
+	}
+)
+
+func (x CacheTaskState) Enum() *CacheTaskState {
+	p := new(CacheTaskState)
+	*p = x
+	return p
+}
+
+func (x CacheTaskState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CacheTaskState) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1alpha1_model_proto_enumTypes[4].Descriptor()
+}
+
+func (CacheTaskState) Type() protoreflect.EnumType {
+	return &file_v1alpha1_model_proto_enumTypes[4]
+}
+
+func (x CacheTaskState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CacheTaskState.Descriptor instead.
+func (CacheTaskState) EnumDescriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{4}
+}
+
 type ListModelTaskLabelsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1817,6 +1986,581 @@ func (*UpdateModelSettingResponse) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_model_proto_rawDescGZIP(), []int{27}
 }
 
+type CacheModelRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Project string                 `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
+	// Name of the model. As on Hugging Face, it may start with '_'.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Branch, tag or commit. Empty means the default branch. A name resolves as
+	// git, and MatrixHub when hf download asks it, resolve it: a commit id
+	// first, then a tag before a branch of the same name. MatrixHub mirrors only
+	// branches and tags, so other refs, such as refs/pr/1, are rejected, and a
+	// name that upstream knows only as such a ref, as huggingface.co knows pr/1,
+	// is not found. Revision expressions such as main~1, which upstream does not
+	// resolve, and names that contain '@' are rejected too.
+	Revision string `protobuf:"bytes,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	// Narrow the cached files; without patterns every file of the revision is
+	// cached. Patterns follow huggingface_hub fnmatch semantics: '*' and '?'
+	// also match '/', a trailing '/' selects a whole directory, and '\' counts
+	// as '/'. A list holds at most 16 patterns, and a pattern at most 256
+	// characters and 16 wildcards ('*', '?' and classes).
+	AllowPatterns []string `protobuf:"bytes,4,rep,name=allow_patterns,json=allowPatterns,proto3" json:"allow_patterns,omitempty"`
+	// Files that match an ignore pattern are not cached, even when they match
+	// an allow pattern. Same syntax and limits as allow_patterns.
+	IgnorePatterns []string `protobuf:"bytes,5,rep,name=ignore_patterns,json=ignorePatterns,proto3" json:"ignore_patterns,omitempty"`
+	// Only report what a pull would do: the upstream files of the revision and
+	// which of them are cached. A dry run creates nothing and downloads
+	// nothing.
+	DryRun        bool `protobuf:"varint,6,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CacheModelRequest) Reset() {
+	*x = CacheModelRequest{}
+	mi := &file_v1alpha1_model_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CacheModelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CacheModelRequest) ProtoMessage() {}
+
+func (x *CacheModelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CacheModelRequest.ProtoReflect.Descriptor instead.
+func (*CacheModelRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *CacheModelRequest) GetProject() string {
+	if x != nil {
+		return x.Project
+	}
+	return ""
+}
+
+func (x *CacheModelRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CacheModelRequest) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+func (x *CacheModelRequest) GetAllowPatterns() []string {
+	if x != nil {
+		return x.AllowPatterns
+	}
+	return nil
+}
+
+func (x *CacheModelRequest) GetIgnorePatterns() []string {
+	if x != nil {
+		return x.IgnorePatterns
+	}
+	return nil
+}
+
+func (x *CacheModelRequest) GetDryRun() bool {
+	if x != nil {
+		return x.DryRun
+	}
+	return false
+}
+
+type GetModelCacheRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Project string                 `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
+	// Name of the model. As on Hugging Face, it may start with '_'.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Branch, tag or commit. Empty means the default branch. It resolves, and
+	// is rejected, as the revision of CacheModelRequest.
+	Revision      string `protobuf:"bytes,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetModelCacheRequest) Reset() {
+	*x = GetModelCacheRequest{}
+	mi := &file_v1alpha1_model_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetModelCacheRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetModelCacheRequest) ProtoMessage() {}
+
+func (x *GetModelCacheRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetModelCacheRequest.ProtoReflect.Descriptor instead.
+func (*GetModelCacheRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetModelCacheRequest) GetProject() string {
+	if x != nil {
+		return x.Project
+	}
+	return ""
+}
+
+func (x *GetModelCacheRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetModelCacheRequest) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+type ModelCacheFile struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Path  string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Size  int64                  `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Lfs   bool                   `protobuf:"varint,3,opt,name=lfs,proto3" json:"lfs,omitempty"`
+	// LFS object id (sha256). Empty for files stored directly in git.
+	Oid             string         `protobuf:"bytes,4,opt,name=oid,proto3" json:"oid,omitempty"`
+	State           CacheFileState `protobuf:"varint,5,opt,name=state,proto3,enum=matrixhub.v1alpha1.CacheFileState" json:"state,omitempty"`
+	DownloadedBytes int64          `protobuf:"varint,6,opt,name=downloaded_bytes,json=downloadedBytes,proto3" json:"downloaded_bytes,omitempty"`
+	Error           string         `protobuf:"bytes,7,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ModelCacheFile) Reset() {
+	*x = ModelCacheFile{}
+	mi := &file_v1alpha1_model_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModelCacheFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModelCacheFile) ProtoMessage() {}
+
+func (x *ModelCacheFile) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModelCacheFile.ProtoReflect.Descriptor instead.
+func (*ModelCacheFile) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ModelCacheFile) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *ModelCacheFile) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *ModelCacheFile) GetLfs() bool {
+	if x != nil {
+		return x.Lfs
+	}
+	return false
+}
+
+func (x *ModelCacheFile) GetOid() string {
+	if x != nil {
+		return x.Oid
+	}
+	return ""
+}
+
+func (x *ModelCacheFile) GetState() CacheFileState {
+	if x != nil {
+		return x.State
+	}
+	return CacheFileState_CACHE_FILE_STATE_UNSPECIFIED
+}
+
+func (x *ModelCacheFile) GetDownloadedBytes() int64 {
+	if x != nil {
+		return x.DownloadedBytes
+	}
+	return 0
+}
+
+func (x *ModelCacheFile) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type ModelCacheTotals struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Files int64                  `protobuf:"varint,1,opt,name=files,proto3" json:"files,omitempty"`
+	// Total size of the files.
+	Bytes            int64 `protobuf:"varint,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	CachedFiles      int64 `protobuf:"varint,3,opt,name=cached_files,json=cachedFiles,proto3" json:"cached_files,omitempty"`
+	CachedBytes      int64 `protobuf:"varint,4,opt,name=cached_bytes,json=cachedBytes,proto3" json:"cached_bytes,omitempty"`
+	DownloadingFiles int64 `protobuf:"varint,5,opt,name=downloading_files,json=downloadingFiles,proto3" json:"downloading_files,omitempty"`
+	// Bytes downloaded so far of the files in DOWNLOADING state, not their
+	// size.
+	DownloadingBytes int64 `protobuf:"varint,6,opt,name=downloading_bytes,json=downloadingBytes,proto3" json:"downloading_bytes,omitempty"`
+	QueuedFiles      int64 `protobuf:"varint,7,opt,name=queued_files,json=queuedFiles,proto3" json:"queued_files,omitempty"`
+	MissingFiles     int64 `protobuf:"varint,8,opt,name=missing_files,json=missingFiles,proto3" json:"missing_files,omitempty"`
+	FailedFiles      int64 `protobuf:"varint,9,opt,name=failed_files,json=failedFiles,proto3" json:"failed_files,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ModelCacheTotals) Reset() {
+	*x = ModelCacheTotals{}
+	mi := &file_v1alpha1_model_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModelCacheTotals) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModelCacheTotals) ProtoMessage() {}
+
+func (x *ModelCacheTotals) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModelCacheTotals.ProtoReflect.Descriptor instead.
+func (*ModelCacheTotals) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *ModelCacheTotals) GetFiles() int64 {
+	if x != nil {
+		return x.Files
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetBytes() int64 {
+	if x != nil {
+		return x.Bytes
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetCachedFiles() int64 {
+	if x != nil {
+		return x.CachedFiles
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetCachedBytes() int64 {
+	if x != nil {
+		return x.CachedBytes
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetDownloadingFiles() int64 {
+	if x != nil {
+		return x.DownloadingFiles
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetDownloadingBytes() int64 {
+	if x != nil {
+		return x.DownloadingBytes
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetQueuedFiles() int64 {
+	if x != nil {
+		return x.QueuedFiles
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetMissingFiles() int64 {
+	if x != nil {
+		return x.MissingFiles
+	}
+	return 0
+}
+
+func (x *ModelCacheTotals) GetFailedFiles() int64 {
+	if x != nil {
+		return x.FailedFiles
+	}
+	return 0
+}
+
+// One run of a pull.
+type ModelCacheTask struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Opaque and unique per run: retrying a failed pull starts a new run.
+	Id            string         `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	State         CacheTaskState `protobuf:"varint,2,opt,name=state,proto3,enum=matrixhub.v1alpha1.CacheTaskState" json:"state,omitempty"`
+	StartedAt     string         `protobuf:"bytes,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	FinishedAt    string         `protobuf:"bytes,4,opt,name=finished_at,json=finishedAt,proto3" json:"finished_at,omitempty"`
+	Error         string         `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ModelCacheTask) Reset() {
+	*x = ModelCacheTask{}
+	mi := &file_v1alpha1_model_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModelCacheTask) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModelCacheTask) ProtoMessage() {}
+
+func (x *ModelCacheTask) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModelCacheTask.ProtoReflect.Descriptor instead.
+func (*ModelCacheTask) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ModelCacheTask) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ModelCacheTask) GetState() CacheTaskState {
+	if x != nil {
+		return x.State
+	}
+	return CacheTaskState_CACHE_TASK_STATE_UNSPECIFIED
+}
+
+func (x *ModelCacheTask) GetStartedAt() string {
+	if x != nil {
+		return x.StartedAt
+	}
+	return ""
+}
+
+func (x *ModelCacheTask) GetFinishedAt() string {
+	if x != nil {
+		return x.FinishedAt
+	}
+	return ""
+}
+
+func (x *ModelCacheTask) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type ModelCacheStatus struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Project           string                 `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
+	Name              string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	RequestedRevision string                 `protobuf:"bytes,3,opt,name=requested_revision,json=requestedRevision,proto3" json:"requested_revision,omitempty"`
+	// The branch, tag or commit that was listed: requested_revision, or the name
+	// of the default branch when none was requested. A dry run leaves it empty
+	// when the registry does not name its default branch. It and commit are
+	// empty for a proxy model that has not synced yet: none of its files are
+	// known.
+	Revision string `protobuf:"bytes,4,opt,name=revision,proto3" json:"revision,omitempty"`
+	Commit   string `protobuf:"bytes,5,opt,name=commit,proto3" json:"commit,omitempty"`
+	// How much of the selected files is cached; see CacheState.
+	State  CacheState        `protobuf:"varint,6,opt,name=state,proto3,enum=matrixhub.v1alpha1.CacheState" json:"state,omitempty"`
+	Totals *ModelCacheTotals `protobuf:"bytes,7,opt,name=totals,proto3" json:"totals,omitempty"`
+	Files  []*ModelCacheFile `protobuf:"bytes,8,rep,name=files,proto3" json:"files,omitempty"`
+	// The latest pull that the server knows of: of the requested selection for
+	// CacheModel; for GetModelCache, of files of the revision only, a running
+	// one first. Unset when there is none, for example when no pull was
+	// started, the last one finished more than an hour ago, or the server
+	// restarted since. A failed pull whose failed files were stored since is
+	// not reported.
+	Task          *ModelCacheTask `protobuf:"bytes,9,opt,name=task,proto3" json:"task,omitempty"`
+	Warnings      []string        `protobuf:"bytes,10,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ModelCacheStatus) Reset() {
+	*x = ModelCacheStatus{}
+	mi := &file_v1alpha1_model_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModelCacheStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModelCacheStatus) ProtoMessage() {}
+
+func (x *ModelCacheStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModelCacheStatus.ProtoReflect.Descriptor instead.
+func (*ModelCacheStatus) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ModelCacheStatus) GetProject() string {
+	if x != nil {
+		return x.Project
+	}
+	return ""
+}
+
+func (x *ModelCacheStatus) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ModelCacheStatus) GetRequestedRevision() string {
+	if x != nil {
+		return x.RequestedRevision
+	}
+	return ""
+}
+
+func (x *ModelCacheStatus) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+func (x *ModelCacheStatus) GetCommit() string {
+	if x != nil {
+		return x.Commit
+	}
+	return ""
+}
+
+func (x *ModelCacheStatus) GetState() CacheState {
+	if x != nil {
+		return x.State
+	}
+	return CacheState_CACHE_STATE_UNSPECIFIED
+}
+
+func (x *ModelCacheStatus) GetTotals() *ModelCacheTotals {
+	if x != nil {
+		return x.Totals
+	}
+	return nil
+}
+
+func (x *ModelCacheStatus) GetFiles() []*ModelCacheFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *ModelCacheStatus) GetTask() *ModelCacheTask {
+	if x != nil {
+		return x.Task
+	}
+	return nil
+}
+
+func (x *ModelCacheStatus) GetWarnings() []string {
+	if x != nil {
+		return x.Warnings
+	}
+	return nil
+}
+
 var File_v1alpha1_model_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_model_proto_rawDesc = "" +
@@ -1948,7 +2692,56 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12>\n" +
 	"\x04name\x18\x02 \x01(\tB*\xfaB'r%\x10\x01Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\x124\n" +
 	"\apopular\x18\x03 \x01(\v2\x1a.google.protobuf.BoolValueR\apopular\"\x1c\n" +
-	"\x1aUpdateModelSettingResponse*\x1d\n" +
+	"\x1aUpdateModelSettingResponse\"\xcd\x02\n" +
+	"\x11CacheModelRequest\x12!\n" +
+	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12`\n" +
+	"\x04name\x18\x02 \x01(\tBL\xfaBIrG\x10\x01\x18\xfb\x012\x1d^[A-Za-z0-9_][A-Za-z0-9_.-]*$Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\x12$\n" +
+	"\brevision\x18\x03 \x01(\tB\b\xfaB\x05r\x03\x18\xff\x01R\brevision\x128\n" +
+	"\x0eallow_patterns\x18\x04 \x03(\tB\x11\xfaB\x0e\x92\x01\v\x10\x10\"\ar\x05\x10\x01\x18\x80\x02R\rallowPatterns\x12:\n" +
+	"\x0fignore_patterns\x18\x05 \x03(\tB\x11\xfaB\x0e\x92\x01\v\x10\x10\"\ar\x05\x10\x01\x18\x80\x02R\x0eignorePatterns\x12\x17\n" +
+	"\adry_run\x18\x06 \x01(\bR\x06dryRun\"\xc1\x01\n" +
+	"\x14GetModelCacheRequest\x12!\n" +
+	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12`\n" +
+	"\x04name\x18\x02 \x01(\tBL\xfaBIrG\x10\x01\x18\xfb\x012\x1d^[A-Za-z0-9_][A-Za-z0-9_.-]*$Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\x12$\n" +
+	"\brevision\x18\x03 \x01(\tB\b\xfaB\x05r\x03\x18\xff\x01R\brevision\"\xd7\x01\n" +
+	"\x0eModelCacheFile\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
+	"\x04size\x18\x02 \x01(\x03R\x04size\x12\x10\n" +
+	"\x03lfs\x18\x03 \x01(\bR\x03lfs\x12\x10\n" +
+	"\x03oid\x18\x04 \x01(\tR\x03oid\x128\n" +
+	"\x05state\x18\x05 \x01(\x0e2\".matrixhub.v1alpha1.CacheFileStateR\x05state\x12)\n" +
+	"\x10downloaded_bytes\x18\x06 \x01(\x03R\x0fdownloadedBytes\x12\x14\n" +
+	"\x05error\x18\a \x01(\tR\x05error\"\xc9\x02\n" +
+	"\x10ModelCacheTotals\x12\x14\n" +
+	"\x05files\x18\x01 \x01(\x03R\x05files\x12\x14\n" +
+	"\x05bytes\x18\x02 \x01(\x03R\x05bytes\x12!\n" +
+	"\fcached_files\x18\x03 \x01(\x03R\vcachedFiles\x12!\n" +
+	"\fcached_bytes\x18\x04 \x01(\x03R\vcachedBytes\x12+\n" +
+	"\x11downloading_files\x18\x05 \x01(\x03R\x10downloadingFiles\x12+\n" +
+	"\x11downloading_bytes\x18\x06 \x01(\x03R\x10downloadingBytes\x12!\n" +
+	"\fqueued_files\x18\a \x01(\x03R\vqueuedFiles\x12#\n" +
+	"\rmissing_files\x18\b \x01(\x03R\fmissingFiles\x12!\n" +
+	"\ffailed_files\x18\t \x01(\x03R\vfailedFiles\"\xb0\x01\n" +
+	"\x0eModelCacheTask\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x128\n" +
+	"\x05state\x18\x02 \x01(\x0e2\".matrixhub.v1alpha1.CacheTaskStateR\x05state\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\x03 \x01(\tR\tstartedAt\x12\x1f\n" +
+	"\vfinished_at\x18\x04 \x01(\tR\n" +
+	"finishedAt\x12\x14\n" +
+	"\x05error\x18\x05 \x01(\tR\x05error\"\xa5\x03\n" +
+	"\x10ModelCacheStatus\x12\x18\n" +
+	"\aproject\x18\x01 \x01(\tR\aproject\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12-\n" +
+	"\x12requested_revision\x18\x03 \x01(\tR\x11requestedRevision\x12\x1a\n" +
+	"\brevision\x18\x04 \x01(\tR\brevision\x12\x16\n" +
+	"\x06commit\x18\x05 \x01(\tR\x06commit\x124\n" +
+	"\x05state\x18\x06 \x01(\x0e2\x1e.matrixhub.v1alpha1.CacheStateR\x05state\x12<\n" +
+	"\x06totals\x18\a \x01(\v2$.matrixhub.v1alpha1.ModelCacheTotalsR\x06totals\x128\n" +
+	"\x05files\x18\b \x03(\v2\".matrixhub.v1alpha1.ModelCacheFileR\x05files\x126\n" +
+	"\x04task\x18\t \x01(\v2\".matrixhub.v1alpha1.ModelCacheTaskR\x04task\x12\x1a\n" +
+	"\bwarnings\x18\n" +
+	" \x03(\tR\bwarnings*\x1d\n" +
 	"\bFileType\x12\a\n" +
 	"\x03DIR\x10\x00\x12\b\n" +
 	"\x04FILE\x10\x01*G\n" +
@@ -1957,7 +2750,25 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"\aLIBRARY\x10\x01\x12\v\n" +
 	"\aLICENSE\x10\x02\x12\f\n" +
 	"\bLANGUAGE\x10\x03\x12\t\n" +
-	"\x05OTHER\x10\x042\x97\x0e\n" +
+	"\x05OTHER\x10\x04*\xc9\x01\n" +
+	"\x0eCacheFileState\x12 \n" +
+	"\x1cCACHE_FILE_STATE_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17CACHE_FILE_STATE_CACHED\x10\x01\x12 \n" +
+	"\x1cCACHE_FILE_STATE_DOWNLOADING\x10\x02\x12\x1b\n" +
+	"\x17CACHE_FILE_STATE_QUEUED\x10\x03\x12\x1c\n" +
+	"\x18CACHE_FILE_STATE_MISSING\x10\x04\x12\x1b\n" +
+	"\x17CACHE_FILE_STATE_FAILED\x10\x05*s\n" +
+	"\n" +
+	"CacheState\x12\x1b\n" +
+	"\x17CACHE_STATE_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13CACHE_STATE_MISSING\x10\x01\x12\x17\n" +
+	"\x13CACHE_STATE_PARTIAL\x10\x02\x12\x16\n" +
+	"\x12CACHE_STATE_CACHED\x10\x03*\x8d\x01\n" +
+	"\x0eCacheTaskState\x12 \n" +
+	"\x1cCACHE_TASK_STATE_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18CACHE_TASK_STATE_RUNNING\x10\x01\x12\x1e\n" +
+	"\x1aCACHE_TASK_STATE_SUCCEEDED\x10\x02\x12\x1b\n" +
+	"\x17CACHE_TASK_STATE_FAILED\x10\x032\xc2\x10\n" +
 	"\x06Models\x12\xa0\x01\n" +
 	"\x13ListModelTaskLabels\x12..matrixhub.v1alpha1.ListModelTaskLabelsRequest\x1a/.matrixhub.v1alpha1.ListModelTaskLabelsResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /api/v1alpha1/models/task-labels\x12\xa6\x01\n" +
 	"\x14ListModelFrameLabels\x12/.matrixhub.v1alpha1.ListModelFrameLabelsRequest\x1a0.matrixhub.v1alpha1.ListModelFrameLabelsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1alpha1/models/library-labels\x12y\n" +
@@ -1971,7 +2782,10 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"\x0eGetModelCommit\x12).matrixhub.v1alpha1.GetModelCommitRequest\x1a\x1a.matrixhub.v1alpha1.Commit\":\x82\xd3\xe4\x93\x024\x122/api/v1alpha1/models/{project}/{name}/commits/{id}\x12\x95\x01\n" +
 	"\fGetModelTree\x12'.matrixhub.v1alpha1.GetModelTreeRequest\x1a(.matrixhub.v1alpha1.GetModelTreeResponse\"2\x82\xd3\xe4\x93\x02,\x12*/api/v1alpha1/models/{project}/{name}/tree\x12\x85\x01\n" +
 	"\fGetModelBlob\x12'.matrixhub.v1alpha1.GetModelBlobRequest\x1a\x18.matrixhub.v1alpha1.File\"2\x82\xd3\xe4\x93\x02,\x12*/api/v1alpha1/models/{project}/{name}/blob\x12\xad\x01\n" +
-	"\x12UpdateModelSetting\x12-.matrixhub.v1alpha1.UpdateModelSettingRequest\x1a..matrixhub.v1alpha1.UpdateModelSettingResponse\"8\x82\xd3\xe4\x93\x022:\x01*\x1a-/api/v1alpha1/models/{project}/{name}/settingB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
+	"\x12UpdateModelSetting\x12-.matrixhub.v1alpha1.UpdateModelSettingRequest\x1a..matrixhub.v1alpha1.UpdateModelSettingResponse\"8\x82\xd3\xe4\x93\x022:\x01*\x1a-/api/v1alpha1/models/{project}/{name}/setting\x12\x91\x01\n" +
+	"\n" +
+	"CacheModel\x12%.matrixhub.v1alpha1.CacheModelRequest\x1a$.matrixhub.v1alpha1.ModelCacheStatus\"6\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1alpha1/models/{project}/{name}/cache\x12\x94\x01\n" +
+	"\rGetModelCache\x12(.matrixhub.v1alpha1.GetModelCacheRequest\x1a$.matrixhub.v1alpha1.ModelCacheStatus\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1alpha1/models/{project}/{name}/cacheB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
 
 var (
 	file_v1alpha1_model_proto_rawDescOnce sync.Once
@@ -1985,88 +2799,107 @@ func file_v1alpha1_model_proto_rawDescGZIP() []byte {
 	return file_v1alpha1_model_proto_rawDescData
 }
 
-var file_v1alpha1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1alpha1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_v1alpha1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_v1alpha1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_v1alpha1_model_proto_goTypes = []any{
 	(FileType)(0),                        // 0: matrixhub.v1alpha1.FileType
 	(Category)(0),                        // 1: matrixhub.v1alpha1.Category
-	(*ListModelTaskLabelsRequest)(nil),   // 2: matrixhub.v1alpha1.ListModelTaskLabelsRequest
-	(*ListModelTaskLabelsResponse)(nil),  // 3: matrixhub.v1alpha1.ListModelTaskLabelsResponse
-	(*ListModelFrameLabelsRequest)(nil),  // 4: matrixhub.v1alpha1.ListModelFrameLabelsRequest
-	(*ListModelFrameLabelsResponse)(nil), // 5: matrixhub.v1alpha1.ListModelFrameLabelsResponse
-	(*ListModelsRequest)(nil),            // 6: matrixhub.v1alpha1.ListModelsRequest
-	(*ListModelsResponse)(nil),           // 7: matrixhub.v1alpha1.ListModelsResponse
-	(*GetModelRequest)(nil),              // 8: matrixhub.v1alpha1.GetModelRequest
-	(*CreateModelRequest)(nil),           // 9: matrixhub.v1alpha1.CreateModelRequest
-	(*CreateModelResponse)(nil),          // 10: matrixhub.v1alpha1.CreateModelResponse
-	(*DeleteModelRequest)(nil),           // 11: matrixhub.v1alpha1.DeleteModelRequest
-	(*DeleteModelResponse)(nil),          // 12: matrixhub.v1alpha1.DeleteModelResponse
-	(*ListModelRevisionsRequest)(nil),    // 13: matrixhub.v1alpha1.ListModelRevisionsRequest
-	(*ListModelRevisionsResponse)(nil),   // 14: matrixhub.v1alpha1.ListModelRevisionsResponse
-	(*Revisions)(nil),                    // 15: matrixhub.v1alpha1.Revisions
-	(*ListModelCommitsRequest)(nil),      // 16: matrixhub.v1alpha1.ListModelCommitsRequest
-	(*ListModelCommitsResponse)(nil),     // 17: matrixhub.v1alpha1.ListModelCommitsResponse
-	(*GetModelCommitRequest)(nil),        // 18: matrixhub.v1alpha1.GetModelCommitRequest
-	(*GetModelTreeRequest)(nil),          // 19: matrixhub.v1alpha1.GetModelTreeRequest
-	(*File)(nil),                         // 20: matrixhub.v1alpha1.File
-	(*GetModelTreeResponse)(nil),         // 21: matrixhub.v1alpha1.GetModelTreeResponse
-	(*GetModelBlobRequest)(nil),          // 22: matrixhub.v1alpha1.GetModelBlobRequest
-	(*Model)(nil),                        // 23: matrixhub.v1alpha1.Model
-	(*CloneUrls)(nil),                    // 24: matrixhub.v1alpha1.CloneUrls
-	(*Revision)(nil),                     // 25: matrixhub.v1alpha1.Revision
-	(*Commit)(nil),                       // 26: matrixhub.v1alpha1.Commit
-	(*Label)(nil),                        // 27: matrixhub.v1alpha1.Label
-	(*UpdateModelSettingRequest)(nil),    // 28: matrixhub.v1alpha1.UpdateModelSettingRequest
-	(*UpdateModelSettingResponse)(nil),   // 29: matrixhub.v1alpha1.UpdateModelSettingResponse
-	(*Pagination)(nil),                   // 30: matrixhub.v1alpha1.Pagination
-	(*wrapperspb.BoolValue)(nil),         // 31: google.protobuf.BoolValue
+	(CacheFileState)(0),                  // 2: matrixhub.v1alpha1.CacheFileState
+	(CacheState)(0),                      // 3: matrixhub.v1alpha1.CacheState
+	(CacheTaskState)(0),                  // 4: matrixhub.v1alpha1.CacheTaskState
+	(*ListModelTaskLabelsRequest)(nil),   // 5: matrixhub.v1alpha1.ListModelTaskLabelsRequest
+	(*ListModelTaskLabelsResponse)(nil),  // 6: matrixhub.v1alpha1.ListModelTaskLabelsResponse
+	(*ListModelFrameLabelsRequest)(nil),  // 7: matrixhub.v1alpha1.ListModelFrameLabelsRequest
+	(*ListModelFrameLabelsResponse)(nil), // 8: matrixhub.v1alpha1.ListModelFrameLabelsResponse
+	(*ListModelsRequest)(nil),            // 9: matrixhub.v1alpha1.ListModelsRequest
+	(*ListModelsResponse)(nil),           // 10: matrixhub.v1alpha1.ListModelsResponse
+	(*GetModelRequest)(nil),              // 11: matrixhub.v1alpha1.GetModelRequest
+	(*CreateModelRequest)(nil),           // 12: matrixhub.v1alpha1.CreateModelRequest
+	(*CreateModelResponse)(nil),          // 13: matrixhub.v1alpha1.CreateModelResponse
+	(*DeleteModelRequest)(nil),           // 14: matrixhub.v1alpha1.DeleteModelRequest
+	(*DeleteModelResponse)(nil),          // 15: matrixhub.v1alpha1.DeleteModelResponse
+	(*ListModelRevisionsRequest)(nil),    // 16: matrixhub.v1alpha1.ListModelRevisionsRequest
+	(*ListModelRevisionsResponse)(nil),   // 17: matrixhub.v1alpha1.ListModelRevisionsResponse
+	(*Revisions)(nil),                    // 18: matrixhub.v1alpha1.Revisions
+	(*ListModelCommitsRequest)(nil),      // 19: matrixhub.v1alpha1.ListModelCommitsRequest
+	(*ListModelCommitsResponse)(nil),     // 20: matrixhub.v1alpha1.ListModelCommitsResponse
+	(*GetModelCommitRequest)(nil),        // 21: matrixhub.v1alpha1.GetModelCommitRequest
+	(*GetModelTreeRequest)(nil),          // 22: matrixhub.v1alpha1.GetModelTreeRequest
+	(*File)(nil),                         // 23: matrixhub.v1alpha1.File
+	(*GetModelTreeResponse)(nil),         // 24: matrixhub.v1alpha1.GetModelTreeResponse
+	(*GetModelBlobRequest)(nil),          // 25: matrixhub.v1alpha1.GetModelBlobRequest
+	(*Model)(nil),                        // 26: matrixhub.v1alpha1.Model
+	(*CloneUrls)(nil),                    // 27: matrixhub.v1alpha1.CloneUrls
+	(*Revision)(nil),                     // 28: matrixhub.v1alpha1.Revision
+	(*Commit)(nil),                       // 29: matrixhub.v1alpha1.Commit
+	(*Label)(nil),                        // 30: matrixhub.v1alpha1.Label
+	(*UpdateModelSettingRequest)(nil),    // 31: matrixhub.v1alpha1.UpdateModelSettingRequest
+	(*UpdateModelSettingResponse)(nil),   // 32: matrixhub.v1alpha1.UpdateModelSettingResponse
+	(*CacheModelRequest)(nil),            // 33: matrixhub.v1alpha1.CacheModelRequest
+	(*GetModelCacheRequest)(nil),         // 34: matrixhub.v1alpha1.GetModelCacheRequest
+	(*ModelCacheFile)(nil),               // 35: matrixhub.v1alpha1.ModelCacheFile
+	(*ModelCacheTotals)(nil),             // 36: matrixhub.v1alpha1.ModelCacheTotals
+	(*ModelCacheTask)(nil),               // 37: matrixhub.v1alpha1.ModelCacheTask
+	(*ModelCacheStatus)(nil),             // 38: matrixhub.v1alpha1.ModelCacheStatus
+	(*Pagination)(nil),                   // 39: matrixhub.v1alpha1.Pagination
+	(*wrapperspb.BoolValue)(nil),         // 40: google.protobuf.BoolValue
 }
 var file_v1alpha1_model_proto_depIdxs = []int32{
-	27, // 0: matrixhub.v1alpha1.ListModelTaskLabelsResponse.items:type_name -> matrixhub.v1alpha1.Label
-	27, // 1: matrixhub.v1alpha1.ListModelFrameLabelsResponse.items:type_name -> matrixhub.v1alpha1.Label
-	23, // 2: matrixhub.v1alpha1.ListModelsResponse.items:type_name -> matrixhub.v1alpha1.Model
-	30, // 3: matrixhub.v1alpha1.ListModelsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
-	15, // 4: matrixhub.v1alpha1.ListModelRevisionsResponse.items:type_name -> matrixhub.v1alpha1.Revisions
-	25, // 5: matrixhub.v1alpha1.Revisions.branches:type_name -> matrixhub.v1alpha1.Revision
-	25, // 6: matrixhub.v1alpha1.Revisions.tags:type_name -> matrixhub.v1alpha1.Revision
-	26, // 7: matrixhub.v1alpha1.ListModelCommitsResponse.items:type_name -> matrixhub.v1alpha1.Commit
-	30, // 8: matrixhub.v1alpha1.ListModelCommitsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	30, // 0: matrixhub.v1alpha1.ListModelTaskLabelsResponse.items:type_name -> matrixhub.v1alpha1.Label
+	30, // 1: matrixhub.v1alpha1.ListModelFrameLabelsResponse.items:type_name -> matrixhub.v1alpha1.Label
+	26, // 2: matrixhub.v1alpha1.ListModelsResponse.items:type_name -> matrixhub.v1alpha1.Model
+	39, // 3: matrixhub.v1alpha1.ListModelsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	18, // 4: matrixhub.v1alpha1.ListModelRevisionsResponse.items:type_name -> matrixhub.v1alpha1.Revisions
+	28, // 5: matrixhub.v1alpha1.Revisions.branches:type_name -> matrixhub.v1alpha1.Revision
+	28, // 6: matrixhub.v1alpha1.Revisions.tags:type_name -> matrixhub.v1alpha1.Revision
+	29, // 7: matrixhub.v1alpha1.ListModelCommitsResponse.items:type_name -> matrixhub.v1alpha1.Commit
+	39, // 8: matrixhub.v1alpha1.ListModelCommitsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
 	0,  // 9: matrixhub.v1alpha1.File.type:type_name -> matrixhub.v1alpha1.FileType
-	26, // 10: matrixhub.v1alpha1.File.commit:type_name -> matrixhub.v1alpha1.Commit
-	20, // 11: matrixhub.v1alpha1.GetModelTreeResponse.items:type_name -> matrixhub.v1alpha1.File
-	24, // 12: matrixhub.v1alpha1.Model.clone_urls:type_name -> matrixhub.v1alpha1.CloneUrls
-	27, // 13: matrixhub.v1alpha1.Model.labels:type_name -> matrixhub.v1alpha1.Label
+	29, // 10: matrixhub.v1alpha1.File.commit:type_name -> matrixhub.v1alpha1.Commit
+	23, // 11: matrixhub.v1alpha1.GetModelTreeResponse.items:type_name -> matrixhub.v1alpha1.File
+	27, // 12: matrixhub.v1alpha1.Model.clone_urls:type_name -> matrixhub.v1alpha1.CloneUrls
+	30, // 13: matrixhub.v1alpha1.Model.labels:type_name -> matrixhub.v1alpha1.Label
 	1,  // 14: matrixhub.v1alpha1.Label.category:type_name -> matrixhub.v1alpha1.Category
-	31, // 15: matrixhub.v1alpha1.UpdateModelSettingRequest.popular:type_name -> google.protobuf.BoolValue
-	2,  // 16: matrixhub.v1alpha1.Models.ListModelTaskLabels:input_type -> matrixhub.v1alpha1.ListModelTaskLabelsRequest
-	4,  // 17: matrixhub.v1alpha1.Models.ListModelFrameLabels:input_type -> matrixhub.v1alpha1.ListModelFrameLabelsRequest
-	6,  // 18: matrixhub.v1alpha1.Models.ListModels:input_type -> matrixhub.v1alpha1.ListModelsRequest
-	8,  // 19: matrixhub.v1alpha1.Models.GetModel:input_type -> matrixhub.v1alpha1.GetModelRequest
-	9,  // 20: matrixhub.v1alpha1.Models.CreateModel:input_type -> matrixhub.v1alpha1.CreateModelRequest
-	11, // 21: matrixhub.v1alpha1.Models.DeleteModel:input_type -> matrixhub.v1alpha1.DeleteModelRequest
-	13, // 22: matrixhub.v1alpha1.Models.ListModelRevisions:input_type -> matrixhub.v1alpha1.ListModelRevisionsRequest
-	16, // 23: matrixhub.v1alpha1.Models.ListModelCommits:input_type -> matrixhub.v1alpha1.ListModelCommitsRequest
-	18, // 24: matrixhub.v1alpha1.Models.GetModelCommit:input_type -> matrixhub.v1alpha1.GetModelCommitRequest
-	19, // 25: matrixhub.v1alpha1.Models.GetModelTree:input_type -> matrixhub.v1alpha1.GetModelTreeRequest
-	22, // 26: matrixhub.v1alpha1.Models.GetModelBlob:input_type -> matrixhub.v1alpha1.GetModelBlobRequest
-	28, // 27: matrixhub.v1alpha1.Models.UpdateModelSetting:input_type -> matrixhub.v1alpha1.UpdateModelSettingRequest
-	3,  // 28: matrixhub.v1alpha1.Models.ListModelTaskLabels:output_type -> matrixhub.v1alpha1.ListModelTaskLabelsResponse
-	5,  // 29: matrixhub.v1alpha1.Models.ListModelFrameLabels:output_type -> matrixhub.v1alpha1.ListModelFrameLabelsResponse
-	7,  // 30: matrixhub.v1alpha1.Models.ListModels:output_type -> matrixhub.v1alpha1.ListModelsResponse
-	23, // 31: matrixhub.v1alpha1.Models.GetModel:output_type -> matrixhub.v1alpha1.Model
-	10, // 32: matrixhub.v1alpha1.Models.CreateModel:output_type -> matrixhub.v1alpha1.CreateModelResponse
-	12, // 33: matrixhub.v1alpha1.Models.DeleteModel:output_type -> matrixhub.v1alpha1.DeleteModelResponse
-	14, // 34: matrixhub.v1alpha1.Models.ListModelRevisions:output_type -> matrixhub.v1alpha1.ListModelRevisionsResponse
-	17, // 35: matrixhub.v1alpha1.Models.ListModelCommits:output_type -> matrixhub.v1alpha1.ListModelCommitsResponse
-	26, // 36: matrixhub.v1alpha1.Models.GetModelCommit:output_type -> matrixhub.v1alpha1.Commit
-	21, // 37: matrixhub.v1alpha1.Models.GetModelTree:output_type -> matrixhub.v1alpha1.GetModelTreeResponse
-	20, // 38: matrixhub.v1alpha1.Models.GetModelBlob:output_type -> matrixhub.v1alpha1.File
-	29, // 39: matrixhub.v1alpha1.Models.UpdateModelSetting:output_type -> matrixhub.v1alpha1.UpdateModelSettingResponse
-	28, // [28:40] is the sub-list for method output_type
-	16, // [16:28] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	40, // 15: matrixhub.v1alpha1.UpdateModelSettingRequest.popular:type_name -> google.protobuf.BoolValue
+	2,  // 16: matrixhub.v1alpha1.ModelCacheFile.state:type_name -> matrixhub.v1alpha1.CacheFileState
+	4,  // 17: matrixhub.v1alpha1.ModelCacheTask.state:type_name -> matrixhub.v1alpha1.CacheTaskState
+	3,  // 18: matrixhub.v1alpha1.ModelCacheStatus.state:type_name -> matrixhub.v1alpha1.CacheState
+	36, // 19: matrixhub.v1alpha1.ModelCacheStatus.totals:type_name -> matrixhub.v1alpha1.ModelCacheTotals
+	35, // 20: matrixhub.v1alpha1.ModelCacheStatus.files:type_name -> matrixhub.v1alpha1.ModelCacheFile
+	37, // 21: matrixhub.v1alpha1.ModelCacheStatus.task:type_name -> matrixhub.v1alpha1.ModelCacheTask
+	5,  // 22: matrixhub.v1alpha1.Models.ListModelTaskLabels:input_type -> matrixhub.v1alpha1.ListModelTaskLabelsRequest
+	7,  // 23: matrixhub.v1alpha1.Models.ListModelFrameLabels:input_type -> matrixhub.v1alpha1.ListModelFrameLabelsRequest
+	9,  // 24: matrixhub.v1alpha1.Models.ListModels:input_type -> matrixhub.v1alpha1.ListModelsRequest
+	11, // 25: matrixhub.v1alpha1.Models.GetModel:input_type -> matrixhub.v1alpha1.GetModelRequest
+	12, // 26: matrixhub.v1alpha1.Models.CreateModel:input_type -> matrixhub.v1alpha1.CreateModelRequest
+	14, // 27: matrixhub.v1alpha1.Models.DeleteModel:input_type -> matrixhub.v1alpha1.DeleteModelRequest
+	16, // 28: matrixhub.v1alpha1.Models.ListModelRevisions:input_type -> matrixhub.v1alpha1.ListModelRevisionsRequest
+	19, // 29: matrixhub.v1alpha1.Models.ListModelCommits:input_type -> matrixhub.v1alpha1.ListModelCommitsRequest
+	21, // 30: matrixhub.v1alpha1.Models.GetModelCommit:input_type -> matrixhub.v1alpha1.GetModelCommitRequest
+	22, // 31: matrixhub.v1alpha1.Models.GetModelTree:input_type -> matrixhub.v1alpha1.GetModelTreeRequest
+	25, // 32: matrixhub.v1alpha1.Models.GetModelBlob:input_type -> matrixhub.v1alpha1.GetModelBlobRequest
+	31, // 33: matrixhub.v1alpha1.Models.UpdateModelSetting:input_type -> matrixhub.v1alpha1.UpdateModelSettingRequest
+	33, // 34: matrixhub.v1alpha1.Models.CacheModel:input_type -> matrixhub.v1alpha1.CacheModelRequest
+	34, // 35: matrixhub.v1alpha1.Models.GetModelCache:input_type -> matrixhub.v1alpha1.GetModelCacheRequest
+	6,  // 36: matrixhub.v1alpha1.Models.ListModelTaskLabels:output_type -> matrixhub.v1alpha1.ListModelTaskLabelsResponse
+	8,  // 37: matrixhub.v1alpha1.Models.ListModelFrameLabels:output_type -> matrixhub.v1alpha1.ListModelFrameLabelsResponse
+	10, // 38: matrixhub.v1alpha1.Models.ListModels:output_type -> matrixhub.v1alpha1.ListModelsResponse
+	26, // 39: matrixhub.v1alpha1.Models.GetModel:output_type -> matrixhub.v1alpha1.Model
+	13, // 40: matrixhub.v1alpha1.Models.CreateModel:output_type -> matrixhub.v1alpha1.CreateModelResponse
+	15, // 41: matrixhub.v1alpha1.Models.DeleteModel:output_type -> matrixhub.v1alpha1.DeleteModelResponse
+	17, // 42: matrixhub.v1alpha1.Models.ListModelRevisions:output_type -> matrixhub.v1alpha1.ListModelRevisionsResponse
+	20, // 43: matrixhub.v1alpha1.Models.ListModelCommits:output_type -> matrixhub.v1alpha1.ListModelCommitsResponse
+	29, // 44: matrixhub.v1alpha1.Models.GetModelCommit:output_type -> matrixhub.v1alpha1.Commit
+	24, // 45: matrixhub.v1alpha1.Models.GetModelTree:output_type -> matrixhub.v1alpha1.GetModelTreeResponse
+	23, // 46: matrixhub.v1alpha1.Models.GetModelBlob:output_type -> matrixhub.v1alpha1.File
+	32, // 47: matrixhub.v1alpha1.Models.UpdateModelSetting:output_type -> matrixhub.v1alpha1.UpdateModelSettingResponse
+	38, // 48: matrixhub.v1alpha1.Models.CacheModel:output_type -> matrixhub.v1alpha1.ModelCacheStatus
+	38, // 49: matrixhub.v1alpha1.Models.GetModelCache:output_type -> matrixhub.v1alpha1.ModelCacheStatus
+	36, // [36:50] is the sub-list for method output_type
+	22, // [22:36] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_model_proto_init() }
@@ -2080,8 +2913,8 @@ func file_v1alpha1_model_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_model_proto_rawDesc), len(file_v1alpha1_model_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   28,
+			NumEnums:      5,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

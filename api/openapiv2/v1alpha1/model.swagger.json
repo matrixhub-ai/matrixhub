@@ -280,6 +280,95 @@
         ]
       }
     },
+    "/api/v1alpha1/models/{project}/{name}/cache": {
+      "get": {
+        "summary": "GetModelCache reports the local cache status of every file of a model\nrevision, and the latest pull of its files. It is read-only: it never\ncontacts upstream and never starts downloads.",
+        "operationId": "Models_GetModelCache",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ModelCacheStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "description": "Name of the model. As on Hugging Face, it may start with '_'.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "revision",
+            "description": "Branch, tag or commit. Empty means the default branch. It resolves, and\nis rejected, as the revision of CacheModelRequest.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Models"
+        ]
+      },
+      "post": {
+        "summary": "CacheModel pulls a revision of a proxy-project model from upstream into\nMatrixHub storage on the server. The model may not exist locally yet.\nWith dry_run it only lists the upstream files and reports what is already\ncached: it never syncs, creates the model, or starts downloads.",
+        "operationId": "Models_CacheModel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ModelCacheStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "description": "Name of the model. As on Hugging Face, it may start with '_'.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ModelsCacheModelBody"
+            }
+          }
+        ],
+        "tags": [
+          "Models"
+        ]
+      }
+    },
     "/api/v1alpha1/models/{project}/{name}/commits": {
       "get": {
         "operationId": "Models_ListModelCommits",
@@ -515,6 +604,33 @@
     }
   },
   "definitions": {
+    "ModelsCacheModelBody": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "description": "Branch, tag or commit. Empty means the default branch. A name resolves as\ngit, and MatrixHub when hf download asks it, resolve it: a commit id\nfirst, then a tag before a branch of the same name. MatrixHub mirrors only\nbranches and tags, so other refs, such as refs/pr/1, are rejected, and a\nname that upstream knows only as such a ref, as huggingface.co knows pr/1,\nis not found. Revision expressions such as main~1, which upstream does not\nresolve, and names that contain '@' are rejected too."
+        },
+        "allowPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Narrow the cached files; without patterns every file of the revision is\ncached. Patterns follow huggingface_hub fnmatch semantics: '*' and '?'\nalso match '/', a trailing '/' selects a whole directory, and '\\' counts\nas '/'. A list holds at most 16 patterns, and a pattern at most 256\ncharacters and 16 wildcards ('*', '?' and classes)."
+        },
+        "ignorePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files that match an ignore pattern are not cached, even when they match\nan allow pattern. Same syntax and limits as allow_patterns."
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "Only report what a pull would do: the upstream files of the revision and\nwhich of them are cached. A dry run creates nothing and downloads\nnothing."
+        }
+      }
+    },
     "ModelsUpdateModelSettingBody": {
       "type": "object",
       "properties": {
@@ -571,6 +687,40 @@
           }
         }
       }
+    },
+    "v1alpha1CacheFileState": {
+      "type": "string",
+      "enum": [
+        "CACHE_FILE_STATE_UNSPECIFIED",
+        "CACHE_FILE_STATE_CACHED",
+        "CACHE_FILE_STATE_DOWNLOADING",
+        "CACHE_FILE_STATE_QUEUED",
+        "CACHE_FILE_STATE_MISSING",
+        "CACHE_FILE_STATE_FAILED"
+      ],
+      "default": "CACHE_FILE_STATE_UNSPECIFIED",
+      "description": " - CACHE_FILE_STATE_QUEUED: Part of a running cache task, not started yet, or waiting for its next\nattempt; error then tells why the last attempt failed."
+    },
+    "v1alpha1CacheState": {
+      "type": "string",
+      "enum": [
+        "CACHE_STATE_UNSPECIFIED",
+        "CACHE_STATE_MISSING",
+        "CACHE_STATE_PARTIAL",
+        "CACHE_STATE_CACHED"
+      ],
+      "default": "CACHE_STATE_UNSPECIFIED",
+      "description": "How much of the selected files is in MatrixHub storage. Files stored in git\nare present once the commit is synced, so LFS objects decide between\nMISSING and PARTIAL.\n\n - CACHE_STATE_MISSING: No LFS object of the selection is cached.\n - CACHE_STATE_CACHED: Every selected file is cached."
+    },
+    "v1alpha1CacheTaskState": {
+      "type": "string",
+      "enum": [
+        "CACHE_TASK_STATE_UNSPECIFIED",
+        "CACHE_TASK_STATE_RUNNING",
+        "CACHE_TASK_STATE_SUCCEEDED",
+        "CACHE_TASK_STATE_FAILED"
+      ],
+      "default": "CACHE_TASK_STATE_UNSPECIFIED"
     },
     "v1alpha1Category": {
       "type": "string",
@@ -808,6 +958,145 @@
         },
         "syncedAt": {
           "type": "string"
+        }
+      }
+    },
+    "v1alpha1ModelCacheFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "format": "int64"
+        },
+        "lfs": {
+          "type": "boolean"
+        },
+        "oid": {
+          "type": "string",
+          "description": "LFS object id (sha256). Empty for files stored directly in git."
+        },
+        "state": {
+          "$ref": "#/definitions/v1alpha1CacheFileState"
+        },
+        "downloadedBytes": {
+          "type": "string",
+          "format": "int64"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1ModelCacheStatus": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "requestedRevision": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string",
+          "description": "The branch, tag or commit that was listed: requested_revision, or the name\nof the default branch when none was requested. A dry run leaves it empty\nwhen the registry does not name its default branch. It and commit are\nempty for a proxy model that has not synced yet: none of its files are\nknown."
+        },
+        "commit": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/definitions/v1alpha1CacheState",
+          "description": "How much of the selected files is cached; see CacheState."
+        },
+        "totals": {
+          "$ref": "#/definitions/v1alpha1ModelCacheTotals"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ModelCacheFile"
+          }
+        },
+        "task": {
+          "$ref": "#/definitions/v1alpha1ModelCacheTask",
+          "description": "The latest pull that the server knows of: of the requested selection for\nCacheModel; for GetModelCache, of files of the revision only, a running\none first. Unset when there is none, for example when no pull was\nstarted, the last one finished more than an hour ago, or the server\nrestarted since. A failed pull whose failed files were stored since is\nnot reported."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1alpha1ModelCacheTask": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Opaque and unique per run: retrying a failed pull starts a new run."
+        },
+        "state": {
+          "$ref": "#/definitions/v1alpha1CacheTaskState"
+        },
+        "startedAt": {
+          "type": "string"
+        },
+        "finishedAt": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "description": "One run of a pull."
+    },
+    "v1alpha1ModelCacheTotals": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bytes": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total size of the files."
+        },
+        "cachedFiles": {
+          "type": "string",
+          "format": "int64"
+        },
+        "cachedBytes": {
+          "type": "string",
+          "format": "int64"
+        },
+        "downloadingFiles": {
+          "type": "string",
+          "format": "int64"
+        },
+        "downloadingBytes": {
+          "type": "string",
+          "format": "int64",
+          "description": "Bytes downloaded so far of the files in DOWNLOADING state, not their\nsize."
+        },
+        "queuedFiles": {
+          "type": "string",
+          "format": "int64"
+        },
+        "missingFiles": {
+          "type": "string",
+          "format": "int64"
+        },
+        "failedFiles": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

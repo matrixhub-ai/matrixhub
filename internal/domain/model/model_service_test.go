@@ -330,6 +330,103 @@ func TestModelService_CheckOrSyncFromRemoteSyncsStaleExistingModel(t *testing.T)
 	require.ErrorIs(t, err, pullErr)
 }
 
+func TestModelService_RefreshFromRemoteIgnoresSyncTTL(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	projectRepo, registryRepo := newProxyRepoMocks(ctrl)
+	pullErr := errors.New("pull attempted")
+	syncedAt := time.Now()
+
+	modelRepo.EXPECT().
+		GetByProjectAndName(ctx, "proj", "model").
+		Return(&model.Model{
+			ID:          42,
+			Name:        "model",
+			ProjectName: "proj",
+			SyncedAt:    &syncedAt,
+		}, nil)
+	gitRepo.EXPECT().
+		PullFromRemote(ctx, gomock.Any()).
+		Return(pullErr)
+
+	service := model.NewModelService(
+		modelRepo,
+		nil,
+		gitRepo,
+		projectRepo,
+		registryRepo,
+	)
+
+	err := service.RefreshFromRemote(ctx, "proj", "model")
+
+	require.ErrorIs(t, err, pullErr)
+}
+
+func TestModelService_RefreshFromRemoteDoesNotCreateModel(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	registryRepo := registrymocks.NewMockIRegistryRepo(ctrl)
+	registryID := 1
+	projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
+	projectRepo.EXPECT().
+		GetProjectByName(gomock.Any(), "proj").
+		Return(&project.Project{Name: "proj", RegistryID: &registryID, Organization: "upstream-org"}, nil)
+
+	// No repository or record may be created, and nothing is pulled.
+	modelRepo.EXPECT().
+		GetByProjectAndName(ctx, "proj", "model").
+		Return(nil, errors.New("record not found"))
+
+	service := model.NewModelService(
+		modelRepo,
+		nil,
+		gitRepo,
+		projectRepo,
+		registryRepo,
+	)
+
+	err := service.RefreshFromRemote(ctx, "proj", "model")
+
+	require.ErrorIs(t, err, model.ErrModelNotFound)
+}
+
+// A failed lookup during the sync is not a deleted model, although its
+// message says "not found".
+func TestModelService_RefreshFromRemoteFailedSyncIsNotModelNotFound(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	projectRepo, registryRepo := newProxyRepoMocks(ctrl)
+	gomock.InOrder(
+		modelRepo.EXPECT().
+			GetByProjectAndName(ctx, "proj", "model").
+			Return(&model.Model{ID: 1, Name: "model"}, nil),
+		gitRepo.EXPECT().PullFromRemote(ctx, gomock.Any()).Return(nil),
+		// SyncMetadata looks the model up again, and the database is busy.
+		modelRepo.EXPECT().
+			GetByProjectAndName(ctx, "proj", "model").
+			Return(nil, errors.New("failed to get model: database is locked")),
+	)
+
+	service := model.NewModelService(
+		modelRepo,
+		nil,
+		gitRepo,
+		projectRepo,
+		registryRepo,
+	)
+
+	err := service.RefreshFromRemote(ctx, "proj", "model")
+
+	require.Error(t, err)
+	require.NotErrorIs(t, err, model.ErrModelNotFound)
+}
+
 func TestModelService_CheckOrSyncFromRemoteRecordsSuccessfulSync(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)

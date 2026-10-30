@@ -52,6 +52,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/cleanup"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/modelcache"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/preset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/registrydiscovery"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
@@ -408,10 +409,11 @@ func (server *APIServer) initSSHBackend() {
 }
 
 type Services struct {
-	Model   model.IModelService
-	Dataset dataset.IDatasetService
-	Authz   authz.IAuthzService
-	Cleanup cleanup.ICleanupService
+	Model      model.IModelService
+	ModelCache modelcache.IModelCacheService
+	Dataset    dataset.IDatasetService
+	Authz      authz.IAuthzService
+	Cleanup    cleanup.ICleanupService
 }
 
 func (server *APIServer) initHandlersServicesRepos() {
@@ -462,10 +464,22 @@ func (server *APIServer) initHandlersServicesRepos() {
 	)
 
 	// init sync policy service
+	hfDiscovery := hfdiscovery.New()
 	discoveries := map[string]registrydiscovery.Discovery{
-		registrydiscovery.ProviderHuggingFace: hfdiscovery.New(),
+		registrydiscovery.ProviderHuggingFace: hfDiscovery,
 		registrydiscovery.ProviderMatrixHub:   mhdiscovery.New(),
 	}
+	// init model cache service; both registry types serve the Hugging
+	// Face-compatible API that hfDiscovery lists files with. Task state is in
+	// memory, so the apiserver must run as a single replica.
+	modelCacheService := modelcache.NewModelCacheService(
+		modelService,
+		repos.Project,
+		repos.Registry,
+		repos.Git,
+		hfDiscovery,
+		modelcache.Options{},
+	)
 	jobGenerator := syncpolicy.NewSyncJobGenerator(
 		repos.Registry,
 		discoveries,
@@ -497,10 +511,11 @@ func (server *APIServer) initHandlersServicesRepos() {
 	}
 
 	server.services = &Services{
-		Model:   modelService,
-		Dataset: datasetService,
-		Authz:   authzService,
-		Cleanup: cleanupService,
+		Model:      modelService,
+		ModelCache: modelCacheService,
+		Dataset:    datasetService,
+		Authz:      authzService,
+		Cleanup:    cleanupService,
 	}
 
 	// init handlers
@@ -511,7 +526,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewCurrentUserHandler(repos.User, repos.AccessToken, repos.SSHKey),
 		handler.NewUserHandler(repos.User, authzService),
 		handler.NewDatasetHandler(datasetService),
-		handler.NewModelHandler(modelService, authzService),
+		handler.NewModelHandler(modelService, modelCacheService, authzService),
 		handler.NewSyncPolicyHandler(syncPolicyService, syncJobService, repos.Registry, logStore, canc),
 		handler.NewCleanupHandler(cleanupService),
 		handler.NewRoleHandler(),
@@ -659,6 +674,14 @@ func (server *APIServer) Shutdown() {
 	defer cancel()
 
 	server.cmux.Close()
+
+	// Stop cache tasks before the database closes under them, and before
+	// the servers drain their requests: GracefulStop waits for every RPC
+	// with no deadline, and a pull may wait minutes for a sync until the
+	// cache service closes.
+	if server.services != nil && server.services.ModelCache != nil {
+		server.services.ModelCache.Close()
+	}
 
 	if err := server.httpServer.Shutdown(ctx); err != nil {
 		log.Error("shutdown error", "error", err)
