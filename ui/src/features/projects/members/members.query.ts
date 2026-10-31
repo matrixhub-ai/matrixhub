@@ -29,6 +29,7 @@ export const memberKeys = {
     q: string
     page: number
   }) => [...memberKeys.lists(), projectId, params] as const,
+  availableUsers: (projectId: string) => [...memberKeys.all, 'availableUsers', projectId] as const,
 }
 
 // -- Query options factory --
