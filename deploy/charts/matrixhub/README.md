@@ -105,6 +105,7 @@ The following table lists the configurable parameters of the MatrixHub chart and
 | `apiserver.storage.pvc.size` | MatrixHub data PVC size | `50Gi` |
 | `apiserver.storage.pvc.existingClaim` | Existing PVC for MatrixHub data | `""` |
 | `presets.enabled` | Seed empty instances with static model metadata and repair local repositories without upstream requests | `true` |
+| `presets.manifest` | Registries, projects, and models that replace the built-in preset manifest (see [Preset Models](#preset-models)) | `{}` (built-in manifest) |
 | `mysql.registry` | MySQL image registry | `docker.io` |
 | `mysql.repository` | MySQL image repository | `library/mysql` |
 | `mysql.tag` | MySQL image tag | `8.4` |
@@ -143,28 +144,82 @@ helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
 ## Preset Models
 
 With `presets.enabled=true` (also the default when omitted), an instance with no
-registries **and** no projects receives three Hugging Face registries
-(`huggingface`, `hf-mirror`, and `hf.m.daocloud`), four public proxy projects
-(`deepseek-ai`, `Qwen`, `MiniMaxAI`, and `zai-org`), and thirteen recommended model records.
-The projects use `https://hf.m.daocloud.io`; the built-in `admin` is their project
-administrator. Existing installations with a registry or project are not seeded.
+registries **and** no projects is seeded from a preset manifest. The built-in
+[manifest](https://github.com/matrixhub-ai/matrixhub/blob/main/internal/domain/preset/default_manifest.yaml)
+holds three Hugging Face registries (`huggingface`, `hf-mirror`, and `hf.m.daocloud`),
+four public proxy projects (`deepseek-ai`, `Qwen`, `MiniMaxAI`, and `zai-org`), and
+thirteen recommended model records. The projects use `https://hf.m.daocloud.io`. The
+built-in `admin` is the administrator of every preset project. Existing installations
+with a registry or project are not seeded.
 
 Initialization writes static sizes, parameter counts, and categorized labels
 alongside the model records. README content stays empty and `synced_at` stays
 null. A startup pass creates missing local placeholder repositories for existing
-preset models before the server starts accepting requests, without upstream
+models in the manifest before the server starts accepting requests, without upstream
 requests.
 These models remain unsynchronized until their first normal download, which can
 take a long time and require substantial disk space (some models are several TB).
 That download replaces the static metadata with the actual repository metadata
-and README. Manifest updates do not backfill metadata in existing installations.
-Presets are ordinary editable and deletable resources, not protected built-ins.
-Changing the `hf.m.daocloud` registry URL changes the upstream for all four projects.
+and README. Presets are ordinary editable and deletable resources, not protected built-ins.
+With the built-in manifest, changing the `hf.m.daocloud` registry URL changes the
+upstream for all four projects.
+
+The manifest is applied only once. Later changes to it, including built-in manifest
+updates in new releases, do not affect an existing installation, even after a restart;
+the startup log reports that seeding was skipped. Edit existing resources in the UI or
+API instead.
 
 Set `presets.enabled=false` to skip both initialization and local repository
 repair. Presets also work offline when enabled. Disabling them does not delete existing
 resources or disable normal proxy downloads. Deleting every project and registry
-without disabling presets causes them to be seeded again on the next startup.
+without disabling presets causes the manifest to be seeded again on the next startup.
+
+### Custom Manifest
+
+Set `presets.manifest` to replace the built-in manifest. It is not merged with the
+built-in one, so list every registry, project, and model to seed. An omitted or empty
+value keeps the built-in manifest, and copying the built-in manifest under
+`presets.manifest` is a convenient starting point. Outside Helm, set the same key in
+`config.yaml`.
+
+```yaml
+presets:
+  manifest:
+    registries:
+      - name: internal-mirror
+        description: Internal Hugging Face mirror
+        url: https://mirror.example.com
+    projects:
+      - name: Qwen
+        registry: internal-mirror
+    models:
+      - project: Qwen
+        name: Qwen3.8-27B
+        size: 55586114863
+        parameterCount: 27781427952
+        labels:
+          - {category: library, name: transformers}
+          - {category: task, name: image-text-to-text}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `registries[].name` | Yes | Unique name of up to 64 characters |
+| `registries[].url` | Yes | Absolute `http` or `https` URL of up to 255 characters |
+| `registries[].description` | No | Description |
+| `projects[].name` | Yes | Unique name of letters, digits, and `-`, at least two characters long, that starts and ends with a letter or digit (up to 64 characters) |
+| `projects[].organization` | No | Upstream organization of up to 64 letters, digits, `-`, `_`, and `.` that starts with a letter or digit; defaults to the project name |
+| `projects[].registry` | Yes | Name of a registry in the manifest |
+| `models[].project` | Yes | Name of a project in the manifest |
+| `models[].name` | Yes | Name of letters, digits, `-`, `_`, and `.` that starts with a letter or digit (up to 251 characters), other than `models`, `datasets`, `spaces`, and `resolve`; unique within its project regardless of case |
+| `models[].recommended` | No | Lists the model under recommended models; defaults to `true` |
+| `models[].size` | No | Size in bytes, shown until the first download; defaults to `0` |
+| `models[].parameterCount` | No | Parameter count, shown until the first download; defaults to `0` |
+| `models[].labels[]` | No | Labels, each with a `category` (`library`, `license`, `task`, `language`, or `other`) and a `name` of up to 64 characters, unique within the model regardless of case |
+
+Registries are created as Hugging Face registries without credentials, and projects as
+public proxy projects. MatrixHub fails to start if the manifest has an unknown field, an
+invalid value, or a reference to a registry or project that the manifest does not define.
 
 ## Storage
 

@@ -13,6 +13,10 @@ data:
     dataDir: /data/matrixhub
     presets:
       enabled: {{ dig "enabled" true (.Values.presets | default dict) }}
+      {{- with (dig "manifest" dict (.Values.presets | default dict)) }}
+      manifest:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     database:
       driver: {{ .Values.apiserver.database.driver }}
       accessType: {{ .Values.apiserver.database.accessType }}

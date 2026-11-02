@@ -130,6 +130,8 @@ apiserver:
 presets:
   # -- Seed empty instances with static model metadata and repair local repositories without upstream requests
   enabled: true
+  # -- Registries, projects, and models that replace the built-in preset manifest; empty uses the built-in one. See "Preset Models" in the chart README
+  manifest: {}
 
 # -- mysql configuration (only when global.storage.apiserver.builtIn is true)
 mysql:

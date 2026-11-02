@@ -48,7 +48,7 @@ func TestPresetDBSeedIfEmpty(t *testing.T) {
 	require.Equal(t, int64(3), total)
 	for i, spec := range manifest.Registries {
 		got := registries[i]
-		require.Equal(t, spec.ID, got.ID)
+		require.Equal(t, i+1, got.ID)
 		require.Equal(t, spec.Name, got.Name)
 		require.Equal(t, spec.URL, got.URL)
 		require.Equal(t, spec.Description, got.Description)
@@ -62,7 +62,7 @@ func TestPresetDBSeedIfEmpty(t *testing.T) {
 		prj, err := projectRepo.GetProjectByName(ctx, spec.Name)
 		require.NoError(t, err)
 		require.Equal(t, project.ProjectTypePublic, prj.Type)
-		require.Equal(t, spec.Organization, prj.Organization)
+		require.Equal(t, spec.UpstreamOrganization(), prj.Organization)
 		require.NotNil(t, prj.RegistryID)
 		require.Equal(t, 3, *prj.RegistryID)
 		require.Equal(t, "https://hf.m.daocloud.io", prj.RegistryURL)
@@ -165,6 +165,68 @@ func TestPresetDBReusesExistingLabels(t *testing.T) {
 	}
 }
 
+func TestPresetDBSeedsCustomManifest(t *testing.T) {
+	database, _ := newSQLiteRepositoryTestDatabase(t)
+	ctx := context.Background()
+	notRecommended := false
+	manifest := &preset.Manifest{
+		Registries: []preset.RegistrySpec{
+			{Name: "internal-mirror", URL: "https://mirror.example.com"},
+			{Name: "huggingface", Description: "Official Hugging Face Hub", URL: "https://huggingface.co"},
+		},
+		Projects: []preset.ProjectSpec{
+			{Name: "team-models", Registry: "huggingface"},
+			{Name: "mirrored", Organization: "upstream-org", Registry: "internal-mirror"},
+		},
+		Models: []preset.ModelSpec{
+			{Project: "team-models", Name: "default-model"},
+			{
+				Project: "mirrored", Name: "hidden-model", Recommended: &notRecommended, Size: 10, ParameterCount: 5,
+				Labels: []preset.LabelSpec{{Category: "task", Name: "text-generation"}},
+			},
+		},
+	}
+
+	applied, err := NewPresetDB(database).SeedIfEmpty(ctx, manifest)
+	require.NoError(t, err)
+	require.True(t, applied)
+
+	registries, _, err := NewRegistryRepo(database).ListRegistries(ctx, 1, 20, "")
+	require.NoError(t, err)
+	require.Len(t, registries, 2)
+	for i, spec := range manifest.Registries {
+		require.Equal(t, i+1, registries[i].ID)
+		require.Equal(t, spec.Name, registries[i].Name)
+		require.Equal(t, spec.Description, registries[i].Description)
+	}
+
+	projectRepo := NewProjectDBRepo(database)
+	teamModels, err := projectRepo.GetProjectByName(ctx, "team-models")
+	require.NoError(t, err)
+	require.Equal(t, "team-models", teamModels.Organization)
+	require.Equal(t, 2, *teamModels.RegistryID)
+	mirrored, err := projectRepo.GetProjectByName(ctx, "mirrored")
+	require.NoError(t, err)
+	require.Equal(t, "upstream-org", mirrored.Organization)
+	require.Equal(t, 1, *mirrored.RegistryID)
+
+	modelRepo := NewModelDB(database)
+	defaultModel, err := modelRepo.GetByProjectAndName(ctx, "team-models", "default-model")
+	require.NoError(t, err)
+	require.True(t, defaultModel.IsPopular)
+	require.Zero(t, defaultModel.Size)
+	require.Zero(t, defaultModel.ParameterCount)
+	require.Empty(t, defaultModel.Labels)
+	hiddenModel, err := modelRepo.GetByProjectAndName(ctx, "mirrored", "hidden-model")
+	require.NoError(t, err)
+	require.False(t, hiddenModel.IsPopular)
+	require.Equal(t, int64(10), hiddenModel.Size)
+	require.Equal(t, int64(5), hiddenModel.ParameterCount)
+	require.Len(t, hiddenModel.Labels, 1)
+	require.Equal(t, "text-generation", hiddenModel.Labels[0].Name)
+	requirePresetCounts(t, database, 2, 2, 2, 2)
+}
+
 func TestPresetDBSkipsNonEmptyInstance(t *testing.T) {
 	for _, table := range []string{"registries", "projects"} {
 		t.Run(table, func(t *testing.T) {
@@ -187,9 +249,14 @@ func TestPresetDBSkipsNonEmptyInstance(t *testing.T) {
 
 func TestPresetDBRollsBackPrimaryKeyConflict(t *testing.T) {
 	database, _ := newSQLiteRepositoryTestDatabase(t)
-	manifest := preset.DefaultManifest()
-	manifest.Registries[1].ID = manifest.Registries[0].ID
-	applied, err := NewPresetDB(database).SeedIfEmpty(context.Background(), manifest)
+	// A concurrent seed takes registry ID 2 after this seed has found the
+	// instance empty, so only the primary key can detect the race.
+	require.NoError(t, database.Exec(`CREATE TRIGGER concurrent_preset_seed BEFORE INSERT ON registries
+		WHEN NEW.id = 2 BEGIN
+			INSERT INTO registries (id, name, description, type, url, status)
+			VALUES (2, 'concurrent', '', 'REGISTRY_TYPE_HUGGINGFACE', 'https://example.com', 0);
+		END`).Error)
+	applied, err := NewPresetDB(database).SeedIfEmpty(context.Background(), preset.DefaultManifest())
 	require.NoError(t, err)
 	require.False(t, applied)
 	requirePresetCounts(t, database, 0, 0, 0, 0)

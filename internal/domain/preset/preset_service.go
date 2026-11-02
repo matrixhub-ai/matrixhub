@@ -56,7 +56,12 @@ func (s *Service) Apply(ctx context.Context) {
 		log.Warnw("preset initialization failed", "error", err)
 		return
 	}
-	log.Infow("preset initialization completed", "applied", applied)
+	if !applied {
+		log.Info("preset initialization skipped: registries or projects already exist, " +
+			"and the manifest is only applied to an instance without them")
+		return
+	}
+	log.Info("preset initialization completed")
 }
 
 // Reconcile repairs local repositories in one bounded pass, without upstream
