@@ -43,6 +43,11 @@ type ISyncJobService interface {
 	ExecuteSyncJobWithLog(ctx context.Context, jobID int) error
 
 	SetOnJobDone(fn func(ctx context.Context, taskID int) error)
+
+	// CreateModelCacheJob creates a pending job that caches a revision of a
+	// model of a proxy project; see JobTypeModelCache. The model may not
+	// exist locally yet. A job server runs the job.
+	CreateModelCacheJob(ctx context.Context, projectName, name, revision string) (*SyncJob, error)
 }
 
 // resourceTypeDataset is the sync job resource type for datasets; every other
@@ -136,7 +141,7 @@ func (sjs *SyncJobService) ExecuteSyncJob(ctx context.Context, syncJob *SyncJob)
 		}
 	}()
 
-	return sjs.executeGitJob(ctx, syncJob, nil)
+	return sjs.executeJob(ctx, syncJob, nil)
 }
 
 const claimJobBatchLimit = 32
@@ -215,15 +220,11 @@ func (sjs *SyncJobService) ExecuteSyncJobWithLog(ctx context.Context, jobID int)
 		if updateErr := sjs.syncJobRepo.UpdateSyncJob(ctx, syncJob); updateErr != nil {
 			log.Errorw("update sync job status failed", "jobID", jobID, "error", updateErr)
 		}
-		if sjs.onJobDone != nil {
-			if repErr := sjs.onJobDone(ctx, syncJob.SyncTaskID); repErr != nil {
-				log.Errorw("report task status failed", "taskID", syncJob.SyncTaskID, "error", repErr)
-			}
-		}
+		sjs.reportJobDone(ctx, syncJob)
 		return nil
 	}
 
-	err = sjs.executeGitJob(ctx, syncJob, logWriter)
+	err = sjs.executeJob(ctx, syncJob, logWriter)
 
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
@@ -243,13 +244,31 @@ func (sjs *SyncJobService) ExecuteSyncJobWithLog(ctx context.Context, jobID int)
 		log.Errorw("update sync job status failed", "jobID", jobID, "error", updateErr)
 	}
 
-	if sjs.onJobDone != nil {
-		if repErr := sjs.onJobDone(ctx, syncJob.SyncTaskID); repErr != nil {
-			log.Errorw("report task status failed", "taskID", syncJob.SyncTaskID, "error", repErr)
-		}
-	}
+	sjs.reportJobDone(ctx, syncJob)
 
 	return err
+}
+
+// reportJobDone reports the end of a job to its sync task, if it has one.
+func (sjs *SyncJobService) reportJobDone(ctx context.Context, syncJob *SyncJob) {
+	if sjs.onJobDone == nil || !syncJob.HasSyncTask() {
+		return
+	}
+	if repErr := sjs.onJobDone(ctx, *syncJob.SyncTaskID); repErr != nil {
+		log.Errorw("report task status failed", "taskID", *syncJob.SyncTaskID, "error", repErr)
+	}
+}
+
+// executeJob runs a job as its type says.
+func (sjs *SyncJobService) executeJob(ctx context.Context, syncJob *SyncJob, logWriter io.Writer) error {
+	switch syncJob.JobType {
+	case JobTypeSync, "":
+		return sjs.executeGitJob(ctx, syncJob, logWriter)
+	case JobTypeModelCache:
+		return sjs.executeModelCacheJob(ctx, syncJob, logWriter)
+	default:
+		return fmt.Errorf("unknown job type: %s", syncJob.JobType)
+	}
 }
 
 func (sjs *SyncJobService) executeGitJob(ctx context.Context, syncJob *SyncJob, logWriter io.Writer) error {
@@ -300,28 +319,11 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 			_, _ = fmt.Fprintf(logWriter, "[INFO] created project %s (id=%d)\n", prj.Name, prj.ID)
 		}
 	}
-	gr := &git.GitRepository{
-		RemoteRegistryURL:  reg.URL,
-		RemoteProjectName:  syncJob.RemoteProjectName,
-		RemoteResourceName: syncJob.RemoteResourceName,
-		ProjectName:        syncJob.ProjectName,
-		ResourceName:       syncJob.ResourceName,
-		ResourceType:       syncJob.ResourceType,
-		LogWriter:          logWriter,
-	}
-	if reg.GetCredential() != nil {
-		if bc := registry.AsBasic(reg.GetCredential()); bc != nil {
-			gr.Credential = &git.BasicCredential{
-				Username: bc.Username,
-				Password: bc.Password,
-			}
-		}
-	}
 	if err = sjs.ensureLocalResource(ctx, syncJob, prj, logWriter); err != nil {
 		return err
 	}
 
-	if err = sjs.gitRepo.PullFromRemote(ctx, gr); err != nil {
+	if err = sjs.gitRepo.PullFromRemote(ctx, pullRepository(syncJob, reg, logWriter)); err != nil {
 		return err
 	}
 	if logWriter != nil {
@@ -341,6 +343,28 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 		_, _ = fmt.Fprintf(logWriter, "[INFO] job completed successfully\n")
 	}
 	return nil
+}
+
+// pullRepository describes the pull of a job's resource from its registry.
+func pullRepository(syncJob *SyncJob, reg *registry.Registry, logWriter io.Writer) *git.GitRepository {
+	gr := &git.GitRepository{
+		RemoteRegistryURL:  reg.URL,
+		RemoteProjectName:  syncJob.RemoteProjectName,
+		RemoteResourceName: syncJob.RemoteResourceName,
+		ProjectName:        syncJob.ProjectName,
+		ResourceName:       syncJob.ResourceName,
+		ResourceType:       syncJob.ResourceType,
+		LogWriter:          logWriter,
+	}
+	if reg.GetCredential() != nil {
+		if bc := registry.AsBasic(reg.GetCredential()); bc != nil {
+			gr.Credential = &git.BasicCredential{
+				Username: bc.Username,
+				Password: bc.Password,
+			}
+		}
+	}
+	return gr
 }
 
 // ensureLocalResource creates the local database record for the synced
