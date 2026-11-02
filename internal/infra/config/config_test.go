@@ -22,6 +22,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/preset"
@@ -182,6 +183,17 @@ func TestPresetsManifestConfiguration(t *testing.T) {
 			require.Equal(t, test.want, cfg.Presets.Manifest)
 		})
 	}
+}
+
+func TestHelmValuesPresetManifestMatchesBuiltIn(t *testing.T) {
+	values := viper.New()
+	values.SetConfigFile(filepath.Join("..", "..", "..", "deploy", "charts", "matrixhub", "values.yaml"))
+	require.NoError(t, values.ReadInConfig())
+
+	manifest, err := loadPresetManifest(values.Sub("presets"))
+	require.NoError(t, err)
+	require.Equal(t, preset.DefaultManifest(), manifest,
+		"presets.manifest in the chart values must match internal/domain/preset/default_manifest.yaml")
 }
 
 func initWithSection(t *testing.T, section string) (*Config, error) {

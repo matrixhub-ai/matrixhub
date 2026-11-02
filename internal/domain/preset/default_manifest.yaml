@@ -1,7 +1,9 @@
 # Built-in preset manifest. MatrixHub seeds it once into an instance that has no
-# registries and no projects, unless presets.manifest in config.yaml (the Helm
-# value of the same name) replaces it. That setting takes this same structure;
-# see "Preset Models" in deploy/charts/matrixhub/README.md for the field rules.
+# registries and no projects, unless presets.manifest in config.yaml replaces it.
+# That setting takes this same structure; see "Preset Models" in
+# deploy/charts/matrixhub/README.md for the field rules. The Helm chart repeats
+# this manifest as the default presets.manifest in its values.yaml, and a unit
+# test keeps the two identical.
 #
 # Models are recommended unless they set "recommended: false". Sizes include all
 # upstream files, and parameter counts come from safetensors.total.

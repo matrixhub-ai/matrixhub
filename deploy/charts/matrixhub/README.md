@@ -105,7 +105,7 @@ The following table lists the configurable parameters of the MatrixHub chart and
 | `apiserver.storage.pvc.size` | MatrixHub data PVC size | `50Gi` |
 | `apiserver.storage.pvc.existingClaim` | Existing PVC for MatrixHub data | `""` |
 | `presets.enabled` | Seed empty instances with static model metadata and repair local repositories without upstream requests | `true` |
-| `presets.manifest` | Registries, projects, and models that replace the built-in preset manifest (see [Preset Models](#preset-models)) | `{}` (built-in manifest) |
+| `presets.manifest` | Registries, projects, and models seeded into an empty instance (see [Preset Models](#preset-models)) | The manifest built into the image (3 registries, 4 projects, 13 models) |
 | `mysql.registry` | MySQL image registry | `docker.io` |
 | `mysql.repository` | MySQL image repository | `library/mysql` |
 | `mysql.tag` | MySQL image tag | `8.4` |
@@ -144,9 +144,10 @@ helm install matrixhub oci://ghcr.io/matrixhub-ai/matrixhub \
 ## Preset Models
 
 With `presets.enabled=true` (also the default when omitted), an instance with no
-registries **and** no projects is seeded from a preset manifest. The built-in
-[manifest](https://github.com/matrixhub-ai/matrixhub/blob/main/internal/domain/preset/default_manifest.yaml)
-holds three Hugging Face registries (`huggingface`, `hf-mirror`, and `hf.m.daocloud`),
+registries **and** no projects is seeded from `presets.manifest`. Its default in
+`values.yaml` is the
+[manifest built into the image](https://github.com/matrixhub-ai/matrixhub/blob/main/internal/domain/preset/default_manifest.yaml),
+which holds three Hugging Face registries (`huggingface`, `hf-mirror`, and `hf.m.daocloud`),
 four public proxy projects (`deepseek-ai`, `Qwen`, `MiniMaxAI`, and `zai-org`), and
 thirteen recommended model records. The projects use `https://hf.m.daocloud.io`. The
 built-in `admin` is the administrator of every preset project. Existing installations
@@ -161,10 +162,10 @@ These models remain unsynchronized until their first normal download, which can
 take a long time and require substantial disk space (some models are several TB).
 That download replaces the static metadata with the actual repository metadata
 and README. Presets are ordinary editable and deletable resources, not protected built-ins.
-With the built-in manifest, changing the `hf.m.daocloud` registry URL changes the
+With the default manifest, changing the `hf.m.daocloud` registry URL changes the
 upstream for all four projects.
 
-The manifest is applied only once. Later changes to it, including built-in manifest
+The manifest is applied only once. Later changes to it, including default manifest
 updates in new releases, do not affect an existing installation, even after a restart;
 the startup log reports that seeding was skipped. Edit existing resources in the UI or
 API instead.
@@ -176,11 +177,15 @@ without disabling presets causes the manifest to be seeded again on the next sta
 
 ### Custom Manifest
 
-Set `presets.manifest` to replace the built-in manifest. It is not merged with the
-built-in one, so list every registry, project, and model to seed. An omitted or empty
-value keeps the built-in manifest, and copying the built-in manifest under
-`presets.manifest` is a convenient starting point. Outside Helm, set the same key in
-`config.yaml`.
+Helm merges your values into the default `presets.manifest`: each list you set
+(`registries`, `projects`, or `models`) replaces the default list, and each list you
+omit keeps it. To seed only your own entries, set all three lists, as in the example
+below. Setting only `models` keeps the default registries and projects, so the new
+models must belong to those projects.
+
+Outside Helm, `presets.manifest` in `config.yaml` replaces the built-in manifest as a
+whole, and an omitted or empty value keeps it. Copying the default manifest there is a
+convenient starting point.
 
 ```yaml
 presets:
