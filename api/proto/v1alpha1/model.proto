@@ -7,6 +7,7 @@ option go_package = "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1"
 import "google/api/annotations.proto";
 import "google/protobuf/wrappers.proto";
 import "validate/validate.proto";
+import "v1alpha1/sync_policy.proto";
 import "v1alpha1/utils.proto";
 
 service Models {
@@ -69,6 +70,16 @@ service Models {
   rpc UpdateModelSetting(UpdateModelSettingRequest) returns (UpdateModelSettingResponse) {
     option (google.api.http) = {
       put: "/api/v1alpha1/models/{project}/{name}/setting"
+      body: "*"
+    };
+  }
+  // CacheModel creates a job that pulls a model of a proxy project from
+  // upstream. The pull queues the LFS files of the model, which MatrixHub
+  // then downloads in the background. The job runs in the background too,
+  // and the model need not exist locally yet.
+  rpc CacheModel(CacheModelRequest) returns (ModelCacheJob) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/models/{project}/{name}/cache"
       body: "*"
     };
   }
@@ -263,4 +274,31 @@ message UpdateModelSettingRequest {
 }
 
 message UpdateModelSettingResponse {
+}
+
+message CacheModelRequest {
+  string project = 1 [(validate.rules).string.min_len = 1];
+  // Name of the model. As on Hugging Face, it may start with '_'.
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 251,
+    pattern: "^[A-Za-z0-9_][A-Za-z0-9_.-]*$",
+    not_in: ["models", "datasets", "spaces", "resolve"]
+  }];
+  // Branch, tag or commit. Empty means the default branch. The job fails
+  // when upstream does not have it. MatrixHub mirrors only branches and
+  // tags, so other refs, such as refs/pr/1, are rejected. So are revision
+  // expressions, such as main~1, and names that contain '@'.
+  string revision = 3 [(validate.rules).string.max_len = 255];
+}
+
+// ModelCacheJob is a job that caches a model revision. It is a sync job of
+// its own type, and belongs to no sync task.
+message ModelCacheJob {
+  int32 id = 1;
+  SyncJobStatus status = 2;
+  // Revision that the job caches. Empty means the default branch.
+  string revision = 3;
+  int64 created_timestamp = 4;
+  int64 completed_timestamp = 5;
 }

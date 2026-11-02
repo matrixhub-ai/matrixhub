@@ -28,6 +28,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
@@ -36,12 +37,14 @@ import (
 type ModelHandler struct {
 	ms           model.IModelService
 	authzService authz.IAuthzService
+	syncJobs     syncjob.ISyncJobService
 }
 
-func NewModelHandler(modelService model.IModelService, authzService authz.IAuthzService) IHandler {
+func NewModelHandler(modelService model.IModelService, authzService authz.IAuthzService, syncJobService syncjob.ISyncJobService) IHandler {
 	handler := &ModelHandler{
 		ms:           modelService,
 		authzService: authzService,
+		syncJobs:     syncJobService,
 	}
 	return handler
 }

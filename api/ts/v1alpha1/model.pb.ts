@@ -6,6 +6,7 @@
 
 import * as fm from "../fetch.pb"
 import * as GoogleProtobufWrappers from "../google/protobuf/wrappers.pb"
+import * as MatrixhubV1alpha1Sync_policy from "./sync_policy.pb"
 import * as MatrixhubV1alpha1Utils from "./utils.pb"
 
 export enum FileType {
@@ -190,6 +191,20 @@ export type UpdateModelSettingRequest = {
 export type UpdateModelSettingResponse = {
 }
 
+export type CacheModelRequest = {
+  project?: string
+  name?: string
+  revision?: string
+}
+
+export type ModelCacheJob = {
+  id?: number
+  status?: MatrixhubV1alpha1Sync_policy.SyncJobStatus
+  revision?: string
+  createdTimestamp?: string
+  completedTimestamp?: string
+}
+
 export class Models {
   static ListModelTaskLabels(req: ListModelTaskLabelsRequest, initReq?: fm.InitReq): Promise<ListModelTaskLabelsResponse> {
     return fm.fetchReq<ListModelTaskLabelsRequest, ListModelTaskLabelsResponse>(`/api/v1alpha1/models/task-labels?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -226,5 +241,8 @@ export class Models {
   }
   static UpdateModelSetting(req: UpdateModelSettingRequest, initReq?: fm.InitReq): Promise<UpdateModelSettingResponse> {
     return fm.fetchReq<UpdateModelSettingRequest, UpdateModelSettingResponse>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/setting`, {...initReq, method: "PUT", body: JSON.stringify(req, fm.replacer)})
+  }
+  static CacheModel(req: CacheModelRequest, initReq?: fm.InitReq): Promise<ModelCacheJob> {
+    return fm.fetchReq<CacheModelRequest, ModelCacheJob>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/cache`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

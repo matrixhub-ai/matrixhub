@@ -45,6 +45,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	modelmocks "github.com/matrixhub-ai/matrixhub/internal/domain/model/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
+	syncjobmocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncjob/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
@@ -210,7 +211,7 @@ func modelHandlerTestSetup(t *testing.T) (*ModelHandler, *modelmocks.MockIModelS
 	ctrl := gomock.NewController(t)
 	svc := modelmocks.NewMockIModelService(ctrl)
 	authzService := authzmocks.NewMockIAuthzService(ctrl)
-	h, ok := NewModelHandler(svc, authzService).(*ModelHandler)
+	h, ok := NewModelHandler(svc, authzService, nil).(*ModelHandler)
 	require.True(t, ok)
 	return h, svc, authzService
 }
@@ -276,11 +277,13 @@ func TestNewModelHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	svc := modelmocks.NewMockIModelService(ctrl)
 	authzService := authzmocks.NewMockIAuthzService(ctrl)
+	syncJobs := syncjobmocks.NewMockISyncJobService(ctrl)
 
-	h, ok := NewModelHandler(svc, authzService).(*ModelHandler)
+	h, ok := NewModelHandler(svc, authzService, syncJobs).(*ModelHandler)
 	require.True(t, ok)
 	require.Same(t, svc, h.ms)
 	require.Same(t, authzService, h.authzService)
+	require.Same(t, syncJobs, h.syncJobs)
 }
 
 func TestFormatSizeAndParameterCount(t *testing.T) {
