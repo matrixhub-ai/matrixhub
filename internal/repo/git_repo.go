@@ -490,8 +490,8 @@ func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision
 
 func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepository) error {
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
-	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
-	sourceURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
+	remoteRepoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
+	sourceURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + remoteRepoName
 	if !repository.IsRepository(gitPath) {
 		_, err := repository.InitMirror(ctx, gitPath, sourceURL)
 		if err != nil {
@@ -514,6 +514,10 @@ func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepo
 			mirror.WithSyncUserInfo(url.UserPassword(cred.Username, cred.Password)),
 		)
 	}
+	// The mirror hands repoName to its hooks, which resolve it as a local
+	// repository, so it names the local copy rather than the upstream one; the
+	// two differ when a proxy project is named differently from its organization.
+	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.ProjectName + "/" + gitRepository.ResourceName
 	return g.mirror.PullFromRemote(ctx, gitPath, repoName,
 		syncOptions...,
 	)

@@ -36,11 +36,13 @@ import (
 	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
 	hfdlfs "github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
+	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	hfdstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 	"github.com/stretchr/testify/require"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
 const (
@@ -724,6 +726,99 @@ func TestReadSafetensorsHeaderGivesUpOnStalledMirrorDownload(t *testing.T) {
 	require.ErrorIs(t, result.err, context.DeadlineExceeded)
 	require.ErrorContains(t, result.err, "read safetensors header model.safetensors")
 	require.Nil(t, result.header)
+}
+
+// TestPullFromRemoteRunsMirrorHooksOnLocalRepository pulls into a local copy
+// named differently from its upstream, as a proxy project does when its name
+// differs from its organization. The mirror hands repoName to its pre-receive
+// hook, which resolves it as a local repository, so repoName must name the
+// local copy while the source URL keeps the upstream name.
+func TestPullFromRemoteRunsMirrorHooksOnLocalRepository(t *testing.T) {
+	for _, test := range []struct {
+		name          string
+		resourceType  string
+		remoteProject string
+		remoteName    string
+		localProject  string
+		localName     string
+		wantRepoName  string
+	}{
+		{
+			name:          "proxy model",
+			resourceType:  "model",
+			remoteProject: "upstream-org",
+			remoteName:    "gpt2",
+			localProject:  "proxy",
+			localName:     "gpt2",
+			wantRepoName:  "proxy/gpt2",
+		},
+		{
+			name:          "renamed dataset",
+			resourceType:  "dataset",
+			remoteProject: "upstream-org",
+			remoteName:    "squad",
+			localProject:  "proxy",
+			localName:     "squad-copy",
+			wantRepoName:  "datasets/proxy/squad-copy",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+			// git talks to the loopback test server directly, even when a proxy is
+			// configured for the developer's machine.
+			t.Setenv("NO_PROXY", "127.0.0.1")
+			t.Setenv("no_proxy", "127.0.0.1")
+
+			upstream := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+			upstreamRepo := initRepoTestRepositoryAt(t, ctx, upstream,
+				repoPrefix(test.resourceType)+test.remoteProject+"/"+test.remoteName)
+			commitRepoTestFiles(t, ctx, upstreamRepo, map[string][]byte{"README.md": []byte("# upstream\n")})
+			upstreamRefs, err := upstreamRepo.Refs()
+			require.NoError(t, err)
+			server := httptest.NewServer(backendhttp.NewHandler(backendhttp.WithStorage(upstream)))
+			t.Cleanup(server.Close)
+
+			// Like the production hook, which ensures a model record in the project
+			// that repoName names, fail unless that project exists locally.
+			var hookRepoNames []string
+			preReceive := func(_ context.Context, repoName string, _ []receive.RefUpdate) (bool, error) {
+				hookRepoNames = append(hookRepoNames, repoName)
+				if _, project, _, _ := utils.ParseFromRepoName(repoName); project != test.localProject {
+					return false, fmt.Errorf("project %q: record not found", project)
+				}
+				return true, nil
+			}
+			local := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+			gitMirror := mirror.NewMirror(
+				mirror.WithPreReceiveHookFunc(preReceive),
+				mirror.WithLFSStorage(hfdlfs.NewLocal(local.LFSDir())),
+				mirror.WithCacheDir(t.TempDir()),
+			)
+
+			pullErr := NewGitDB(local, gitMirror).PullFromRemote(ctx, &git.GitRepository{
+				RemoteRegistryURL:  server.URL,
+				RemoteProjectName:  test.remoteProject,
+				RemoteResourceName: test.remoteName,
+				ProjectName:        test.localProject,
+				ResourceName:       test.localName,
+				ResourceType:       test.resourceType,
+				LogWriter:          io.Discard,
+			})
+			// PullFromRemote creates the local repository before syncing it, so it
+			// exists, and must be evicted, even when the sync fails.
+			localRepo, err := repository.Open(local.ResolvePath(test.wantRepoName))
+			require.NoError(t, err)
+			evictRepoTestRepository(t, localRepo)
+
+			require.NoError(t, pullErr)
+			require.Equal(t, []string{test.wantRepoName}, hookRepoNames)
+			// The upstream serves the repository only under its upstream name, so
+			// the synced ref also shows that the source URL kept that name.
+			localRefs, err := localRepo.Refs()
+			require.NoError(t, err)
+			require.Equal(t, upstreamRefs["refs/heads/main"], localRefs["refs/heads/main"])
+		})
+	}
 }
 
 func initRepoTestRepositoryAt(t *testing.T, ctx context.Context, store *hfdstorage.Storage, name string) *repository.Repository {
