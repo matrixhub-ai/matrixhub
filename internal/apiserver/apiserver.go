@@ -511,7 +511,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 		handler.NewCurrentUserHandler(repos.User, repos.AccessToken, repos.SSHKey),
 		handler.NewUserHandler(repos.User, authzService),
 		handler.NewDatasetHandler(datasetService),
-		handler.NewModelHandler(modelService, authzService),
+		handler.NewModelHandler(modelService, authzService, syncJobService),
 		handler.NewSyncPolicyHandler(syncPolicyService, syncJobService, repos.Registry, logStore, canc),
 		handler.NewCleanupHandler(cleanupService),
 		handler.NewRoleHandler(),

@@ -101,9 +101,15 @@ The other processors reuse the same structure:
 |---|---|---|
 | `syncPolicy` | Due `next_run_at`; CAS advances the schedule | Create a Pending task |
 | `syncTask` | Pending task; CAS to Running | Generate Pending jobs |
-| `syncJob` | Pending job; CAS to Running | Run Git synchronization |
+| `syncJob` | Pending job; CAS to Running | By job type: run Git synchronization or cache a model |
 
 Manual synchronization skips `syncPolicy` and creates a Pending task directly.
+
+A sync job has a type, stored in `sync_jobs.job_type`. A `sync` job pulls or
+pushes a resource for a sync task. A `model_cache` job pulls a model of a proxy
+project from upstream and belongs to no sync task; its parameters, such as the
+revision, are stored as JSON in `sync_jobs.params`. Jobs of both types share the
+`syncJob` processor and its limits.
 
 ### Processing pipeline
 

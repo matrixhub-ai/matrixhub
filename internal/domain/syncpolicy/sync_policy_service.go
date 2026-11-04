@@ -18,6 +18,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/samber/lo"
+
 	"github.com/matrixhub-ai/matrixhub/internal/domain/job"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
@@ -136,7 +138,7 @@ func (sps *SyncPolicyService) CreateSyncTaskAndSyncJobs(ctx context.Context, pol
 		return err
 	}
 	for _, job := range jobs {
-		job.SyncTaskID = task.ID
+		job.SyncTaskID = lo.ToPtr(task.ID)
 	}
 	if err := sps.syncJobService.CreateSyncJobs(ctx, jobs); err != nil {
 		log.Infow("CreateSyncJobs failed", "error", err)
@@ -313,7 +315,7 @@ func (sps *SyncPolicyService) ExecuteSyncTask(ctx context.Context, taskID int) e
 	}
 
 	for _, j := range jobs {
-		j.SyncTaskID = task.ID
+		j.SyncTaskID = lo.ToPtr(task.ID)
 		j.Status = syncjob.SyncJobStatusPending
 	}
 	if err := sps.syncJobService.CreateSyncJobs(ctx, jobs); err != nil {

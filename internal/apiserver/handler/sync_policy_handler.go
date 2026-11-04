@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -664,7 +665,7 @@ func (h *SyncPolicyHandler) syncJobToProto(ctx context.Context, j *syncjob.SyncJ
 
 	return &v1alpha1.SyncJob{
 		Id:                 int32(j.ID),
-		SyncTaskId:         int32(j.SyncTaskID),
+		SyncTaskId:         int32(lo.FromPtr(j.SyncTaskID)),
 		ResourceType:       stringToResourceType(j.ResourceType),
 		ResourceName:       src,
 		TargetResourceName: dst,

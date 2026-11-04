@@ -280,6 +280,52 @@
         ]
       }
     },
+    "/api/v1alpha1/models/{project}/{name}/cache": {
+      "post": {
+        "summary": "CacheModel creates a job that pulls a model of a proxy project from\nupstream. The pull queues the LFS files of the model, which MatrixHub\nthen downloads in the background. The job runs in the background too,\nand the model need not exist locally yet.",
+        "operationId": "Models_CacheModel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CacheModelResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "description": "Name of the model. As on Hugging Face, it may start with '_'.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ModelsCacheModelBody"
+            }
+          }
+        ],
+        "tags": [
+          "Models"
+        ]
+      }
+    },
     "/api/v1alpha1/models/{project}/{name}/commits": {
       "get": {
         "operationId": "Models_ListModelCommits",
@@ -515,6 +561,15 @@
     }
   },
   "definitions": {
+    "ModelsCacheModelBody": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "description": "Branch, tag or commit. Empty means the default branch. The job fails\nwhen upstream does not have it. MatrixHub mirrors only branches and\ntags, so other refs, such as refs/pr/1, are rejected. So are revision\nexpressions, such as main~1, and names that contain '@'."
+        }
+      }
+    },
     "ModelsUpdateModelSettingBody": {
       "type": "object",
       "properties": {
@@ -569,6 +624,14 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v1alpha1CacheModelResponse": {
+      "type": "object",
+      "properties": {
+        "job": {
+          "$ref": "#/definitions/v1alpha1ModelCacheJob"
         }
       }
     },
@@ -811,6 +874,31 @@
         }
       }
     },
+    "v1alpha1ModelCacheJob": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "$ref": "#/definitions/v1alpha1SyncJobStatus"
+        },
+        "revision": {
+          "type": "string",
+          "description": "Revision that the job caches. Empty means the default branch."
+        },
+        "createdTimestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "completedTimestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "ModelCacheJob is a job that caches a model revision. It is a sync job of\nits own type, and belongs to no sync task."
+    },
     "v1alpha1Pagination": {
       "type": "object",
       "properties": {
@@ -863,6 +951,19 @@
           }
         }
       }
+    },
+    "v1alpha1SyncJobStatus": {
+      "type": "string",
+      "enum": [
+        "SYNC_JOB_STATUS_UNSPECIFIED",
+        "SYNC_JOB_STATUS_RUNNING",
+        "SYNC_JOB_STATUS_SUCCEEDED",
+        "SYNC_JOB_STATUS_FAILED",
+        "SYNC_JOB_STATUS_STOPPED",
+        "SYNC_JOB_STATUS_PENDING"
+      ],
+      "default": "SYNC_JOB_STATUS_UNSPECIFIED",
+      "description": " - SYNC_JOB_STATUS_PENDING: Jobs are created in this state and claimed by the job server, so it is\nobservable through ListSyncJobs. It mirrors SYNC_TASK_STATUS_PENDING."
     },
     "v1alpha1UpdateModelSettingResponse": {
       "type": "object"

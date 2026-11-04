@@ -71,7 +71,7 @@ func TestNewSQLiteMigratesDatabase(t *testing.T) {
 	require.NoError(t, database.Table("schema_migrations").
 		Select("version, dirty").
 		Row().Scan(&migrationVersion, &dirty))
-	require.Equal(t, uint(1), migrationVersion)
+	require.Equal(t, uint(2), migrationVersion)
 	require.False(t, dirty)
 
 	var userCount int64
@@ -87,6 +87,12 @@ func TestNewSQLiteMigratesDatabase(t *testing.T) {
 		"SELECT COUNT(*) FROM pragma_table_info('models') WHERE name = 'synced_at'",
 	).Scan(&syncedAtColumnCount).Error)
 	require.Equal(t, int64(1), syncedAtColumnCount)
+
+	var syncJobColumnCount int64
+	require.NoError(t, database.Raw(
+		"SELECT COUNT(*) FROM pragma_table_info('sync_jobs') WHERE name IN ('job_type', 'params')",
+	).Scan(&syncJobColumnCount).Error)
+	require.Equal(t, int64(2), syncJobColumnCount)
 
 	var foreignKeyViolations []struct{}
 	require.NoError(t, database.Raw("PRAGMA foreign_key_check").Scan(&foreignKeyViolations).Error)
