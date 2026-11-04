@@ -16,12 +16,14 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 
 	modelv1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
@@ -537,4 +539,35 @@ func (mh *ModelHandler) GetModelBlob(ctx context.Context, request *modelv1alpha1
 	}
 
 	return treeEntryToProtoFile(entry), nil
+}
+
+// CacheModel creates a job that caches a model revision of a proxy project.
+func (mh *ModelHandler) CacheModel(ctx context.Context, request *modelv1alpha1.CacheModelRequest) (*modelv1alpha1.ModelCacheJob, error) {
+	if err := request.ValidateAll(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	// Caching writes to the project's storage and may create the model.
+	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelPush); err != nil || !allowed {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+	job, err := mh.syncJobs.CreateModelCacheJob(ctx, request.Project, request.Name, request.Revision)
+	switch {
+	case err == nil:
+	case errors.Is(err, syncjob.ErrInvalidRevision):
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, syncjob.ErrNotProxyProject):
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, status.Error(codes.NotFound, "project not found")
+	default:
+		log.Errorw("create model cache job failed", "project", request.Project, "model", request.Name, "error", err)
+		return nil, status.Error(codes.Internal, "failed to create the model cache job")
+	}
+	return &modelv1alpha1.ModelCacheJob{
+		Id:                 int32(job.ID),
+		Status:             modelv1alpha1.SyncJobStatus(job.Status),
+		Revision:           request.Revision,
+		CreatedTimestamp:   job.CreatedAt.Unix(),
+		CompletedTimestamp: job.CompletedTimestamp,
+	}, nil
 }
