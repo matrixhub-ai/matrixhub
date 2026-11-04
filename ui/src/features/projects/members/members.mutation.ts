@@ -13,7 +13,7 @@ export function addMemberMutationOptions() {
     mutationFn: (input: AddProjectMemberWithRoleRequest) =>
       Projects.AddProjectMemberWithRole(input),
     meta: {
-      invalidates: [memberKeys.lists()],
+      invalidates: [memberKeys.all],
     },
   })
 }
@@ -33,7 +33,7 @@ export function removeMembersMutationOptions() {
     mutationFn: (input: RemoveProjectMembersRequest) =>
       Projects.RemoveProjectMembers(input),
     meta: {
-      invalidates: [memberKeys.lists()],
+      invalidates: [memberKeys.all],
     },
   })
 }
