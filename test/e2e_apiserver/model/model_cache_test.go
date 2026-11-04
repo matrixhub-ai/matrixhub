@@ -84,8 +84,10 @@ var _ = Describe("Model cache", Label("model", "model-cache"), func() {
 		})
 
 		It("should create a pending job", Label("M00063"), func() {
-			job, _, err := modelsApi.ModelsCacheModel(ctx, projectName, "gpt2", v1alpha1model.ModelsCacheModelBody{Revision: "main"})
+			created, _, err := modelsApi.ModelsCacheModel(ctx, projectName, "gpt2", v1alpha1model.ModelsCacheModelBody{Revision: "main"})
 			Expect(err).NotTo(HaveOccurred())
+			job := created.Job
+			Expect(job).NotTo(BeNil())
 			Expect(job.Id).To(BeNumerically(">", 0))
 			Expect(job.Status).NotTo(BeNil())
 			Expect(*job.Status).To(Equal(v1alpha1model.PENDING_V1alpha1SyncJobStatus))
@@ -146,9 +148,10 @@ var _ = Describe("Model cache", Label("model", "model-cache"), func() {
 		Expect(err).To(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
-		job, _, err := modelsApi.ModelsCacheModel(ctx, projectName, "tiny", v1alpha1model.ModelsCacheModelBody{})
+		created, _, err := modelsApi.ModelsCacheModel(ctx, projectName, "tiny", v1alpha1model.ModelsCacheModelBody{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(job.Id).To(BeNumerically(">", 0))
+		Expect(created.Job).NotTo(BeNil())
+		Expect(created.Job.Id).To(BeNumerically(">", 0))
 
 		// The job creates the model once it has pulled it.
 		Eventually(func() error {

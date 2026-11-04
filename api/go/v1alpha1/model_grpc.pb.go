@@ -54,7 +54,7 @@ type ModelsClient interface {
 	// upstream. The pull queues the LFS files of the model, which MatrixHub
 	// then downloads in the background. The job runs in the background too,
 	// and the model need not exist locally yet.
-	CacheModel(ctx context.Context, in *CacheModelRequest, opts ...grpc.CallOption) (*ModelCacheJob, error)
+	CacheModel(ctx context.Context, in *CacheModelRequest, opts ...grpc.CallOption) (*CacheModelResponse, error)
 }
 
 type modelsClient struct {
@@ -185,9 +185,9 @@ func (c *modelsClient) UpdateModelSetting(ctx context.Context, in *UpdateModelSe
 	return out, nil
 }
 
-func (c *modelsClient) CacheModel(ctx context.Context, in *CacheModelRequest, opts ...grpc.CallOption) (*ModelCacheJob, error) {
+func (c *modelsClient) CacheModel(ctx context.Context, in *CacheModelRequest, opts ...grpc.CallOption) (*CacheModelResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ModelCacheJob)
+	out := new(CacheModelResponse)
 	err := c.cc.Invoke(ctx, Models_CacheModel_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ type ModelsServer interface {
 	// upstream. The pull queues the LFS files of the model, which MatrixHub
 	// then downloads in the background. The job runs in the background too,
 	// and the model need not exist locally yet.
-	CacheModel(context.Context, *CacheModelRequest) (*ModelCacheJob, error)
+	CacheModel(context.Context, *CacheModelRequest) (*CacheModelResponse, error)
 }
 
 // UnimplementedModelsServer should be embedded to have
@@ -261,7 +261,7 @@ func (UnimplementedModelsServer) GetModelBlob(context.Context, *GetModelBlobRequ
 func (UnimplementedModelsServer) UpdateModelSetting(context.Context, *UpdateModelSettingRequest) (*UpdateModelSettingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateModelSetting not implemented")
 }
-func (UnimplementedModelsServer) CacheModel(context.Context, *CacheModelRequest) (*ModelCacheJob, error) {
+func (UnimplementedModelsServer) CacheModel(context.Context, *CacheModelRequest) (*CacheModelResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CacheModel not implemented")
 }
 func (UnimplementedModelsServer) testEmbeddedByValue() {}

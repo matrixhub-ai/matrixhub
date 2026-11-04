@@ -214,7 +214,7 @@ func modelHandlerTestSetup(t *testing.T) (*ModelHandler, *modelmocks.MockIModelS
 	ctrl := gomock.NewController(t)
 	svc := modelmocks.NewMockIModelService(ctrl)
 	authzService := authzmocks.NewMockIAuthzService(ctrl)
-	h, ok := NewModelHandler(svc, authzService, nil).(*ModelHandler)
+	h, ok := NewModelHandler(svc, authzService, syncjobmocks.NewMockISyncJobService(ctrl)).(*ModelHandler)
 	require.True(t, ok)
 	return h, svc, authzService
 }
@@ -231,6 +231,16 @@ func modelHandlerTestAuthorized(t *testing.T, perm role.Permission) (context.Con
 	ctx := modelHandlerTestUserContext()
 	authzService.EXPECT().VerifyProjectPermissionByName(ctx, modelHandlerTestProject, perm).Return(true, nil)
 	return ctx, h, svc
+}
+
+// modelHandlerTestCacheAuthorized is modelHandlerTestAuthorized for CacheModel,
+// which calls the sync job service instead of the model service.
+func modelHandlerTestCacheAuthorized(t *testing.T) (context.Context, *ModelHandler, *syncjobmocks.MockISyncJobService) {
+	t.Helper()
+	ctx, h, _ := modelHandlerTestAuthorized(t, role.ModelPush)
+	jobs, ok := h.syncJobs.(*syncjobmocks.MockISyncJobService)
+	require.True(t, ok)
+	return ctx, h, jobs
 }
 
 func modelHandlerTestModel() *model.Model {
@@ -788,6 +798,50 @@ func TestModelHandlerRejectsInvalidRequests(t *testing.T) {
 				return err
 			},
 		},
+		{
+			name:  "CacheModel without project",
+			field: "CacheModelRequest.Project",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Name: modelHandlerTestName})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel without name",
+			field: "CacheModelRequest.Name",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel with path-like name",
+			field: "CacheModelRequest.Name",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: "a/b"})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel with reserved name",
+			field: "CacheModelRequest.Name",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: "resolve"})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel with too long revision",
+			field: "CacheModelRequest.Revision",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{
+					Project:  modelHandlerTestProject,
+					Name:     modelHandlerTestName,
+					Revision: strings.Repeat("a", 256),
+				})
+				return err
+			},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -879,6 +933,14 @@ func TestModelHandlerRequiresProjectPermission(t *testing.T) {
 				return err
 			},
 		},
+		{
+			method: "CacheModel",
+			perm:   role.ModelPush,
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: modelHandlerTestName})
+				return err
+			},
+		},
 	}
 	verdicts := []struct {
 		name    string
@@ -891,7 +953,7 @@ func TestModelHandlerRequiresProjectPermission(t *testing.T) {
 	for _, tc := range cases {
 		for _, verdict := range verdicts {
 			t.Run(tc.method+"/"+verdict.name, func(t *testing.T) {
-				// The model service mock has no expectations, so reaching it fails the test.
+				// The service mocks have no expectations, so reaching them fails the test.
 				h, _, authzService := modelHandlerTestSetup(t)
 				ctx := modelHandlerTestUserContext()
 				authzService.EXPECT().
@@ -1218,83 +1280,42 @@ func TestModelHandlerGetModelBlob(t *testing.T) {
 	}
 }
 
-func newModelCacheHandler(t *testing.T) (*ModelHandler, *authzmocks.MockIAuthzService, *syncjobmocks.MockISyncJobService) {
-	t.Helper()
-	ctrl := gomock.NewController(t)
-	authz := authzmocks.NewMockIAuthzService(ctrl)
-	jobs := syncjobmocks.NewMockISyncJobService(ctrl)
-	return &ModelHandler{authzService: authz, syncJobs: jobs}, authz, jobs
-}
+func TestModelHandlerCacheModel(t *testing.T) {
+	request := &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: modelHandlerTestName, Revision: "v1.0"}
 
-func TestCacheModel_CreatesAJob(t *testing.T) {
-	h, authz, jobs := newModelCacheHandler(t)
-	created := time.Unix(1700000000, 0)
-	authz.EXPECT().VerifyProjectPermissionByName(gomock.Any(), "proxy", role.ModelPush).Return(true, nil)
-	jobs.EXPECT().CreateModelCacheJob(gomock.Any(), "proxy", "gpt2", "v1.0").Return(&syncjob.SyncJob{
-		ID:        21,
-		JobType:   syncjob.JobTypeModelCache,
-		Status:    syncjob.SyncJobStatusPending,
-		CreatedAt: created,
-	}, nil)
+	t.Run("creates a job", func(t *testing.T) {
+		ctx, h, jobs := modelHandlerTestCacheAuthorized(t)
+		jobs.EXPECT().CreateModelCacheJob(ctx, modelHandlerTestProject, modelHandlerTestName, "v1.0").Return(&syncjob.SyncJob{
+			ID:        21,
+			JobType:   syncjob.JobTypeModelCache,
+			Status:    syncjob.SyncJobStatusPending,
+			CreatedAt: handlerTestCreatedAt,
+		}, nil)
 
-	job, err := h.CacheModel(t.Context(), &v1alpha1.CacheModelRequest{Project: "proxy", Name: "gpt2", Revision: "v1.0"})
-	require.NoError(t, err)
-	require.Equal(t, int32(21), job.Id)
-	require.Equal(t, v1alpha1.SyncJobStatus_SYNC_JOB_STATUS_PENDING, job.Status)
-	require.Equal(t, "v1.0", job.Revision)
-	require.Equal(t, created.Unix(), job.CreatedTimestamp)
-	require.Zero(t, job.CompletedTimestamp)
-}
+		got, err := h.CacheModel(ctx, request)
+		require.NoError(t, err)
+		requireProtoEqual(t, &v1alpha1.CacheModelResponse{Job: &v1alpha1.ModelCacheJob{
+			Id:               21,
+			Status:           v1alpha1.SyncJobStatus_SYNC_JOB_STATUS_PENDING,
+			Revision:         "v1.0",
+			CreatedTimestamp: handlerTestCreatedAt.Unix(),
+		}}, got)
+	})
 
-func TestCacheModel_RejectsAnInvalidRequestBeforeAuthorization(t *testing.T) {
-	for _, req := range []*v1alpha1.CacheModelRequest{
-		{Project: "", Name: "gpt2"},
-		{Project: "proxy", Name: ""},
-		{Project: "proxy", Name: "resolve"},
-		{Project: "proxy", Name: "a/b"},
-		{Project: "proxy", Name: "gpt2", Revision: string(make([]byte, 256))},
+	for _, tc := range []handlerTestErrorCase{
+		{name: "ref that MatrixHub does not mirror", err: fmt.Errorf("%w: refs/pr/1", syncjob.ErrInvalidRevision), wantCode: codes.InvalidArgument},
+		{name: "local project", err: syncjob.ErrNotProxyProject, wantCode: codes.FailedPrecondition},
+		{name: "missing project", err: gorm.ErrRecordNotFound, wantCode: codes.NotFound, wantMsg: "project not found"},
+		// The cause is logged, not returned.
+		{name: "database failure", err: errors.New("database is down"), wantCode: codes.Internal, wantMsg: "failed to create the model cache job"},
 	} {
-		h, _, _ := newModelCacheHandler(t)
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, h, jobs := modelHandlerTestCacheAuthorized(t)
+			jobs.EXPECT().CreateModelCacheJob(ctx, modelHandlerTestProject, modelHandlerTestName, "v1.0").Return(nil, tc.err)
 
-		_, err := h.CacheModel(t.Context(), req)
-		require.Equal(t, codes.InvalidArgument, status.Code(err), "%+v", req)
-	}
-}
-
-func TestCacheModel_RequiresModelPush(t *testing.T) {
-	for _, verify := range []struct {
-		allowed bool
-		err     error
-	}{
-		{allowed: false},
-		{err: errors.New("project not found")},
-	} {
-		h, authz, _ := newModelCacheHandler(t)
-		authz.EXPECT().VerifyProjectPermissionByName(gomock.Any(), "proxy", role.ModelPush).Return(verify.allowed, verify.err)
-
-		_, err := h.CacheModel(t.Context(), &v1alpha1.CacheModelRequest{Project: "proxy", Name: "gpt2"})
-		require.Equal(t, codes.PermissionDenied, status.Code(err))
-	}
-}
-
-func TestCacheModel_MapsErrors(t *testing.T) {
-	for _, tc := range []struct {
-		err  error
-		code codes.Code
-	}{
-		{err: fmt.Errorf("%w: refs/pr/1", syncjob.ErrInvalidRevision), code: codes.InvalidArgument},
-		{err: syncjob.ErrNotProxyProject, code: codes.FailedPrecondition},
-		{err: gorm.ErrRecordNotFound, code: codes.NotFound},
-		{err: errors.New("database is down"), code: codes.Internal},
-	} {
-		h, authz, jobs := newModelCacheHandler(t)
-		authz.EXPECT().VerifyProjectPermissionByName(gomock.Any(), "proxy", role.ModelPush).Return(true, nil)
-		jobs.EXPECT().CreateModelCacheJob(gomock.Any(), "proxy", "gpt2", "").Return(nil, tc.err)
-
-		_, err := h.CacheModel(t.Context(), &v1alpha1.CacheModelRequest{Project: "proxy", Name: "gpt2"})
-		require.Equal(t, tc.code, status.Code(err), tc.err.Error())
-		if tc.code == codes.Internal {
-			require.NotContains(t, err.Error(), "database is down")
-		}
+			got, err := h.CacheModel(ctx, request)
+			require.Nil(t, got)
+			requireHandlerTestStatus(t, err, tc.wantCode, tc.wantMsg)
+		})
 	}
 }

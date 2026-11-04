@@ -77,7 +77,7 @@ service Models {
   // upstream. The pull queues the LFS files of the model, which MatrixHub
   // then downloads in the background. The job runs in the background too,
   // and the model need not exist locally yet.
-  rpc CacheModel(CacheModelRequest) returns (ModelCacheJob) {
+  rpc CacheModel(CacheModelRequest) returns (CacheModelResponse) {
     option (google.api.http) = {
       post: "/api/v1alpha1/models/{project}/{name}/cache"
       body: "*"
@@ -290,6 +290,10 @@ message CacheModelRequest {
   // tags, so other refs, such as refs/pr/1, are rejected. So are revision
   // expressions, such as main~1, and names that contain '@'.
   string revision = 3 [(validate.rules).string.max_len = 255];
+}
+
+message CacheModelResponse {
+  ModelCacheJob job = 1;
 }
 
 // ModelCacheJob is a job that caches a model revision. It is a sync job of

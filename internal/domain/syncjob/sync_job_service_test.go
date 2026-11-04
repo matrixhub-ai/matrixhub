@@ -222,7 +222,7 @@ func proxyProject() *projectdomain.Project {
 	return &projectdomain.Project{ID: 11, Name: "proxy", RegistryID: lo.ToPtr(3), Organization: "upstream-org"}
 }
 
-func TestCreateModelCacheJob(t *testing.T) {
+func TestSyncJobService_CreateModelCacheJob(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("creates a pending job that pulls from the project's upstream", func(t *testing.T) {
@@ -457,6 +457,7 @@ func TestModelCacheJob_PullsTheModelAndChecksTheRevision(t *testing.T) {
 	log := f.logs.log(7)
 	require.Contains(t, log, "source=upstream-org/gpt2 -> target=proxy/gpt2, revision=v1.0")
 	require.Contains(t, log, "[INFO] pull completed")
+	require.Contains(t, log, "[INFO] metadata refreshed")
 	require.Contains(t, log, "the LFS files of the model are queued for download")
 }
 

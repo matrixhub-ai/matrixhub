@@ -288,7 +288,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1ModelCacheJob"
+              "$ref": "#/definitions/v1alpha1CacheModelResponse"
             }
           },
           "default": {
@@ -624,6 +624,14 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v1alpha1CacheModelResponse": {
+      "type": "object",
+      "properties": {
+        "job": {
+          "$ref": "#/definitions/v1alpha1ModelCacheJob"
         }
       }
     },

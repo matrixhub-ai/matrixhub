@@ -592,18 +592,22 @@ func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *Sy
 		return fmt.Errorf("get registry(id=%d): %w", syncJob.RemoteRegistryID, err)
 	}
 
-	revision := params.Revision
-	if revision == "" {
-		revision = "the default branch"
+	if logWriter != nil {
+		revision := params.Revision
+		if revision == "" {
+			revision = "the default branch"
+		}
+		_, _ = fmt.Fprintf(logWriter, "[INFO] model cache job start, id=%d, registry=%s (id=%d), source=%s/%s -> target=%s/%s, revision=%s\n",
+			syncJob.ID, reg.URL, syncJob.RemoteRegistryID, syncJob.RemoteProjectName, syncJob.RemoteResourceName,
+			syncJob.ProjectName, syncJob.ResourceName, revision)
 	}
-	writeLog(logWriter, "[INFO] model cache job start, id=%d, registry=%s (id=%d), source=%s/%s -> target=%s/%s, revision=%s\n",
-		syncJob.ID, reg.URL, syncJob.RemoteRegistryID, syncJob.RemoteProjectName, syncJob.RemoteResourceName,
-		syncJob.ProjectName, syncJob.ResourceName, revision)
 
 	if err = sjs.gitRepo.PullFromRemote(ctx, pullRepository(syncJob, reg, logWriter)); err != nil {
 		return err
 	}
-	writeLog(logWriter, "[INFO] pull completed\n")
+	if logWriter != nil {
+		_, _ = fmt.Fprintf(logWriter, "[INFO] pull completed\n")
+	}
 	if err = sjs.ensureLocalResource(ctx, syncJob, prj, nil); err != nil {
 		// Another job, or a download through the proxy, may have created
 		// the model meanwhile.
@@ -614,6 +618,9 @@ func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *Sy
 	if err = sjs.syncResourceMetadata(ctx, syncJob); err != nil {
 		return err
 	}
+	if logWriter != nil {
+		_, _ = fmt.Fprintf(logWriter, "[INFO] metadata refreshed\n")
+	}
 
 	// The pull fetched every branch and tag of upstream, with their commits,
 	// so a revision that does not resolve now cannot be cached.
@@ -623,12 +630,9 @@ func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *Sy
 			return fmt.Errorf("revision %s: %w", params.Revision, err)
 		}
 	}
-	writeLog(logWriter, "[INFO] job completed successfully; the LFS files of the model are queued for download\n")
-	return nil
-}
 
-func writeLog(w io.Writer, format string, args ...any) {
-	if w != nil {
-		_, _ = fmt.Fprintf(w, format, args...)
+	if logWriter != nil {
+		_, _ = fmt.Fprintf(logWriter, "[INFO] job completed successfully; the LFS files of the model are queued for download\n")
 	}
+	return nil
 }

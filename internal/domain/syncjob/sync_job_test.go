@@ -22,7 +22,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 )
 
-func TestModelCacheParams(t *testing.T) {
+func TestSyncJob_ModelCacheParams(t *testing.T) {
 	params, err := (&syncjob.SyncJob{}).ModelCacheParams()
 	require.NoError(t, err)
 	require.Empty(t, params.Revision)

@@ -197,6 +197,10 @@ export type CacheModelRequest = {
   revision?: string
 }
 
+export type CacheModelResponse = {
+  job?: ModelCacheJob
+}
+
 export type ModelCacheJob = {
   id?: number
   status?: MatrixhubV1alpha1Sync_policy.SyncJobStatus
@@ -242,7 +246,7 @@ export class Models {
   static UpdateModelSetting(req: UpdateModelSettingRequest, initReq?: fm.InitReq): Promise<UpdateModelSettingResponse> {
     return fm.fetchReq<UpdateModelSettingRequest, UpdateModelSettingResponse>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/setting`, {...initReq, method: "PUT", body: JSON.stringify(req, fm.replacer)})
   }
-  static CacheModel(req: CacheModelRequest, initReq?: fm.InitReq): Promise<ModelCacheJob> {
-    return fm.fetchReq<CacheModelRequest, ModelCacheJob>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/cache`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  static CacheModel(req: CacheModelRequest, initReq?: fm.InitReq): Promise<CacheModelResponse> {
+    return fm.fetchReq<CacheModelRequest, CacheModelResponse>(`/api/v1alpha1/models/${req["project"]}/${req["name"]}/cache`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

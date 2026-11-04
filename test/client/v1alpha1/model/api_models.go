@@ -34,15 +34,15 @@ ModelsApiService CacheModel creates a job that pulls a model of a proxy project 
  * @param name Name of the model. As on Hugging Face, it may start with &#39;_&#39;.
  * @param body
 
-@return V1alpha1ModelCacheJob
+@return V1alpha1CacheModelResponse
 */
-func (a *ModelsApiService) ModelsCacheModel(ctx context.Context, project string, name string, body ModelsCacheModelBody) (V1alpha1ModelCacheJob, *http.Response, error) {
+func (a *ModelsApiService) ModelsCacheModel(ctx context.Context, project string, name string, body ModelsCacheModelBody) (V1alpha1CacheModelResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		localVarReturnValue V1alpha1ModelCacheJob
+		localVarReturnValue V1alpha1CacheModelResponse
 	)
 
 	// create path and map variables
@@ -102,7 +102,7 @@ func (a *ModelsApiService) ModelsCacheModel(ctx context.Context, project string,
 		}
 		
 		if localVarHttpResponse.StatusCode == 200 {
-			var v V1alpha1ModelCacheJob
+			var v V1alpha1CacheModelResponse
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
 					newErr.error = err.Error()

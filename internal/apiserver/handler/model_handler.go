@@ -542,32 +542,39 @@ func (mh *ModelHandler) GetModelBlob(ctx context.Context, request *modelv1alpha1
 }
 
 // CacheModel creates a job that caches a model revision of a proxy project.
-func (mh *ModelHandler) CacheModel(ctx context.Context, request *modelv1alpha1.CacheModelRequest) (*modelv1alpha1.ModelCacheJob, error) {
+func (mh *ModelHandler) CacheModel(ctx context.Context, request *modelv1alpha1.CacheModelRequest) (*modelv1alpha1.CacheModelResponse, error) {
+	// Validate request
 	if err := request.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	// Caching writes to the project's storage and may create the model.
+
+	// Verify permission
 	if allowed, err := mh.authzService.VerifyProjectPermissionByName(ctx, request.Project, role.ModelPush); err != nil || !allowed {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
+
+	// Call service
 	job, err := mh.syncJobs.CreateModelCacheJob(ctx, request.Project, request.Name, request.Revision)
-	switch {
-	case err == nil:
-	case errors.Is(err, syncjob.ErrInvalidRevision):
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, syncjob.ErrNotProxyProject):
-		return nil, status.Error(codes.FailedPrecondition, err.Error())
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, status.Error(codes.NotFound, "project not found")
-	default:
+	if err != nil {
+		switch {
+		case errors.Is(err, syncjob.ErrInvalidRevision):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, syncjob.ErrNotProxyProject):
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, status.Error(codes.NotFound, "project not found")
+		}
 		log.Errorw("create model cache job failed", "project", request.Project, "model", request.Name, "error", err)
 		return nil, status.Error(codes.Internal, "failed to create the model cache job")
 	}
-	return &modelv1alpha1.ModelCacheJob{
-		Id:                 int32(job.ID),
-		Status:             modelv1alpha1.SyncJobStatus(job.Status),
-		Revision:           request.Revision,
-		CreatedTimestamp:   job.CreatedAt.Unix(),
-		CompletedTimestamp: job.CompletedTimestamp,
+
+	return &modelv1alpha1.CacheModelResponse{
+		Job: &modelv1alpha1.ModelCacheJob{
+			Id:                 int32(job.ID),
+			Status:             modelv1alpha1.SyncJobStatus(job.Status),
+			Revision:           request.Revision,
+			CreatedTimestamp:   job.CreatedAt.Unix(),
+			CompletedTimestamp: job.CompletedTimestamp,
+		},
 	}, nil
 }
