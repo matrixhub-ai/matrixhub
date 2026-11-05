@@ -875,7 +875,8 @@
       "enum": [
         "REGISTRY_TYPE_UNSPECIFIED",
         "REGISTRY_TYPE_HUGGINGFACE",
-        "REGISTRY_TYPE_MATRIXHUB"
+        "REGISTRY_TYPE_MATRIXHUB",
+        "REGISTRY_TYPE_MODELSCOPE"
       ],
       "default": "REGISTRY_TYPE_UNSPECIFIED"
     },

@@ -394,9 +394,11 @@ func TestModelService_SyncMetadataPersistsZeroValues(t *testing.T) {
 			ReadmeContent: "old", Labels: []model.Label{{Name: "old", Category: "other", Scope: "model"}},
 		}, nil)
 	gitRepo.EXPECT().ExtractMetadata(gomock.Any(), "models", "proj", "empty").
-		Return(&git.RepoMetadataFiles{ReadmeContent: []byte("# Empty")}, nil)
+		Return(&git.RepoMetadataFiles{ReadmeContent: []byte("# Empty"), DefaultBranch: "master"}, nil)
 	modelRepo.EXPECT().UpdateMetadata(gomock.Any(), int64(42), gomock.Any()).
 		DoAndReturn(func(_ context.Context, _ int64, update *model.MetadataUpdate) error {
+			require.NotNil(t, update.DefaultBranch)
+			require.Equal(t, "master", *update.DefaultBranch)
 			require.NotNil(t, update.ReadmeContent)
 			require.Equal(t, "# Empty", *update.ReadmeContent)
 			require.NotNil(t, update.Size)

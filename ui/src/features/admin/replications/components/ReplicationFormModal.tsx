@@ -13,6 +13,7 @@ import {
   Tooltip,
   Textarea,
 } from '@mantine/core'
+import { RegistryType } from '@matrixhub/api-ts/v1alpha1/registry.pb'
 import {
   ResourceType,
   SyncPolicyType,
@@ -35,6 +36,7 @@ import {
 } from '../replications.mutation'
 import {
   createReplicationFormSchema,
+  isModelScopePull,
   replicationCronExpressionSchema,
   type ReplicationResourceTypeValue,
   type ReplicationFormValues,
@@ -235,15 +237,6 @@ export function ReplicationFormModal({
     return Array.from(options.values())
   }, [registriesQuery.data])
 
-  const resourceTypeOptions = useMemo(() => replicationResourceTypeValues.map(
-    value => ({
-      value,
-      label: value === ResourceType.RESOURCE_TYPE_MODEL
-        ? t('routes.admin.replications.form.resourceTypes.model')
-        : t('routes.admin.replications.form.resourceTypes.dataset'),
-    }),
-  ), [t])
-
   const triggerTypeOptions = useMemo(() => replicationTriggerTypeValues.map(
     value => ({
       value,
@@ -256,7 +249,7 @@ export function ReplicationFormModal({
   const form = useForm({
     defaultValues: getFormDefaults(syncPolicy),
     validators: {
-      onSubmit: createReplicationFormSchema(),
+      onSubmit: createReplicationFormSchema(registriesQuery.data?.registries),
     },
     onSubmit: async ({ value }) => {
       if (mode === 'create') {
@@ -293,6 +286,20 @@ export function ReplicationFormModal({
     state => state.values.triggerType === TriggerType.TRIGGER_TYPE_SCHEDULED,
   )
 
+  const sourceRegistryId = useStore(form.store, state => state.values.sourceRegistryId)
+  const selectedRegistry = registriesQuery.data?.registries?.find(item => item.id === sourceRegistryId)
+  const modelScopePull = !isPushMode && selectedRegistry?.type === RegistryType.REGISTRY_TYPE_MODELSCOPE
+
+  const resourceTypeOptions = useMemo(() => replicationResourceTypeValues.map(
+    value => ({
+      value,
+      disabled: modelScopePull && value === ResourceType.RESOURCE_TYPE_DATASET,
+      label: value === ResourceType.RESOURCE_TYPE_MODEL
+        ? t('routes.admin.replications.form.resourceTypes.model')
+        : t('routes.admin.replications.form.resourceTypes.dataset'),
+    }),
+  ), [t, modelScopePull])
+
   const handleSubmit = () => {
     void form.handleSubmit()
   }
@@ -306,7 +313,7 @@ export function ReplicationFormModal({
       title={mode === 'create'
         ? t('routes.admin.replications.createModal.title')
         : t('routes.admin.replications.editModal.title')}
-      confirmLoading={isSubmitting}
+      confirmLoading={isSubmitting || registriesQuery.isLoading}
       onConfirm={handleSubmit}
     >
       <Stack gap="md">
@@ -400,7 +407,16 @@ export function ReplicationFormModal({
                 withAsterisk
                 data={registryOptions}
                 value={field.state.value ? String(field.state.value) : null}
-                onChange={value => field.handleChange(value ? Number(value) : 0)}
+                onChange={(value) => {
+                  const registryId = value ? Number(value) : 0
+
+                  field.handleChange(registryId)
+                  const selected = registriesQuery.data?.registries?.find(item => item.id === registryId)
+
+                  if (isModelScopePull(form.state.values.policyType, selected?.type)) {
+                    form.setFieldValue('resourceTypes', [ResourceType.RESOURCE_TYPE_MODEL])
+                  }
+                }}
                 onBlur={field.handleBlur}
                 error={fieldError(field)}
                 searchable
@@ -447,6 +463,7 @@ export function ReplicationFormModal({
                   leftSection={renderInlineFieldSection(
                     t('routes.admin.replications.form.resourceTypes.label'),
                   )}
+                  description={modelScopePull ? t('routes.admin.replications.validation.modelScopeModelsOnly') : undefined}
                   data={resourceTypeOptions}
                   value={field.state.value}
                   onChange={value => field.handleChange(value as ReplicationFormValues['resourceTypes'])}

@@ -252,6 +252,21 @@ func (mr *MockIModelServiceMockRecorder) ListModels(ctx, filter any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListModels", reflect.TypeOf((*MockIModelService)(nil).ListModels), ctx, filter)
 }
 
+// PrepareModelScopeRead mocks base method.
+func (m *MockIModelService) PrepareModelScopeRead(ctx context.Context, project, name string) (*git.GitRepository, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrepareModelScopeRead", ctx, project, name)
+	ret0, _ := ret[0].(*git.GitRepository)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PrepareModelScopeRead indicates an expected call of PrepareModelScopeRead.
+func (mr *MockIModelServiceMockRecorder) PrepareModelScopeRead(ctx, project, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareModelScopeRead", reflect.TypeOf((*MockIModelService)(nil).PrepareModelScopeRead), ctx, project, name)
+}
+
 // SyncMetadata mocks base method.
 func (m *MockIModelService) SyncMetadata(ctx context.Context, project, name string) error {
 	m.ctrl.T.Helper()

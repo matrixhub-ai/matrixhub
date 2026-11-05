@@ -15,6 +15,7 @@
 package handler
 
 import (
+	"context"
 	"testing"
 
 	v1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
@@ -56,4 +57,25 @@ func TestDeleteRegistryReturnsFailedPreconditionWhenInUse(t *testing.T) {
 
 	require.Equal(t, codes.FailedPrecondition, status.Code(err))
 	require.Contains(t, status.Convert(err).Message(), "referenced")
+}
+
+func TestCreateModelScopeRegistryPreservesProviderAndCredentials(t *testing.T) {
+	mock := registrymocks.NewMockIRegistryRepo(gomock.NewController(t))
+	mock.EXPECT().CreateRegistry(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, r registry.Registry) (*registry.Registry, error) {
+		require.Equal(t, registry.TypeModelScope, r.Type)
+		require.Equal(t, "https://www.modelscope.cn", r.URL)
+		require.Equal(t, "secret", registry.AsBasic(r.GetCredential()).Password)
+		r.ID = 7
+		return &r, nil
+	})
+	handler := &RegistryHandler{registryRepo: mock}
+	response, err := handler.CreateRegistry(t.Context(), &v1alpha1.CreateRegistryRequest{Name: "modelscope", Type: v1alpha1.RegistryType_REGISTRY_TYPE_MODELSCOPE, Url: "https://www.modelscope.cn", Credential: &v1alpha1.CreateRegistryRequest_Basic{Basic: &v1alpha1.RegistryBasicCredential{Username: "alice", Password: "secret"}}})
+	require.NoError(t, err)
+	require.Equal(t, v1alpha1.RegistryType_REGISTRY_TYPE_MODELSCOPE, response.Registry.Type)
+	mock.EXPECT().PingRegistry(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, r registry.Registry) (int, string, error) {
+		require.Equal(t, registry.TypeModelScope, r.Type)
+		return 200, "OK", nil
+	})
+	_, err = handler.PingRegistry(t.Context(), &v1alpha1.PingRegistryRequest{Type: v1alpha1.RegistryType_REGISTRY_TYPE_MODELSCOPE, Url: "https://www.modelscope.cn"})
+	require.NoError(t, err)
 }
