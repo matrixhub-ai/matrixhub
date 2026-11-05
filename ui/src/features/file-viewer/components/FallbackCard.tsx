@@ -30,16 +30,6 @@ export function FallbackCard({ file }: FallbackCardProps) {
             {t('file-viewer.fileInfo')}
           </Text>
 
-          {file.sha256
-            ? (
-                <Text size="sm" ff="monospace">
-                  SHA256:
-                  {' '}
-                  {file.sha256}
-                </Text>
-              )
-            : null}
-
           <Text size="sm">
             {t('file-viewer.fileSize')}
             {formatStorageSize(file.size)}

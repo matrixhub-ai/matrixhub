@@ -180,7 +180,7 @@ func handlerTestTreeEntries() []*git.TreeEntry {
 			Type:   git.FileTypeFile,
 			Size:   4_294_967_296,
 			Path:   "data/shard-00000.bin",
-			Hash:   "4f6b2c3d",
+			Sha256: "4f6b2c3d",
 			IsLFS:  true,
 			URL:    "/demo/sample/resolve/main/data/shard-00000.bin",
 			Commit: handlerTestCommit(),

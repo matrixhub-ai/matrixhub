@@ -149,6 +149,13 @@ func HFCLIEnvironment(root, token string) map[string]string {
 	}
 }
 
+func HFCLIXetEnvironment(root, token string) map[string]string {
+	environment := HFCLIEnvironment(root, token)
+	environment["HF_HUB_DISABLE_XET"] = "0"
+	environment["HF_XET_CACHE"] = filepath.Join(root, "hf", "xet")
+	return environment
+}
+
 func errorsFromCommand(result CommandResult) error {
 	return fmt.Errorf("%s", result.FailureMessage())
 }

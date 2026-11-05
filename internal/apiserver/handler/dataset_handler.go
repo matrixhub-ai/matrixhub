@@ -125,14 +125,16 @@ func datasetTreeEntryToProtoFile(entry *git.TreeEntry) *datasetv1alpha1.File {
 	}
 
 	return &datasetv1alpha1.File{
-		Name:   entry.Name,
-		Type:   datasetv1alpha1.FileType(entry.Type),
-		Path:   entry.Path,
-		Size:   entry.Size,
-		Lfs:    entry.IsLFS,
-		Sha256: entry.Hash,
-		Commit: protoCommit,
-		Url:    entry.URL,
+		Name:        entry.Name,
+		Type:        datasetv1alpha1.FileType(entry.Type),
+		Path:        entry.Path,
+		Size:        entry.Size,
+		Lfs:         entry.IsLFS,
+		Sha256:      entry.Sha256,
+		Commit:      protoCommit,
+		Url:         entry.URL,
+		XetHash:     entry.XetHash,
+		PointerSize: entry.PointerSize,
 	}
 }
 

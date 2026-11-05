@@ -233,7 +233,7 @@ consistency is checked by `make generate-mocks` and `make verify.go`.
 Set `UNIT_TEST_EXCLUDE_PKGS` to exclude selected package roots when needed:
 
 ```bash
-UNIT_TEST_EXCLUDE_PKGS="./internal/apiserver/handler/hf" make test.unit
+UNIT_TEST_EXCLUDE_PKGS="./internal/repo" make test.unit
 ```
 
 When interfaces change, regenerate mocks before running or committing tests:
@@ -326,6 +326,7 @@ Protocol labels and case-ID prefixes are:
 | Hugging Face CLI | `hf-cli` | `HF` |
 | Git over SSH | `git-ssh` | `GS` |
 | HF/Git interoperability | `protocol-interop` | `PI` |
+| HF CLI and Git Xet transfers | `xet` (Git upload: `git-xet`) | `XET` |
 
 Each case receives an isolated user, private project, access token or SSH key,
 working directory, and HF cache. The `lfs` and `slow` labels identify the

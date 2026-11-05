@@ -10,12 +10,14 @@
 package v1alpha1
 
 type V1alpha1File struct {
-	Name string `json:"name,omitempty"`
-	Type_ *V1alpha1FileType `json:"type,omitempty"`
-	Path string `json:"path,omitempty"`
-	Size string `json:"size,omitempty"`
-	Lfs bool `json:"lfs,omitempty"`
-	Sha256 string `json:"Sha256,omitempty"`
-	Commit *V1alpha1Commit `json:"commit,omitempty"`
-	Url string `json:"url,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Type_       *V1alpha1FileType `json:"type,omitempty"`
+	Path        string            `json:"path,omitempty"`
+	Size        string            `json:"size,omitempty"`
+	Lfs         bool              `json:"lfs,omitempty"`
+	Sha256      string            `json:"sha256,omitempty"`
+	Commit      *V1alpha1Commit   `json:"commit,omitempty"`
+	Url         string            `json:"url,omitempty"`
+	XetHash     string            `json:"xetHash,omitempty"`
+	PointerSize string            `json:"pointerSize,omitempty"`
 }

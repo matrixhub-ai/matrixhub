@@ -15,6 +15,7 @@
 package tools
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,4 +28,15 @@ func TestSSHClientFixtureRepositoryURL(t *testing.T) {
 	}
 
 	require.Equal(t, "git@127.0.0.1:project/model.git", fixture.RepositoryURL("project", "model"))
+}
+
+func TestHFCLIXetEnvironment(t *testing.T) {
+	t.Setenv("HF_HUB_DISABLE_XET", "1")
+	t.Setenv("HF_XET_CACHE", "/inherited-cache")
+	root := t.TempDir()
+	environment := HFCLIXetEnvironment(root, "test-token")
+	require.Equal(t, "0", environment["HF_HUB_DISABLE_XET"])
+	require.Equal(t, filepath.Join(root, "hf", "xet"), environment["HF_XET_CACHE"])
+	require.Equal(t, "test-token", environment["HF_TOKEN"])
+	require.Equal(t, "1", HFCLIEnvironment(root, "test-token")["HF_HUB_DISABLE_XET"])
 }

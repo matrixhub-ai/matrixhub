@@ -1,4 +1,4 @@
-import { Text } from '@mantine/core'
+import { Group, Text } from '@mantine/core'
 import { FileType } from '@matrixhub/api-ts/v1alpha1/model.pb'
 import {
   IconFile,
@@ -11,6 +11,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import AnchorLink from '@/shared/components/AnchorLink'
+import { FileStorageBadge } from '@/shared/components/badges/FileStorageBadge'
 import { DataTable, type DataTableRowActionsProps } from '@/shared/components/DataTable'
 import { formatRelativeTime } from '@/shared/utils/date'
 import { formatStorageSize } from '@/shared/utils/format'
@@ -66,11 +67,15 @@ function FileSizeCell({ row }: FileCellProps) {
   if (row.original.type === FileType.DIR) {
     return null
   }
+  const file = row.original
 
   return (
-    <Text size="sm" c="gray.7">
-      {formatStorageSize(row.original.size)}
-    </Text>
+    <Group gap={6} wrap="nowrap">
+      <Text size="sm" c="gray.7">
+        {formatStorageSize(row.original.size)}
+      </Text>
+      <FileStorageBadge lfs={file.lfs} xetHash={file.xetHash} />
+    </Group>
   )
 }
 

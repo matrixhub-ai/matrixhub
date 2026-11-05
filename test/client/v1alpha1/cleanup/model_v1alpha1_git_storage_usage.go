@@ -9,7 +9,8 @@
 
 package v1alpha1
 
-type V1alpha1OrphanedLfs struct {
-	Oid       string `json:"oid,omitempty"`
-	SizeBytes string `json:"sizeBytes,omitempty"`
+// Every repository under the repositories root; unreachable objects included, LFS content excluded.
+type V1alpha1GitStorageUsage struct {
+	Objects *V1alpha1StorageObjectUsage `json:"objects,omitempty"`
+	Other *V1alpha1StorageObjectUsage `json:"other,omitempty"`
 }
