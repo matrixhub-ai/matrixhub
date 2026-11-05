@@ -68,7 +68,8 @@
       },
       "dockerHint": "需要安装并配置 Docker 和 NVIDIA Container Toolkit。",
       "otherMethods": "其他方式",
-      "viewDocs": "查看 {{engine}} 文档"
+      "viewDocs": "查看 {{engine}} 文档",
+      "downloadProvider": "模型下载方式"
     },
     "commandGuide": {
       "steps": {
@@ -82,7 +83,10 @@
         "install": "安装下载工具",
         "configure": "配置下载地址",
         "run": "下载模型",
-        "note": "模型默认保存到"
+        "note": "模型默认保存到",
+        "provider": "下载工具",
+        "python": "或使用 ModelScope Python SDK",
+        "modelScopeToken": "私有模型需将 MODELSCOPE_API_TOKEN 设为 MatrixHub 访问令牌，或向 snapshot_download 传入 token 参数。"
       },
       "upload": {
         "title": "上传模型文件",

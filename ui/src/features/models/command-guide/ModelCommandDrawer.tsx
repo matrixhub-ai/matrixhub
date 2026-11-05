@@ -1,6 +1,8 @@
 import {
-  Code, Skeleton, Stack, Text,
+  Code, SegmentedControl, Skeleton, Stack, Text,
 } from '@mantine/core'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -9,10 +11,16 @@ import {
   GuideSnippetBlock,
   GuideStep,
 } from '@/features/models/guides/GuideDrawer'
+import { resolveModelDownloadProvider, type ModelDownloadProvider } from '@/features/models/use-model/useModelGuides'
+import { projectDetailQueryOptions } from '@/features/projects/projects.query'
 import { useSystemConfig } from '@/features/system/system.query'
 
 import {
   buildDownloadSnippet,
+  buildModelScopeInstallSnippet,
+  buildModelScopeEnvSnippet,
+  buildModelScopeDownloadSnippet,
+  buildModelScopePythonSnippet,
   buildHfEnvSnippet,
   buildInstallHfSnippet,
   buildLocalPathPlaceholder,
@@ -25,20 +33,32 @@ interface ModelCommandDrawerProps {
   opened: boolean
   type: ModelCommandType
   modelPath: string
+  revision?: string
   onClose: () => void
 }
 
-/** Step-by-step guide for uploading to / downloading from a model repo with the `hf` CLI. */
+/** Upload and download instructions for the supported model clients. */
 export function ModelCommandDrawer({
   opened,
   type,
   modelPath,
+  revision,
   onClose,
 }: ModelCommandDrawerProps) {
   const { t } = useTranslation()
+  const [providerChoice, setProviderChoice] = useState<ModelDownloadProvider | null>(null)
+  const projectQuery = useQuery({
+    ...projectDetailQueryOptions(modelPath.split('/')[0]),
+    enabled: opened && type === 'download',
+  })
+  const provider = providerChoice ?? resolveModelDownloadProvider(projectQuery.data?.registryType)
+  const isModelScope = type === 'download' && provider === 'modelscope'
   const systemConfigQuery = useSystemConfig()
   const hfEndpoint = systemConfigQuery.data?.endpoints?.hfBase || window.location.origin
   const localPath = buildLocalPathPlaceholder(modelPath)
+  const downloadSnippet = isModelScope
+    ? buildModelScopeDownloadSnippet(modelPath, revision)
+    : buildDownloadSnippet(modelPath, revision)
 
   return (
     <GuideDrawer
@@ -47,6 +67,23 @@ export function ModelCommandDrawer({
       title={t(`model.detail.commandGuide.${type}.title`)}
       intro={t(`model.detail.commandGuide.${type}.intro`)}
     >
+      {type === 'download' && (
+        <SegmentedControl
+          value={provider}
+          onChange={value => setProviderChoice(value === 'modelscope' ? 'modelscope' : 'hf')}
+          aria-label={t('model.detail.commandGuide.download.provider')}
+          data={[
+            {
+              value: 'hf',
+              label: t('routes.admin.registries.provider.huggingFace'),
+            },
+            {
+              value: 'modelscope',
+              label: t('routes.admin.registries.provider.modelScope'),
+            },
+          ]}
+        />
+      )}
       <GuideStep
         index={1}
         title={t(type === 'download'
@@ -54,7 +91,7 @@ export function ModelCommandDrawer({
           : 'model.detail.commandGuide.steps.install')}
       >
         <Text size="sm">{t('model.detail.commandGuide.steps.installHint')}</Text>
-        <GuideSnippetBlock snippet={buildInstallHfSnippet()} />
+        <GuideSnippetBlock snippet={isModelScope ? buildModelScopeInstallSnippet() : buildInstallHfSnippet()} />
       </GuideStep>
 
       <GuideStep
@@ -64,7 +101,7 @@ export function ModelCommandDrawer({
       >
         {systemConfigQuery.isPending
           ? <Skeleton height={type === 'upload' ? 72 : 46} radius="sm" />
-          : <GuideSnippetBlock snippet={buildHfEnvSnippet(type, hfEndpoint)} />}
+          : <GuideSnippetBlock snippet={isModelScope ? buildModelScopeEnvSnippet(hfEndpoint) : buildHfEnvSnippet(type, hfEndpoint)} />}
       </GuideStep>
 
       {type === 'download'
@@ -74,12 +111,19 @@ export function ModelCommandDrawer({
                 index={3}
                 title={t('model.detail.commandGuide.download.run')}
               >
-                <GuideSnippetBlock snippet={buildDownloadSnippet(modelPath)} />
+                <GuideSnippetBlock snippet={downloadSnippet} />
               </GuideStep>
+              {isModelScope && (
+                <Stack gap="xs">
+                  <Text size="sm">{t('model.detail.commandGuide.download.python')}</Text>
+                  <GuideSnippetBlock snippet={buildModelScopePythonSnippet(modelPath, hfEndpoint, revision)} />
+                  <Text size="sm" c="dimmed">{t('model.detail.commandGuide.download.modelScopeToken')}</Text>
+                </Stack>
+              )}
               <GuideNote>
                 {t('model.detail.commandGuide.download.note')}
                 {' '}
-                <Code>{HF_DEFAULT_CACHE_DIR}</Code>
+                <Code>{isModelScope ? `./${modelPath.split('/').pop()}` : HF_DEFAULT_CACHE_DIR}</Code>
               </GuideNote>
             </Stack>
           )

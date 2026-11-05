@@ -4,6 +4,12 @@ import { getLabelsByCategory } from '@/features/models/models.utils'
 
 export const USE_MODEL_ENGINES = ['transformers', 'vllm', 'sglang'] as const
 
+export type ModelDownloadProvider = 'hf' | 'modelscope'
+
+export function resolveModelDownloadProvider(registryType?: string): ModelDownloadProvider {
+  return registryType === 'REGISTRY_TYPE_MODELSCOPE' ? 'modelscope' : 'hf'
+}
+
 export type UseModelEngine = (typeof USE_MODEL_ENGINES)[number]
 
 /** Model capability the generated Transformers snippets are specialised for. */
@@ -47,14 +53,21 @@ export function resolveUseModelTask(model: Pick<Model, 'labels'>): UseModelTask 
   return null
 }
 
-export function buildEnvSnippet(hfEndpoint: string): UseModelSnippet {
+export function buildEnvSnippet(hfEndpoint: string, provider?: ModelDownloadProvider): UseModelSnippet {
+  if (provider === 'modelscope') {
+    return {
+      lang: 'bash',
+      code: `export VLLM_USE_MODELSCOPE=True\nexport MODELSCOPE_ENDPOINT="${hfEndpoint}"\nexport MODELSCOPE_API_TOKEN="${HF_TOKEN_PLACEHOLDER}"`,
+    }
+  }
+
   return {
     lang: 'bash',
-    code: `export HF_ENDPOINT="${hfEndpoint}"\nexport HF_TOKEN="${HF_TOKEN_PLACEHOLDER}"`,
+    code: `${provider === 'hf' ? 'export VLLM_USE_MODELSCOPE=False\n' : ''}export HF_ENDPOINT="${hfEndpoint}"\nexport HF_TOKEN="${HF_TOKEN_PLACEHOLDER}"`,
   }
 }
 
-export function buildInstallSnippet(engine: UseModelEngine): UseModelSnippet {
+export function buildInstallSnippet(engine: UseModelEngine, provider?: ModelDownloadProvider): UseModelSnippet {
   const commands: Record<UseModelEngine, string> = {
     transformers: 'pip install -U transformers torch accelerate',
     vllm: 'pip install vllm',
@@ -63,14 +76,14 @@ export function buildInstallSnippet(engine: UseModelEngine): UseModelSnippet {
 
   return {
     lang: 'bash',
-    code: commands[engine],
+    code: engine === 'vllm' && provider === 'modelscope' ? `${commands[engine]} modelscope modelscope-hub` : commands[engine],
   }
 }
 
-export function buildServeSnippet(engine: Exclude<UseModelEngine, 'transformers'>, modelPath: string): UseModelSnippet {
+export function buildServeSnippet(engine: Exclude<UseModelEngine, 'transformers'>, modelPath: string, revision?: string): UseModelSnippet {
   const commands = {
-    vllm: `vllm serve "${modelPath}" --port 8000`,
-    sglang: `python -m sglang.launch_server \\\n    --model-path "${modelPath}" \\\n    --host 0.0.0.0 --port 30000`,
+    vllm: `vllm serve "${modelPath}"${revision ? ` --revision "${revision}"` : ''} --port 8000`,
+    sglang: `python -m sglang.launch_server \\\n    --model-path "${modelPath}"${revision ? ` --revision "${revision}"` : ''} \\\n    --host 0.0.0.0 --port 30000`,
   }
 
   return {
@@ -125,16 +138,36 @@ export function buildDockerSnippet(
   engine: Exclude<UseModelEngine, 'transformers'>,
   hfEndpoint: string,
   modelPath: string,
+  provider?: ModelDownloadProvider,
+  revision?: string,
 ): UseModelSnippet {
+  if (engine === 'vllm' && provider === 'modelscope') {
+    const serve = buildServeSnippet('vllm', modelPath, revision).code
+
+    return {
+      lang: 'bash',
+      code: `docker run --runtime nvidia --gpus all \\
+  -v ~/.cache/modelscope:/root/.cache/modelscope \\
+  --env "VLLM_USE_MODELSCOPE=True" \\
+  --env "MODELSCOPE_ENDPOINT=${hfEndpoint}" \\
+  --env "MODELSCOPE_API_TOKEN=$MODELSCOPE_API_TOKEN" \\
+  -p 8000:8000 \\
+  --ipc=host \\
+  --entrypoint /bin/bash \\
+  vllm/vllm-openai:latest \\
+  -lc 'python3 -m pip install modelscope modelscope-hub && exec ${serve} --host 0.0.0.0'`,
+    }
+  }
   const commands = {
     vllm: `docker run --runtime nvidia --gpus all \\
   -v ~/.cache/huggingface:/root/.cache/huggingface \\
+  --env "VLLM_USE_MODELSCOPE=False" \\
   --env "HF_ENDPOINT=${hfEndpoint}" \\
   --env "HF_TOKEN=$HF_TOKEN" \\
   -p 8000:8000 \\
   --ipc=host \\
   vllm/vllm-openai:latest \\
-  --model "${modelPath}"`,
+  --model "${modelPath}"${revision ? ` --revision "${revision}"` : ''}`,
     sglang: `docker run --gpus all \\
   --shm-size 32g \\
   -p 30000:30000 \\
@@ -144,7 +177,7 @@ export function buildDockerSnippet(
   --ipc=host \\
   lmsysorg/sglang:latest \\
   python3 -m sglang.launch_server \\
-    --model-path "${modelPath}" \\
+    --model-path "${modelPath}"${revision ? ` --revision "${revision}"` : ''} \\
     --host 0.0.0.0 --port 30000`,
   }
 
@@ -165,14 +198,14 @@ function buildMessages(task: UseModelTask, prompts: SnippetPrompts): string {
   return `messages = [{"role": "user", "content": "${prompts.textPrompt}"}]`
 }
 
-export function buildPipelineSnippet(task: UseModelTask, modelPath: string, prompts: SnippetPrompts): UseModelSnippet {
+export function buildPipelineSnippet(task: UseModelTask, modelPath: string, prompts: SnippetPrompts, revision?: string): UseModelSnippet {
   const invocation = task === 'image-text-to-text' ? 'pipe(text=messages)' : 'pipe(messages)'
 
   return {
     lang: 'python',
     code: `from transformers import pipeline
 
-pipe = pipeline("${task}", model="${modelPath}")
+pipe = pipeline("${task}", model="${modelPath}"${revision ? `, revision=${JSON.stringify(revision)}` : ''})
 
 ${buildMessages(task, prompts)}
 result = ${invocation}`,
@@ -184,7 +217,7 @@ result = ${invocation}`,
  * architectures (Qwen-VL, LLaVA, …) need their own model class; this is the
  * common baseline, not a guarantee for every checkpoint.
  */
-export function buildLowLevelSnippet(task: UseModelTask, modelPath: string, prompts: SnippetPrompts): UseModelSnippet {
+export function buildLowLevelSnippet(task: UseModelTask, modelPath: string, prompts: SnippetPrompts, revision?: string): UseModelSnippet {
   if (task === 'image-text-to-text') {
     return {
       lang: 'python',
@@ -192,10 +225,10 @@ export function buildLowLevelSnippet(task: UseModelTask, modelPath: string, prom
 from transformers import AutoProcessor, AutoModelForImageTextToText
 
 model_id = "${modelPath}"
-processor = AutoProcessor.from_pretrained(model_id)
+processor = AutoProcessor.from_pretrained(model_id${revision ? `, revision=${JSON.stringify(revision)}` : ''})
 model = AutoModelForImageTextToText.from_pretrained(
     model_id,
-    device_map="auto",
+${revision ? `    revision=${JSON.stringify(revision)},\n` : ''}    device_map="auto",
     torch_dtype="auto",
 )
 
@@ -221,10 +254,10 @@ print(processor.batch_decode(generated, skip_special_tokens=True)[0])`,
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 model_id = "${modelPath}"
-tokenizer = AutoTokenizer.from_pretrained(model_id)
+tokenizer = AutoTokenizer.from_pretrained(model_id${revision ? `, revision=${JSON.stringify(revision)}` : ''})
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
-    device_map="auto",
+${revision ? `    revision=${JSON.stringify(revision)},\n` : ''}    device_map="auto",
     torch_dtype="auto",
 )
 

@@ -247,6 +247,21 @@ func (mr *MockIGitRepoMockRecorder) ListRevisions(ctx, repoType, project, name a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRevisions", reflect.TypeOf((*MockIGitRepo)(nil).ListRevisions), ctx, repoType, project, name)
 }
 
+// OpenModelScopeFile mocks base method.
+func (m *MockIGitRepo) OpenModelScopeFile(ctx context.Context, remote *git.GitRepository, revision, path, byteRange string) (*git.RemoteFile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OpenModelScopeFile", ctx, remote, revision, path, byteRange)
+	ret0, _ := ret[0].(*git.RemoteFile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OpenModelScopeFile indicates an expected call of OpenModelScopeFile.
+func (mr *MockIGitRepoMockRecorder) OpenModelScopeFile(ctx, remote, revision, path, byteRange any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OpenModelScopeFile", reflect.TypeOf((*MockIGitRepo)(nil).OpenModelScopeFile), ctx, remote, revision, path, byteRange)
+}
+
 // PullFromRemote mocks base method.
 func (m *MockIGitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepository) error {
 	m.ctrl.T.Helper()
@@ -273,6 +288,21 @@ func (m *MockIGitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitR
 func (mr *MockIGitRepoMockRecorder) PushToRemote(ctx, gitRepository any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushToRemote", reflect.TypeOf((*MockIGitRepo)(nil).PushToRemote), ctx, gitRepository)
+}
+
+// RefreshModelScopeRefs mocks base method.
+func (m *MockIGitRepo) RefreshModelScopeRefs(ctx context.Context, remote *git.GitRepository) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefreshModelScopeRefs", ctx, remote)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RefreshModelScopeRefs indicates an expected call of RefreshModelScopeRefs.
+func (mr *MockIGitRepoMockRecorder) RefreshModelScopeRefs(ctx, remote any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshModelScopeRefs", reflect.TypeOf((*MockIGitRepo)(nil).RefreshModelScopeRefs), ctx, remote)
 }
 
 // RepositoriesSize mocks base method.

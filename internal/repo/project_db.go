@@ -71,7 +71,7 @@ func (r *ProjectDBRepo) GetProjectByID(ctx context.Context, id int) (*project.Pr
 		Select(`projects.*,
 			(SELECT COUNT(*) FROM models WHERE models.project_id = projects.id) as model_count,
 			(SELECT COUNT(*) FROM datasets WHERE datasets.project_id = projects.id) as dataset_count,
-			registries.url as registry_url`).
+			registries.url as registry_url, registries.type as registry_type`).
 		Joins("LEFT JOIN registries ON registries.id = projects.registry_id").
 		Where("projects.id = ?", id).
 		First(&p).Error
@@ -87,7 +87,7 @@ func (r *ProjectDBRepo) GetProjectByName(ctx context.Context, name string) (*pro
 		Select(`projects.*,
 			(SELECT COUNT(*) FROM models WHERE models.project_id = projects.id) as model_count,
 			(SELECT COUNT(*) FROM datasets WHERE datasets.project_id = projects.id) as dataset_count,
-			registries.url as registry_url`).
+			registries.url as registry_url, registries.type as registry_type`).
 		Joins("LEFT JOIN registries ON registries.id = projects.registry_id").
 		Where("projects.name = ?", name).
 		First(&p).Error

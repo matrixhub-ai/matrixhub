@@ -53,7 +53,7 @@ MatrixHub is an open-source, self-hosted, Hugging Face–compatible model hub fo
 
 ## Later or Exploratory
 
-- ModelScope compatibility where strategically useful
+- Broader ModelScope compatibility (datasets and write APIs); model downloads and upstream integration are available
 - OCI artifact packaging for models
 - More P2P distribution approach for startup storms
 - More direct-to-GPU loading patterns (NetLoader-style) approach
