@@ -127,6 +127,16 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Security admission for fetches (clone / pull): the repository's default
+	// branch tip must satisfy the scan policy. File-level /resolve downloads
+	// are gated per exact revision in the HF handler.
+	if service == repository.GitUploadPack && h.fetchAdmissionFunc != nil {
+		if err := h.fetchAdmissionFunc(r.Context(), repoName); err != nil {
+			responseText(w, fmt.Sprintf("security policy denied fetch: %v", err), http.StatusForbidden)
+			return
+		}
+	}
+
 	repoInfo := getRepoInformation(r)
 	repo, err := h.openRepo(r.Context(), repoPath, repoInfo, service)
 	if err != nil {
@@ -202,6 +212,16 @@ func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service 
 			return
 		} else if !ok {
 			responseText(w, "pre-receive hook denied the push", http.StatusForbidden)
+			return
+		}
+	}
+
+	// Security admission for fetches (clone / pull): the repository's default
+	// branch tip must satisfy the scan policy. File-level /resolve downloads
+	// are gated per exact revision in the HF handler.
+	if service == repository.GitUploadPack && h.fetchAdmissionFunc != nil {
+		if err := h.fetchAdmissionFunc(r.Context(), repoName); err != nil {
+			responseText(w, fmt.Sprintf("security policy denied fetch: %v", err), http.StatusForbidden)
 			return
 		}
 	}

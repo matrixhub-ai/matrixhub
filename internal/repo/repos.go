@@ -52,6 +52,7 @@ type Repos struct {
 	SyncPolicy  syncpolicy.ISyncPolicyRepo
 	SyncTask    syncpolicy.ISyncTaskRepo
 	SyncJob     syncjob.ISyncJobRepo
+	Scan        *ScanStore
 	Authz       authz.IAuthzProjectRepo
 	Robot       robot.IRobotRepo
 	Preset      preset.IPresetRepo
@@ -90,6 +91,7 @@ func NewRepos(conf *config.Config, gitStorage *gitstorage.Storage, gitMirror *mi
 	repos.SyncTask = NewSyncTaskDB(repos.DB)
 	repos.SyncJob = NewSyncJobDB(repos.DB)
 	repos.Authz = NewAuthzDBRepo(repos.DB)
+	repos.Scan = NewScanStore(repos.DB)
 	repos.Robot = NewRobotRepo(repos.DB)
 	repos.Preset = NewPresetDB(repos.DB)
 

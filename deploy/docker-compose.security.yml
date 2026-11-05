@@ -1,0 +1,34 @@
+# Security-scanning overlay for the default SQLite Compose deployment.
+#
+# Start the stack with malware scanning enabled:
+#   docker compose -f deploy/docker-compose.yml \
+#                  -f deploy/docker-compose.security.yml up -d
+#
+# Adds a ClamAV daemon (clamd) sidecar shared with MatrixHub through a volume
+# socket. Mount deploy/config-security-sqlite.yaml (the SQLite config plus the
+# jobServer.scan section pointing at the shared clamd socket) as the server
+# config:
+#   cp deploy/config-security-sqlite.yaml deploy/config.yaml   # or edit yours
+services:
+  matrixhub:
+    volumes:
+      - clamd-socket:/var/run/clamav:ro
+
+  clamav:
+    image: clamav/clamav:${CLAMAV_IMAGE_TAG:-latest}
+    container_name: matrixhub-clamd
+    # Shared socket directory; clamd listens on /var/run/clamav/clamd.ctl
+    volumes:
+      - clamd-socket:/var/run/clamav
+      - clamd-db:/var/lib/clamav
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "clamscan", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+
+volumes:
+  clamd-socket:
+  clamd-db:

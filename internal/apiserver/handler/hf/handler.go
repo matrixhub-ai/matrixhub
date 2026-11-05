@@ -30,6 +30,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/scan"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
@@ -47,10 +48,19 @@ type Handler struct {
 	modelService        model.IModelService
 	gitRepo             git.IGitRepo
 	authzService        authz.IAuthzService
+	scanService         scan.ServiceAPI
 }
 
 // Option defines a functional option for configuring the Handler.
 type Option func(*Handler)
+
+// WithScanService wires the security-scan service used for admission and
+// securityStatus reporting (nil disables both).
+func WithScanService(s scan.ServiceAPI) Option {
+	return func(h *Handler) {
+		h.scanService = s
+	}
+}
 
 // WithServices sets the services for the router.
 func WithServices(model model.IModelService, git git.IGitRepo, authz authz.IAuthzService) Option {
@@ -241,6 +251,15 @@ func (h *Handler) openRepo(ctx context.Context, ri repoInformation, repoPath, se
 		return nil, err
 	}
 	return repository.Open(repoPath)
+}
+
+// responseJSONRaw writes the payload as-is (used for structured, stable
+// security-policy errors that HF-compatible clients parse verbatim).
+func responseJSONRaw(w http.ResponseWriter, data any, sc int) {
+	header := w.Header()
+	header.Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(sc)
+	_ = json.NewEncoder(w).Encode(data)
 }
 
 func responseJSON(w http.ResponseWriter, data any, sc int) {
