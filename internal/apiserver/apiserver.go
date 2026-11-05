@@ -163,7 +163,11 @@ func (server *APIServer) initPresets() {
 	if !server.config.Presets.IsEnabled() {
 		return
 	}
-	service := preset.NewService(true, preset.DefaultManifest(), server.repos.Preset,
+	manifest := server.config.Presets.Manifest
+	if manifest == nil {
+		manifest = preset.DefaultManifest()
+	}
+	service := preset.NewService(true, manifest, server.repos.Preset,
 		server.repos.Project, server.repos.Model, server.repos.Git)
 	ctx := context.Background()
 	service.Apply(ctx)
