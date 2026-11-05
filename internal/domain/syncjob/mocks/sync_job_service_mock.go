@@ -58,6 +58,21 @@ func (mr *MockISyncJobServiceMockRecorder) ClaimPendingSyncJobs(ctx, nowMs any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClaimPendingSyncJobs", reflect.TypeOf((*MockISyncJobService)(nil).ClaimPendingSyncJobs), ctx, nowMs)
 }
 
+// CreateModelCacheJob mocks base method.
+func (m *MockISyncJobService) CreateModelCacheJob(ctx context.Context, projectName, name, revision string) (*syncjob.SyncJob, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateModelCacheJob", ctx, projectName, name, revision)
+	ret0, _ := ret[0].(*syncjob.SyncJob)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateModelCacheJob indicates an expected call of CreateModelCacheJob.
+func (mr *MockISyncJobServiceMockRecorder) CreateModelCacheJob(ctx, projectName, name, revision any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateModelCacheJob", reflect.TypeOf((*MockISyncJobService)(nil).CreateModelCacheJob), ctx, projectName, name, revision)
+}
+
 // CreateSyncJob mocks base method.
 func (m *MockISyncJobService) CreateSyncJob(ctx context.Context, param *syncjob.SyncJob) error {
 	m.ctrl.T.Helper()

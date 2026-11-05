@@ -1817,11 +1817,199 @@ func (*UpdateModelSettingResponse) Descriptor() ([]byte, []int) {
 	return file_v1alpha1_model_proto_rawDescGZIP(), []int{27}
 }
 
+type CacheModelRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Project string                 `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
+	// Name of the model. As on Hugging Face, it may start with '_'.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Branch, tag or commit. Empty means the default branch. The job fails
+	// when upstream does not have it. MatrixHub mirrors only branches and
+	// tags, so other refs, such as refs/pr/1, are rejected. So are revision
+	// expressions, such as main~1, and names that contain '@'.
+	Revision      string `protobuf:"bytes,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CacheModelRequest) Reset() {
+	*x = CacheModelRequest{}
+	mi := &file_v1alpha1_model_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CacheModelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CacheModelRequest) ProtoMessage() {}
+
+func (x *CacheModelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CacheModelRequest.ProtoReflect.Descriptor instead.
+func (*CacheModelRequest) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *CacheModelRequest) GetProject() string {
+	if x != nil {
+		return x.Project
+	}
+	return ""
+}
+
+func (x *CacheModelRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CacheModelRequest) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+type CacheModelResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           *ModelCacheJob         `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CacheModelResponse) Reset() {
+	*x = CacheModelResponse{}
+	mi := &file_v1alpha1_model_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CacheModelResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CacheModelResponse) ProtoMessage() {}
+
+func (x *CacheModelResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CacheModelResponse.ProtoReflect.Descriptor instead.
+func (*CacheModelResponse) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *CacheModelResponse) GetJob() *ModelCacheJob {
+	if x != nil {
+		return x.Job
+	}
+	return nil
+}
+
+// ModelCacheJob is a job that caches a model revision. It is a sync job of
+// its own type, and belongs to no sync task.
+type ModelCacheJob struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Id     int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Status SyncJobStatus          `protobuf:"varint,2,opt,name=status,proto3,enum=matrixhub.v1alpha1.SyncJobStatus" json:"status,omitempty"`
+	// Revision that the job caches. Empty means the default branch.
+	Revision           string `protobuf:"bytes,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	CreatedTimestamp   int64  `protobuf:"varint,4,opt,name=created_timestamp,json=createdTimestamp,proto3" json:"created_timestamp,omitempty"`
+	CompletedTimestamp int64  `protobuf:"varint,5,opt,name=completed_timestamp,json=completedTimestamp,proto3" json:"completed_timestamp,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ModelCacheJob) Reset() {
+	*x = ModelCacheJob{}
+	mi := &file_v1alpha1_model_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModelCacheJob) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModelCacheJob) ProtoMessage() {}
+
+func (x *ModelCacheJob) ProtoReflect() protoreflect.Message {
+	mi := &file_v1alpha1_model_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModelCacheJob.ProtoReflect.Descriptor instead.
+func (*ModelCacheJob) Descriptor() ([]byte, []int) {
+	return file_v1alpha1_model_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ModelCacheJob) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ModelCacheJob) GetStatus() SyncJobStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SyncJobStatus_SYNC_JOB_STATUS_UNSPECIFIED
+}
+
+func (x *ModelCacheJob) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+func (x *ModelCacheJob) GetCreatedTimestamp() int64 {
+	if x != nil {
+		return x.CreatedTimestamp
+	}
+	return 0
+}
+
+func (x *ModelCacheJob) GetCompletedTimestamp() int64 {
+	if x != nil {
+		return x.CompletedTimestamp
+	}
+	return 0
+}
+
 var File_v1alpha1_model_proto protoreflect.FileDescriptor
 
 const file_v1alpha1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x14v1alpha1/model.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\x1a\x14v1alpha1/utils.proto\"\x1c\n" +
+	"\x14v1alpha1/model.proto\x12\x12matrixhub.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x17validate/validate.proto\x1a\x1av1alpha1/sync_policy.proto\x1a\x14v1alpha1/utils.proto\"\x1c\n" +
 	"\x1aListModelTaskLabelsRequest\"N\n" +
 	"\x1bListModelTaskLabelsResponse\x12/\n" +
 	"\x05items\x18\x01 \x03(\v2\x19.matrixhub.v1alpha1.LabelR\x05items\"\x1d\n" +
@@ -1948,7 +2136,19 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12>\n" +
 	"\x04name\x18\x02 \x01(\tB*\xfaB'r%\x10\x01Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\x124\n" +
 	"\apopular\x18\x03 \x01(\v2\x1a.google.protobuf.BoolValueR\apopular\"\x1c\n" +
-	"\x1aUpdateModelSettingResponse*\x1d\n" +
+	"\x1aUpdateModelSettingResponse\"\xbe\x01\n" +
+	"\x11CacheModelRequest\x12!\n" +
+	"\aproject\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aproject\x12`\n" +
+	"\x04name\x18\x02 \x01(\tBL\xfaBIrG\x10\x01\x18\xfb\x012\x1d^[A-Za-z0-9_][A-Za-z0-9_.-]*$Z\x06modelsZ\bdatasetsZ\x06spacesZ\aresolveR\x04name\x12$\n" +
+	"\brevision\x18\x03 \x01(\tB\b\xfaB\x05r\x03\x18\xff\x01R\brevision\"I\n" +
+	"\x12CacheModelResponse\x123\n" +
+	"\x03job\x18\x01 \x01(\v2!.matrixhub.v1alpha1.ModelCacheJobR\x03job\"\xd4\x01\n" +
+	"\rModelCacheJob\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x129\n" +
+	"\x06status\x18\x02 \x01(\x0e2!.matrixhub.v1alpha1.SyncJobStatusR\x06status\x12\x1a\n" +
+	"\brevision\x18\x03 \x01(\tR\brevision\x12+\n" +
+	"\x11created_timestamp\x18\x04 \x01(\x03R\x10createdTimestamp\x12/\n" +
+	"\x13completed_timestamp\x18\x05 \x01(\x03R\x12completedTimestamp*\x1d\n" +
 	"\bFileType\x12\a\n" +
 	"\x03DIR\x10\x00\x12\b\n" +
 	"\x04FILE\x10\x01*G\n" +
@@ -1957,7 +2157,7 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"\aLIBRARY\x10\x01\x12\v\n" +
 	"\aLICENSE\x10\x02\x12\f\n" +
 	"\bLANGUAGE\x10\x03\x12\t\n" +
-	"\x05OTHER\x10\x042\x97\x0e\n" +
+	"\x05OTHER\x10\x042\xad\x0f\n" +
 	"\x06Models\x12\xa0\x01\n" +
 	"\x13ListModelTaskLabels\x12..matrixhub.v1alpha1.ListModelTaskLabelsRequest\x1a/.matrixhub.v1alpha1.ListModelTaskLabelsResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /api/v1alpha1/models/task-labels\x12\xa6\x01\n" +
 	"\x14ListModelFrameLabels\x12/.matrixhub.v1alpha1.ListModelFrameLabelsRequest\x1a0.matrixhub.v1alpha1.ListModelFrameLabelsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1alpha1/models/library-labels\x12y\n" +
@@ -1971,7 +2171,9 @@ const file_v1alpha1_model_proto_rawDesc = "" +
 	"\x0eGetModelCommit\x12).matrixhub.v1alpha1.GetModelCommitRequest\x1a\x1a.matrixhub.v1alpha1.Commit\":\x82\xd3\xe4\x93\x024\x122/api/v1alpha1/models/{project}/{name}/commits/{id}\x12\x95\x01\n" +
 	"\fGetModelTree\x12'.matrixhub.v1alpha1.GetModelTreeRequest\x1a(.matrixhub.v1alpha1.GetModelTreeResponse\"2\x82\xd3\xe4\x93\x02,\x12*/api/v1alpha1/models/{project}/{name}/tree\x12\x85\x01\n" +
 	"\fGetModelBlob\x12'.matrixhub.v1alpha1.GetModelBlobRequest\x1a\x18.matrixhub.v1alpha1.File\"2\x82\xd3\xe4\x93\x02,\x12*/api/v1alpha1/models/{project}/{name}/blob\x12\xad\x01\n" +
-	"\x12UpdateModelSetting\x12-.matrixhub.v1alpha1.UpdateModelSettingRequest\x1a..matrixhub.v1alpha1.UpdateModelSettingResponse\"8\x82\xd3\xe4\x93\x022:\x01*\x1a-/api/v1alpha1/models/{project}/{name}/settingB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
+	"\x12UpdateModelSetting\x12-.matrixhub.v1alpha1.UpdateModelSettingRequest\x1a..matrixhub.v1alpha1.UpdateModelSettingResponse\"8\x82\xd3\xe4\x93\x022:\x01*\x1a-/api/v1alpha1/models/{project}/{name}/setting\x12\x93\x01\n" +
+	"\n" +
+	"CacheModel\x12%.matrixhub.v1alpha1.CacheModelRequest\x1a&.matrixhub.v1alpha1.CacheModelResponse\"6\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1alpha1/models/{project}/{name}/cacheB<Z:github.com/matrixhub-ai/matrixhub/api/go/v1alpha1;v1alpha1b\x06proto3"
 
 var (
 	file_v1alpha1_model_proto_rawDescOnce sync.Once
@@ -1986,7 +2188,7 @@ func file_v1alpha1_model_proto_rawDescGZIP() []byte {
 }
 
 var file_v1alpha1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1alpha1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_v1alpha1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_v1alpha1_model_proto_goTypes = []any{
 	(FileType)(0),                        // 0: matrixhub.v1alpha1.FileType
 	(Category)(0),                        // 1: matrixhub.v1alpha1.Category
@@ -2018,55 +2220,63 @@ var file_v1alpha1_model_proto_goTypes = []any{
 	(*Label)(nil),                        // 27: matrixhub.v1alpha1.Label
 	(*UpdateModelSettingRequest)(nil),    // 28: matrixhub.v1alpha1.UpdateModelSettingRequest
 	(*UpdateModelSettingResponse)(nil),   // 29: matrixhub.v1alpha1.UpdateModelSettingResponse
-	(*Pagination)(nil),                   // 30: matrixhub.v1alpha1.Pagination
-	(*wrapperspb.BoolValue)(nil),         // 31: google.protobuf.BoolValue
+	(*CacheModelRequest)(nil),            // 30: matrixhub.v1alpha1.CacheModelRequest
+	(*CacheModelResponse)(nil),           // 31: matrixhub.v1alpha1.CacheModelResponse
+	(*ModelCacheJob)(nil),                // 32: matrixhub.v1alpha1.ModelCacheJob
+	(*Pagination)(nil),                   // 33: matrixhub.v1alpha1.Pagination
+	(*wrapperspb.BoolValue)(nil),         // 34: google.protobuf.BoolValue
+	(SyncJobStatus)(0),                   // 35: matrixhub.v1alpha1.SyncJobStatus
 }
 var file_v1alpha1_model_proto_depIdxs = []int32{
 	27, // 0: matrixhub.v1alpha1.ListModelTaskLabelsResponse.items:type_name -> matrixhub.v1alpha1.Label
 	27, // 1: matrixhub.v1alpha1.ListModelFrameLabelsResponse.items:type_name -> matrixhub.v1alpha1.Label
 	23, // 2: matrixhub.v1alpha1.ListModelsResponse.items:type_name -> matrixhub.v1alpha1.Model
-	30, // 3: matrixhub.v1alpha1.ListModelsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	33, // 3: matrixhub.v1alpha1.ListModelsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
 	15, // 4: matrixhub.v1alpha1.ListModelRevisionsResponse.items:type_name -> matrixhub.v1alpha1.Revisions
 	25, // 5: matrixhub.v1alpha1.Revisions.branches:type_name -> matrixhub.v1alpha1.Revision
 	25, // 6: matrixhub.v1alpha1.Revisions.tags:type_name -> matrixhub.v1alpha1.Revision
 	26, // 7: matrixhub.v1alpha1.ListModelCommitsResponse.items:type_name -> matrixhub.v1alpha1.Commit
-	30, // 8: matrixhub.v1alpha1.ListModelCommitsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
+	33, // 8: matrixhub.v1alpha1.ListModelCommitsResponse.pagination:type_name -> matrixhub.v1alpha1.Pagination
 	0,  // 9: matrixhub.v1alpha1.File.type:type_name -> matrixhub.v1alpha1.FileType
 	26, // 10: matrixhub.v1alpha1.File.commit:type_name -> matrixhub.v1alpha1.Commit
 	20, // 11: matrixhub.v1alpha1.GetModelTreeResponse.items:type_name -> matrixhub.v1alpha1.File
 	24, // 12: matrixhub.v1alpha1.Model.clone_urls:type_name -> matrixhub.v1alpha1.CloneUrls
 	27, // 13: matrixhub.v1alpha1.Model.labels:type_name -> matrixhub.v1alpha1.Label
 	1,  // 14: matrixhub.v1alpha1.Label.category:type_name -> matrixhub.v1alpha1.Category
-	31, // 15: matrixhub.v1alpha1.UpdateModelSettingRequest.popular:type_name -> google.protobuf.BoolValue
-	2,  // 16: matrixhub.v1alpha1.Models.ListModelTaskLabels:input_type -> matrixhub.v1alpha1.ListModelTaskLabelsRequest
-	4,  // 17: matrixhub.v1alpha1.Models.ListModelFrameLabels:input_type -> matrixhub.v1alpha1.ListModelFrameLabelsRequest
-	6,  // 18: matrixhub.v1alpha1.Models.ListModels:input_type -> matrixhub.v1alpha1.ListModelsRequest
-	8,  // 19: matrixhub.v1alpha1.Models.GetModel:input_type -> matrixhub.v1alpha1.GetModelRequest
-	9,  // 20: matrixhub.v1alpha1.Models.CreateModel:input_type -> matrixhub.v1alpha1.CreateModelRequest
-	11, // 21: matrixhub.v1alpha1.Models.DeleteModel:input_type -> matrixhub.v1alpha1.DeleteModelRequest
-	13, // 22: matrixhub.v1alpha1.Models.ListModelRevisions:input_type -> matrixhub.v1alpha1.ListModelRevisionsRequest
-	16, // 23: matrixhub.v1alpha1.Models.ListModelCommits:input_type -> matrixhub.v1alpha1.ListModelCommitsRequest
-	18, // 24: matrixhub.v1alpha1.Models.GetModelCommit:input_type -> matrixhub.v1alpha1.GetModelCommitRequest
-	19, // 25: matrixhub.v1alpha1.Models.GetModelTree:input_type -> matrixhub.v1alpha1.GetModelTreeRequest
-	22, // 26: matrixhub.v1alpha1.Models.GetModelBlob:input_type -> matrixhub.v1alpha1.GetModelBlobRequest
-	28, // 27: matrixhub.v1alpha1.Models.UpdateModelSetting:input_type -> matrixhub.v1alpha1.UpdateModelSettingRequest
-	3,  // 28: matrixhub.v1alpha1.Models.ListModelTaskLabels:output_type -> matrixhub.v1alpha1.ListModelTaskLabelsResponse
-	5,  // 29: matrixhub.v1alpha1.Models.ListModelFrameLabels:output_type -> matrixhub.v1alpha1.ListModelFrameLabelsResponse
-	7,  // 30: matrixhub.v1alpha1.Models.ListModels:output_type -> matrixhub.v1alpha1.ListModelsResponse
-	23, // 31: matrixhub.v1alpha1.Models.GetModel:output_type -> matrixhub.v1alpha1.Model
-	10, // 32: matrixhub.v1alpha1.Models.CreateModel:output_type -> matrixhub.v1alpha1.CreateModelResponse
-	12, // 33: matrixhub.v1alpha1.Models.DeleteModel:output_type -> matrixhub.v1alpha1.DeleteModelResponse
-	14, // 34: matrixhub.v1alpha1.Models.ListModelRevisions:output_type -> matrixhub.v1alpha1.ListModelRevisionsResponse
-	17, // 35: matrixhub.v1alpha1.Models.ListModelCommits:output_type -> matrixhub.v1alpha1.ListModelCommitsResponse
-	26, // 36: matrixhub.v1alpha1.Models.GetModelCommit:output_type -> matrixhub.v1alpha1.Commit
-	21, // 37: matrixhub.v1alpha1.Models.GetModelTree:output_type -> matrixhub.v1alpha1.GetModelTreeResponse
-	20, // 38: matrixhub.v1alpha1.Models.GetModelBlob:output_type -> matrixhub.v1alpha1.File
-	29, // 39: matrixhub.v1alpha1.Models.UpdateModelSetting:output_type -> matrixhub.v1alpha1.UpdateModelSettingResponse
-	28, // [28:40] is the sub-list for method output_type
-	16, // [16:28] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	34, // 15: matrixhub.v1alpha1.UpdateModelSettingRequest.popular:type_name -> google.protobuf.BoolValue
+	32, // 16: matrixhub.v1alpha1.CacheModelResponse.job:type_name -> matrixhub.v1alpha1.ModelCacheJob
+	35, // 17: matrixhub.v1alpha1.ModelCacheJob.status:type_name -> matrixhub.v1alpha1.SyncJobStatus
+	2,  // 18: matrixhub.v1alpha1.Models.ListModelTaskLabels:input_type -> matrixhub.v1alpha1.ListModelTaskLabelsRequest
+	4,  // 19: matrixhub.v1alpha1.Models.ListModelFrameLabels:input_type -> matrixhub.v1alpha1.ListModelFrameLabelsRequest
+	6,  // 20: matrixhub.v1alpha1.Models.ListModels:input_type -> matrixhub.v1alpha1.ListModelsRequest
+	8,  // 21: matrixhub.v1alpha1.Models.GetModel:input_type -> matrixhub.v1alpha1.GetModelRequest
+	9,  // 22: matrixhub.v1alpha1.Models.CreateModel:input_type -> matrixhub.v1alpha1.CreateModelRequest
+	11, // 23: matrixhub.v1alpha1.Models.DeleteModel:input_type -> matrixhub.v1alpha1.DeleteModelRequest
+	13, // 24: matrixhub.v1alpha1.Models.ListModelRevisions:input_type -> matrixhub.v1alpha1.ListModelRevisionsRequest
+	16, // 25: matrixhub.v1alpha1.Models.ListModelCommits:input_type -> matrixhub.v1alpha1.ListModelCommitsRequest
+	18, // 26: matrixhub.v1alpha1.Models.GetModelCommit:input_type -> matrixhub.v1alpha1.GetModelCommitRequest
+	19, // 27: matrixhub.v1alpha1.Models.GetModelTree:input_type -> matrixhub.v1alpha1.GetModelTreeRequest
+	22, // 28: matrixhub.v1alpha1.Models.GetModelBlob:input_type -> matrixhub.v1alpha1.GetModelBlobRequest
+	28, // 29: matrixhub.v1alpha1.Models.UpdateModelSetting:input_type -> matrixhub.v1alpha1.UpdateModelSettingRequest
+	30, // 30: matrixhub.v1alpha1.Models.CacheModel:input_type -> matrixhub.v1alpha1.CacheModelRequest
+	3,  // 31: matrixhub.v1alpha1.Models.ListModelTaskLabels:output_type -> matrixhub.v1alpha1.ListModelTaskLabelsResponse
+	5,  // 32: matrixhub.v1alpha1.Models.ListModelFrameLabels:output_type -> matrixhub.v1alpha1.ListModelFrameLabelsResponse
+	7,  // 33: matrixhub.v1alpha1.Models.ListModels:output_type -> matrixhub.v1alpha1.ListModelsResponse
+	23, // 34: matrixhub.v1alpha1.Models.GetModel:output_type -> matrixhub.v1alpha1.Model
+	10, // 35: matrixhub.v1alpha1.Models.CreateModel:output_type -> matrixhub.v1alpha1.CreateModelResponse
+	12, // 36: matrixhub.v1alpha1.Models.DeleteModel:output_type -> matrixhub.v1alpha1.DeleteModelResponse
+	14, // 37: matrixhub.v1alpha1.Models.ListModelRevisions:output_type -> matrixhub.v1alpha1.ListModelRevisionsResponse
+	17, // 38: matrixhub.v1alpha1.Models.ListModelCommits:output_type -> matrixhub.v1alpha1.ListModelCommitsResponse
+	26, // 39: matrixhub.v1alpha1.Models.GetModelCommit:output_type -> matrixhub.v1alpha1.Commit
+	21, // 40: matrixhub.v1alpha1.Models.GetModelTree:output_type -> matrixhub.v1alpha1.GetModelTreeResponse
+	20, // 41: matrixhub.v1alpha1.Models.GetModelBlob:output_type -> matrixhub.v1alpha1.File
+	29, // 42: matrixhub.v1alpha1.Models.UpdateModelSetting:output_type -> matrixhub.v1alpha1.UpdateModelSettingResponse
+	31, // 43: matrixhub.v1alpha1.Models.CacheModel:output_type -> matrixhub.v1alpha1.CacheModelResponse
+	31, // [31:44] is the sub-list for method output_type
+	18, // [18:31] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_v1alpha1_model_proto_init() }
@@ -2074,6 +2284,7 @@ func file_v1alpha1_model_proto_init() {
 	if File_v1alpha1_model_proto != nil {
 		return
 	}
+	file_v1alpha1_sync_policy_proto_init()
 	file_v1alpha1_utils_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2081,7 +2292,7 @@ func file_v1alpha1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1alpha1_model_proto_rawDesc), len(file_v1alpha1_model_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   28,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

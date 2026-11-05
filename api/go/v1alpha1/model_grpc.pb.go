@@ -31,6 +31,7 @@ const (
 	Models_GetModelTree_FullMethodName         = "/matrixhub.v1alpha1.Models/GetModelTree"
 	Models_GetModelBlob_FullMethodName         = "/matrixhub.v1alpha1.Models/GetModelBlob"
 	Models_UpdateModelSetting_FullMethodName   = "/matrixhub.v1alpha1.Models/UpdateModelSetting"
+	Models_CacheModel_FullMethodName           = "/matrixhub.v1alpha1.Models/CacheModel"
 )
 
 // ModelsClient is the client API for Models service.
@@ -49,6 +50,11 @@ type ModelsClient interface {
 	GetModelTree(ctx context.Context, in *GetModelTreeRequest, opts ...grpc.CallOption) (*GetModelTreeResponse, error)
 	GetModelBlob(ctx context.Context, in *GetModelBlobRequest, opts ...grpc.CallOption) (*File, error)
 	UpdateModelSetting(ctx context.Context, in *UpdateModelSettingRequest, opts ...grpc.CallOption) (*UpdateModelSettingResponse, error)
+	// CacheModel creates a job that pulls a model of a proxy project from
+	// upstream. The pull queues the LFS files of the model, which MatrixHub
+	// then downloads in the background. The job runs in the background too,
+	// and the model need not exist locally yet.
+	CacheModel(ctx context.Context, in *CacheModelRequest, opts ...grpc.CallOption) (*CacheModelResponse, error)
 }
 
 type modelsClient struct {
@@ -179,6 +185,16 @@ func (c *modelsClient) UpdateModelSetting(ctx context.Context, in *UpdateModelSe
 	return out, nil
 }
 
+func (c *modelsClient) CacheModel(ctx context.Context, in *CacheModelRequest, opts ...grpc.CallOption) (*CacheModelResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CacheModelResponse)
+	err := c.cc.Invoke(ctx, Models_CacheModel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ModelsServer is the server API for Models service.
 // All implementations should embed UnimplementedModelsServer
 // for forward compatibility.
@@ -195,6 +211,11 @@ type ModelsServer interface {
 	GetModelTree(context.Context, *GetModelTreeRequest) (*GetModelTreeResponse, error)
 	GetModelBlob(context.Context, *GetModelBlobRequest) (*File, error)
 	UpdateModelSetting(context.Context, *UpdateModelSettingRequest) (*UpdateModelSettingResponse, error)
+	// CacheModel creates a job that pulls a model of a proxy project from
+	// upstream. The pull queues the LFS files of the model, which MatrixHub
+	// then downloads in the background. The job runs in the background too,
+	// and the model need not exist locally yet.
+	CacheModel(context.Context, *CacheModelRequest) (*CacheModelResponse, error)
 }
 
 // UnimplementedModelsServer should be embedded to have
@@ -239,6 +260,9 @@ func (UnimplementedModelsServer) GetModelBlob(context.Context, *GetModelBlobRequ
 }
 func (UnimplementedModelsServer) UpdateModelSetting(context.Context, *UpdateModelSettingRequest) (*UpdateModelSettingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateModelSetting not implemented")
+}
+func (UnimplementedModelsServer) CacheModel(context.Context, *CacheModelRequest) (*CacheModelResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CacheModel not implemented")
 }
 func (UnimplementedModelsServer) testEmbeddedByValue() {}
 
@@ -476,6 +500,24 @@ func _Models_UpdateModelSetting_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Models_CacheModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CacheModelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ModelsServer).CacheModel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Models_CacheModel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ModelsServer).CacheModel(ctx, req.(*CacheModelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Models_ServiceDesc is the grpc.ServiceDesc for Models service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -530,6 +572,10 @@ var Models_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateModelSetting",
 			Handler:    _Models_UpdateModelSetting_Handler,
+		},
+		{
+			MethodName: "CacheModel",
+			Handler:    _Models_CacheModel_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -17,6 +17,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"net"
 	"net/http"
@@ -37,6 +38,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
@@ -45,6 +47,8 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	modelmocks "github.com/matrixhub-ai/matrixhub/internal/domain/model/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
+	syncjobmocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncjob/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
 
@@ -210,7 +214,7 @@ func modelHandlerTestSetup(t *testing.T) (*ModelHandler, *modelmocks.MockIModelS
 	ctrl := gomock.NewController(t)
 	svc := modelmocks.NewMockIModelService(ctrl)
 	authzService := authzmocks.NewMockIAuthzService(ctrl)
-	h, ok := NewModelHandler(svc, authzService).(*ModelHandler)
+	h, ok := NewModelHandler(svc, authzService, syncjobmocks.NewMockISyncJobService(ctrl)).(*ModelHandler)
 	require.True(t, ok)
 	return h, svc, authzService
 }
@@ -227,6 +231,16 @@ func modelHandlerTestAuthorized(t *testing.T, perm role.Permission) (context.Con
 	ctx := modelHandlerTestUserContext()
 	authzService.EXPECT().VerifyProjectPermissionByName(ctx, modelHandlerTestProject, perm).Return(true, nil)
 	return ctx, h, svc
+}
+
+// modelHandlerTestCacheAuthorized is modelHandlerTestAuthorized for CacheModel,
+// which calls the sync job service instead of the model service.
+func modelHandlerTestCacheAuthorized(t *testing.T) (context.Context, *ModelHandler, *syncjobmocks.MockISyncJobService) {
+	t.Helper()
+	ctx, h, _ := modelHandlerTestAuthorized(t, role.ModelPush)
+	jobs, ok := h.syncJobs.(*syncjobmocks.MockISyncJobService)
+	require.True(t, ok)
+	return ctx, h, jobs
 }
 
 func modelHandlerTestModel() *model.Model {
@@ -276,11 +290,13 @@ func TestNewModelHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	svc := modelmocks.NewMockIModelService(ctrl)
 	authzService := authzmocks.NewMockIAuthzService(ctrl)
+	syncJobs := syncjobmocks.NewMockISyncJobService(ctrl)
 
-	h, ok := NewModelHandler(svc, authzService).(*ModelHandler)
+	h, ok := NewModelHandler(svc, authzService, syncJobs).(*ModelHandler)
 	require.True(t, ok)
 	require.Same(t, svc, h.ms)
 	require.Same(t, authzService, h.authzService)
+	require.Same(t, syncJobs, h.syncJobs)
 }
 
 func TestFormatSizeAndParameterCount(t *testing.T) {
@@ -782,6 +798,50 @@ func TestModelHandlerRejectsInvalidRequests(t *testing.T) {
 				return err
 			},
 		},
+		{
+			name:  "CacheModel without project",
+			field: "CacheModelRequest.Project",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Name: modelHandlerTestName})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel without name",
+			field: "CacheModelRequest.Name",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel with path-like name",
+			field: "CacheModelRequest.Name",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: "a/b"})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel with reserved name",
+			field: "CacheModelRequest.Name",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: "resolve"})
+				return err
+			},
+		},
+		{
+			name:  "CacheModel with too long revision",
+			field: "CacheModelRequest.Revision",
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{
+					Project:  modelHandlerTestProject,
+					Name:     modelHandlerTestName,
+					Revision: strings.Repeat("a", 256),
+				})
+				return err
+			},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -873,6 +933,14 @@ func TestModelHandlerRequiresProjectPermission(t *testing.T) {
 				return err
 			},
 		},
+		{
+			method: "CacheModel",
+			perm:   role.ModelPush,
+			call: func(ctx context.Context, h *ModelHandler) error {
+				_, err := h.CacheModel(ctx, &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: modelHandlerTestName})
+				return err
+			},
+		},
 	}
 	verdicts := []struct {
 		name    string
@@ -885,7 +953,7 @@ func TestModelHandlerRequiresProjectPermission(t *testing.T) {
 	for _, tc := range cases {
 		for _, verdict := range verdicts {
 			t.Run(tc.method+"/"+verdict.name, func(t *testing.T) {
-				// The model service mock has no expectations, so reaching it fails the test.
+				// The service mocks have no expectations, so reaching them fails the test.
 				h, _, authzService := modelHandlerTestSetup(t)
 				ctx := modelHandlerTestUserContext()
 				authzService.EXPECT().
@@ -1206,6 +1274,46 @@ func TestModelHandlerGetModelBlob(t *testing.T) {
 				Return(nil, tc.err)
 
 			got, err := h.GetModelBlob(ctx, request)
+			require.Nil(t, got)
+			requireHandlerTestStatus(t, err, tc.wantCode, tc.wantMsg)
+		})
+	}
+}
+
+func TestModelHandlerCacheModel(t *testing.T) {
+	request := &v1alpha1.CacheModelRequest{Project: modelHandlerTestProject, Name: modelHandlerTestName, Revision: "v1.0"}
+
+	t.Run("creates a job", func(t *testing.T) {
+		ctx, h, jobs := modelHandlerTestCacheAuthorized(t)
+		jobs.EXPECT().CreateModelCacheJob(ctx, modelHandlerTestProject, modelHandlerTestName, "v1.0").Return(&syncjob.SyncJob{
+			ID:        21,
+			JobType:   syncjob.JobTypeModelCache,
+			Status:    syncjob.SyncJobStatusPending,
+			CreatedAt: handlerTestCreatedAt,
+		}, nil)
+
+		got, err := h.CacheModel(ctx, request)
+		require.NoError(t, err)
+		requireProtoEqual(t, &v1alpha1.CacheModelResponse{Job: &v1alpha1.ModelCacheJob{
+			Id:               21,
+			Status:           v1alpha1.SyncJobStatus_SYNC_JOB_STATUS_PENDING,
+			Revision:         "v1.0",
+			CreatedTimestamp: handlerTestCreatedAt.Unix(),
+		}}, got)
+	})
+
+	for _, tc := range []handlerTestErrorCase{
+		{name: "ref that MatrixHub does not mirror", err: fmt.Errorf("%w: refs/pr/1", syncjob.ErrInvalidRevision), wantCode: codes.InvalidArgument},
+		{name: "local project", err: syncjob.ErrNotProxyProject, wantCode: codes.FailedPrecondition},
+		{name: "missing project", err: gorm.ErrRecordNotFound, wantCode: codes.NotFound, wantMsg: "project not found"},
+		// The cause is logged, not returned.
+		{name: "database failure", err: errors.New("database is down"), wantCode: codes.Internal, wantMsg: "failed to create the model cache job"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, h, jobs := modelHandlerTestCacheAuthorized(t)
+			jobs.EXPECT().CreateModelCacheJob(ctx, modelHandlerTestProject, modelHandlerTestName, "v1.0").Return(nil, tc.err)
+
+			got, err := h.CacheModel(ctx, request)
 			require.Nil(t, got)
 			requireHandlerTestStatus(t, err, tc.wantCode, tc.wantMsg)
 		})
