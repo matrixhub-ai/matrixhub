@@ -18,20 +18,22 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
-	"os/exec"
 	"strings"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	gitHTTP "github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
@@ -76,33 +78,17 @@ func (g *gitRepo) pullModelScope(ctx context.Context, gr *domaingit.GitRepositor
 	return g.pullModelScopeFiles(ctx, gr, repoPath)
 }
 
-func modelScopeGit(ctx context.Context, gr *domaingit.GitRepository, args ...string) ([]byte, error) {
-	cmd := exec.CommandContext(ctx, "git", args...)
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	// Scope credentials to this endpoint, keep tokens out of command arguments
-	// and on-disk Git config, and never change global Git/TLS configuration.
-	config := []string{"credential.helper="}
+// Pass credentials directly to the HTTP transport, without invoking a process
+// or writing tokens to Git configuration.
+func modelScopeGitAuth(gr *domaingit.GitRepository) transport.AuthMethod {
 	if cred := gr.Credential; cred != nil && cred.Password != "" {
 		username := cred.Username
 		if username == "" {
 			username = "oauth2"
 		}
-		encoded := base64.StdEncoding.EncodeToString([]byte(username + ":" + cred.Password))
-		config = append(config, "http."+strings.TrimRight(gr.RemoteRegistryURL, "/")+"/.extraHeader=Authorization: Basic "+encoded)
+		return &gitHTTP.BasicAuth{Username: username, Password: cred.Password}
 	}
-	if gr.Insecure {
-		config = append(config, "http.sslVerify=false")
-	}
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GIT_CONFIG_COUNT=%d", len(config)))
-	for i, entry := range config {
-		key, value, _ := strings.Cut(entry, "=")
-		cmd.Env = append(cmd.Env, fmt.Sprintf("GIT_CONFIG_KEY_%d=%s", i, key), fmt.Sprintf("GIT_CONFIG_VALUE_%d=%s", i, value))
-	}
-	output, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("modelscope git operation failed: %w", err)
-	}
-	return output, nil
+	return nil
 }
 
 type modelScopeRefState struct {
@@ -151,40 +137,54 @@ func fetchModelScopeRefs(ctx context.Context, gr *domaingit.GitRepository, repoP
 	}
 	remoteName := gr.RemoteProjectName + "/" + gr.RemoteResourceName
 	sourceURL := remoteRepositoryURL(gr, remoteName)
-	refsOutput, err := modelScopeGit(ctx, gitConfig, "ls-remote", "--symref", sourceURL)
+	remoteConfig := &config.RemoteConfig{Name: "modelscope", URLs: []string{sourceURL}}
+	auth := modelScopeGitAuth(gitConfig)
+	remoteRefs, err := gogit.NewRemote(memory.NewStorage(), remoteConfig).ListContext(ctx, &gogit.ListOptions{
+		Auth: auth, InsecureSkipTLS: gr.Insecure,
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list modelscope revisions: %w", err)
 	}
-	defaultBranch := ""
+	var defaultBranch plumbing.ReferenceName
 	refs := make([]string, 0)
-	for _, line := range strings.Split(string(refsOutput), "\n") {
-		value, ref, ok := strings.Cut(line, "\t")
-		if !ok {
-			continue
+	refSpecs := make([]config.RefSpec, 0)
+	for _, ref := range remoteRefs {
+		if ref.Name() == plumbing.HEAD && ref.Type() == plumbing.SymbolicReference && ref.Target().IsBranch() {
+			defaultBranch = ref.Target()
 		}
-		if ref == "HEAD" && strings.HasPrefix(value, "ref: refs/heads/") {
-			defaultBranch = strings.TrimPrefix(value, "ref: refs/heads/")
-		}
-		if (strings.HasPrefix(ref, "refs/heads/") || strings.HasPrefix(ref, "refs/tags/")) && !strings.HasSuffix(ref, "^{}") {
-			refs = append(refs, ref)
+		if ref.Name().IsBranch() || ref.Name().IsTag() {
+			if err := ref.Name().Validate(); err != nil {
+				return nil, fmt.Errorf("invalid modelscope revision: %w", err)
+			}
+			name := ref.Name().String()
+			refs = append(refs, name)
+			refSpecs = append(refSpecs, config.RefSpec("+"+name+":"+name))
 		}
 	}
 	if defaultBranch == "" || len(refs) == 0 {
 		return nil, fmt.Errorf("modelscope repository has no default branch or revisions")
 	}
-	if !repository.IsRepository(repoPath) {
-		if _, err := modelScopeGit(ctx, gitConfig, "init", "--bare", repoPath, "--initial-branch", defaultBranch); err != nil {
-			return nil, err
-		}
+	if err := defaultBranch.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid modelscope default branch: %w", err)
 	}
-	args := []string{"-C", repoPath, "fetch", "--no-tags", sourceURL}
-	for _, ref := range refs {
-		args = append(args, "+"+ref+":"+ref)
+	var repo *gogit.Repository
+	if repository.IsRepository(repoPath) {
+		repo, err = gogit.PlainOpen(repoPath)
+	} else {
+		repo, err = gogit.PlainInit(repoPath, true)
 	}
-	if _, err := modelScopeGit(ctx, gitConfig, args...); err != nil {
+	if err != nil {
 		return nil, err
 	}
-	if _, err := modelScopeGit(ctx, gitConfig, "-C", repoPath, "symbolic-ref", "HEAD", "refs/heads/"+defaultBranch); err != nil {
+	// Use an in-memory remote configuration so neither endpoint credentials nor
+	// user-supplied options reach a process or the local repository config.
+	remote := gogit.NewRemote(repo.Storer, remoteConfig)
+	if err := remote.FetchContext(ctx, &gogit.FetchOptions{
+		Auth: auth, InsecureSkipTLS: gr.Insecure, RefSpecs: refSpecs, Tags: gogit.NoTags,
+	}); err != nil && !errors.Is(err, gogit.NoErrAlreadyUpToDate) {
+		return nil, fmt.Errorf("fetch modelscope revisions: %w", err)
+	}
+	if err := repo.Storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, defaultBranch)); err != nil {
 		return nil, err
 	}
 	return refs, nil
@@ -264,7 +264,7 @@ func (g *gitRepo) pullModelScopeFiles(ctx context.Context, gr *domaingit.GitRepo
 		return err
 	}
 
-	// Reopen after the external Git fetch so object indexes reflect new packs.
+	// Reopen after fetching so object indexes reflect new packs.
 	repo, err := gogit.PlainOpen(repoPath)
 	if err != nil {
 		return err

@@ -29,6 +29,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -112,8 +114,18 @@ func TestModelScopePrivateGitPull(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "main", placeholder.DefaultBranch()) // Exercise an already-cached default.
 
+	// Keep only the fixture server's upload-pack executable available. The
+	// client must not invoke Git commands with registry or upstream values.
+	uploadPack, err := exec.LookPath("git-upload-pack")
+	require.NoError(t, err)
+	serverBin := t.TempDir()
+	require.NoError(t, os.Symlink(uploadPack, filepath.Join(serverBin, "git-upload-pack")))
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", serverBin)
+
 	err = g.PullFromRemote(t.Context(), &domaingit.GitRepository{RemoteRegistryURL: server.URL, RemoteRegistryType: registry.TypeModelScope, RemoteProjectName: "team", RemoteResourceName: "private", ProjectName: "local", ResourceName: "copy", ResourceType: "model", Credential: &domaingit.BasicCredential{Username: "alice", Password: "secret"}, LogWriter: io.Discard})
 	require.NoError(t, err)
+	t.Setenv("PATH", originalPath)
 	cloned, err := repository.Open(local.ResolvePath("local/copy"))
 	require.NoError(t, err)
 	content, err := g.readBlobBytes(cloned, "master", "config.json")
