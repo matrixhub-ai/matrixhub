@@ -30,6 +30,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
+	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
 
@@ -209,7 +210,7 @@ func (h *Handler) handleMoveRepo(w http.ResponseWriter, r *http.Request) {
 	}
 	if h.permissionHookFunc != nil {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, fromName, permission.Context{DestRepo: toName}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
@@ -259,7 +260,7 @@ func (h *Handler) handleRepoSettings(w http.ResponseWriter, r *http.Request) {
 
 	if h.permissionHookFunc != nil {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
@@ -298,7 +299,7 @@ func (h *Handler) handleCreateBranch(w http.ResponseWriter, r *http.Request) {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{
 			Ref: rev,
 		}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
@@ -386,7 +387,7 @@ func (h *Handler) handleDeleteBranch(w http.ResponseWriter, r *http.Request) {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{
 			Ref: rev,
 		}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
@@ -467,7 +468,7 @@ func (h *Handler) handleCreateTag(w http.ResponseWriter, r *http.Request) {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{
 			Ref: rev,
 		}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
@@ -556,7 +557,7 @@ func (h *Handler) handleDeleteTag(w http.ResponseWriter, r *http.Request) {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{
 			Ref: rev,
 		}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
@@ -864,7 +865,7 @@ func (h *Handler) handleSuperSquash(w http.ResponseWriter, r *http.Request) {
 
 	if h.permissionHookFunc != nil {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{Ref: rev}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)

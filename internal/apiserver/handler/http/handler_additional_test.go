@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	backend "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/http"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 )
 
 func TestHTTPHandlerOptionsAndFallback(t *testing.T) {
@@ -117,6 +118,32 @@ func TestHTTPHandlerPermissionFailures(t *testing.T) {
 			handler.ServeHTTP(response, request)
 			require.Equal(t, tt.wantStatus, response.Code)
 			require.Contains(t, response.Body.String(), tt.wantBody)
+		})
+	}
+}
+
+func TestHTTPHandlerRejectsPushToProxyProject(t *testing.T) {
+	tests := []struct {
+		name   string
+		method string
+		target string
+	}{
+		{name: "discovery", method: http.MethodGet, target: "/proxy/model.git/info/refs?service=git-receive-pack"},
+		{name: "receive pack", method: http.MethodPost, target: "/proxy/model.git/git-receive-pack"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := backend.NewHandler(
+				backend.WithStorage(storage.NewStorage(storage.WithRootDir(t.TempDir()))),
+				backend.WithPermissionHookFunc(func(_ context.Context, operation permission.Operation, _ string, _ permission.Context) (bool, error) {
+					require.Equal(t, permission.OperationUpdateRepo, operation)
+					return false, project.ErrProxyProjectReadOnly
+				}),
+			)
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, httptest.NewRequest(tt.method, tt.target, nil))
+			require.Equal(t, http.StatusForbidden, response.Code)
+			require.Contains(t, response.Body.String(), project.ErrProxyProjectReadOnly.Error())
 		})
 	}
 }

@@ -180,7 +180,7 @@ type gitHooks struct {
 }
 
 func (server *APIServer) initGitHooks() {
-	permissionHookFunc := middleware.NewRepoEnforcer(server.services.Authz)
+	permissionHookFunc := middleware.NewRepoEnforcer(server.services.Authz, server.repos.Project)
 
 	preReceiveHookFunc := func(ctx context.Context, repoName string, updates []receive.RefUpdate) (bool, error) {
 		repoType, project, name, ok := utils.ParseFromRepoName(repoName)

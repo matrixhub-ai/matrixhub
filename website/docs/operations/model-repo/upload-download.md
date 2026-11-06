@@ -84,7 +84,7 @@ Downloading models can be performed by project **Admins**, **Editors**, and **Vi
 :::note
 
 - Once the proxy project is created, you can access models in the target registry through MatrixHub using `hf download`.
-- Proxy projects do not support `hf upload`.
+- Proxy projects are read-only. Creating a model, `hf upload`, and `git push` are rejected; models can only be synced from the target registry.
 
 :::
 

@@ -27,6 +27,10 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/permission"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+
+	authzmocks "github.com/matrixhub-ai/matrixhub/internal/domain/authz/mocks"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 )
 
 func doHFRequest(t *testing.T, client *http.Client, method, url, body string) *http.Response {
@@ -188,4 +192,55 @@ func TestHuggingFaceRejectsInvalidRefsAndSettings(t *testing.T) {
 			require.Equal(t, tt.wantStatus, response.StatusCode)
 		})
 	}
+}
+
+func TestHuggingFaceRejectsWritesToProxyProject(t *testing.T) {
+	proxyReadOnly := func(context.Context, permission.Operation, string, permission.Context) (bool, error) {
+		return false, project.ErrProxyProjectReadOnly
+	}
+
+	tests := []struct {
+		name   string
+		method string
+		target string
+		body   string
+	}{
+		{name: "preupload", method: http.MethodPost, target: "/api/models/proxy/model/preupload/main", body: `{"files":[]}`},
+		{name: "commit", method: http.MethodPost, target: "/api/models/proxy/model/commit/main", body: `{}`},
+		{name: "super squash", method: http.MethodPost, target: "/api/models/proxy/model/super-squash/main", body: `{}`},
+		{name: "settings", method: http.MethodPut, target: "/api/models/proxy/model/settings", body: `{}`},
+		{name: "create branch", method: http.MethodPost, target: "/api/models/proxy/model/branch/feature", body: `{}`},
+		{name: "delete branch", method: http.MethodDelete, target: "/api/models/proxy/model/branch/feature"},
+		{name: "create tag", method: http.MethodPost, target: "/api/models/proxy/model/tag/main", body: `{"tag":"v1"}`},
+		{name: "delete tag", method: http.MethodDelete, target: "/api/models/proxy/model/tag/v1"},
+		{name: "move", method: http.MethodPost, target: "/api/repos/move", body: `{"fromRepo":"local/model","toRepo":"proxy/model"}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := NewHandler(
+				WithStorage(storage.NewStorage(storage.WithRootDir(t.TempDir()))),
+				WithPermissionHookFunc(proxyReadOnly),
+			)
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, httptest.NewRequest(tt.method, tt.target, strings.NewReader(tt.body)))
+			require.Equal(t, http.StatusForbidden, response.Code)
+			require.Contains(t, response.Body.String(), project.ErrProxyProjectReadOnly.Error())
+		})
+	}
+
+	// create_repo(exist_ok=True) answers a 403 by reading the repo, which starts
+	// an upstream sync, so create-repo has to fail with another status.
+	t.Run("create repo", func(t *testing.T) {
+		authzService := authzmocks.NewMockIAuthzService(gomock.NewController(t))
+		authzService.EXPECT().VerifyProjectPermissionByName(gomock.Any(), "proxy", gomock.Any()).Return(true, nil)
+		handler := NewHandler(
+			WithStorage(storage.NewStorage(storage.WithRootDir(t.TempDir()))),
+			WithServices(nil, nil, authzService),
+			WithPermissionHookFunc(proxyReadOnly),
+		)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/api/repos/create", strings.NewReader(`{"name":"model","organization":"proxy"}`)))
+		require.Equal(t, http.StatusBadRequest, response.Code)
+		require.Contains(t, response.Body.String(), project.ErrProxyProjectReadOnly.Error())
+	})
 }

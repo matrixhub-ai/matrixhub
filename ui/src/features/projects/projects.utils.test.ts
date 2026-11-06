@@ -2,7 +2,11 @@ import {
   describe, expect, it,
 } from 'vitest'
 
-import { buildProxyDownloadCommand, isProxyProject } from './projects.utils'
+import {
+  buildProxyDownloadCommand,
+  excludeProxyProjects,
+  isProxyProject,
+} from './projects.utils'
 
 describe('proxy projects', () => {
   it('recognizes a configured registry and builds its upstream download command', () => {
@@ -10,6 +14,20 @@ describe('proxy projects', () => {
     expect(isProxyProject('')).toBe(false)
     expect(buildProxyDownloadCommand('https://matrixhub.example', 'Qwen', 'Qwen3-0.6B'))
       .toBe('export HF_ENDPOINT=https://matrixhub.example\nhf download Qwen/Qwen3-0.6B')
+  })
+
+  it('excludes projects with a registry', () => {
+    const local = { name: 'local' }
+    const noRegistry = {
+      name: 'no-registry',
+      enabledRegistry: false,
+    }
+    const proxy = {
+      name: 'proxy',
+      enabledRegistry: true,
+    }
+
+    expect(excludeProxyProjects([local, proxy, noRegistry])).toEqual([local, noRegistry])
   })
 
   it('includes a token placeholder for private projects', () => {

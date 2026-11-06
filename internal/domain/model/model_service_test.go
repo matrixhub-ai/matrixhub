@@ -79,7 +79,7 @@ func TestModelService_CreateModelCreatesRecordWhenRepositoryAlreadyExists(t *tes
 			Return(want, nil),
 	)
 
-	service := model.NewModelService(modelRepo, nil, gitRepo, nil, nil)
+	service := model.NewModelService(modelRepo, nil, gitRepo, newProjectRepoMock(ctrl), nil)
 	got, err := service.CreateModel(ctx, "proj", "model")
 
 	require.NoError(t, err)
@@ -639,6 +639,57 @@ func TestModelService_GitReadsCheckModelBeforeDelegating(t *testing.T) {
 	})
 }
 
+func TestModelService_ProxyProjectRejectsDirectWrites(t *testing.T) {
+	ctx := context.Background()
+	registryID := 1
+	newService := func(t *testing.T) model.IModelService {
+		t.Helper()
+		ctrl := gomock.NewController(t)
+		projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
+		projectRepo.EXPECT().
+			GetProjectByName(ctx, "proj").
+			Return(&project.Project{Name: "proj", RegistryID: &registryID}, nil)
+		// The strict mocks fail the test if a write reaches the repositories.
+		return model.NewModelService(modelmocks.NewMockIModelRepo(ctrl), nil, gitmocks.NewMockIGitRepo(ctrl), projectRepo, nil)
+	}
+
+	t.Run("create model", func(t *testing.T) {
+		got, err := newService(t).CreateModel(ctx, "proj", "model")
+
+		require.ErrorIs(t, err, project.ErrProxyProjectReadOnly)
+		require.Nil(t, got)
+	})
+
+	t.Run("create commit", func(t *testing.T) {
+		got, err := newService(t).CreateModelCommit(ctx, "proj", "model", "main", &git.Commit{}, nil)
+
+		require.ErrorIs(t, err, project.ErrProxyProjectReadOnly)
+		require.Empty(t, got)
+	})
+}
+
+func TestModelService_EnsureModelCreatesRecordInProxyProjectForSync(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	registryID := 1
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	gitRepo := gitmocks.NewMockIGitRepo(ctrl)
+	projectRepo := projectmocks.NewMockIProjectRepo(ctrl)
+	want := &model.Model{Name: "model", ProjectName: "proj"}
+
+	projectRepo.EXPECT().
+		GetProjectByName(ctx, "proj").
+		Return(&project.Project{Name: "proj", RegistryID: &registryID}, nil)
+	modelRepo.EXPECT().GetByProjectAndName(ctx, "proj", "model").Return(nil, errors.New("model not found"))
+	gitRepo.EXPECT().RepositoryExists(ctx, "models", "proj", "model").Return(true, nil)
+	modelRepo.EXPECT().Create(ctx, want).Return(want, nil)
+
+	got, err := model.NewModelService(modelRepo, nil, gitRepo, projectRepo, nil).EnsureModel(ctx, "proj", "model")
+
+	require.NoError(t, err)
+	require.Same(t, want, got)
+}
+
 func TestModelService_CreateModelCommitCreatesRecordAndSyncsMetadata(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
@@ -696,7 +747,7 @@ func TestModelService_CreateModelStopsAtEachFailedDependency(t *testing.T) {
 			GetByProjectAndName(ctx, "proj", "model").
 			Return(&model.Model{ID: 1}, nil)
 
-		got, err := model.NewModelService(modelRepo, nil, nil, nil, nil).CreateModel(ctx, "proj", "model")
+		got, err := model.NewModelService(modelRepo, nil, nil, newProjectRepoMock(ctrl), nil).CreateModel(ctx, "proj", "model")
 
 		require.EqualError(t, err, "model already exists")
 		require.Nil(t, got)
@@ -712,7 +763,7 @@ func TestModelService_CreateModelStopsAtEachFailedDependency(t *testing.T) {
 			gitRepo.EXPECT().RepositoryExists(ctx, "models", "proj", "model").Return(false, wantErr),
 		)
 
-		got, err := model.NewModelService(modelRepo, nil, gitRepo, nil, nil).CreateModel(ctx, "proj", "model")
+		got, err := model.NewModelService(modelRepo, nil, gitRepo, newProjectRepoMock(ctrl), nil).CreateModel(ctx, "proj", "model")
 
 		require.ErrorIs(t, err, wantErr)
 		require.Nil(t, got)
@@ -729,7 +780,7 @@ func TestModelService_CreateModelStopsAtEachFailedDependency(t *testing.T) {
 			gitRepo.EXPECT().CreateRepository(ctx, "models", "proj", "model").Return(wantErr),
 		)
 
-		got, err := model.NewModelService(modelRepo, nil, gitRepo, nil, nil).CreateModel(ctx, "proj", "model")
+		got, err := model.NewModelService(modelRepo, nil, gitRepo, newProjectRepoMock(ctrl), nil).CreateModel(ctx, "proj", "model")
 
 		require.ErrorIs(t, err, wantErr)
 		require.Nil(t, got)
@@ -746,7 +797,7 @@ func TestModelService_CreateModelStopsAtEachFailedDependency(t *testing.T) {
 			modelRepo.EXPECT().Create(ctx, &model.Model{Name: "model", ProjectName: "proj"}).Return(nil, wantErr),
 		)
 
-		got, err := model.NewModelService(modelRepo, nil, gitRepo, nil, nil).CreateModel(ctx, "proj", "model")
+		got, err := model.NewModelService(modelRepo, nil, gitRepo, newProjectRepoMock(ctrl), nil).CreateModel(ctx, "proj", "model")
 
 		require.ErrorIs(t, err, wantErr)
 		require.Nil(t, got)
