@@ -90,6 +90,14 @@ func (s *ModelService) CreateModel(ctx context.Context, project, name string) (*
 		return nil, err
 	}
 
+	prj, err := s.projectRepo.GetProjectByName(ctx, project)
+	if err != nil {
+		return nil, err
+	}
+	if err := prj.CheckWritable(); err != nil {
+		return nil, err
+	}
+
 	if _, exists, err := s.findModel(ctx, project, name); err != nil {
 		return nil, err
 	} else if exists {
@@ -237,8 +245,8 @@ func (s *ModelService) CreateModelCommit(ctx context.Context, project, name, rev
 	if err != nil {
 		return "", err
 	}
-	if prj.HasProxy() {
-		return "", fmt.Errorf("it is not allowed to upload file to model %s/%s for proxy project  ", project, name)
+	if err := prj.CheckWritable(); err != nil {
+		return "", fmt.Errorf("upload file to model %s/%s: %w", project, name, err)
 	}
 
 	// create model if not exist

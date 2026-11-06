@@ -46,6 +46,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
 	modelmocks "github.com/matrixhub-ai/matrixhub/internal/domain/model/mocks"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	syncjobmocks "github.com/matrixhub-ai/matrixhub/internal/domain/syncjob/mocks"
@@ -1008,6 +1009,7 @@ func TestModelHandlerCreateModel(t *testing.T) {
 
 	for _, tc := range []handlerTestErrorCase{
 		{name: "duplicate model", err: errors.New("model already exists"), wantCode: codes.AlreadyExists},
+		{name: "proxy project", err: project.ErrProxyProjectReadOnly, wantCode: codes.FailedPrecondition, wantMsg: project.ErrProxyProjectReadOnly.Error()},
 		{name: "missing project", err: errors.New("project not found"), wantCode: codes.NotFound},
 		{name: "repository failure", err: errors.New("disk full"), wantCode: codes.Internal},
 	} {

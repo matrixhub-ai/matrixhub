@@ -16,10 +16,16 @@ package project
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 )
+
+// ErrProxyProjectReadOnly reports a write to a proxy project. A proxy project
+// mirrors its upstream organization, and the next sync would overwrite whatever
+// is written to it locally.
+var ErrProxyProjectReadOnly = errors.New("proxy project is read-only: its models can only be synced from the upstream registry")
 
 type ProjectType int
 
@@ -48,6 +54,14 @@ func (*Project) TableName() string {
 
 func (p *Project) HasProxy() bool {
 	return p.RegistryID != nil
+}
+
+// CheckWritable rejects writes that do not come from an upstream sync.
+func (p *Project) CheckWritable() error {
+	if p.HasProxy() {
+		return ErrProxyProjectReadOnly
+	}
+	return nil
 }
 
 func (p *Project) IsPublic() bool {

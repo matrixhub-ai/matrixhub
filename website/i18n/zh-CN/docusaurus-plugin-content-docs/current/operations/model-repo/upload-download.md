@@ -84,7 +84,7 @@ sidebar_position: 2
 :::note
 
 - 创建代理项目后，您可以使用 `hf download` 通过 MatrixHub 访问目标仓库中的模型。
-- 代理项目不支持执行 `hf upload` 操作。
+- 代理项目是只读的。创建模型、`hf upload` 和 `git push` 都会被拒绝，模型只能从目标仓库同步。
 
 :::
 

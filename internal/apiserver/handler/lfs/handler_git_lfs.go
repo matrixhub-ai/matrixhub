@@ -28,6 +28,8 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
+
+	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 )
 
 const (
@@ -46,7 +48,7 @@ func (h *Handler) handleBatch(w http.ResponseWriter, r *http.Request) {
 		}
 		repoName := bv.repoName()
 		if ok, err := h.permissionHookFunc(r.Context(), op, repoName, permission.Context{}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)

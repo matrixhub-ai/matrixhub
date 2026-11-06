@@ -17,6 +17,7 @@ package ssh
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -36,6 +37,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
@@ -408,7 +410,7 @@ func (s *Server) executeCommand(ctx context.Context, channel ssh.Channel, servic
 		}
 		if ok, err := s.permissionHookFunc(ctx, op, repoName, permission.Context{}); err != nil {
 			slog.WarnContext(ctx, "ssh protocol: permission hook error", "service", service, "repo", repoName, "error", err)
-			sendExitStatus(channel, 1, "")
+			sendExitStatus(channel, 1, permissionHookErrorMessage(err))
 			return
 		} else if !ok {
 			sendExitStatus(channel, 1, "permission denied")
@@ -605,7 +607,7 @@ func (s *Server) executeLFSAuthenticate(ctx context.Context, channel ssh.Channel
 		}
 		if ok, err := s.permissionHookFunc(ctx, op, repoName, permission.Context{}); err != nil {
 			slog.WarnContext(ctx, "ssh protocol: permission hook error", "operation", operation, "repo", repoName, "error", err)
-			sendExitStatus(channel, 1, "")
+			sendExitStatus(channel, 1, permissionHookErrorMessage(err))
 			return
 		} else if !ok {
 			sendExitStatus(channel, 1, "permission denied")
@@ -695,6 +697,15 @@ func sendExitStatus(channel ssh.Channel, status uint32, msg string) {
 		_, _ = fmt.Fprint(channel.Stderr(), msg)
 	}
 	_, _ = channel.SendRequest("exit-status", false, ssh.Marshal(&exitStatusMsg{Status: status}))
+}
+
+// permissionHookErrorMessage returns what the client is told about a permission
+// hook error. Other hook errors are internal and stay in the server log.
+func permissionHookErrorMessage(err error) string {
+	if errors.Is(err, project.ErrProxyProjectReadOnly) {
+		return err.Error() + "\n"
+	}
+	return ""
 }
 
 // exitStatusMsg copy from golang.org/x/crypto/ssh.exitStatusMsg

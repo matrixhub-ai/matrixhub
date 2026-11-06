@@ -34,7 +34,9 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
+	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 )
@@ -124,6 +126,12 @@ func (h *Handler) handleCreateRepo(w http.ResponseWriter, r *http.Request) {
 
 	if h.permissionHookFunc != nil {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationCreateRepo, storageName, permission.Context{}); err != nil {
+			// huggingface_hub's create_repo(exist_ok=True) takes a 403 as "the repo
+			// may already exist" and reads the repo, which starts an upstream sync.
+			if errors.Is(err, project.ErrProxyProjectReadOnly) {
+				responseJSON(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 			responseJSON(w, err.Error(), http.StatusInternalServerError)
 			return
 		} else if !ok {
@@ -200,7 +208,7 @@ func (h *Handler) handlePreupload(w http.ResponseWriter, r *http.Request) {
 
 	if h.permissionHookFunc != nil {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{Ref: rev}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
@@ -265,7 +273,7 @@ func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
 		if ok, err := h.permissionHookFunc(r.Context(), permission.OperationUpdateRepo, ri.RepoName, permission.Context{
 			Ref: rev,
 		}); err != nil {
-			responseJSON(w, err.Error(), http.StatusInternalServerError)
+			responseJSON(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, "permission denied", http.StatusForbidden)
