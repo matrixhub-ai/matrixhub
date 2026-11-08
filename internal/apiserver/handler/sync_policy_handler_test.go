@@ -18,6 +18,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/samber/lo"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -173,6 +174,7 @@ func TestSyncTaskAPIsCheckThePath(t *testing.T) {
 		{name: "log under a task of another policy", call: jobLog(4, 1, 7), code: codes.InvalidArgument},
 		{name: "log under a missing task", call: jobLog(3, 2, 7), code: codes.NotFound},
 		{name: "log of a job of another task", call: jobLog(3, 1, 8), code: codes.InvalidArgument},
+		{name: "log of a job of no task", call: jobLog(3, 1, 10), code: codes.InvalidArgument},
 		{name: "log of a missing job", call: jobLog(3, 1, 9), code: codes.NotFound},
 	}
 	for _, tt := range tests {
@@ -185,12 +187,13 @@ func TestSyncTaskAPIsCheckThePath(t *testing.T) {
 				syncJobService:    jobService,
 				logStore:          logstore.NewFileLogStore(t.TempDir()),
 			}
-			// Task 1 belongs to policy 3; job 7 belongs to task 1, and job 8
-			// to task 5.
+			// Task 1 belongs to policy 3; job 7 belongs to task 1, job 8 to
+			// task 5, and job 10, a model cache job, to no task.
 			policyService.EXPECT().GetSyncTask(gomock.Any(), 1).Return(&syncpolicy.SyncTask{ID: 1, SyncPolicyID: 3}, nil).AnyTimes()
 			policyService.EXPECT().GetSyncTask(gomock.Any(), 2).Return(nil, errors.New("record not found")).AnyTimes()
-			jobService.EXPECT().GetSyncJob(gomock.Any(), 7).Return(&syncjob.SyncJob{ID: 7, SyncTaskID: 1}, nil).AnyTimes()
-			jobService.EXPECT().GetSyncJob(gomock.Any(), 8).Return(&syncjob.SyncJob{ID: 8, SyncTaskID: 5}, nil).AnyTimes()
+			jobService.EXPECT().GetSyncJob(gomock.Any(), 7).Return(&syncjob.SyncJob{ID: 7, SyncTaskID: lo.ToPtr(1)}, nil).AnyTimes()
+			jobService.EXPECT().GetSyncJob(gomock.Any(), 8).Return(&syncjob.SyncJob{ID: 8, SyncTaskID: lo.ToPtr(5)}, nil).AnyTimes()
+			jobService.EXPECT().GetSyncJob(gomock.Any(), 10).Return(&syncjob.SyncJob{ID: 10, JobType: syncjob.JobTypeModelCache}, nil).AnyTimes()
 			jobService.EXPECT().GetSyncJob(gomock.Any(), 9).Return(nil, errors.New("record not found")).AnyTimes()
 
 			if code := status.Code(tt.call(h)); code != tt.code {
@@ -218,7 +221,7 @@ func TestGetSyncJobLogReturnsTheLogOfAJobOfTheTask(t *testing.T) {
 		t.Fatal(err)
 	}
 	policyService.EXPECT().GetSyncTask(gomock.Any(), 1).Return(&syncpolicy.SyncTask{ID: 1, SyncPolicyID: 3}, nil)
-	jobService.EXPECT().GetSyncJob(gomock.Any(), 7).Return(&syncjob.SyncJob{ID: 7, SyncTaskID: 1}, nil)
+	jobService.EXPECT().GetSyncJob(gomock.Any(), 7).Return(&syncjob.SyncJob{ID: 7, SyncTaskID: lo.ToPtr(1)}, nil)
 
 	response, err := h.GetSyncJobLog(t.Context(), &v1alpha1.GetSyncJobLogRequest{SyncPolicyId: 3, SyncTaskId: 1, SyncJobId: 7})
 	if err != nil {

@@ -450,7 +450,7 @@ func (h *SyncPolicyHandler) GetSyncJobLog(ctx context.Context, request *v1alpha1
 		return nil, status.Error(codes.Internal, "failed to get sync job")
 	}
 
-	if job.SyncTaskID != int(request.SyncTaskId) {
+	if !job.HasSyncTask() || *job.SyncTaskID != int(request.SyncTaskId) {
 		return nil, status.Error(codes.InvalidArgument, "sync job does not belong to the specified task")
 	}
 
