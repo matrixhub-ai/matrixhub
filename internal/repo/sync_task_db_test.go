@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -268,7 +269,7 @@ func createRecountTestTask(t *testing.T, database *gorm.DB, policyID int, status
 			ResourceType:       "model",
 			SyncType:           "pull",
 			Status:             status,
-			SyncTaskID:         task.ID,
+			SyncTaskID:         lo.ToPtr(task.ID),
 		}
 		require.NoError(t, database.Create(job).Error)
 		jobs = append(jobs, job)
