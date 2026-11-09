@@ -6,7 +6,8 @@
   },
   "provider": {
     "huggingFace": "Hugging Face",
-    "matrixHub": "MatrixHub"
+    "matrixHub": "MatrixHub",
+    "modelScope": "ModelScope"
   },
   "form": {
     "provider": "Provider",
@@ -15,19 +16,23 @@
     "url": "Registry Base URL",
     "urlHint": {
       "huggingFace": "Enter the base address of the upstream platform or mirror service, not a specific model or repository path.\nExamples: https://huggingface.co, https://hf-mirror.com",
-      "matrixHub": "Enter the base address of the MatrixHub instance, not a specific project or model path.\nExample: http://<matrixhub-host>:<port>"
+      "matrixHub": "Enter the base address of the MatrixHub instance, not a specific project or model path.\nExample: http://<matrixhub-host>:<port>",
+      "modelScope": "Enter the ModelScope base URL, e.g. https://www.modelscope.cn. Use your ModelScope username and access token for private models."
     },
     "urlDescription": {
       "huggingFace": "Base address of the upstream platform or mirror service",
-      "matrixHub": "Base address of the MatrixHub instance"
+      "matrixHub": "Base address of the MatrixHub instance",
+      "modelScope": "Base address of the ModelScope platform"
     },
     "urlPlaceholder": {
       "huggingFace": "https://huggingface.co",
-      "matrixHub": "http://<matrixhub-host>:<port>"
+      "matrixHub": "http://<matrixhub-host>:<port>",
+      "modelScope": "https://www.modelscope.cn"
     },
     "urlRepositoryWarning": {
       "huggingFace": "This looks like a specific resource path. Enter the base address of the platform or mirror service instead, e.g. https://huggingface.co",
-      "matrixHub": "This looks like a specific resource path. Enter the base address of the MatrixHub instance instead, e.g. http://<matrixhub-host>:<port>"
+      "matrixHub": "This looks like a specific resource path. Enter the base address of the MatrixHub instance instead, e.g. http://<matrixhub-host>:<port>",
+      "modelScope": "Enter the platform base URL, not a model page."
     },
     "username": "Username",
     "usernameHint": "Enter the upstream registry username and access token when pulling private models; robot accounts are supported.",

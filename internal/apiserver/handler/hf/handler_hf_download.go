@@ -211,6 +211,10 @@ func (h *Handler) handleResolve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.serveResolvedFile(w, r, repo, ri, rev, path)
+}
+
+func (h *Handler) serveResolvedFile(w http.ResponseWriter, r *http.Request, repo *repository.Repository, ri repoInformation, rev, path string) {
 	// Get commit hash for the HuggingFace client requirements
 	commits, err := repo.Commits(rev, &repository.CommitsOptions{Limit: 1})
 	commitHash := ""

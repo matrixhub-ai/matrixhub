@@ -44,6 +44,7 @@ type RemoteRepository struct {
 const (
 	ProviderHuggingFace = "HUGGINGFACE"
 	ProviderMatrixHub   = "MATRIXHUB"
+	ProviderModelScope  = "MODELSCOPE"
 )
 
 // KeyFromRegistryType converts a stored registry.Type (proto enum string, e.g.
@@ -53,6 +54,8 @@ func KeyFromRegistryType(t string) string {
 	switch t {
 	case "REGISTRY_TYPE_HUGGINGFACE":
 		return ProviderHuggingFace
+	case registry.TypeModelScope:
+		return ProviderModelScope
 	case "REGISTRY_TYPE_MATRIXHUB":
 		return ProviderMatrixHub
 	default:

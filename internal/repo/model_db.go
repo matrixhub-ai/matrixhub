@@ -252,6 +252,9 @@ func (m *modelDB) Delete(ctx context.Context, project, name string) error {
 // UpdateMetadata updates selected metadata fields for a model.
 func (m *modelDB) UpdateMetadata(ctx context.Context, modelID int64, update *model.MetadataUpdate) error {
 	updates := make(map[string]interface{})
+	if update.DefaultBranch != nil {
+		updates["default_branch"] = *update.DefaultBranch
+	}
 
 	if update.ReadmeContent != nil {
 		updates["readme_content"] = *update.ReadmeContent

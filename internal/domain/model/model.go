@@ -68,6 +68,7 @@ type Filter struct {
 
 // MetadataUpdate contains optional fields for updating model metadata.
 type MetadataUpdate struct {
+	DefaultBranch  *string
 	ReadmeContent  *string
 	Size           *int64
 	ParameterCount *int64

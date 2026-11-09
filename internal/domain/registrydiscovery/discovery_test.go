@@ -25,5 +25,6 @@ import (
 func TestKeyFromRegistryType(t *testing.T) {
 	require.Equal(t, registrydiscovery.ProviderHuggingFace, registrydiscovery.KeyFromRegistryType("REGISTRY_TYPE_HUGGINGFACE"))
 	require.Equal(t, registrydiscovery.ProviderMatrixHub, registrydiscovery.KeyFromRegistryType("REGISTRY_TYPE_MATRIXHUB"))
+	require.Equal(t, registrydiscovery.ProviderModelScope, registrydiscovery.KeyFromRegistryType("REGISTRY_TYPE_MODELSCOPE"))
 	require.Equal(t, "CUSTOM", registrydiscovery.KeyFromRegistryType("CUSTOM"))
 }

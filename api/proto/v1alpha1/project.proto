@@ -105,6 +105,7 @@ message GetProjectResponse {
   uint32 model_count = 5;
   uint32 dataset_count = 6;
   google.protobuf.Timestamp updated_at = 7;
+  string registry_type = 8;
 }
 
 message DeleteProjectRequest {

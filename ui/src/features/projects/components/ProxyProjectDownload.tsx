@@ -38,6 +38,7 @@ interface ProxyProjectDownloadProps {
   organization?: string
   remoteOrganization?: string
   requiresToken?: boolean
+  registryType?: string
 }
 
 interface ProxyProjectDownloadDrawerProps extends ProxyProjectDownloadProps {
@@ -66,6 +67,7 @@ function ProxyProjectDownloadFlow({
   organization,
   remoteOrganization,
   requiresToken,
+  registryType,
   layout,
 }: ProxyProjectDownloadProps & {
   layout: 'drawer' | 'guide'
@@ -131,6 +133,7 @@ function ProxyProjectDownloadFlow({
             organization,
             modelName.trim() || t('projects.detail.proxyDownload.commandPlaceholder'),
             requiresToken,
+            registryType,
           )
 
           return (
@@ -186,6 +189,7 @@ export function ProxyProjectDownloadGuide({
   organization,
   remoteOrganization,
   requiresToken,
+  registryType,
 }: ProxyProjectDownloadProps) {
   const { t } = useTranslation()
 
@@ -217,6 +221,7 @@ export function ProxyProjectDownloadGuide({
           organization={organization}
           remoteOrganization={remoteOrganization}
           requiresToken={requiresToken}
+          registryType={registryType}
           layout="guide"
         />
       </Box>
@@ -229,6 +234,7 @@ export function ProxyProjectDownloadDrawer({
   organization,
   remoteOrganization,
   requiresToken,
+  registryType,
   onClose,
 }: ProxyProjectDownloadDrawerProps) {
   const { t } = useTranslation()
@@ -268,6 +274,7 @@ export function ProxyProjectDownloadDrawer({
             organization={organization}
             remoteOrganization={remoteOrganization}
             requiresToken={requiresToken}
+            registryType={registryType}
             layout="drawer"
           />
         </Stack>

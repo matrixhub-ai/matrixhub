@@ -83,7 +83,8 @@
     "cronRequired": "Cron expression is required",
     "cronInvalid": "Enter a five-field cron expression",
     "sourceRegistryRequired": "Source registry is required",
-    "targetRegistryRequired": "Target registry is required"
+    "targetRegistryRequired": "Target registry is required",
+    "modelScopeModelsOnly": "ModelScope pull currently supports models only. Select Model."
   },
   "notifications": {
     "createSuccess": "Sync rule created successfully",

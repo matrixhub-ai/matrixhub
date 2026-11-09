@@ -63,6 +63,7 @@ export type GetProjectResponse = {
   modelCount?: number
   datasetCount?: number
   updatedAt?: GoogleProtobufTimestamp.Timestamp
+  registryType?: string
 }
 
 export type DeleteProjectRequest = {

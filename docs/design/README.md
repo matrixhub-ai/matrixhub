@@ -18,4 +18,5 @@ For a **complex change**, add a design doc here (or an external doc) and get mai
 - [MatrixHub and hfd relationship](./matrixhub-hfd-relation-design.md)
 - [Cleanup](./cleanup-design.md)
 - [Jobserver](./jobserver-design.md)
+- [ModelScope model interoperability](./modelscope-design.md)
 <!-- Add new design docs here -->

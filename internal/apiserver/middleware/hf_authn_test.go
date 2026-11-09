@@ -78,3 +78,26 @@ func (invalidIdentity) GetName() string  { return "invalid" }
 func (invalidIdentity) TypeName() string { return "unsupported" }
 
 var _ auth.Identity = invalidIdentity{}
+
+func TestModelScopeCookieAuthenticatesAccessToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	tokens := usermocks.NewMockIAccessTokenRepo(ctrl)
+	users := usermocks.NewMockIUserRepo(ctrl)
+	sessions := usermocks.NewMockISessionRepo(ctrl)
+	robots := robotmocks.NewMockIRobotRepo(ctrl)
+	token := utils.TokenPrefix + "modelscope-secret"
+	tokens.EXPECT().GetByTokenHash(gomock.Any(), utils.Sha256Hex(token)).Return(&user.AccessToken{UserId: 42, Enabled: true}, nil)
+	users.EXPECT().GetUser(gomock.Any(), 42).Return(&user.User{ID: 42, Username: "alice"}, nil)
+	handler := HFAuthnMiddleware(tokens, sessions, users, robots)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		identity, ok := auth.IdentityFromContext(r.Context())
+		require.True(t, ok)
+		require.Equal(t, "alice", identity.GetName())
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/models/team/private/repo/files", nil)
+	request.AddCookie(&http.Cookie{Name: "m_session_id", Value: token})
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+	require.Empty(t, request.Header.Get("Authorization"), "middleware must not mutate the caller's request")
+}
