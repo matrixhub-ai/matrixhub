@@ -9,6 +9,7 @@ import {
   buildInstallSnippet,
   buildServeSnippet,
   resolveModelDownloadProvider,
+  resolveModelGuideRevision,
   buildLowLevelSnippet,
   buildPipelineSnippet,
   buildTestRequestSnippet,
@@ -157,5 +158,15 @@ describe('snippet builders', () => {
     expect(pipeline).toContain('"content": "Who are you?"')
     expect(pipeline).toContain('result = pipe(messages)')
     expect(buildLowLevelSnippet('text-generation', 'org/model', prompts).code).toContain('AutoModelForCausalLM')
+  })
+})
+
+describe('default ModelScope revision guidance', () => {
+  it('omits master for native default commands and retains other explicit versions', () => {
+    expect(resolveModelGuideRevision('modelscope', 'master')).toBeUndefined()
+    expect(buildServeSnippet('vllm', 'Qwen/model', resolveModelGuideRevision('modelscope', 'master')).code).not.toContain('--revision')
+    expect(resolveModelGuideRevision('modelscope', 'release/v1')).toBe('release/v1')
+    expect(resolveModelGuideRevision('hf', 'master')).toBe('master')
+    expect(resolveModelGuideRevision(undefined, 'master')).toBe('master')
   })
 })

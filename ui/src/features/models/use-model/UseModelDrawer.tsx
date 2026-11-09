@@ -39,6 +39,7 @@ import {
   ENGINE_LABELS,
   ENGINE_DOC_URLS,
   resolveModelDownloadProvider,
+  resolveModelGuideRevision,
   type ModelDownloadProvider,
   type SnippetPrompts,
   type UseModelEngine,
@@ -75,6 +76,7 @@ export function UseModelDrawer({
   const provider = engine === 'vllm'
     ? providerChoice ?? resolveModelDownloadProvider(projectQuery.data?.registryType)
     : undefined
+  const guideRevision = resolveModelGuideRevision(provider, revision)
   const [task, setTask] = useState<UseModelTask | null>(defaultTask)
 
   const hfEndpoint = systemConfigQuery.data?.endpoints?.hfBase || window.location.origin
@@ -223,7 +225,7 @@ export function UseModelDrawer({
         : (
             <>
               <Step index={4} title={t('model.detail.useModel.steps.serve')}>
-                <SnippetBlock snippet={buildServeSnippet(engine, modelPath, revision)} />
+                <SnippetBlock snippet={buildServeSnippet(engine, modelPath, guideRevision)} />
               </Step>
               <Step
                 index={5}
@@ -262,7 +264,7 @@ export function UseModelDrawer({
                 <Text size="xs" c="dimmed">{t('model.detail.useModel.dockerHint')}</Text>
                 {systemConfigQuery.isPending
                   ? <Skeleton height={164} radius="sm" />
-                  : <SnippetBlock snippet={buildDockerSnippet(engine, hfEndpoint, modelPath, provider, revision)} />}
+                  : <SnippetBlock snippet={buildDockerSnippet(engine, hfEndpoint, modelPath, provider, guideRevision)} />}
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>

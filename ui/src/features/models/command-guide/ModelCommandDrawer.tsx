@@ -11,7 +11,9 @@ import {
   GuideSnippetBlock,
   GuideStep,
 } from '@/features/models/guides/GuideDrawer'
-import { resolveModelDownloadProvider, type ModelDownloadProvider } from '@/features/models/use-model/useModelGuides'
+import {
+  resolveModelDownloadProvider, resolveModelGuideRevision, type ModelDownloadProvider,
+} from '@/features/models/use-model/useModelGuides'
 import { projectDetailQueryOptions } from '@/features/projects/projects.query'
 import { useSystemConfig } from '@/features/system/system.query'
 
@@ -56,8 +58,9 @@ export function ModelCommandDrawer({
   const systemConfigQuery = useSystemConfig()
   const hfEndpoint = systemConfigQuery.data?.endpoints?.hfBase || window.location.origin
   const localPath = buildLocalPathPlaceholder(modelPath)
+  const guideRevision = resolveModelGuideRevision(provider, revision)
   const downloadSnippet = isModelScope
-    ? buildModelScopeDownloadSnippet(modelPath, revision)
+    ? buildModelScopeDownloadSnippet(modelPath, guideRevision)
     : buildDownloadSnippet(modelPath, revision)
 
   return (
@@ -116,7 +119,7 @@ export function ModelCommandDrawer({
               {isModelScope && (
                 <Stack gap="xs">
                   <Text size="sm">{t('model.detail.commandGuide.download.python')}</Text>
-                  <GuideSnippetBlock snippet={buildModelScopePythonSnippet(modelPath, hfEndpoint, revision)} />
+                  <GuideSnippetBlock snippet={buildModelScopePythonSnippet(modelPath, hfEndpoint, guideRevision)} />
                   <Text size="sm" c="dimmed">{t('model.detail.commandGuide.download.modelScopeToken')}</Text>
                 </Stack>
               )}

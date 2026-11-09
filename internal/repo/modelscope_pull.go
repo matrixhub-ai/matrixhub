@@ -33,6 +33,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	gitHTTP "github.com/go-git/go-git/v5/plumbing/transport/http"
+	gitstorage "github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
@@ -130,6 +131,12 @@ func (g *gitRepo) RefreshModelScopeRefs(ctx context.Context, gr *domaingit.GitRe
 	return true, nil
 }
 
+// The shared repository reader caches pack indexes. Decode ModelScope metadata
+// packs into loose objects so cached readers can immediately see later fetches.
+// Embedding only Storer deliberately hides the optional PackfileWriter fast path.
+// Actual weight payloads remain in the separate LFS content store.
+type modelScopeObjectStorer struct{ gitstorage.Storer }
+
 func fetchModelScopeRefs(ctx context.Context, gr *domaingit.GitRepository, repoPath string) ([]string, error) {
 	gitConfig, err := modelScopeGitConfig(ctx, gr)
 	if err != nil {
@@ -178,7 +185,7 @@ func fetchModelScopeRefs(ctx context.Context, gr *domaingit.GitRepository, repoP
 	}
 	// Use an in-memory remote configuration so neither endpoint credentials nor
 	// user-supplied options reach a process or the local repository config.
-	remote := gogit.NewRemote(repo.Storer, remoteConfig)
+	remote := gogit.NewRemote(modelScopeObjectStorer{repo.Storer}, remoteConfig)
 	if err := remote.FetchContext(ctx, &gogit.FetchOptions{
 		Auth: auth, InsecureSkipTLS: gr.Insecure, RefSpecs: refSpecs, Tags: gogit.NoTags,
 	}); err != nil && !errors.Is(err, gogit.NoErrAlreadyUpToDate) {
@@ -187,7 +194,81 @@ func fetchModelScopeRefs(ctx context.Context, gr *domaingit.GitRepository, repoP
 	if err := repo.Storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, defaultBranch)); err != nil {
 		return nil, err
 	}
+	if err := updateModelScopeHFDefault(repo, defaultBranch, refs); err != nil {
+		return nil, fmt.Errorf("update ModelScope default revision compatibility: %w", err)
+	}
 	return refs, nil
+}
+
+// Keep HF's default revision usable for ModelScope repositories without changing
+// HF's shared handlers or the actual upstream default branch. Real upstream
+// branches/tags win. Only our untouched initializer or a managed alias may move.
+func updateModelScopeHFDefault(repo *gogit.Repository, defaultBranch plumbing.ReferenceName, refs []string) error {
+	main := plumbing.NewBranchReferenceName("main")
+	marker := plumbing.ReferenceName("refs/matrixhub/modelscope-hf-main")
+	tagMain := false
+	for _, name := range refs {
+		if name == main.String() {
+			return nil
+		}
+		if name == plumbing.NewTagReferenceName("main").String() {
+			tagMain = true
+		}
+	}
+	current, err := repo.Storer.Reference(main)
+	if err != nil && !errors.Is(err, plumbing.ErrReferenceNotFound) {
+		return err
+	}
+	if err == nil {
+		owned, markerErr := repo.Storer.Reference(marker)
+		managed := markerErr == nil && current.Type() == plumbing.HashReference && current.Hash() == owned.Hash()
+		if !managed {
+			commit, commitErr := repo.CommitObject(current.Hash())
+			if commitErr != nil {
+				return commitErr
+			}
+			if commit.NumParents() != 0 || strings.TrimSpace(commit.Message) != "Initial commit" || commit.Author.Name != "HuggingFace" || commit.Author.Email != "hf@users.noreply.huggingface.co" {
+				return nil
+			}
+			tree, treeErr := commit.Tree()
+			if treeErr != nil {
+				return treeErr
+			}
+			if len(tree.Entries) != 1 || tree.Entries[0].Name != repository.GitattributesFileName {
+				return nil
+			}
+			file, fileErr := tree.File(repository.GitattributesFileName)
+			if fileErr != nil {
+				return fileErr
+			}
+			content, readErr := file.Contents()
+			if readErr != nil {
+				return readErr
+			}
+			if !bytes.Equal([]byte(content), repository.GitattributesText) {
+				return nil
+			}
+			backup := plumbing.ReferenceName("refs/matrixhub/modelscope-initial-main/" + current.Hash().String())
+			if err := repo.Storer.SetReference(plumbing.NewHashReference(backup, current.Hash())); err != nil {
+				return err
+			}
+		}
+		if tagMain {
+			return repo.Storer.RemoveReference(main)
+		}
+	} else if tagMain {
+		return nil
+	}
+	target, err := repo.Storer.Reference(defaultBranch)
+	if err != nil {
+		return err
+	}
+	// Record the last managed target so local edits are never mistaken for an
+	// alias on a later refresh. Upstream updates advance both refs together.
+	if err := repo.Storer.SetReference(plumbing.NewHashReference(main, target.Hash())); err != nil {
+		return err
+	}
+	return repo.Storer.SetReference(plumbing.NewHashReference(marker, target.Hash()))
 }
 
 func newModelScopeClient(gr *domaingit.GitRepository) *http.Client {

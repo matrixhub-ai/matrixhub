@@ -10,6 +10,11 @@ export function resolveModelDownloadProvider(registryType?: string): ModelDownlo
   return registryType === 'REGISTRY_TYPE_MODELSCOPE' ? 'modelscope' : 'hf'
 }
 
+/** Native ModelScope's master default needs no explicit version in its guide. */
+export function resolveModelGuideRevision(provider: ModelDownloadProvider | undefined, revision?: string): string | undefined {
+  return provider === 'modelscope' && revision === 'master' ? undefined : revision
+}
+
 export type UseModelEngine = (typeof USE_MODEL_ENGINES)[number]
 
 /** Model capability the generated Transformers snippets are specialised for. */
