@@ -51,6 +51,16 @@ func (r *syncPolicyDB) UpdateSyncPolicy(ctx context.Context, policy *syncpolicy.
 	return r.db.WithContext(ctx).Save(policy).Error
 }
 
+// GetSyncPolicyByName gets a sync policy by name.
+func (r *syncPolicyDB) GetSyncPolicyByName(ctx context.Context, name string) (*syncpolicy.SyncPolicy, error) {
+	var policy syncpolicy.SyncPolicy
+	err := r.db.WithContext(ctx).Where("name = ?", name).First(&policy).Error
+	if err != nil {
+		return nil, err
+	}
+	return &policy, nil
+}
+
 // DeleteSyncPolicy deletes a sync policy by ID
 func (r *syncPolicyDB) DeleteSyncPolicy(ctx context.Context, id int) error {
 	return r.db.WithContext(ctx).Delete(&syncpolicy.SyncPolicy{}, id).Error
