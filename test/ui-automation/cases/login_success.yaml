@@ -1,0 +1,30 @@
+id: login_success
+name: 登录成功
+tags: [smoke, login]
+env: matrixhub
+steps:
+  - name: 访问 MatrixHub
+    action: goto
+    url: /
+  - name: 确认进入登录页
+    action: expect_visible
+    target: login.username
+  - name: 输入用户名
+    action: fill
+    target: login.username
+    value: "${USERNAME}"
+  - name: 输入密码
+    action: fill
+    target: login.password
+    value: "${PASSWORD}"
+  - name: 登录
+    action: click
+    target: login.submit
+  - name: 等待进入首页
+    action: wait_for_url
+    url: /models
+    timeout: 30000
+  - name: 确认登录成功
+    action: expect_visible
+    target: navigation.project_management
+    timeout: 30000
