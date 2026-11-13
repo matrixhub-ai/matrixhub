@@ -51,9 +51,9 @@ type ModelsClient interface {
 	GetModelBlob(ctx context.Context, in *GetModelBlobRequest, opts ...grpc.CallOption) (*File, error)
 	UpdateModelSetting(ctx context.Context, in *UpdateModelSettingRequest, opts ...grpc.CallOption) (*UpdateModelSettingResponse, error)
 	// CacheModel creates a job that pulls a model of a proxy project from
-	// upstream. The pull queues the LFS files of the model, which MatrixHub
-	// then downloads in the background. The job runs in the background too,
-	// and the model need not exist locally yet.
+	// upstream and stores the LFS files of a revision in MatrixHub. The job
+	// runs in the background, and ends once the files are stored. The model
+	// need not exist locally yet.
 	CacheModel(ctx context.Context, in *CacheModelRequest, opts ...grpc.CallOption) (*CacheModelResponse, error)
 }
 
@@ -212,9 +212,9 @@ type ModelsServer interface {
 	GetModelBlob(context.Context, *GetModelBlobRequest) (*File, error)
 	UpdateModelSetting(context.Context, *UpdateModelSettingRequest) (*UpdateModelSettingResponse, error)
 	// CacheModel creates a job that pulls a model of a proxy project from
-	// upstream. The pull queues the LFS files of the model, which MatrixHub
-	// then downloads in the background. The job runs in the background too,
-	// and the model need not exist locally yet.
+	// upstream and stores the LFS files of a revision in MatrixHub. The job
+	// runs in the background, and ends once the files are stored. The model
+	// need not exist locally yet.
 	CacheModel(context.Context, *CacheModelRequest) (*CacheModelResponse, error)
 }
 
