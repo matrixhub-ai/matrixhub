@@ -116,6 +116,13 @@ const config: Config = {
     },
     footer: {
       style: 'dark',
+      logo: {
+        alt: 'Cloud Native Computing Foundation',
+        src: 'img/cncf-color-whitetext.svg',
+        href: 'https://www.cncf.io/',
+        width: 200,
+        height: 38,
+      },
       links: [
         {
           title: 'Product',
@@ -145,7 +152,11 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `© ${new Date().getFullYear()} MatrixHub Open Source. Apache 2.0 Licensed.`,
+      copyright: `
+        <div>We are a Cloud Native Computing Foundation sandbox project.</div>
+        <div>Copyright MatrixHub a Series of LF Projects, LLC.</div>
+        <div>For website terms of use, trademark policy and other project policies please see <a href='https://lfprojects.org/policies/'>lfprojects.org/policies/</a>.</div>
+      `,
     },
     prism: {
       theme: prismThemes.github,
