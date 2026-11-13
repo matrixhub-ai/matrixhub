@@ -33,6 +33,8 @@ For vLLM, SGLang, llm-d, Dynamo, and model distribution examples, see the [Integ
 
 We welcome contributions. 
 
+All community participants are expected to follow the [CNCF Code of Conduct](CODE_OF_CONDUCT.md).
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for issues, pull requests, reviews, DCO, and release note requirements.
 
 See [Development Guide](docs/development.md) for local setup, testing, and generated code.

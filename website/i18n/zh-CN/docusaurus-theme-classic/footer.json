@@ -68,7 +68,7 @@
     "description": "The label of footer link with label=Changelog linking to /changelog"
   },
   "copyright": {
-    "message": "© 2026 MatrixHub Open Source. Apache 2.0 Licensed.",
+    "message": "<div>We are a Cloud Native Computing Foundation sandbox project.</div><div>Copyright MatrixHub a Series of LF Projects, LLC.</div><div>For website terms of use, trademark policy and other project policies please see <a href='https://lfprojects.org/policies/'>lfprojects.org/policies/</a>.</div>",
     "description": "The footer copyright"
   }
 }
