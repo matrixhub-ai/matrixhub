@@ -35,6 +35,7 @@ type Project struct {
 	Type         ProjectType `gorm:"column:type"`
 	RegistryID   *int        `gorm:"column:registry_id"`
 	Organization string      `gorm:"column:organization"`
+	RegistryType string      `gorm:"column:registry_type;<-:false"`
 	RegistryURL  string      `gorm:"column:registry_url;<-:false"`
 	ModelCount   int         `gorm:"column:model_count;<-:false"`
 	DatasetCount int         `gorm:"column:dataset_count;<-:false"`

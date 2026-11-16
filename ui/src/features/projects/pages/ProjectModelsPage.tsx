@@ -204,6 +204,7 @@ export function ProjectModelsPage() {
           : showProxyDownloadGuide
             ? (
                 <ProxyProjectDownloadGuide
+                  registryType={project.registryType}
                   remoteOrganization={project.organization}
                   organization={project.name}
                   requiresToken={project.type === ProjectType.PROJECT_TYPE_PRIVATE}
@@ -240,6 +241,7 @@ export function ProjectModelsPage() {
       {isProxy && (
         <ProxyProjectDownloadDrawer
           opened={downloadDrawerOpened}
+          registryType={project.registryType}
           remoteOrganization={project.organization}
           organization={project.name}
           requiresToken={project.type === ProjectType.PROJECT_TYPE_PRIVATE}

@@ -6,16 +6,15 @@ import {
   Group,
   rem,
   Select,
+  SegmentedControl,
   Skeleton,
   Stack,
   Tabs,
   Text,
   Tooltip,
 } from '@mantine/core'
-import {
-  IconExternalLink,
-  IconInfoCircle,
-} from '@tabler/icons-react'
+import { IconInfoCircle, IconExternalLink } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -25,6 +24,7 @@ import {
   GuideStep as Step,
 } from '@/features/models/guides/GuideDrawer'
 import guideClasses from '@/features/models/guides/GuideDrawer.module.css'
+import { projectDetailQueryOptions } from '@/features/projects/projects.query'
 import { useSystemConfig } from '@/features/system/system.query'
 
 import classes from './UseModelDrawer.module.css'
@@ -36,8 +36,11 @@ import {
   buildPipelineSnippet,
   buildServeSnippet,
   buildTestRequestSnippet,
-  ENGINE_DOC_URLS,
   ENGINE_LABELS,
+  ENGINE_DOC_URLS,
+  resolveModelDownloadProvider,
+  resolveModelGuideRevision,
+  type ModelDownloadProvider,
   type SnippetPrompts,
   type UseModelEngine,
   type UseModelTask,
@@ -49,6 +52,7 @@ interface UseModelDrawerProps {
   opened: boolean
   engine: UseModelEngine
   modelPath: string
+  revision?: string
   /** Task detected from the model's labels; the user may override it inside the drawer. */
   defaultTask: UseModelTask | null
   onClose: () => void
@@ -58,11 +62,21 @@ export function UseModelDrawer({
   opened,
   engine,
   modelPath,
+  revision,
   defaultTask,
   onClose,
 }: UseModelDrawerProps) {
   const { t } = useTranslation()
   const systemConfigQuery = useSystemConfig()
+  const [providerChoice, setProviderChoice] = useState<ModelDownloadProvider | null>(null)
+  const projectQuery = useQuery({
+    ...projectDetailQueryOptions(modelPath.split('/')[0]),
+    enabled: opened && engine === 'vllm',
+  })
+  const provider = engine === 'vllm'
+    ? providerChoice ?? resolveModelDownloadProvider(projectQuery.data?.registryType)
+    : undefined
+  const guideRevision = resolveModelGuideRevision(provider, revision)
   const [task, setTask] = useState<UseModelTask | null>(defaultTask)
 
   const hfEndpoint = systemConfigQuery.data?.endpoints?.hfBase || window.location.origin
@@ -105,7 +119,7 @@ export function UseModelDrawer({
     >
       {systemConfigQuery.isPending
         ? <Skeleton height={72} radius="sm" />
-        : <SnippetBlock snippet={buildEnvSnippet(hfEndpoint)} />}
+        : <SnippetBlock snippet={buildEnvSnippet(hfEndpoint, provider)} />}
     </Step>
   )
 
@@ -115,6 +129,7 @@ export function UseModelDrawer({
       onClose={onClose}
       title={t('model.detail.useModel.title', { engine: engineLabel })}
       intro={t(`model.detail.useModel.intro.${engine}`)}
+
       footerExtra={(
         <Anchor
           href={ENGINE_DOC_URLS[engine]}
@@ -129,6 +144,30 @@ export function UseModelDrawer({
         </Anchor>
       )}
     >
+      {engine === 'vllm' && (
+        <Stack gap="xs">
+          <Text size="sm">{t('model.detail.useModel.downloadProvider')}</Text>
+          {projectQuery.isPending
+            ? <Skeleton height={36} radius="sm" />
+            : (
+                <SegmentedControl
+                  value={provider}
+                  onChange={value => setProviderChoice(value === 'modelscope' ? 'modelscope' : 'hf')}
+                  aria-label={t('model.detail.useModel.downloadProvider')}
+                  data={[
+                    {
+                      value: 'hf',
+                      label: t('routes.admin.registries.provider.huggingFace'),
+                    },
+                    {
+                      value: 'modelscope',
+                      label: t('routes.admin.registries.provider.modelScope'),
+                    },
+                  ]}
+                />
+              )}
+        </Stack>
+      )}
       <Step
         index={1}
         title={t('model.detail.useModel.steps.prepare')}
@@ -142,7 +181,7 @@ export function UseModelDrawer({
       </Step>
 
       <Step index={2} title={t('model.detail.useModel.steps.install', { engine: engineLabel })}>
-        <SnippetBlock snippet={buildInstallSnippet(engine)} />
+        <SnippetBlock snippet={buildInstallSnippet(engine, provider)} />
       </Step>
 
       {envStep}
@@ -170,11 +209,11 @@ export function UseModelDrawer({
                         <Tabs.Tab value="lowLevel">{t('model.detail.useModel.lowLevelTab')}</Tabs.Tab>
                       </Tabs.List>
                       <Tabs.Panel value="pipeline">
-                        <SnippetBlock snippet={buildPipelineSnippet(task, modelPath, prompts)} />
+                        <SnippetBlock snippet={buildPipelineSnippet(task, modelPath, prompts, revision)} />
                       </Tabs.Panel>
                       <Tabs.Panel value="lowLevel">
                         <Stack gap="xs">
-                          <SnippetBlock snippet={buildLowLevelSnippet(task, modelPath, prompts)} />
+                          <SnippetBlock snippet={buildLowLevelSnippet(task, modelPath, prompts, revision)} />
                           <Text size="xs" c="dimmed">{t('model.detail.useModel.lowLevelNote')}</Text>
                         </Stack>
                       </Tabs.Panel>
@@ -186,7 +225,7 @@ export function UseModelDrawer({
         : (
             <>
               <Step index={4} title={t('model.detail.useModel.steps.serve')}>
-                <SnippetBlock snippet={buildServeSnippet(engine, modelPath)} />
+                <SnippetBlock snippet={buildServeSnippet(engine, modelPath, guideRevision)} />
               </Step>
               <Step
                 index={5}
@@ -225,7 +264,7 @@ export function UseModelDrawer({
                 <Text size="xs" c="dimmed">{t('model.detail.useModel.dockerHint')}</Text>
                 {systemConfigQuery.isPending
                   ? <Skeleton height={164} radius="sm" />
-                  : <SnippetBlock snippet={buildDockerSnippet(engine, hfEndpoint, modelPath)} />}
+                  : <SnippetBlock snippet={buildDockerSnippet(engine, hfEndpoint, modelPath, provider, guideRevision)} />}
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>

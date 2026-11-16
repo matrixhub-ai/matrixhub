@@ -4,6 +4,9 @@ import {
 
 import {
   buildDownloadSnippet,
+  buildModelScopeDownloadSnippet,
+  buildModelScopeEnvSnippet,
+  buildModelScopePythonSnippet,
   buildHfEnvSnippet,
   buildLocalPathPlaceholder,
   buildUploadSnippet,
@@ -25,6 +28,20 @@ describe('command guide snippets', () => {
     expect(upload).toContain('hf upload')
     expect(upload).toContain('"org/model"')
     expect(upload).toContain('"/path/to/model"')
+  })
+
+  it('builds ModelScope downloads against the configured MatrixHub endpoint', () => {
+    expect(buildModelScopeEnvSnippet('http://hub.local:9527').code)
+      .toBe('export MODELSCOPE_ENDPOINT="http://hub.local:9527"')
+    expect(buildModelScopeDownloadSnippet('team/model').code)
+      .toBe('ms-hub download "team/model" --local-dir "./model"')
+    expect(buildModelScopePythonSnippet('team/model', 'http://hub.local:9527').code)
+      .toContain('endpoint="http://hub.local:9527"')
+  })
+
+  it('keeps the upstream default branch in both download commands', () => {
+    expect(buildDownloadSnippet('team/model', 'master').code).toContain('--revision "master"')
+    expect(buildModelScopeDownloadSnippet('team/model', 'release/v1').code).toContain('--revision "release/v1"')
   })
 
   it('derives the local path placeholder from the model name', () => {

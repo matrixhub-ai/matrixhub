@@ -147,6 +147,7 @@ func (h *Handler) Router() *mux.Router {
 func (h *Handler) register() {
 	// HuggingFace-compatible API endpoints
 	h.registryHuggingFace(h.root)
+	h.registerModelScope(h.root)
 
 	h.Router().Use(h.middlewares...)
 

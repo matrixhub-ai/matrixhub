@@ -16,6 +16,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 
@@ -29,6 +30,13 @@ import (
 func HFAuthnMiddleware(akRepo user.IAccessTokenRepo, sessionRepo user.ISessionRepo, userRepo user.IUserRepo, robotRepo robot.IRobotRepo) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// ModelScope SDKs send access tokens as m_session_id cookies.
+			if strings.HasPrefix(r.URL.Path, "/api/v1/models/") && r.Header.Get("Authorization") == "" {
+				if cookie, err := r.Cookie("m_session_id"); err == nil && cookie.Value != "" {
+					r = r.Clone(r.Context())
+					r.Header.Set("Authorization", "Bearer "+cookie.Value)
+				}
+			}
 			auth := authenticator.NewHfCLIAuthenticator(akRepo, sessionRepo, userRepo, robotRepo)
 			_, identity, _, ok, err := auth.Authenticate(r.Context(), r)
 			if err == nil && ok {

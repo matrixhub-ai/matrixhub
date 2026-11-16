@@ -360,6 +360,8 @@ func (sjs *SyncJobService) executePullJob(ctx context.Context, syncJob *SyncJob,
 func pullRepository(syncJob *SyncJob, reg *registry.Registry, logWriter io.Writer) *git.GitRepository {
 	gr := &git.GitRepository{
 		RemoteRegistryURL:  reg.URL,
+		RemoteRegistryType: reg.Type,
+		Insecure:           reg.Insecure,
 		RemoteProjectName:  syncJob.RemoteProjectName,
 		RemoteResourceName: syncJob.RemoteResourceName,
 		ProjectName:        syncJob.ProjectName,
@@ -462,6 +464,8 @@ func (sjs *SyncJobService) executePushJob(ctx context.Context, syncJob *SyncJob,
 
 	gr := &git.GitRepository{
 		RemoteRegistryURL:  reg.URL,
+		RemoteRegistryType: reg.Type,
+		Insecure:           reg.Insecure,
 		RemoteProjectName:  syncJob.RemoteProjectName,
 		RemoteResourceName: syncJob.RemoteResourceName,
 		ProjectName:        syncJob.ProjectName,

@@ -66,6 +66,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/repo"
 	hfdiscovery "github.com/matrixhub-ai/matrixhub/internal/repo/registrydiscovery/hf"
 	mhdiscovery "github.com/matrixhub-ai/matrixhub/internal/repo/registrydiscovery/matrixhub"
+	msdiscovery "github.com/matrixhub-ai/matrixhub/internal/repo/registrydiscovery/modelscope"
 )
 
 const maxGrpcMsgSize = 100 * 1024 * 1024
@@ -464,6 +465,7 @@ func (server *APIServer) initHandlersServicesRepos() {
 	// init sync policy service
 	discoveries := map[string]registrydiscovery.Discovery{
 		registrydiscovery.ProviderHuggingFace: hfdiscovery.New(),
+		registrydiscovery.ProviderModelScope:  msdiscovery.New(),
 		registrydiscovery.ProviderMatrixHub:   mhdiscovery.New(),
 	}
 	jobGenerator := syncpolicy.NewSyncJobGenerator(

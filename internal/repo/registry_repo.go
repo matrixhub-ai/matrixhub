@@ -15,10 +15,14 @@
 package repo
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -100,13 +104,30 @@ func (r *RegistryRepo) DeleteRegistry(ctx context.Context, id int) error {
 }
 
 func (r *RegistryRepo) PingRegistry(ctx context.Context, reg registry.Registry) (int, string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reg.URL, nil)
+	method, endpoint := http.MethodGet, reg.URL
+	body := bytes.NewReader(nil)
+	basic := registry.AsBasic(reg.GetCredential())
+	if reg.Type == registry.TypeModelScope && basic != nil && basic.Password != "" {
+		method, endpoint = http.MethodPost, strings.TrimRight(reg.URL, "/")+"/api/v1/login"
+		data, err := json.Marshal(map[string]string{"AccessToken": basic.Password})
+		if err != nil {
+			return 0, "", err
+		}
+		body = bytes.NewReader(data)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, body)
 	if err != nil {
 		return 0, "", err
 	}
 
-	if basic := registry.AsBasic(reg.GetCredential()); basic != nil {
-		req.SetBasicAuth(basic.Username, basic.Password)
+	if basic != nil {
+		if reg.Type == registry.TypeModelScope {
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+basic.Password)
+			req.AddCookie(&http.Cookie{Name: "m_session_id", Value: basic.Password})
+		} else {
+			req.SetBasicAuth(basic.Username, basic.Password)
+		}
 	}
 
 	client := &http.Client{
@@ -114,6 +135,10 @@ func (r *RegistryRepo) PingRegistry(ctx context.Context, reg registry.Registry) 
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: reg.Insecure},
 		},
+	}
+	// Do not replay an SDK token in a login body to a redirect target.
+	if reg.Type == registry.TypeModelScope && method == http.MethodPost {
+		client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -123,5 +148,14 @@ func (r *RegistryRepo) PingRegistry(ctx context.Context, reg registry.Registry) 
 		_ = resp.Body.Close()
 	}()
 
+	if reg.Type == registry.TypeModelScope && method == http.MethodPost && resp.StatusCode == http.StatusOK {
+		var result struct{ Code int }
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return 0, "", fmt.Errorf("invalid modelscope login response")
+		}
+		if result.Code != http.StatusOK {
+			return http.StatusUnauthorized, "ModelScope rejected the access token", nil
+		}
+	}
 	return resp.StatusCode, resp.Status, nil
 }

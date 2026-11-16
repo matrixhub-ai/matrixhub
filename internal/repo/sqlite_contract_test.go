@@ -210,9 +210,14 @@ func assertModelUpdatesTimestamp(t *testing.T, database *gorm.DB, repository mod
 	require.NoError(t, database.Table("models").Where("id = ?", modelID).
 		UpdateColumn("updated_at", oldTimestamp).Error)
 	readme := "# SQLite"
+	branch := "master"
 	require.NoError(t, repository.UpdateMetadata(context.Background(), modelID, &model.MetadataUpdate{
 		ReadmeContent: &readme,
+		DefaultBranch: &branch,
 	}))
+	var storedBranch string
+	require.NoError(t, database.Table("models").Select("default_branch").Where("id = ?", modelID).Row().Scan(&storedBranch))
+	require.Equal(t, "master", storedBranch)
 	requireTimestampAdvanced(t, database, "models", modelID, oldTimestamp)
 
 	require.NoError(t, database.Table("models").Where("id = ?", modelID).
@@ -349,4 +354,24 @@ func repositoryMigrationSQLPath(t *testing.T) string {
 	_, currentFile, _, ok := runtime.Caller(0)
 	require.True(t, ok)
 	return filepath.Clean(filepath.Join(filepath.Dir(currentFile), "..", "..", "db", "migrations", "sql"))
+}
+
+func TestProjectRegistryProviderIsReturned(t *testing.T) {
+	database, _ := newSQLiteRepositoryTestDatabase(t)
+	ctx := context.Background()
+	reg := registry.Registry{Name: "ms-test", Type: registry.TypeModelScope, URL: "https://www.modelscope.cn"}
+	require.NoError(t, database.Create(&reg).Error)
+	r := NewProjectDBRepo(database)
+	created, err := r.CreateProject(ctx, &project.Project{Name: "test-proxy", Type: project.ProjectTypePublic, RegistryID: &reg.ID, Organization: "Qwen"})
+	require.NoError(t, err)
+	for _, find := range []func() (*project.Project, error){func() (*project.Project, error) { return r.GetProjectByID(ctx, created.ID) }, func() (*project.Project, error) { return r.GetProjectByName(ctx, created.Name) }} {
+		found, err := find()
+		require.NoError(t, err)
+		require.Equal(t, registry.TypeModelScope, found.RegistryType)
+	}
+	normal, err := r.CreateProject(ctx, &project.Project{Name: "test-normal", Type: project.ProjectTypePublic})
+	require.NoError(t, err)
+	found, err := r.GetProjectByName(ctx, normal.Name)
+	require.NoError(t, err)
+	require.Empty(t, found.RegistryType)
 }

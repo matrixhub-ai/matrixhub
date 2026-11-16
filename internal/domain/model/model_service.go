@@ -62,6 +62,9 @@ type IModelService interface {
 	// CheckOrSyncFromRemote ensures the model exists and synchronizes proxy models
 	// from their remote registry when needed.
 	CheckOrSyncFromRemote(ctx context.Context, project, name string) error
+
+	// PrepareModelScopeRead refreshes Git refs without materializing LFS objects.
+	PrepareModelScopeRead(ctx context.Context, project, name string) (*git.GitRepository, error)
 }
 
 // ModelService implements the model service operations.
@@ -340,6 +343,9 @@ func (s *ModelService) SyncMetadata(ctx context.Context, project, name string) e
 		Size:           &metadata.Size,
 		ParameterCount: &metadata.ParameterCount,
 	}
+	if files.DefaultBranch != "" {
+		update.DefaultBranch = &files.DefaultBranch
+	}
 	if err := s.modelRepo.UpdateMetadata(ctx, m.ID, update); err != nil {
 		return fmt.Errorf("failed to update model metadata: %w", err)
 	}
@@ -379,17 +385,9 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 		return nil
 	}
 
-	reg, err := s.registryRepo.GetRegistry(ctx, *prj.RegistryID)
+	gr, err := s.modelProxyRepository(ctx, prj, name)
 	if err != nil {
-		return fmt.Errorf("get registry(id=%d): %w", prj.RegistryID, err)
-	}
-	gr := &git.GitRepository{
-		RemoteRegistryURL:  reg.URL,
-		RemoteProjectName:  prj.Organization,
-		RemoteResourceName: name,
-		ProjectName:        project,
-		ResourceName:       name,
-		ResourceType:       "model",
+		return err
 	}
 	if err = s.gitRepo.PullFromRemote(ctx, gr); err != nil {
 		return err
@@ -402,6 +400,58 @@ func (s *ModelService) CheckOrSyncFromRemote(ctx context.Context, project, name 
 		return fmt.Errorf("update last synced time for model %s/%s: %w", project, name, err)
 	}
 	return nil
+}
+
+func (s *ModelService) modelProxyRepository(ctx context.Context, prj *project.Project, name string) (*git.GitRepository, error) {
+	reg, err := s.registryRepo.GetRegistry(ctx, *prj.RegistryID)
+	if err != nil {
+		return nil, fmt.Errorf("get registry(id=%d): %w", *prj.RegistryID, err)
+	}
+	gr := &git.GitRepository{
+		RemoteRegistryURL:  reg.URL,
+		RemoteRegistryType: reg.Type,
+		Insecure:           reg.Insecure,
+		RemoteProjectName:  prj.Organization,
+		RemoteResourceName: name,
+		ProjectName:        prj.Name,
+		ResourceName:       name,
+		ResourceType:       "model",
+	}
+	if bc := registry.AsBasic(reg.GetCredential()); bc != nil {
+		gr.Credential = &git.BasicCredential{Username: bc.Username, Password: bc.Password}
+	}
+	return gr, nil
+}
+
+func (s *ModelService) PrepareModelScopeRead(ctx context.Context, projectName, name string) (*git.GitRepository, error) {
+	prj, err := s.projectRepo.GetProjectByName(ctx, projectName)
+	if err != nil {
+		return nil, err
+	}
+	if !prj.HasProxy() || prj.RegistryType != registry.TypeModelScope {
+		return nil, nil
+	}
+	remote, err := s.modelProxyRepository(ctx, prj, name)
+	if err != nil {
+		return nil, err
+	}
+	refreshed, err := s.gitRepo.RefreshModelScopeRefs(ctx, remote)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.ensureModelRecord(ctx, projectName, name); err != nil {
+		// Another first reader may have inserted the record after the lookup.
+		if _, exists, lookupErr := s.findModel(ctx, projectName, name); lookupErr != nil || !exists {
+			return nil, err
+		}
+	}
+	if refreshed {
+		// The Git tree can be served even if refreshing the model card fails.
+		if err := s.SyncMetadata(ctx, projectName, name); err != nil {
+			log.Warnf("failed to refresh model metadata for %s/%s: %v", projectName, name, err)
+		}
+	}
+	return remote, nil
 }
 
 func (s *ModelService) EnsureModel(ctx context.Context, project, name string) (*Model, error) {

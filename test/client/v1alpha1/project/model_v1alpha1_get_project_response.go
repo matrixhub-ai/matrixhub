@@ -21,4 +21,5 @@ type V1alpha1GetProjectResponse struct {
 	ModelCount int64 `json:"modelCount,omitempty"`
 	DatasetCount int64 `json:"datasetCount,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	RegistryType string `json:"registryType,omitempty"`
 }

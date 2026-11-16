@@ -17,10 +17,12 @@ export const REGISTRY_DESCRIPTION_MAX_LENGTH = 50
 export const supportedRegistryTypes = [
   RegistryType.REGISTRY_TYPE_HUGGINGFACE,
   RegistryType.REGISTRY_TYPE_MATRIXHUB,
+  RegistryType.REGISTRY_TYPE_MODELSCOPE,
 ] as const
 export const registryProviderLabelKeys: Partial<Record<RegistryType, string>> = {
   [RegistryType.REGISTRY_TYPE_HUGGINGFACE]: 'routes.admin.registries.provider.huggingFace',
   [RegistryType.REGISTRY_TYPE_MATRIXHUB]: 'routes.admin.registries.provider.matrixHub',
+  [RegistryType.REGISTRY_TYPE_MODELSCOPE]: 'routes.admin.registries.provider.modelScope',
 }
 
 export interface RegistryUrlCopyKeys {
@@ -41,6 +43,12 @@ const huggingFaceUrlCopyKeys: RegistryUrlCopyKeys = {
 Hugging Face accepts the upstream site or a mirror, MatrixHub expects an instance address. */
 const registryUrlCopyKeys: Partial<Record<RegistryType, RegistryUrlCopyKeys>> = {
   [RegistryType.REGISTRY_TYPE_HUGGINGFACE]: huggingFaceUrlCopyKeys,
+  [RegistryType.REGISTRY_TYPE_MODELSCOPE]: {
+    hint: 'routes.admin.registries.form.urlHint.modelScope',
+    description: 'routes.admin.registries.form.urlDescription.modelScope',
+    placeholder: 'routes.admin.registries.form.urlPlaceholder.modelScope',
+    repositoryUrlWarning: 'routes.admin.registries.form.urlRepositoryWarning.modelScope',
+  },
   [RegistryType.REGISTRY_TYPE_MATRIXHUB]: {
     hint: 'routes.admin.registries.form.urlHint.matrixHub',
     description: 'routes.admin.registries.form.urlDescription.matrixHub',
@@ -58,6 +66,7 @@ while a MatrixHub instance address is deployment specific and must be typed in. 
 const registryDefaultUrls: Partial<Record<RegistryType, string>> = {
   [RegistryType.REGISTRY_TYPE_HUGGINGFACE]: 'https://huggingface.co',
   [RegistryType.REGISTRY_TYPE_MATRIXHUB]: '',
+  [RegistryType.REGISTRY_TYPE_MODELSCOPE]: 'https://www.modelscope.cn',
 }
 
 export function getRegistryDefaultUrl(type: RegistryType): string {
