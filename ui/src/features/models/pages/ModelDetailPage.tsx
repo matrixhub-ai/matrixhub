@@ -11,6 +11,7 @@ import {
   IconDownload,
   IconTerminal2,
 } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Link,
   getRouteApi,
@@ -31,6 +32,8 @@ import {
   USE_MODEL_ENGINES,
   type UseModelEngine,
 } from '@/features/models/use-model/useModelGuides'
+import { projectDetailQueryOptions } from '@/features/projects/projects.query'
+import { isProxyProject } from '@/features/projects/projects.utils'
 import { ResourceDetailHeader } from '@/shared/components/ResourceDetailHeader'
 import { usePayloadModal } from '@/shared/hooks/usePayloadModal'
 
@@ -58,6 +61,8 @@ export function ModelDetailPage({
   const useModelDrawer = usePayloadModal<UseModelEngine>()
   const projectRole = useProjectRole(projectId)
   const hasSettingsRight = projectRole === ProjectRoleType.ROLE_TYPE_PROJECT_ADMIN
+  const { data: project } = useQuery(projectDetailQueryOptions(projectId))
+  const canUpload = !!project && !isProxyProject(project.registryUrl)
   const modelPath = `${model.project ?? projectId}/${model.name?.trim() || modelId}`
 
   const tabRoutes = linkOptions([
@@ -116,15 +121,17 @@ export function ModelDetailPage({
           metaItems={buildModelMetaItems(model, projectId, i18n.t.bind(i18n))}
           actions={(
             <>
-              <Button
-                color="cyan"
-                fw="normal"
-                variant="light"
-                leftSection={<IconCloudUpload size={16} />}
-                onClick={() => commandDialog.open('upload')}
-              >
-                {t('model.detail.upload')}
-              </Button>
+              {canUpload && (
+                <Button
+                  color="cyan"
+                  fw="normal"
+                  variant="light"
+                  leftSection={<IconCloudUpload size={16} />}
+                  onClick={() => commandDialog.open('upload')}
+                >
+                  {t('model.detail.upload')}
+                </Button>
+              )}
               <Button
                 color="cyan"
                 fw="normal"

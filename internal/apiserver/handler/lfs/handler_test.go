@@ -33,6 +33,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	backend "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/lfs"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 )
 
 const lfsMetaMediaType = "application/vnd.git-lfs+json"
@@ -173,6 +174,29 @@ func TestLFSPermissionChecks(t *testing.T) {
 			require.Equal(t, tt.wantStatus, response.Code)
 			require.Contains(t, response.Body.String(), tt.wantBody)
 			require.Equal(t, permission.OperationUpdateRepo, gotOperation)
+		})
+	}
+}
+
+func TestLFSRejectsWritesToProxyProject(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+		body   string
+	}{
+		{name: "upload batch", target: "/proxy/model.git/info/lfs/objects/batch", body: `{"operation":"upload","objects":[{"oid":"abc","size":1}]}`},
+		{name: "create lock", target: "/proxy/model.git/locks", body: `{"path":"weights.bin"}`},
+		{name: "delete lock", target: "/proxy/model.git/locks/1/unlock", body: `{}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := newLFSHandler(t, backend.WithPermissionHookFunc(func(_ context.Context, op permission.Operation, _ string, _ permission.Context) (bool, error) {
+				require.Equal(t, permission.OperationUpdateRepo, op)
+				return false, project.ErrProxyProjectReadOnly
+			}))
+			response := lfsRequest(t, handler, http.MethodPost, tt.target, tt.body, "alice")
+			require.Equal(t, http.StatusForbidden, response.Code)
+			require.Contains(t, response.Body.String(), project.ErrProxyProjectReadOnly.Error())
 		})
 	}
 }

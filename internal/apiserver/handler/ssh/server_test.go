@@ -35,9 +35,12 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/storage"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	cryptossh "golang.org/x/crypto/ssh"
 
 	backend "github.com/matrixhub-ai/matrixhub/internal/apiserver/handler/ssh"
+	modelmocks "github.com/matrixhub-ai/matrixhub/internal/domain/model/mocks"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 )
 
 func generateHostKey(t *testing.T) cryptossh.Signer {
@@ -151,6 +154,36 @@ func TestSSHGitCloneAndPush(t *testing.T) {
 	defer operationsMutex.Unlock()
 	require.Contains(t, operations, permission.OperationReadRepo)
 	require.Contains(t, operations, permission.OperationUpdateRepo)
+}
+
+func TestSSHRejectsPushToProxyProjectBeforeCreatingTheModel(t *testing.T) {
+	sourceDir := t.TempDir()
+	runGit(t, "", nil, "init", "--initial-branch=main", sourceDir)
+	runGit(t, sourceDir, nil, "-c", "user.email=test@matrixhub.example", "-c", "user.name=MatrixHub Test", "commit", "--allow-empty", "-m", "initial commit")
+
+	// The strict mock fails the test if the server calls EnsureModel.
+	modelService := modelmocks.NewMockIModelService(gomock.NewController(t))
+	server := backend.NewServer(
+		backend.WithHostKey(generateHostKey(t)),
+		backend.WithStorage(storage.NewStorage(storage.WithRootDir(t.TempDir()))),
+		backend.WithServices(modelService),
+		backend.WithPermissionHookFunc(func(_ context.Context, operation permission.Operation, _ string, _ permission.Context) (bool, error) {
+			require.Equal(t, permission.OperationUpdateRepo, operation)
+			return false, project.ErrProxyProjectReadOnly
+		}),
+	)
+	address := startSSHServer(t, server)
+	port := address[strings.LastIndex(address, ":")+1:]
+
+	command := exec.CommandContext(t.Context(), "git", "push", "ssh://git@"+address+"/proxy/model.git", "HEAD:refs/heads/main") // #nosec G204 -- test-controlled local server
+	command.Dir = sourceDir
+	command.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "+port,
+	)
+	output, err := command.CombinedOutput()
+	require.Error(t, err, string(output))
+	require.Contains(t, string(output), project.ErrProxyProjectReadOnly.Error())
 }
 
 func TestSSHAuthenticationAndLFSAuthenticate(t *testing.T) {

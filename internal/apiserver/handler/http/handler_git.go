@@ -29,6 +29,7 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/receive"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 
+	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
 )
 
@@ -108,7 +109,7 @@ func (h *Handler) handleInfoRefs(w http.ResponseWriter, r *http.Request) {
 			op = permission.OperationUpdateRepo
 		}
 		if ok, err := h.permissionHookFunc(r.Context(), op, repoName, permission.Context{}); err != nil {
-			responseText(w, err.Error(), http.StatusInternalServerError)
+			responseText(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			userinfo, ok := authenticate.GetUserInfo(r.Context())
@@ -175,7 +176,7 @@ func (h *Handler) handleService(w http.ResponseWriter, r *http.Request, service 
 			op = permission.OperationUpdateRepo
 		}
 		if ok, err := h.permissionHookFunc(r.Context(), op, repoName, permission.Context{}); err != nil {
-			responseText(w, err.Error(), http.StatusInternalServerError)
+			responseText(w, err.Error(), middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			userinfo, ok := authenticate.GetUserInfo(r.Context())

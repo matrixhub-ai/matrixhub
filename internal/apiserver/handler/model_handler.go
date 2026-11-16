@@ -29,6 +29,7 @@ import (
 	"github.com/matrixhub-ai/matrixhub/internal/domain/authz"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/model"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/project"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/syncjob"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
@@ -336,6 +337,9 @@ func (mh *ModelHandler) CreateModel(ctx context.Context, request *modelv1alpha1.
 	// Call service
 	_, err := mh.ms.CreateModel(ctx, request.Project, request.Name)
 	if err != nil {
+		if errors.Is(err, project.ErrProxyProjectReadOnly) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
 		if strings.Contains(err.Error(), "already exists") {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}

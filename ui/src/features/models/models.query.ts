@@ -8,6 +8,7 @@ import {
 import { ProjectPermissionFilter, Projects } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { queryOptions, useQuery } from '@tanstack/react-query'
 
+import { excludeProxyProjects } from '@/features/projects/projects.utils'
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants.ts'
 
 import type { ModelsCatalogSearch } from '@/routes/(auth)/(app)/models'
@@ -268,7 +269,10 @@ export function useReadableModelProjects() {
 
 // Create-model page: only projects the user can push models to.
 export function useWritableModelProjects() {
-  return useQuery(modelProjectsQueryOptions(ProjectPermissionFilter.PERMISSION_FILTER_CAN_WRITE))
+  return useQuery({
+    ...modelProjectsQueryOptions(ProjectPermissionFilter.PERMISSION_FILTER_CAN_WRITE),
+    select: excludeProxyProjects,
+  })
 }
 
 // -- Internal helpers --
