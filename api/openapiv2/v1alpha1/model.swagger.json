@@ -282,7 +282,7 @@
     },
     "/api/v1alpha1/models/{project}/{name}/cache": {
       "post": {
-        "summary": "CacheModel creates a job that pulls a model of a proxy project from\nupstream. The pull queues the LFS files of the model, which MatrixHub\nthen downloads in the background. The job runs in the background too,\nand the model need not exist locally yet.",
+        "summary": "CacheModel creates a job that pulls a model of a proxy project from\nupstream and stores the LFS files of a revision in MatrixHub. The job\nruns in the background, and ends once the files are stored. The model\nneed not exist locally yet.",
         "operationId": "Models_CacheModel",
         "responses": {
           "200": {

@@ -28,7 +28,7 @@ var (
 type ModelsApiService service
 
 /*
-ModelsApiService CacheModel creates a job that pulls a model of a proxy project from upstream. The pull queues the LFS files of the model, which MatrixHub then downloads in the background. The job runs in the background too, and the model need not exist locally yet.
+ModelsApiService CacheModel creates a job that pulls a model of a proxy project from upstream and stores the LFS files of a revision in MatrixHub. The job runs in the background, and ends once the files are stored. The model need not exist locally yet.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param project
  * @param name Name of the model. As on Hugging Face, it may start with &#39;_&#39;.

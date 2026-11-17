@@ -20,8 +20,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"strings"
+	"sync"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/dataset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
@@ -65,6 +69,15 @@ var (
 	ErrInvalidRevision = errors.New("only branches, tags and commits can be cached")
 )
 
+// Failures of an LFS object of a model cache job.
+var (
+	errNotQueued    = errors.New("not queued for download, even after pulling the model again")
+	errDownloadGone = errors.New("the download ended without storing the object")
+	errStalled      = errors.New("the download made no progress")
+	errNotStored    = errors.New("the download finished but was not stored")
+	errModelGone    = errors.New("the model was deleted")
+)
+
 // MetadataSyncer refreshes the database metadata (README, size, labels) of a
 // resource from its on-disk Git repository.
 type MetadataSyncer interface {
@@ -83,6 +96,7 @@ type SyncJobService struct {
 	logStore      LogStore
 	onJobDone     func(ctx context.Context, taskID int) error
 	onJobCreated  func(jobID int) bool
+	modelCache    modelCacheOptions
 }
 
 type LogStore interface {
@@ -101,6 +115,7 @@ func NewSyncJobService(srepo ISyncJobRepo, rrepo registry.IRegistryRepo, prepo p
 		modelMetadata: modelMeta,
 		datasetMeta:   datasetMeta,
 		logStore:      logStore,
+		modelCache:    modelCacheOptions{}.withDefaults(),
 	}
 }
 
@@ -490,6 +505,55 @@ func (sjs *SyncJobService) executePushJob(ctx context.Context, syncJob *SyncJob,
 	return nil
 }
 
+// modelCacheOptions tune model cache jobs. Zero values take the defaults.
+type modelCacheOptions struct {
+	// Concurrency is the number of LFS objects that one job caches at a
+	// time. Default 2.
+	Concurrency int
+	// MaxAttempts is the number of attempts for each object. Default 3.
+	MaxAttempts int
+	// RetryBackoff is the wait before the second attempt. It doubles for
+	// each further attempt. Default 10s.
+	RetryBackoff time.Duration
+	// PollInterval is how often a download is checked. Default 1s.
+	PollInterval time.Duration
+	// StallTimeout fails a download that makes no progress for this long.
+	// Default 10m.
+	StallTimeout time.Duration
+	// StoreTimeout fails a complete download that is not stored after this
+	// long. The mirror stores a download once its readers close, so a client
+	// that never closes one would otherwise hold the job. Default 1h.
+	StoreTimeout time.Duration
+	// RequeueInterval is the least time between two pulls of the model that
+	// queue its missing objects again. Default 5s.
+	RequeueInterval time.Duration
+}
+
+func (o modelCacheOptions) withDefaults() modelCacheOptions {
+	if o.Concurrency <= 0 {
+		o.Concurrency = 2
+	}
+	if o.MaxAttempts <= 0 {
+		o.MaxAttempts = 3
+	}
+	if o.RetryBackoff <= 0 {
+		o.RetryBackoff = 10 * time.Second
+	}
+	if o.PollInterval <= 0 {
+		o.PollInterval = time.Second
+	}
+	if o.StallTimeout <= 0 {
+		o.StallTimeout = 10 * time.Minute
+	}
+	if o.StoreTimeout <= 0 {
+		o.StoreTimeout = time.Hour
+	}
+	if o.RequeueInterval <= 0 {
+		o.RequeueInterval = 5 * time.Second
+	}
+	return o
+}
+
 func (sjs *SyncJobService) CreateModelCacheJob(ctx context.Context, projectName, name, revision string) (*SyncJob, error) {
 	if err := validateRevision(revision); err != nil {
 		return nil, err
@@ -568,14 +632,17 @@ func isRefName(name string) bool {
 	return true
 }
 
-// executeModelCacheJob pulls the model as a pull job does, and checks that
-// upstream has the revision. Unlike a pull job, it never creates the project,
-// and it creates the model record only after the pull, so that a model that
+// executeModelCacheJob pulls the model as a pull job does, then waits until
+// every LFS object of the revision is stored: a pull only queues the objects
+// for download. Unlike a pull job, it never creates the project, and it
+// creates the model record only after the pull, so that a model that
 // upstream does not have leaves no record behind.
-//
-// A pull only queues the LFS files of the model for download, so the job can
-// end before they are stored.
-func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *SyncJob, logWriter io.Writer) error {
+func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *SyncJob, logWriter io.Writer) (err error) {
+	defer func() {
+		if errors.Is(err, context.DeadlineExceeded) {
+			err = fmt.Errorf("the job reached its time limit: %w", err)
+		}
+	}()
 	params, err := syncJob.ModelCacheParams()
 	if err != nil {
 		return err
@@ -593,6 +660,8 @@ func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *Sy
 	}
 
 	if logWriter != nil {
+		// The workers of the job write to the log at the same time.
+		logWriter = &lockedWriter{w: logWriter}
 		revision := params.Revision
 		if revision == "" {
 			revision = "the default branch"
@@ -602,7 +671,10 @@ func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *Sy
 			syncJob.ProjectName, syncJob.ResourceName, revision)
 	}
 
-	if err = sjs.gitRepo.PullFromRemote(ctx, pullRepository(syncJob, reg, logWriter)); err != nil {
+	pull := func(ctx context.Context) error {
+		return sjs.gitRepo.PullFromRemote(ctx, pullRepository(syncJob, reg, logWriter))
+	}
+	if err = pull(ctx); err != nil {
 		return err
 	}
 	if logWriter != nil {
@@ -624,15 +696,245 @@ func (sjs *SyncJobService) executeModelCacheJob(ctx context.Context, syncJob *Sy
 
 	// The pull fetched every branch and tag of upstream, with their commits,
 	// so a revision that does not resolve now cannot be cached.
-	if params.Revision != "" {
-		if _, _, err = sjs.gitRepo.ListCommits(ctx, syncJob.ResourceType, syncJob.ProjectName, syncJob.ResourceName,
-			params.Revision, 1, 1); err != nil {
-			return fmt.Errorf("revision %s: %w", params.Revision, err)
+	files, err := sjs.gitRepo.ListRevisionFiles(ctx, syncJob.ResourceType, syncJob.ProjectName, syncJob.ResourceName, params.Revision)
+	if err != nil {
+		return err
+	}
+	run := &modelCacheRun{
+		git:  sjs.gitRepo,
+		opts: sjs.modelCache,
+		log:  logWriter,
+		// Pulling again re-creates the repository of a deleted model, so
+		// only a model that still exists is pulled.
+		requeuePull: func(ctx context.Context) error {
+			if _, err := sjs.modelRepo.GetByProjectAndName(ctx, syncJob.ProjectName, syncJob.ResourceName); err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errModelGone
+				}
+				return err
+			}
+			return pull(ctx)
+		},
+		pulledAt: time.Now(),
+	}
+	return run.cache(ctx, files)
+}
+
+// modelCacheRun caches the LFS objects of a revision for one job.
+type modelCacheRun struct {
+	git  git.IGitRepo
+	opts modelCacheOptions
+	log  io.Writer
+	// requeuePull pulls the model again, which queues its missing objects
+	// again.
+	requeuePull func(ctx context.Context) error
+
+	// mu guards the last pull, which the workers share.
+	mu       sync.Mutex
+	pulledAt time.Time
+	pullErr  error
+}
+
+type lfsObject struct {
+	oid  string
+	path string
+	size int64
+}
+
+// cache caches at most Concurrency objects at a time, and fails when any
+// object is not stored after all its attempts.
+func (r *modelCacheRun) cache(ctx context.Context, files *git.RevisionFiles) error {
+	// One object can back several files.
+	var objects []lfsObject
+	seen := make(map[string]bool)
+	var total int64
+	for _, f := range files.Files {
+		if !f.IsLFS || seen[f.OID] {
+			continue
+		}
+		seen[f.OID] = true
+		objects = append(objects, lfsObject{oid: f.OID, path: f.Path, size: f.Size})
+		total += f.Size
+	}
+	r.logf("[INFO] revision %s is commit %s: %d LFS objects, %d bytes\n", files.Revision, files.Commit, len(objects), total)
+
+	var (
+		wg           sync.WaitGroup
+		mu           sync.Mutex
+		done, failed int
+	)
+	slots := make(chan struct{}, r.opts.Concurrency)
+	for _, o := range objects {
+		select {
+		case slots <- struct{}{}:
+		case <-ctx.Done():
+		}
+		if ctx.Err() != nil {
+			break
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer func() { <-slots }()
+			err := r.cacheObject(ctx, o)
+			if ctx.Err() != nil {
+				return
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			if err != nil {
+				failed++
+				r.logf("[ERROR] %s: %v\n", o.path, err)
+				return
+			}
+			done++
+			r.logf("[INFO] stored %s (%d bytes), %d of %d LFS objects done\n", o.path, o.size, done, len(objects))
+		}()
+	}
+	wg.Wait()
+
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if failed > 0 {
+		return fmt.Errorf("%d of %d LFS objects were not stored", failed, len(objects))
+	}
+	r.logf("[INFO] job completed successfully; every LFS object of commit %s is stored\n", files.Commit)
+	return nil
+}
+
+// cacheObject waits until the object is stored, with up to MaxAttempts
+// attempts. A stalled or unstored download is not attempted again: the
+// mirror cannot cancel a download, so the next attempt would wait for the
+// same download.
+//
+// It runs on its own goroutine, where nothing recovers a panic, so it turns
+// one into an error instead of ending the process.
+func (r *modelCacheRun) cacheObject(ctx context.Context, o lfsObject) (err error) {
+	defer func() {
+		if p := recover(); p != nil {
+			log.Errorf("model cache job: LFS object %s: panic: %v\n%s", o.oid, p, debug.Stack())
+			err = fmt.Errorf("recovered from a panic: %v", p)
+		}
+	}()
+	for attempt := 1; ; attempt++ {
+		err = r.fetchOnce(ctx, o.oid)
+		if err == nil || ctx.Err() != nil || attempt >= r.opts.MaxAttempts ||
+			errors.Is(err, errStalled) || errors.Is(err, errNotStored) || errors.Is(err, errModelGone) {
+			return err
+		}
+		backoff := r.opts.RetryBackoff << (attempt - 1)
+		r.logf("[WARN] %s: attempt %d of %d failed: %v; retrying in %s\n", o.path, attempt, r.opts.MaxAttempts, err, backoff)
+		timer := time.NewTimer(backoff)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return ctx.Err()
+		case <-timer.C:
 		}
 	}
+}
 
-	if logWriter != nil {
-		_, _ = fmt.Fprintf(logWriter, "[INFO] job completed successfully; the LFS files of the model are queued for download\n")
+// fetchOnce makes sure that the object downloads, pulling the model again
+// when the mirror has not queued it, and waits until it is stored.
+func (r *modelCacheRun) fetchOnce(ctx context.Context, oid string) error {
+	if r.git.LFSObjectExists(ctx, oid) {
+		return nil
 	}
-	return nil
+	if r.git.FetchLFSObject(ctx, oid) == nil {
+		if r.git.LFSObjectExists(ctx, oid) {
+			return nil
+		}
+		if err := r.requeue(ctx); err != nil {
+			return err
+		}
+		if r.git.FetchLFSObject(ctx, oid) == nil {
+			if r.git.LFSObjectExists(ctx, oid) {
+				return nil
+			}
+			return errNotQueued
+		}
+	}
+	return r.waitStored(ctx, oid)
+}
+
+// waitStored polls until the object is stored. The mirror moves a finished
+// download into storage before it drops the download, so storage is checked
+// first, and again when the download is gone.
+func (r *modelCacheRun) waitStored(ctx context.Context, oid string) error {
+	ticker := time.NewTicker(r.opts.PollInterval)
+	defer ticker.Stop()
+
+	last := int64(-1)
+	lastChange := time.Now()
+	var complete time.Time
+	for {
+		if r.git.LFSObjectExists(ctx, oid) {
+			return nil
+		}
+		d := r.git.FetchLFSObject(ctx, oid)
+		if d == nil {
+			if r.git.LFSObjectExists(ctx, oid) {
+				return nil
+			}
+			return errDownloadGone
+		}
+		now := time.Now()
+		switch downloaded := d.Downloaded(); {
+		case downloaded >= d.Total():
+			// A complete download makes no progress, and is no stall.
+			if complete.IsZero() {
+				complete = now
+			}
+			if now.Sub(complete) > r.opts.StoreTimeout {
+				return errNotStored
+			}
+			lastChange = now
+		case downloaded != last:
+			last, lastChange = downloaded, now
+		}
+		if now.Sub(lastChange) > r.opts.StallTimeout {
+			return fmt.Errorf("%w for %s", errStalled, r.opts.StallTimeout)
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
+	}
+}
+
+// requeue pulls the model again. The workers share pulls: within
+// RequeueInterval of the last pull, they get its result instead.
+func (r *modelCacheRun) requeue(ctx context.Context) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if time.Since(r.pulledAt) < r.opts.RequeueInterval {
+		return r.pullErr
+	}
+	r.logf("[INFO] pulling the model again to queue its missing LFS objects\n")
+	err := r.requeuePull(ctx)
+	if err != nil && !errors.Is(err, errModelGone) {
+		err = fmt.Errorf("pull the model again: %w", err)
+	}
+	r.pulledAt, r.pullErr = time.Now(), err
+	return err
+}
+
+func (r *modelCacheRun) logf(format string, args ...any) {
+	if r.log != nil {
+		_, _ = fmt.Fprintf(r.log, format, args...)
+	}
+}
+
+// lockedWriter serializes writes to a job log.
+type lockedWriter struct {
+	mu sync.Mutex
+	w  io.Writer
+}
+
+func (lw *lockedWriter) Write(p []byte) (int, error) {
+	lw.mu.Lock()
+	defer lw.mu.Unlock()
+	return lw.w.Write(p)
 }
