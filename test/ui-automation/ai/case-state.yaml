@@ -1,0 +1,23 @@
+version: 2
+lastSuccessful:
+  sourceCommit: 6bfcacc45f3ee9014e22dcf341df59eedf43bead
+  runId: matrixhub-default-20260831094440859-c690bef0
+  verifiedAt: '2026-08-31T09:46:54.045Z'
+  report: test/ui-automation/reports/matrixhub-default-20260831094440859-c690bef0-attempt1/summary.json
+outputs:
+  manifest:
+    path: test/ui-automation/config/manifest.yaml
+    hash: sha256:de5f5bf3f590baf578810b6b4d9e8c3502b17ad60bf151bccb8b00d0d8675424
+  targets:
+    - path: test/ui-automation/targets.yaml
+      hash: sha256:05a03f604708479859a6873e18fe2a5008386c37198012a635dea54580dbb8a0
+  cases:
+    login_success:
+      yaml: cases/login_success.yaml
+      yamlHash: sha256:5813bcb3cf37d5b523ea8e13d66a9c1dce390bf6868edcbb820f4248e92cff72
+    create_public_project:
+      yaml: cases/create_public_project.yaml
+      yamlHash: sha256:d2f0bd0bd443a56ab1cde4537a7dca0110a9f2195b4d8265a15b6e10544589b5
+    create_private_project:
+      yaml: cases/create_private_project.yaml
+      yamlHash: sha256:cd70b2a1663db7982cb51da375342d116404e9c53906ffdd9df64ff5cf23389a

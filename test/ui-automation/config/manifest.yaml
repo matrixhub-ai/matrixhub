@@ -1,0 +1,8 @@
+root: ..
+targets:
+  - targets.yaml
+
+cases:
+  - cases/login_success.yaml
+  - cases/create_public_project.yaml
+  - cases/create_private_project.yaml

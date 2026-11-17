@@ -1,0 +1,124 @@
+name: Call UI Automation
+
+env:
+  CLUSTER_NAME: matrixhub-ui-automation
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+      ref:
+        required: false
+        type: string
+      runner_image:
+        description: Fixed ui-factory-ai runner image tag or digest
+        required: true
+        type: string
+      runner_registry:
+        description: Registry hosting the ui-factory-ai runner image
+        required: false
+        type: string
+        default: ghcr.io
+      k8s_version:
+        required: false
+        type: string
+        default: v1.32.3
+      artifact_profile:
+        required: false
+        type: string
+        default: failure
+    secrets:
+      UI_AUTOMATION_REGISTRY_USERNAME:
+        required: false
+      UI_AUTOMATION_REGISTRY_PASSWORD:
+        required: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  ui_automation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Download MatrixHub image
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: matrixhub-ci-image-${{ inputs.image_tag }}
+          path: /tmp
+
+      - name: Load MatrixHub image
+        run: docker load -i /tmp/matrixhub-ci.tar
+
+      - name: Prepare image reference
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_REPO_LOWER=${REPO_LOWER}" >> "$GITHUB_ENV"
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Golang
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Install KIND and Helm
+        run: |
+          go install sigs.k8s.io/kind@v0.31.0
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+          kind version
+          helm version
+
+      - name: Login to custom runner registry
+        if: ${{ inputs.runner_registry != 'ghcr.io' }}
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ inputs.runner_registry }}
+          username: ${{ secrets.UI_AUTOMATION_REGISTRY_USERNAME }}
+          password: ${{ secrets.UI_AUTOMATION_REGISTRY_PASSWORD }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ inputs.runner_registry == 'ghcr.io' }}
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run MatrixHub UI Automation
+        env:
+          UI_AUTOMATION_MODE: ci
+          UI_AUTOMATION_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          UI_AUTOMATION_KIND_IMAGE_TAG: ${{ inputs.k8s_version }}
+          UI_AUTOMATION_MATRIXHUB_IMAGE: ghcr.io/${{ env.IMAGE_REPO_LOWER }}/matrixhub-ci:${{ inputs.image_tag }}
+          UI_AUTOMATION_RUNNER_IMAGE: ${{ inputs.runner_image }}
+          UI_AUTOMATION_RUNNER_NETWORK: host
+          UI_AUTOMATION_BASE_URL: http://127.0.0.1:30101/
+          UI_AUTOMATION_USERNAME: admin
+          UI_AUTOMATION_PASSWORD: changeme
+          UI_AUTOMATION_ARTIFACT_PROFILE: ${{ inputs.artifact_profile }}
+          UI_AUTOMATION_REPORT_DIR: test/ui-automation/reports
+          UI_AUTOMATION_RUN_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
+        run: make test.ui-automation.kind
+
+      - name: Upload UI Automation reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4.6.0
+        with:
+          name: ui-automation-report-${{ inputs.image_tag }}
+          path: test/ui-automation/reports
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Cleanup KIND cluster
+        if: ${{ always() }}
+        run: kind delete cluster --name="${CLUSTER_NAME}" || true
