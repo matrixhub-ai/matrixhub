@@ -2534,6 +2534,10 @@ func (m *File) validate(all bool) error {
 
 	// no validation rules for Url
 
+	// no validation rules for XetHash
+
+	// no validation rules for PointerSize
+
 	if len(errors) > 0 {
 		return FileMultiError(errors)
 	}

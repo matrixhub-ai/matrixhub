@@ -7,6 +7,7 @@ import {
 import { IconClock } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
+import { FileStorageBadge } from '@/shared/components/badges/FileStorageBadge'
 import { formatDateTime } from '@/shared/utils/date'
 import { formatStorageSize } from '@/shared/utils/format'
 
@@ -126,9 +127,12 @@ export function FileToolbar({
             )
           : null}
 
-        <Text size="xs">
-          {formatStorageSize(file.size)}
-        </Text>
+        <Group gap={6} wrap="nowrap">
+          <Text size="xs">
+            {formatStorageSize(file.size)}
+          </Text>
+          <FileStorageBadge lfs={file.lfs} xetHash={file.xetHash} />
+        </Group>
       </Group>
     </Group>
   )

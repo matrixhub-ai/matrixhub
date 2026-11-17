@@ -9,10 +9,7 @@
 
 package v1alpha1
 
-type V1alpha1OrphanedRepo struct {
-	Path         string `json:"path,omitempty"`
-	Type_        string `json:"type,omitempty"`
-	ProjectName  string `json:"projectName,omitempty"`
-	ResourceName string `json:"resourceName,omitempty"`
-	SizeBytes    string `json:"sizeBytes,omitempty"`
+type V1alpha1StorageObjectUsage struct {
+	Count string `json:"count,omitempty"`
+	Bytes string `json:"bytes,omitempty"`
 }

@@ -34,11 +34,6 @@ func TestAuthzInterceptorCleanupPermissions(t *testing.T) {
 		permission role.Permission
 	}{
 		{
-			name:       "preview cleanup requires cleanup get",
-			method:     "/matrixhub.v1alpha1.Cleanup/PreviewCleanup",
-			permission: role.CleanupGet,
-		},
-		{
 			name:       "storage stats requires cleanup get",
 			method:     "/matrixhub.v1alpha1.Cleanup/GetStorageStats",
 			permission: role.CleanupGet,
@@ -106,7 +101,7 @@ func TestAuthzInterceptorCleanupRequiresIdentity(t *testing.T) {
 		return false, nil
 	})
 
-	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{FullMethod: "/matrixhub.v1alpha1.Cleanup/PreviewCleanup"}, func(context.Context, interface{}) (interface{}, error) {
+	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{FullMethod: "/matrixhub.v1alpha1.Cleanup/GetStorageStats"}, func(context.Context, interface{}) (interface{}, error) {
 		t.Fatal("handler should not be called without identity")
 		return nil, nil
 	})

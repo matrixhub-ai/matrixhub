@@ -16,347 +16,207 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
-	"regexp"
+	"io/fs"
 	"strings"
-	"sync"
+	"time"
 
+	hfdgc "github.com/matrixhub-ai/hfd/pkg/gc"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
-	"golang.org/x/sync/errgroup"
+	xetmirror "github.com/wzshiming/xet/mirror"
+	"github.com/wzshiming/xet/mirror/spool"
+	xetstorage "github.com/wzshiming/xet/storage"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 )
 
-type lfsObjectInfo struct {
-	size int64
-	path string
-}
-
-var lfsOIDPattern = regexp.MustCompile("^[0-9a-f]{64}$")
-
-// FindOrphanedRepos finds orphaned Git repositories on disk.
-func (g *gitRepo) FindOrphanedRepos(ctx context.Context, validModelPaths, validDatasetPaths []string) ([]*git.OrphanedRepo, error) {
-	validPaths := make(map[string]bool)
+// PruneRepos removes every repository on disk that neither list names; dryRun only reports them.
+func (g *gitRepo) PruneRepos(ctx context.Context, validModelPaths, validDatasetPaths []string, dryRun bool) ([]*git.OrphanedRepo, error) {
+	keep := make(map[string]bool, len(validModelPaths)+len(validDatasetPaths))
 	for _, p := range validModelPaths {
-		validPaths[p+".git"] = true
+		keep[repository.ResolvePath(repoPrefix("model")+p)] = true
 	}
 	for _, p := range validDatasetPaths {
-		validPaths["datasets/"+p+".git"] = true
+		keep[repository.ResolvePath(repoPrefix("dataset")+p)] = true
 	}
-
-	reposDir := g.storage.RepositoriesDir()
+	reposFS := g.storage.RepositoriesFS()
 	orphaned := []*git.OrphanedRepo{}
-
-	err := filepath.Walk(reposDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || !info.IsDir() {
+	if _, err := reposFS.Stat("/"); errors.Is(err, fs.ErrNotExist) {
+		return orphaned, nil
+	}
+	err := repository.Walk(ctx, reposFS, "/", func(path string) error {
+		if keep[path] {
 			return nil
 		}
-		if ctx.Err() != nil {
-			return ctx.Err()
+		repo, err := g.openRepo(path)
+		if err != nil {
+			return fmt.Errorf("open %s: %w", path, err)
 		}
-		if !repository.IsRepository(path) {
-			return nil
+		usage, err := repo.Usage(ctx)
+		if err != nil {
+			return fmt.Errorf("usage %s: %w", path, err)
 		}
-
-		relPath := strings.TrimPrefix(path, reposDir+"/")
-		if validPaths[relPath] {
-			return filepath.SkipDir
+		if err := ctx.Err(); err != nil {
+			return err
 		}
-
-		parts := strings.Split(relPath, "/")
-		repoType := "model"
-		if strings.HasPrefix(relPath, "datasets/") {
-			repoType = "dataset"
-		}
-
-		var projectName, resourceName string
-		if len(parts) >= 2 {
-			if repoType == "dataset" && len(parts) >= 3 {
-				projectName = parts[1]
-				resourceName = strings.TrimSuffix(parts[2], ".git")
-			} else {
-				projectName = parts[0]
-				resourceName = strings.TrimSuffix(parts[1], ".git")
+		if !dryRun {
+			if err := repo.Remove(); err != nil {
+				return fmt.Errorf("remove %s: %w", path, err)
 			}
 		}
-
-		orphaned = append(orphaned, &git.OrphanedRepo{
-			Path:         relPath,
-			Type:         repoType,
-			ProjectName:  projectName,
-			ResourceName: resourceName,
-			SizeBytes:    calculateDirSize(path),
-		})
-
-		return filepath.SkipDir
+		size := usage.Objects.Bytes + usage.Other.Bytes
+		orphaned = append(orphaned, &git.OrphanedRepo{Path: strings.TrimPrefix(path, "/"), SizeBytes: size})
+		return nil
 	})
-
 	return orphaned, err
 }
 
-// FindOrphanedLFS finds orphaned LFS objects on disk.
-func (g *gitRepo) FindOrphanedLFS(ctx context.Context) ([]*git.OrphanedLFS, error) {
-	allOIDs, err := g.scanLFSObjects(ctx)
-	if err != nil {
+// Prune maps the hfd prune, the xet CAS sweep step and, once that finished, the spool and mirror-index sweeps into one
+// GCResult; SweepDone stays nil until the CAS sweep step succeeded.
+func (g *gitRepo) Prune(ctx context.Context, opts git.PruneOptions) (*git.GCResult, error) {
+	if g.xetStore == nil {
+		return nil, errors.New("lfs gc: xet store not configured")
+	}
+	if !g.gcMu.TryLock() {
+		return nil, git.ErrGCBusy
+	}
+	defer g.gcMu.Unlock()
+	grace := g.gcGrace
+	if opts.Grace != nil {
+		grace = *opts.Grace
+	}
+	res, err := g.gc.Prune(ctx, hfdgc.PruneOptions{Grace: grace, DryRun: opts.DryRun})
+	if errors.Is(err, hfdgc.ErrBusy) {
+		err = fmt.Errorf("%w: %v", git.ErrGCBusy, err)
+	}
+	if res == nil {
 		return nil, err
 	}
-
-	referencedOIDs, err := g.collectReferencedOIDs(ctx)
+	result := &git.GCResult{
+		DryRun:              res.DryRun,
+		Repositories:        res.Repositories,
+		DeletedGitObjects:   res.DeletedGitObjects,
+		DeletedGitBytes:     res.DeletedGitBytes,
+		GitReclaimedBytes:   res.ReclaimedBytes,
+		Failed:              res.Failed,
+		LiveObjects:         res.LiveObjects,
+		Unlinked:            res.Unlinked,
+		PruneSkippedInGrace: res.SkippedInGrace,
+	}
 	if err != nil {
-		return nil, err
+		return result, err
 	}
-
-	orphaned := make([]*git.OrphanedLFS, 0)
-	for oid, info := range allOIDs {
-		if !referencedOIDs[oid] {
-			orphaned = append(orphaned, &git.OrphanedLFS{
-				OID:       oid,
-				SizeBytes: info.size,
-				Path:      info.path,
-			})
-		}
+	var deadline time.Time
+	if opts.Budget > 0 && !opts.DryRun {
+		deadline = g.now().Add(opts.Budget)
 	}
-
-	return orphaned, nil
-}
-
-// DeleteRepositoryAtRelPath deletes an orphaned repository by relative path.
-func (g *gitRepo) DeleteRepositoryAtRelPath(ctx context.Context, path string) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	fullPath, err := confinedPath(g.storage.RepositoriesDir(), path)
-	if err != nil {
-		return err
-	}
-	return os.RemoveAll(fullPath)
-}
-
-// DeleteLFSObject deletes an orphaned LFS object.
-func (g *gitRepo) DeleteLFSObject(ctx context.Context, object *git.OrphanedLFS) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	fullPath, err := confinedPath(g.storage.LFSDir(), object.Path)
-	if err != nil {
-		return err
-	}
-	return os.Remove(fullPath)
-}
-
-// RepositoriesSize returns the size of all repositories on disk.
-func (g *gitRepo) RepositoriesSize(ctx context.Context) int64 {
-	if ctx.Err() != nil {
-		return 0
-	}
-	return calculateDirSize(g.storage.RepositoriesDir())
-}
-
-// LFSSize returns the size of all LFS objects on disk.
-func (g *gitRepo) LFSSize(ctx context.Context) int64 {
-	if ctx.Err() != nil {
-		return 0
-	}
-	return calculateDirSize(g.storage.LFSDir())
-}
-
-func (g *gitRepo) scanLFSObjects(ctx context.Context) (map[string]*lfsObjectInfo, error) {
-	objects := make(map[string]*lfsObjectInfo)
-	lfsDir, err := filepath.Abs(g.storage.LFSDir())
-	if err != nil {
-		return nil, err
-	}
-	if _, err := os.Stat(lfsDir); os.IsNotExist(err) {
-		return objects, nil
-	}
-
-	err = filepath.Walk(lfsDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
-			return nil
-		}
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
-		rel, err := filepath.Rel(lfsDir, path)
-		if err != nil {
-			return err
-		}
-		oid := strings.ReplaceAll(rel, string(filepath.Separator), "")
-		if lfsOIDPattern.MatchString(oid) {
-			objects[oid] = &lfsObjectInfo{
-				size: info.Size(),
-				path: path,
-			}
-		}
-		return nil
+	// Unlinking only drops the index entry; the sweep reclaims (or, dry, estimates) already-unlinked data.
+	// LFS objects are addressed by SHA-256, so only sha256 entries anchor a shard.
+	sweep, err := g.xgc.SweepStep(ctx, xetstorage.SweepOptions{
+		Anchor: xetstorage.AnchorSHA256, Grace: grace, DryRun: opts.DryRun, MaxDeletes: opts.MaxDeletes, Budget: opts.Budget,
 	})
+	if errors.Is(err, xetstorage.ErrGCBusy) {
+		return result, fmt.Errorf("%w: %v", git.ErrGCBusy, err)
+	}
+	if err != nil {
+		return result, err
+	}
+	result.SweptShards = len(sweep.SweptShards)
+	result.SweptXorbs = len(sweep.SweptXorbs)
+	result.XetReclaimedBytes = sweep.ReclaimedBytes
+	result.SweepSkippedInGrace = sweep.SkippedInGrace
+	result.Dangling = sweep.DanglingSHA256Entries
+	result.UnreadableShards = sweep.UnreadableShards
+	result.SweepDone = &sweep.Done
+	result.RemainingShards = sweep.RemainingShards
+	result.RemainingXorbs = sweep.RemainingXorbs
+	if !sweep.Done {
+		return result, nil
+	}
 
-	return objects, err
+	swept := len(sweep.SweptShards) + len(sweep.SweptXorbs)
+	// handDown returns the budget left for the next sweep; false defers it because this run already swept and spent its budget.
+	handDown := func() (time.Duration, bool) {
+		if deadline.IsZero() {
+			return 0, true
+		}
+		if left := deadline.Sub(g.now()); left > 0 {
+			return left, true
+		}
+		if swept > 0 {
+			return 0, false
+		}
+		return time.Nanosecond, true
+	}
+	if b, ok := handDown(); ok && g.spool != nil {
+		sp, err := g.spool.Sweep(ctx, spool.SweepOptions{Grace: grace, DryRun: opts.DryRun, Budget: b})
+		if err != nil {
+			return result, fmt.Errorf("spool sweep: %w", err)
+		}
+		result.SpoolSweep = &git.SpoolSweepResult{
+			SweptSpools:     sp.SweptSpools,
+			ReclaimedBytes:  sp.ReclaimedBytes,
+			Done:            sp.Done,
+			RemainingSpools: sp.RemainingSpools,
+		}
+		swept += sp.SweptSpools
+	}
+	if b, ok := handDown(); ok && g.xmirror != nil {
+		mr, err := g.xmirror.Sweep(ctx, xetmirror.SweepOptions{Grace: grace, DryRun: opts.DryRun, Budget: b})
+		if err != nil {
+			return result, fmt.Errorf("mirror index sweep: %w", err)
+		}
+		result.MirrorSweep = &git.MirrorSweepResult{
+			DroppedEntries:     mr.DroppedEntries,
+			RemovedManifests:   mr.RemovedManifests,
+			RemovedTempFiles:   mr.RemovedTempFiles,
+			Done:               mr.Done,
+			RemainingTempFiles: mr.RemainingTempFiles,
+			RemainingManifests: mr.RemainingManifests,
+		}
+	}
+	return result, nil
 }
 
-func (g *gitRepo) collectReferencedOIDs(ctx context.Context) (map[string]bool, error) {
-	referencedOIDs := make(map[string]bool)
-
-	reposDir := g.storage.RepositoriesDir()
-	if _, err := os.Stat(reposDir); os.IsNotExist(err) {
-		return referencedOIDs, nil
-	}
-
-	repoPaths := g.listAllRepoPaths(ctx, reposDir)
-
-	group, _ := errgroup.WithContext(ctx)
-	group.SetLimit(10)
-
-	var mu sync.Mutex
-
-	for _, repoPath := range repoPaths {
-		group.Go(func() error {
-			oids, err := g.collectRepoLFSOIDs(repoPath)
-			if err != nil {
-				return nil
-			}
-			mu.Lock()
-			for oid := range oids {
-				referencedOIDs[oid] = true
-			}
-			mu.Unlock()
-			return nil
-		})
-	}
-
-	if err := group.Wait(); err != nil {
+// Usage reports Git, xet, spool and mirror-index storage by kind; a category stays zero without its component.
+func (g *gitRepo) Usage(ctx context.Context) (*git.StorageUsage, error) {
+	usage, err := g.gc.Usage(ctx)
+	if err != nil {
 		return nil, err
 	}
-
-	return referencedOIDs, nil
-}
-
-func (g *gitRepo) listAllRepoPaths(ctx context.Context, reposDir string) []string {
-	repoPaths := []string{}
-	err := filepath.Walk(reposDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || !info.IsDir() {
-			return nil
-		}
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-		if repository.IsRepository(path) {
-			repoPaths = append(repoPaths, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil
+	out := &git.StorageUsage{
+		Git: git.GitUsage{
+			Objects: git.ObjectUsage(usage.Objects),
+			Other:   git.ObjectUsage(usage.Other),
+		},
 	}
-	return repoPaths
-}
-
-func (g *gitRepo) collectRepoLFSOIDs(repoPath string) (map[string]bool, error) {
-	oids := make(map[string]bool)
-
-	repo, err := repository.Open(repoPath)
-	if err != nil {
-		return oids, err
-	}
-
-	branches, err := repo.Branches()
-	if err != nil {
-		return oids, nil
-	}
-	for _, branch := range branches {
-		collectOIDsFromRevision(repo, "refs/heads/"+branch, oids)
-	}
-
-	tags, err := repo.Tags()
-	if err != nil {
-		return oids, nil
-	}
-	for _, tag := range tags {
-		collectOIDsFromRevision(repo, "refs/tags/"+tag, oids)
-	}
-
-	return oids, nil
-}
-
-func collectOIDsFromRevision(repo *repository.Repository, rev string, oids map[string]bool) {
-	commits, err := repo.Commits(rev, nil)
-	if err != nil {
-		return
-	}
-
-	for _, commit := range commits {
-		entries, err := repo.Tree(commit.Hash().String(), "", &repository.TreeOptions{Recursive: true})
+	if g.xetStore != nil {
+		xu, err := g.xetStore.Usage(ctx)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("xet usage: %w", err)
 		}
-
-		for _, entry := range entries {
-			blob, err := entry.Blob()
-			if err != nil {
-				continue
-			}
-
-			ptr, _ := blob.LFSPointer()
-			if ptr != nil {
-				oids[ptr.OID()] = true
-			}
+		out.Xet = git.XetUsage{
+			Xorbs:       git.ObjectUsage(xu.Xorbs),
+			Shards:      git.ObjectUsage(xu.Shards),
+			FileIndex:   git.ObjectUsage(xu.FileIndex),
+			ChunkIndex:  git.ObjectUsage(xu.ChunkIndex),
+			SHA256Index: git.ObjectUsage(xu.SHA256Index),
 		}
 	}
-}
-
-func calculateDirSize(path string) int64 {
-	var size int64
-	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+	if g.spool != nil {
+		su, err := g.spool.Usage(ctx)
 		if err != nil {
-			return nil
+			return nil, fmt.Errorf("spool usage: %w", err)
 		}
-		if !info.IsDir() {
-			size += info.Size()
+		out.Spool = git.ObjectUsage(su)
+	}
+	if g.xmirror != nil {
+		mu, err := g.xmirror.Usage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("mirror usage: %w", err)
 		}
-		return nil
-	})
-	if err != nil {
-		return 0
+		out.Mirror = git.ObjectUsage(mu)
 	}
-	return size
-}
-
-func confinedPath(root, path string) (string, error) {
-	rootAbs, err := filepath.Abs(root)
-	if err != nil {
-		return "", err
-	}
-
-	if filepath.IsAbs(path) {
-		return checkedPath(rootAbs, path, path, root)
-	}
-
-	pathAbs, err := filepath.Abs(path)
-	if err == nil && isSubpath(rootAbs, pathAbs) {
-		return pathAbs, nil
-	}
-
-	return checkedPath(rootAbs, filepath.Join(rootAbs, path), path, root)
-}
-
-func checkedPath(rootAbs, fullPath, originalPath, originalRoot string) (string, error) {
-	fullPath, err := filepath.Abs(fullPath)
-	if err != nil {
-		return "", err
-	}
-	if !isSubpath(rootAbs, fullPath) {
-		return "", fmt.Errorf("cleanup path %q escapes root %q", originalPath, originalRoot)
-	}
-	return fullPath, nil
-}
-
-func isSubpath(rootAbs, pathAbs string) bool {
-	rel, err := filepath.Rel(rootAbs, pathAbs)
-	if err != nil {
-		return false
-	}
-	return rel != ".." && !strings.HasPrefix(rel, ".."+string(os.PathSeparator))
+	return out, nil
 }

@@ -18,7 +18,7 @@
   "paths": {
     "/api/v1alpha1/cleanup/execute": {
       "post": {
-        "summary": "Execute cleanup",
+        "summary": "Execute cleanup; dry_run previews without deleting",
         "operationId": "Cleanup_ExecuteCleanup",
         "responses": {
           "200": {
@@ -41,39 +41,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1alpha1ExecuteCleanupRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Cleanup"
-        ]
-      }
-    },
-    "/api/v1alpha1/cleanup/preview": {
-      "post": {
-        "summary": "Preview orphaned data (dry-run)",
-        "operationId": "Cleanup_PreviewCleanup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1alpha1CleanupPreview"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1alpha1PreviewCleanupRequest"
             }
           }
         ],
@@ -135,49 +102,28 @@
         }
       }
     },
-    "v1alpha1CleanupPreview": {
-      "type": "object",
-      "properties": {
-        "orphanedRepos": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1alpha1OrphanedRepo"
-          }
-        },
-        "orphanedLfsObjects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1alpha1OrphanedLFS"
-          }
-        },
-        "totalReclaimableBytes": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
     "v1alpha1CleanupResult": {
       "type": "object",
       "properties": {
-        "reposDeleted": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "lfsObjectsDeleted": {
-          "type": "integer",
-          "format": "int32"
-        },
         "spaceReclaimedBytes": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "title": "orphaned repository bytes plus Git, xet and spool reclaimed bytes; the mirror index sweep reports counts only"
         },
         "errors": {
           "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "orphanedRepos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gc": {
+          "$ref": "#/definitions/v1alpha1GCResult"
         }
       }
     },
@@ -193,51 +139,194 @@
         "dryRun": {
           "type": "boolean",
           "title": "true = preview only, no actual deletion"
+        },
+        "maxDeletes": {
+          "type": "integer",
+          "format": "int32",
+          "title": "max shard+xorb deletions per CAS sweep, 0 = unlimited; ignored by dry runs"
+        },
+        "budget": {
+          "type": "string",
+          "title": "wall-clock cap on the CAS, spool and mirror-index sweeps together, unset/0 = unlimited; ignored by dry runs"
         }
       }
     },
-    "v1alpha1OrphanedLFS": {
+    "v1alpha1GCResult": {
       "type": "object",
       "properties": {
-        "oid": {
-          "type": "string"
-        },
-        "sizeBytes": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v1alpha1OrphanedRepo": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string",
-          "title": "\"model\" or \"dataset\""
-        },
-        "projectName": {
-          "type": "string"
-        },
-        "resourceName": {
-          "type": "string"
-        },
-        "sizeBytes": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v1alpha1PreviewCleanupRequest": {
-      "type": "object",
-      "properties": {
-        "includeOrphanedRepos": {
+        "dryRun": {
           "type": "boolean"
         },
-        "includeOrphanedLfs": {
+        "repositories": {
+          "type": "integer",
+          "format": "int32",
+          "title": "repositories scanned, GC failures included"
+        },
+        "deletedGitObjects": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "deletedGitBytes": {
+          "type": "string",
+          "format": "int64",
+          "title": "uncompressed payload of the deleted Git objects"
+        },
+        "gitReclaimedBytes": {
+          "type": "string",
+          "format": "int64",
+          "title": "shrink of Git object storage; 0 in a dry run, which repacks nothing"
+        },
+        "failed": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "repository path -\u003e Git GC error; its LFS pointers stay live"
+        },
+        "liveObjects": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "unlinked": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "sorted sha256 hex; dry run: what would be unlinked"
+        },
+        "pruneSkippedInGrace": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "sweptShards": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "sweptXorbs": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "xetReclaimedBytes": {
+          "type": "string",
+          "format": "int64",
+          "title": "shard and xorb bytes the sweep reclaimed"
+        },
+        "sweepSkippedInGrace": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "dangling": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "OIDs whose data is missing; reported, never deleted"
+        },
+        "unreadableShards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "treated live; no xorb deleted that pass"
+        },
+        "sweepDone": {
+          "type": "boolean",
+          "title": "null: no sweep result because the prune or the sweep failed; false: a bounded sweep left data; true: finished",
+          "x-nullable": true
+        },
+        "remainingShards": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "remainingXorbs": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "spool": {
+          "$ref": "#/definitions/v1alpha1SpoolSweepResult",
+          "title": "absent when it did not run; it runs only after a finished CAS sweep"
+        },
+        "mirror": {
+          "$ref": "#/definitions/v1alpha1MirrorSweepResult",
+          "title": "absent when it did not run; it runs only after a finished CAS sweep"
+        }
+      },
+      "description": "One run of Git GC, LFS prune and the sweeps of already-unlinked data; a dry run's sweeps estimate that data, not this run's still-linked candidates."
+    },
+    "v1alpha1GitStorageUsage": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage",
+          "title": "loose and packed Git objects"
+        },
+        "other": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage",
+          "title": "everything else in the repository, such as refs and config"
+        }
+      },
+      "description": "Every repository under the repositories root; unreachable objects included, LFS content excluded."
+    },
+    "v1alpha1MirrorSweepResult": {
+      "type": "object",
+      "properties": {
+        "droppedEntries": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "removedManifests": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "removedTempFiles": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "done": {
           "type": "boolean"
+        },
+        "remainingTempFiles": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "remainingManifests": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "One sweep of the xet mirror index; it counts files, not bytes."
+    },
+    "v1alpha1SpoolSweepResult": {
+      "type": "object",
+      "properties": {
+        "sweptSpools": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "reclaimedBytes": {
+          "type": "string",
+          "format": "int64"
+        },
+        "done": {
+          "type": "boolean"
+        },
+        "remainingSpools": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "One sweep of the xet mirror spool files."
+    },
+    "v1alpha1StorageObjectUsage": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bytes": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -246,19 +335,43 @@
       "properties": {
         "totalSizeBytes": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "title": "every Git, xet, spool and mirror-index category summed"
         },
-        "repositoriesSizeBytes": {
-          "type": "string",
-          "format": "int64"
+        "git": {
+          "$ref": "#/definitions/v1alpha1GitStorageUsage"
         },
-        "lfsSizeBytes": {
-          "type": "string",
-          "format": "int64"
+        "xet": {
+          "$ref": "#/definitions/v1alpha1XetStorageUsage"
         },
-        "orphanedSizeBytes": {
-          "type": "string",
-          "format": "int64"
+        "spool": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage",
+          "title": "xet mirror spool files (in-flight and idle ingests)"
+        },
+        "mirror": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage",
+          "title": "xet mirror engine index (commit and branch manifests)"
+        }
+      },
+      "description": "Storage by kind; not an atomic snapshot."
+    },
+    "v1alpha1XetStorageUsage": {
+      "type": "object",
+      "properties": {
+        "xorbs": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage"
+        },
+        "shards": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage"
+        },
+        "fileIndex": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage"
+        },
+        "chunkIndex": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage"
+        },
+        "sha256Index": {
+          "$ref": "#/definitions/v1alpha1StorageObjectUsage"
         }
       }
     }
