@@ -8,6 +8,7 @@ import {
   Text,
   useCombobox,
 } from '@mantine/core'
+import { IconChevronDown } from '@tabler/icons-react'
 import { type ComponentProps, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -114,7 +115,7 @@ export function ProjectSelect({
           withAsterisk={withAsterisk}
           {...restInputProps}
           onBlur={() => inputProps?.onBlur?.()}
-          rightSection={<Combobox.Chevron />}
+          rightSection={<IconChevronDown size={16} aria-hidden />}
           rightSectionPointerEvents="none"
           onClick={() => combobox.toggleDropdown()}
         >

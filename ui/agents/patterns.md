@@ -213,6 +213,8 @@ Keep Mantine as the field UI layer. Bind TanStack Form state onto Mantine compon
 
 `Select`, `Textarea`, `NumberInput`, `Switch`, `Checkbox` follow the same template — read `value` / `checked` from `field.state`, write via `field.handleChange`, wire `onBlur={field.handleBlur}` and `error={fieldError(field)}`. Switch/Checkbox use `checked` + `e.currentTarget.checked`. Select uses `(val) => field.handleChange(val ?? '')`.
 
+Use `ProjectSelect` for searchable project choices with a visibility badge. It renders the project name and badge 6px apart and provides its own dropdown chevron.
+
 ---
 
 ## §9. Form + mutation integration

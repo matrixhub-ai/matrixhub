@@ -1,0 +1,21 @@
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 26fr) minmax(0, 35fr);
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.fields :global(.mantine-Input-wrapper):not([data-error]) {
+  --input-bd: var(--app-color-gray-40);
+}
+
+.identifier {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 40em) {
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--mantine-spacing-md);
+  }
+}
