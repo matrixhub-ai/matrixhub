@@ -44,7 +44,6 @@ const fieldStyles = {
     '--input-padding': rem(11),
     marginBottom: 0,
   },
-  section: { insetInlineEnd: 0 },
   description: {
     marginTop: rem(4),
     lineHeight: rem(18),
@@ -127,7 +126,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
   }, [projects, initialProjectId, form])
 
   return (
-    <>
+    <div className={classes.page}>
       <Stack
         component="form"
         aria-labelledby="model-create-title"
@@ -157,7 +156,6 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
                     disabled: !!initialProjectId || !projects?.length,
                     onBlur: field.handleBlur,
                     error: fixedProjectUnavailable ? t('model.create.projectUnavailable') : fieldError(field),
-                    rightSectionWidth: 40,
                     styles: fieldStyles,
                   }}
                 />
@@ -271,7 +269,7 @@ export function ModelCreatePage({ initialProjectId = '' }: ModelCreatePageProps)
         onClose={createProjectHandlers.close}
         onCreated={handleProjectCreated}
       />
-    </>
+    </div>
   )
 }
 

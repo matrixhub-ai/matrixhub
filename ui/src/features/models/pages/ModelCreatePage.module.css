@@ -1,3 +1,8 @@
+.page {
+  /* Allow for the app layout's 32px padding on either side. */
+  max-width: calc(100vw - 64px);
+}
+
 .fields {
   display: grid;
   grid-template-columns: minmax(0, 26fr) minmax(0, 35fr);
