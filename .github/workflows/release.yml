@@ -62,6 +62,47 @@ jobs:
       ref: ${{ needs.get-tag.outputs.tag }}
     secrets: inherit
 
+  # latest follows the highest official release. The check runs once the image
+  # is published rather than when the run starts: a release overtaken while its
+  # image was building, or re-run later, must not move latest back to an older
+  # image.
+  tag-latest-image:
+    needs: [get-tag, build-and-push-image]
+    if: needs.get-tag.outputs.is-official-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag Latest
+        id: tag_latest
+        timeout-minutes: 5
+        env:
+          RUN_TAG: ${{ needs.get-tag.outputs.tag }}
+        run: |
+          tags=$(git ls-remote --tags --refs origin)
+          highest=$(echo "${tags}" | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          echo "Highest official release: ${highest}"
+          if [ "${RUN_TAG}" != "${highest}" ]; then
+            echo "Not tagging latest: ${RUN_TAG} is not the highest official release"
+            exit 0
+          fi
+          image="ghcr.io/$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          docker buildx imagetools create --tag "${image}:latest" "${image}:${RUN_TAG}"
+          release_digest=$(docker buildx imagetools inspect "${image}:${RUN_TAG}" --format '{{.Manifest.Digest}}')
+          latest_digest=$(docker buildx imagetools inspect "${image}:latest" --format '{{.Manifest.Digest}}')
+          if [ "${latest_digest}" != "${release_digest}" ]; then
+            echo "latest resolves to ${latest_digest}, expected ${release_digest}"
+            exit 1
+          fi
+
   release-chart:
     needs: [get-tag, build-and-push-image]
     uses: ./.github/workflows/call-release-chart.yaml
