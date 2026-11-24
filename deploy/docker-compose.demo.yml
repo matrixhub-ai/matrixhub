@@ -5,7 +5,7 @@
 services:
   nginx:
     profiles: [prod]
-    image: docker.io/library/nginx:1.29.4
+    image: docker.io/library/nginx:1.30.8
     container_name: matrixhub-nginx
     ports:
       - "80:80"
