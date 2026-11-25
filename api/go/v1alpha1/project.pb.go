@@ -463,6 +463,7 @@ type GetProjectResponse struct {
 	ModelCount    uint32                 `protobuf:"varint,5,opt,name=model_count,json=modelCount,proto3" json:"model_count,omitempty"`
 	DatasetCount  uint32                 `protobuf:"varint,6,opt,name=dataset_count,json=datasetCount,proto3" json:"dataset_count,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	RegistryType  string                 `protobuf:"bytes,8,opt,name=registry_type,json=registryType,proto3" json:"registry_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -544,6 +545,13 @@ func (x *GetProjectResponse) GetUpdatedAt() *timestamppb.Timestamp {
 		return x.UpdatedAt
 	}
 	return nil
+}
+
+func (x *GetProjectResponse) GetRegistryType() string {
+	if x != nil {
+		return x.RegistryType
+	}
+	return ""
 }
 
 type DeleteProjectRequest struct {
@@ -1359,7 +1367,7 @@ const file_v1alpha1_project_proto_rawDesc = "" +
 	"pagination\x18\x02 \x01(\v2\x1e.matrixhub.v1alpha1.PaginationR\n" +
 	"pagination\"0\n" +
 	"\x11GetProjectRequest\x12\x1b\n" +
-	"\x04name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\"\xa5\x02\n" +
+	"\x04name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\"\xca\x02\n" +
 	"\x12GetProjectResponse\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x123\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1f.matrixhub.v1alpha1.ProjectTypeR\x04type\x12!\n" +
@@ -1369,7 +1377,8 @@ const file_v1alpha1_project_proto_rawDesc = "" +
 	"modelCount\x12#\n" +
 	"\rdataset_count\x18\x06 \x01(\rR\fdatasetCount\x129\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"3\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12#\n" +
+	"\rregistry_type\x18\b \x01(\tR\fregistryType\"3\n" +
 	"\x14DeleteProjectRequest\x12\x1b\n" +
 	"\x04name\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04name\"\x17\n" +
 	"\x15DeleteProjectResponse\"h\n" +

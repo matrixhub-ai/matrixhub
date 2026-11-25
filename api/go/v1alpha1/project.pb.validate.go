@@ -773,6 +773,8 @@ func (m *GetProjectResponse) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for RegistryType
+
 	if len(errors) > 0 {
 		return GetProjectResponseMultiError(errors)
 	}

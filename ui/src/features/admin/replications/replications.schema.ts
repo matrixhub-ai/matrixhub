@@ -1,3 +1,4 @@
+import { RegistryType, type Registry } from '@matrixhub/api-ts/v1alpha1/registry.pb'
 import {
   ResourceType,
   SyncPolicyType,
@@ -81,10 +82,24 @@ function replicationFormBaseSchema() {
   })
 }
 
-export function createReplicationFormSchema() {
+export function isModelScopePull(policyType: SyncPolicyType, registryType?: RegistryType) {
+  return policyType === SyncPolicyType.SYNC_POLICY_TYPE_PULL_BASE && registryType === RegistryType.REGISTRY_TYPE_MODELSCOPE
+}
+
+export function createReplicationFormSchema(registries: readonly Pick<Registry, 'id' | 'type'>[] = []) {
   const cronExpressionSchema = replicationCronExpressionSchema()
 
   return replicationFormBaseSchema().superRefine((data, ctx) => {
+    const registry = registries.find(item => item.id === data.sourceRegistryId)
+
+    if (isModelScopePull(data.policyType, registry?.type) && data.resourceTypes.includes(ResourceType.RESOURCE_TYPE_DATASET)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: t('routes.admin.replications.validation.modelScopeModelsOnly'),
+        path: ['resourceTypes'],
+      })
+    }
+
     if (data.resourceTypes.length === 0) {
       ctx.addIssue({
         code: 'custom',

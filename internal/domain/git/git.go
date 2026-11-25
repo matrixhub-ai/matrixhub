@@ -95,6 +95,7 @@ type TreeEntry struct {
 // RepoMetadataFiles holds raw metadata-related files loaded from a git repo.
 // File interpretation stays in the model domain; git only loads bytes.
 type RepoMetadataFiles struct {
+	DefaultBranch        string
 	ReadmeContent        []byte
 	ConfigJSON           []byte
 	SafetensorsIndexJSON []byte
@@ -132,6 +133,8 @@ type BasicCredential struct {
 
 type GitRepository struct {
 	RemoteRegistryURL  string
+	RemoteRegistryType string
+	Insecure           bool
 	RemoteProjectName  string
 	RemoteResourceName string
 	ProjectName        string
@@ -141,10 +144,21 @@ type GitRepository struct {
 	LogWriter          io.Writer        // optional; receives git operation output
 }
 
+// RemoteFile is the upstream response for a complete file or byte range.
+type RemoteFile struct {
+	Body          io.ReadCloser
+	ContentLength int64
+	ContentRange  string
+	Partial       bool
+}
+
 // IGitRepo defines the repository interface for Git operations on models.
 //
 //go:generate go tool mockgen -source=git.go -destination=mocks/git_repo_mock.go -package=mocks
 type IGitRepo interface {
+	RefreshModelScopeRefs(ctx context.Context, remote *GitRepository) (bool, error)
+	OpenModelScopeFile(ctx context.Context, remote *GitRepository, revision, path, byteRange string) (*RemoteFile, error)
+
 	// CreateRepository initializes a Git repository.
 	// repoType: "models" or "datasets"
 	CreateRepository(ctx context.Context, repoType, project, name string) error

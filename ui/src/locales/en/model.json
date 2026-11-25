@@ -68,7 +68,8 @@
       },
       "dockerHint": "Requires Docker with NVIDIA Container Toolkit configured.",
       "otherMethods": "Other methods",
-      "viewDocs": "View {{engine}} docs"
+      "viewDocs": "View {{engine}} docs",
+      "downloadProvider": "Model download method"
     },
     "commandGuide": {
       "steps": {
@@ -82,7 +83,10 @@
         "install": "Install the download tool",
         "configure": "Configure the download endpoint",
         "run": "Download the model",
-        "note": "Files are saved to"
+        "note": "Files are saved to",
+        "provider": "Download client",
+        "python": "Or use the ModelScope Python SDK",
+        "modelScopeToken": "For private models, set MODELSCOPE_API_TOKEN to your MatrixHub access token, or pass token= to snapshot_download."
       },
       "upload": {
         "title": "Upload Model Files",

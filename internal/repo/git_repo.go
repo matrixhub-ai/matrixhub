@@ -23,7 +23,9 @@ import (
 	"net/url"
 	"os"
 	stdpath "path"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	hfdlfs "github.com/matrixhub-ai/hfd/pkg/lfs"
@@ -32,11 +34,14 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/storage"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
+	"github.com/matrixhub-ai/matrixhub/internal/domain/registry"
 )
 
 type gitRepo struct {
-	storage *storage.Storage
-	mirror  *mirror.Mirror
+	storage             *storage.Storage
+	mirror              *mirror.Mirror
+	modelScopeLocks     sync.Map
+	modelScopeRefStates sync.Map
 }
 
 const maxSafetensorsHeaderBytes uint64 = 64 * 1024 * 1024
@@ -489,9 +494,12 @@ func (g *gitRepo) GetBlob(ctx context.Context, repoType, project, name, revision
 }
 
 func (g *gitRepo) PullFromRemote(ctx context.Context, gitRepository *git.GitRepository) error {
+	if gitRepository.RemoteRegistryType == registry.TypeModelScope {
+		return g.pullModelScope(ctx, gitRepository)
+	}
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
 	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
-	sourceURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
+	sourceURL := remoteRepositoryURL(gitRepository, repoName)
 	if !repository.IsRepository(gitPath) {
 		_, err := repository.InitMirror(ctx, gitPath, sourceURL)
 		if err != nil {
@@ -688,7 +696,7 @@ func (index safetensorsIndexFiles) safetensorsPaths() []string {
 func (g *gitRepo) PushToRemote(ctx context.Context, gitRepository *git.GitRepository) error {
 	gitPath := g.gitPath(gitRepository.ResourceType, gitRepository.ProjectName, gitRepository.ResourceName)
 	repoName := repoPrefix(gitRepository.ResourceType) + gitRepository.RemoteProjectName + "/" + gitRepository.RemoteResourceName
-	destinationURL := strings.TrimSuffix(gitRepository.RemoteRegistryURL, "/") + "/" + repoName
+	destinationURL := remoteRepositoryURL(gitRepository, repoName)
 	if !repository.IsRepository(gitPath) {
 		return fmt.Errorf("local repository does not exist at %s", gitPath)
 	}
@@ -729,6 +737,13 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 	}
 
 	rev := repo.DefaultBranch()
+	// A provider pull may move HEAD after this repository wrapper was cached.
+	if head, err := os.ReadFile(filepath.Join(gitPath, "HEAD")); err == nil {
+		if branch, ok := strings.CutPrefix(strings.TrimSpace(string(head)), "ref: refs/heads/"); ok {
+			rev = branch
+		}
+	}
+	metadata.DefaultBranch = rev
 
 	// Read README.md raw content
 	if content, err := g.readBlobBytes(repo, rev, "README.md"); err == nil {
@@ -769,4 +784,13 @@ func (g *gitRepo) ExtractMetadata(ctx context.Context, repoType, project, name s
 	}
 
 	return metadata, nil
+}
+
+// remoteRepositoryURL keeps provider-specific Git addressing out of domain services.
+func remoteRepositoryURL(gr *git.GitRepository, repoName string) string {
+	endpoint := strings.TrimRight(gr.RemoteRegistryURL, "/") + "/" + repoName
+	if gr.RemoteRegistryType == registry.TypeModelScope {
+		endpoint += ".git"
+	}
+	return endpoint
 }

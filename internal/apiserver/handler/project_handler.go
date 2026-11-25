@@ -107,6 +107,7 @@ func (h *ProjectHandler) GetProject(ctx context.Context, req *projectv1alpha1.Ge
 		Name:         p.Name,
 		Type:         convertDomainTypeToProto(p.Type),
 		RegistryUrl:  p.RegistryURL,
+		RegistryType: p.RegistryType,
 		Organization: p.Organization,
 		ModelCount:   uint32(p.ModelCount),
 		DatasetCount: uint32(p.DatasetCount),

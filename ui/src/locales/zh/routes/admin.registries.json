@@ -6,7 +6,8 @@
   },
   "provider": {
     "huggingFace": "Hugging Face",
-    "matrixHub": "MatrixHub"
+    "matrixHub": "MatrixHub",
+    "modelScope": "ModelScope（魔搭）"
   },
   "form": {
     "provider": "提供者",
@@ -15,19 +16,23 @@
     "url": "仓库基础地址",
     "urlHint": {
       "huggingFace": "请输入上游平台或镜像服务的基础地址，不要填写具体模型或仓库路径。\n示例：https://huggingface.co、https://hf-mirror.com",
-      "matrixHub": "请输入 MatrixHub 实例的基础地址，不要填写具体项目或模型路径。\n示例：http://<matrixhub-host>:<port>"
+      "matrixHub": "请输入 MatrixHub 实例的基础地址，不要填写具体项目或模型路径。\n示例：http://<matrixhub-host>:<port>",
+      "modelScope": "填写魔搭平台的根地址，例如 https://www.modelscope.cn。同步私有模型时填写魔搭用户名和访问令牌。"
     },
     "urlDescription": {
       "huggingFace": "请输入上游平台或镜像服务的基础地址",
-      "matrixHub": "请输入 MatrixHub 实例的基础地址"
+      "matrixHub": "请输入 MatrixHub 实例的基础地址",
+      "modelScope": "ModelScope 魔搭平台根地址"
     },
     "urlPlaceholder": {
       "huggingFace": "https://huggingface.co",
-      "matrixHub": "http://<matrixhub-host>:<port>"
+      "matrixHub": "http://<matrixhub-host>:<port>",
+      "modelScope": "https://www.modelscope.cn"
     },
     "urlRepositoryWarning": {
       "huggingFace": "检测到该地址可能是具体资源路径，请填写平台或镜像服务的基础地址，例如：https://huggingface.co",
-      "matrixHub": "检测到该地址可能是具体资源路径，请填写 MatrixHub 实例的基础地址，例如：http://<matrixhub-host>:<port>"
+      "matrixHub": "检测到该地址可能是具体资源路径，请填写 MatrixHub 实例的基础地址，例如：http://<matrixhub-host>:<port>",
+      "modelScope": "请填写平台根地址，而不是具体模型页面。"
     },
     "username": "用户名",
     "usernameHint": "若拉取目标仓库中的私密模型，请输入目标仓库的用户名和访问密钥，支持机器人账号。",

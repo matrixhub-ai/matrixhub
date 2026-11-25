@@ -205,7 +205,7 @@ These should remain out of scope for the first product phases:
 
 ### Later or exploratory
 
-- ModelScope compatibility where strategically useful
+- Broader ModelScope compatibility (datasets and write APIs); model downloads and upstream integration are available
 - OCI artifact packaging for models
 - P2P distribution for startup storms
 - direct-to-GPU loading patterns inspired by NetLoader

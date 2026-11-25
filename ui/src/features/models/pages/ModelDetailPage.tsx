@@ -180,6 +180,7 @@ export function ModelDetailPage({
           opened={commandDialog.opened}
           type={commandDialog.payload}
           modelPath={modelPath}
+          revision={model.defaultBranch}
           onClose={commandDialog.close}
         />
       )}
@@ -189,6 +190,7 @@ export function ModelDetailPage({
           opened={useModelDrawer.opened}
           engine={useModelDrawer.payload}
           modelPath={modelPath}
+          revision={model.defaultBranch}
           defaultTask={resolveUseModelTask(model)}
           onClose={useModelDrawer.close}
         />

@@ -169,6 +169,7 @@ func (rh *RegistryHandler) PingRegistry(ctx context.Context, request *registryv1
 	}
 
 	domainRegistry := registry.Registry{
+		Type:     request.Type.String(),
 		URL:      url,
 		Insecure: request.Insecure,
 	}
