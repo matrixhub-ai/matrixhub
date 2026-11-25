@@ -222,3 +222,98 @@ func TestSyncPolicyService_ExecuteSyncTaskMarksFailureWhenJobBatchCreationFails(
 	svc := syncpolicy.NewSyncPolicyService(policyRepo, taskRepo, jobService, nil, generator)
 	require.ErrorIs(t, svc.ExecuteSyncTask(ctx, task.ID), createErr)
 }
+
+func TestSyncPolicyService_ReportTaskStatus(t *testing.T) {
+	ctx := context.Background()
+
+	// Each case gives the job counts the repository found for a running task,
+	// and the task it must save. The task starts with a stale total, which the
+	// recount must replace.
+	cases := []struct {
+		name   string
+		counts map[syncjob.SyncJobStatus]int
+		want   syncpolicy.SyncTask
+		ended  bool // the task ended, so its completion time is set
+	}{
+		{
+			name:   "a running job keeps the task running",
+			counts: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusRunning: 1},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusRunning, TotalItems: 3, SuccessfulItems: 2, CompletePercents: 66},
+		},
+		{
+			name:   "a pending job keeps the task running",
+			counts: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 1, syncjob.SyncJobStatusPending: 2},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusRunning, TotalItems: 3, SuccessfulItems: 1, CompletePercents: 33},
+		},
+		{
+			name:   "the task succeeds when every job succeeded",
+			counts: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 3},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded, TotalItems: 3, SuccessfulItems: 3, CompletePercents: 100},
+			ended:  true,
+		},
+		{
+			name:   "a failed job fails the task",
+			counts: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusFailed: 1},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusFailed, TotalItems: 3, SuccessfulItems: 2, FailedItems: 1, CompletePercents: 100},
+			ended:  true,
+		},
+		{
+			name:   "a failed job fails the task even when the others stopped",
+			counts: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusFailed: 1, syncjob.SyncJobStatusStopped: 2},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusFailed, TotalItems: 3, FailedItems: 1, StoppedItems: 2, CompletePercents: 100},
+			ended:  true,
+		},
+		{
+			name:   "the task stops when every job stopped",
+			counts: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusStopped: 3},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusStopped, TotalItems: 3, StoppedItems: 3, CompletePercents: 100},
+			ended:  true,
+		},
+		{
+			name:   "the task succeeds when some jobs succeeded and the rest stopped",
+			counts: map[syncjob.SyncJobStatus]int{syncjob.SyncJobStatusSucceeded: 2, syncjob.SyncJobStatusStopped: 1},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded, TotalItems: 3, SuccessfulItems: 2, StoppedItems: 1, CompletePercents: 100},
+			ended:  true,
+		},
+		{
+			name:   "a task without jobs succeeds",
+			counts: map[syncjob.SyncJobStatus]int{},
+			want:   syncpolicy.SyncTask{Status: syncpolicy.SyncTaskStatusSucceeded},
+			ended:  true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			taskRepo := mocks.NewMockISyncTaskRepo(ctrl)
+
+			// The repository passes the locked task and the job counts to the
+			// update function, and saves what it sets.
+			task := &syncpolicy.SyncTask{ID: 7, Status: syncpolicy.SyncTaskStatusRunning, TotalItems: 9}
+			taskRepo.EXPECT().
+				RecountTask(gomock.Any(), 7, gomock.Any()).
+				DoAndReturn(func(_ context.Context, _ int, update func(*syncpolicy.SyncTask, map[syncjob.SyncJobStatus]int)) error {
+					update(task, tc.counts)
+					return nil
+				})
+
+			svc := syncpolicy.NewSyncPolicyService(nil, taskRepo, nil, nil, nil)
+			require.NoError(t, svc.ReportTaskStatus(ctx, 7))
+
+			require.Equal(t, tc.ended, task.CompletedTimestamp != 0)
+			tc.want.ID, tc.want.CompletedTimestamp = 7, task.CompletedTimestamp
+			require.Equal(t, tc.want, *task)
+		})
+	}
+
+	t.Run("repo error is propagated", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		taskRepo := mocks.NewMockISyncTaskRepo(ctrl)
+
+		wantErr := errors.New("db down")
+		taskRepo.EXPECT().RecountTask(gomock.Any(), 7, gomock.Any()).Return(wantErr)
+
+		svc := syncpolicy.NewSyncPolicyService(nil, taskRepo, nil, nil, nil)
+		require.ErrorIs(t, svc.ReportTaskStatus(ctx, 7), wantErr)
+	})
+}
