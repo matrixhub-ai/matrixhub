@@ -1,0 +1,209 @@
+# Built-in preset manifest. MatrixHub seeds it once into an instance that has no
+# registries and no projects, unless presets.manifest in config.yaml replaces it.
+# That setting takes this same structure; see "Preset Models" in
+# deploy/charts/matrixhub/README.md for the field rules. The Helm chart repeats
+# this manifest as the default presets.manifest in its values.yaml, and a unit
+# test keeps the two identical.
+#
+# Models are recommended unless they set "recommended: false". Sizes include all
+# upstream files, and parameter counts come from safetensors.total.
+
+registries:
+  - name: huggingface
+    description: Official Hugging Face Hub
+    url: https://huggingface.co
+  - name: hf-mirror
+    description: Hugging Face community mirror
+    url: https://hf-mirror.com
+  - name: hf.m.daocloud
+    description: DaoCloud Hugging Face mirror
+    url: https://hf.m.daocloud.io
+
+projects:
+  - name: deepseek-ai
+    organization: deepseek-ai
+    registry: hf.m.daocloud
+  - name: Qwen
+    organization: Qwen
+    registry: hf.m.daocloud
+  - name: MiniMaxAI
+    organization: MiniMaxAI
+    registry: hf.m.daocloud
+  - name: zai-org
+    organization: zai-org
+    registry: hf.m.daocloud
+
+models:
+  - project: deepseek-ai
+    name: DeepSeek-V4-Pro
+    size: 864739856856
+    parameterCount: 1598839674782
+    labels:
+      - {category: library, name: transformers}
+      - {category: license, name: mit}
+      - {category: other, name: deepseek_v4}
+      - {category: other, name: fp8}
+
+  - project: deepseek-ai
+    name: DeepSeek-V4-Flash
+    size: 159630041626
+    parameterCount: 290944616402
+    labels:
+      - {category: library, name: transformers}
+      - {category: license, name: mit}
+      - {category: other, name: deepseek_v4}
+      - {category: other, name: fp8}
+
+  - project: deepseek-ai
+    name: DeepSeek-V4-Flash-Base
+    size: 294692678949
+    parameterCount: 292021347282
+    labels:
+      - {category: other, name: deepseek_v4}
+      - {category: other, name: fp8}
+
+  - project: deepseek-ai
+    name: DeepSeek-OCR
+    size: 6684381812
+    parameterCount: 3336106240
+    labels:
+      - {category: library, name: transformers}
+      - {category: license, name: mit}
+      - {category: task, name: image-text-to-text}
+      - {category: language, name: multilingual}
+      - {category: other, name: deepseek}
+      - {category: other, name: vision-language}
+      - {category: other, name: ocr}
+      - {category: other, name: custom_code}
+      - {category: other, name: deepseek_vl_v2}
+
+  - project: Qwen
+    name: Qwen3.8-27B
+    size: 55586114863
+    parameterCount: 27781427952
+    labels:
+      - {category: library, name: transformers}
+      - {category: task, name: image-text-to-text}
+      - {category: license, name: apache-2.0}
+      - {category: other, name: qwen3_5}
+
+  - project: Qwen
+    name: Qwen3.8-2.4T-A95B
+    size: 4892388741252
+    parameterCount: 2446182725504
+    labels:
+      - {category: library, name: transformers}
+      - {category: task, name: text-generation}
+      - {category: license, name: other}
+      - {category: other, name: qwen3_5_moe_text}
+
+  - project: Qwen
+    name: Qwen-Image-Bench
+    size: 54733735650
+    parameterCount: 27356728560
+    labels:
+      - {category: library, name: transformers}
+      - {category: task, name: image-text-to-text}
+      - {category: license, name: apache-2.0}
+      - {category: other, name: qwen3_5}
+      - {category: language, name: en}
+      - {category: language, name: zh}
+      - {category: other, name: judge-model}
+      - {category: other, name: text-to-image}
+      - {category: other, name: evaluation}
+      - {category: other, name: benchmark}
+      - {category: other, name: qwen}
+
+  - project: Qwen
+    name: Qwen-AgentWorld-35B-A3B
+    size: 69344322030
+    parameterCount: 34660610688
+    labels:
+      - {category: library, name: transformers}
+      - {category: license, name: apache-2.0}
+      - {category: task, name: text-generation}
+      - {category: other, name: qwen}
+      - {category: other, name: world-model}
+      - {category: other, name: agent}
+      - {category: other, name: environment-simulation}
+      - {category: other, name: qwen3_5_moe}
+
+  - project: MiniMaxAI
+    name: MiniMax-H3
+    size: 498474749480
+    parameterCount: 33122992896
+    labels:
+      - {category: license, name: other}
+      - {category: task, name: image-text-to-video}
+      - {category: library, name: minimax-h3}
+      - {category: other, name: text-to-video}
+      - {category: other, name: image-to-video}
+      - {category: other, name: image-text-to-video}
+      - {category: other, name: video-to-video}
+      - {category: other, name: text-to-audio-video}
+      - {category: other, name: image-to-audio-video}
+      - {category: other, name: image-text-to-audio-video}
+      - {category: other, name: video-to-audio-video}
+      - {category: other, name: audio-to-audio-video}
+      - {category: other, name: audio-video-generation}
+      - {category: other, name: multimodal}
+      - {category: other, name: synchronized-audio-video}
+      - {category: other, name: reference-to-audio-video}
+      - {category: other, name: diffusers}
+
+  - project: MiniMaxAI
+    name: MiniMax-M3
+    size: 854200504173
+    parameterCount: 427040140160
+    labels:
+      - {category: library, name: transformers}
+      - {category: task, name: image-text-to-text}
+      - {category: license, name: other}
+      - {category: other, name: multimodal}
+      - {category: other, name: agent}
+      - {category: other, name: moe}
+      - {category: other, name: coding}
+      - {category: other, name: video}
+      - {category: other, name: minimax_m3_vl}
+
+  - project: MiniMaxAI
+    name: MiniMax-M3-MXFP8
+    size: 443776005285
+    parameterCount: 440279845760
+    labels:
+      - {category: library, name: transformers}
+      - {category: task, name: image-text-to-text}
+      - {category: license, name: other}
+      - {category: other, name: multimodal}
+      - {category: other, name: agent}
+      - {category: other, name: moe}
+      - {category: other, name: coding}
+      - {category: other, name: video}
+      - {category: other, name: minimax_m3_vl}
+      - {category: other, name: mxfp8}
+
+  - project: zai-org
+    name: GLM-5.3
+    size: 755663689206
+    parameterCount: 753329940480
+    labels:
+      - {category: task, name: text-generation}
+      - {category: library, name: transformers}
+      - {category: language, name: en}
+      - {category: language, name: zh}
+      - {category: license, name: other}
+      - {category: other, name: glm_moe_dsa}
+      - {category: other, name: fp8}
+
+  - project: zai-org
+    name: GLM-5.3-Flash
+    size: 328366173469
+    parameterCount: 321323031390
+    labels:
+      - {category: task, name: image-text-to-text}
+      - {category: library, name: transformers}
+      - {category: language, name: en}
+      - {category: language, name: zh}
+      - {category: license, name: mit}
+      - {category: other, name: glm5_next}
+      - {category: other, name: fp8}

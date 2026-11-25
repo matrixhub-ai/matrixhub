@@ -23,6 +23,7 @@ import (
 	hfdssh "github.com/matrixhub-ai/hfd/pkg/ssh"
 	"github.com/spf13/viper"
 
+	"github.com/matrixhub-ai/matrixhub/internal/domain/preset"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/db"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/log"
@@ -47,10 +48,37 @@ type Config struct {
 
 type PresetsConfig struct {
 	Enabled *bool `yaml:"enabled"`
+	// Manifest replaces the built-in preset manifest; nil means the built-in
+	// one. Init decodes the presets section strictly into it, so the lenient
+	// decode of the whole config skips it.
+	Manifest *preset.Manifest `yaml:"manifest" mapstructure:"-"`
 }
 
 func (c PresetsConfig) IsEnabled() bool {
 	return c.Enabled == nil || *c.Enabled
+}
+
+// loadPresetManifest rejects unknown keys anywhere under presets, so a typo or
+// a missing manifest level fails startup instead of seeding the built-in
+// manifest. Omitted, null, and empty manifests mean the built-in one.
+func loadPresetManifest(presets *viper.Viper) (*preset.Manifest, error) {
+	if presets == nil {
+		return nil, nil
+	}
+	var section struct {
+		Enabled  *bool
+		Manifest *preset.Manifest
+	}
+	if err := presets.UnmarshalExact(&section); err != nil {
+		return nil, fmt.Errorf("invalid presets config: %w", err)
+	}
+	if section.Manifest == nil {
+		return nil, nil
+	}
+	if err := section.Manifest.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid presets.manifest:\n%w", err)
+	}
+	return section.Manifest, nil
 }
 
 // JobServerConfig is the top-level jobserver configuration (YAML key `jobServer`).
@@ -161,6 +189,14 @@ func Init(configPath, sqlPath string) (*Config, error) {
 	cfg := new(Config)
 	if err := v.Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	if cfg.Presets.IsEnabled() {
+		manifest, err := loadPresetManifest(v.Sub("presets"))
+		if err != nil {
+			return nil, err
+		}
+		cfg.Presets.Manifest = manifest
 	}
 
 	if cfg.DataDir == "" {

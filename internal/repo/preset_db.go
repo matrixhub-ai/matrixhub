@@ -54,14 +54,15 @@ func (r *presetDB) SeedIfEmpty(ctx context.Context, manifest *preset.Manifest) (
 		}
 
 		registryIDs := make(map[string]int, len(manifest.Registries))
-		for _, spec := range manifest.Registries {
+		for i, spec := range manifest.Registries {
 			reg := &registry.Registry{
-				ID: spec.ID, Name: spec.Name, Description: spec.Description,
+				ID: i + 1, Name: spec.Name, Description: spec.Description,
 				Type: "REGISTRY_TYPE_HUGGINGFACE", URL: spec.URL,
 			}
 			if err := tx.Create(reg).Error; err != nil {
-				// Fixed registry IDs are the concurrency guard. Returning an
-				// error here rolls back the entire losing transaction.
+				// Registry IDs follow manifest order and are the concurrency
+				// guard. Returning an error here rolls back the entire losing
+				// transaction.
 				if errors.Is(err, gorm.ErrDuplicatedKey) {
 					return errPresetSeedConflict
 				}
@@ -88,7 +89,7 @@ func (r *presetDB) SeedIfEmpty(ctx context.Context, manifest *preset.Manifest) (
 			}
 			prj := &project.Project{
 				Name: spec.Name, Type: project.ProjectTypePublic,
-				RegistryID: &registryID, Organization: spec.Organization,
+				RegistryID: &registryID, Organization: spec.UpstreamOrganization(),
 			}
 			if err := tx.Create(prj).Error; err != nil {
 				return fmt.Errorf("create preset project %s: %w", spec.Name, err)
@@ -113,7 +114,7 @@ func (r *presetDB) SeedIfEmpty(ctx context.Context, manifest *preset.Manifest) (
 			}
 			mod := &model.Model{
 				Name: spec.Name, ProjectID: projectID, DefaultBranch: "main",
-				IsPopular: spec.Recommended, Size: spec.Size, ParameterCount: spec.ParameterCount,
+				IsPopular: spec.IsRecommended(), Size: spec.Size, ParameterCount: spec.ParameterCount,
 			}
 			if err := tx.Create(mod).Error; err != nil {
 				return fmt.Errorf("create preset model %s/%s: %w", spec.Project, spec.Name, err)

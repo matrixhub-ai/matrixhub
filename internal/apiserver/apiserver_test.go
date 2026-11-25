@@ -16,6 +16,7 @@ package apiserver
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"sync/atomic"
 	"testing"
@@ -62,6 +63,28 @@ func TestInitPresetsSkipsDisabledPresets(t *testing.T) {
 	}
 
 	// No expectations are registered, so any repository access fails the test.
+	server.initPresets()
+}
+
+func TestInitPresetsUsesConfiguredManifest(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	presetRepo := presetmocks.NewMockIPresetRepo(ctrl)
+	modelRepo := modelmocks.NewMockIModelRepo(ctrl)
+	manifest := &preset.Manifest{Models: []preset.ModelSpec{{Project: "team", Name: "model"}}}
+
+	seed := presetRepo.EXPECT().SeedIfEmpty(gomock.Any(), manifest).Return(false, nil)
+	modelRepo.EXPECT().GetByProjectAndName(gomock.Any(), "team", "model").
+		Return(nil, errors.New("record not found")).After(seed)
+
+	server := &APIServer{
+		config: &config.Config{Presets: config.PresetsConfig{Manifest: manifest}},
+		repos: &repo.Repos{
+			Preset:  presetRepo,
+			Project: projectmocks.NewMockIProjectRepo(ctrl),
+			Model:   modelRepo,
+			Git:     gitmocks.NewMockIGitRepo(ctrl),
+		},
+	}
 	server.initPresets()
 }
 
