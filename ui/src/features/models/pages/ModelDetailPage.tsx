@@ -81,6 +81,15 @@ export function ModelDetailPage({
         _splat: '',
       },
     },
+    {
+      id: 'security',
+      label: t('model.detail.security'),
+      to: '/projects/$projectId/models/$modelId/security',
+      params: {
+        projectId,
+        modelId,
+      },
+    },
     ...(hasSettingsRight
       ? [{
           id: 'settings',

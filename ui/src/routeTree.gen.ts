@@ -45,6 +45,7 @@ import { Route as authappProjectsProjectIdModelsModelIdRouteRouteImport } from '
 import { Route as authappProjectsProjectIdDatasetsDatasetIdRouteRouteImport } from './routes/(auth)/(app)/projects_.$projectId/datasets.$datasetId/route'
 import { Route as authappProjectsProjectIdModelsModelIdIndexRouteImport } from './routes/(auth)/(app)/projects_.$projectId/models.$modelId/index'
 import { Route as authappProjectsProjectIdModelsModelIdSettingsIndexRouteImport } from './routes/(auth)/(app)/projects_.$projectId/models.$modelId/settings/index'
+import { Route as authappProjectsProjectIdModelsModelIdSecurityIndexRouteImport } from './routes/(auth)/(app)/projects_.$projectId/models.$modelId/security/index'
 import { Route as authappProjectsProjectIdDatasetsDatasetIdSettingsIndexRouteImport } from './routes/(auth)/(app)/projects_.$projectId/datasets.$datasetId/settings/index'
 import { Route as authappProjectsProjectIdModelsModelIdCommitsRefIndexRouteImport } from './routes/(auth)/(app)/projects_.$projectId/models.$modelId/commits/$ref/index'
 import { Route as authappProjectsProjectIdModelsModelIdCommitCommitIdIndexRouteImport } from './routes/(auth)/(app)/projects_.$projectId/models.$modelId/commit/$commitId/index'
@@ -247,6 +248,12 @@ const authappProjectsProjectIdModelsModelIdSettingsIndexRoute =
     path: '/settings/',
     getParentRoute: () => authappProjectsProjectIdModelsModelIdRouteRoute,
   } as any)
+const authappProjectsProjectIdModelsModelIdSecurityIndexRoute =
+  authappProjectsProjectIdModelsModelIdSecurityIndexRouteImport.update({
+    id: '/security/',
+    path: '/security/',
+    getParentRoute: () => authappProjectsProjectIdModelsModelIdRouteRoute,
+  } as any)
 const authappProjectsProjectIdDatasetsDatasetIdSettingsIndexRoute =
   authappProjectsProjectIdDatasetsDatasetIdSettingsIndexRouteImport.update({
     id: '/settings/',
@@ -339,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/settings/': typeof authappProjectsProjectIdSettingsIndexRoute
   '/projects/$projectId/models/$modelId/': typeof authappProjectsProjectIdModelsModelIdIndexRoute
   '/projects/$projectId/datasets/$datasetId/settings/': typeof authappProjectsProjectIdDatasetsDatasetIdSettingsIndexRoute
+  '/projects/$projectId/models/$modelId/security/': typeof authappProjectsProjectIdModelsModelIdSecurityIndexRoute
   '/projects/$projectId/models/$modelId/settings/': typeof authappProjectsProjectIdModelsModelIdSettingsIndexRoute
   '/projects/$projectId/datasets/$datasetId/blob/$ref/$': typeof authappProjectsProjectIdDatasetsDatasetIdBlobRefSplatRoute
   '/projects/$projectId/datasets/$datasetId/tree/$ref/$': typeof authappProjectsProjectIdDatasetsDatasetIdTreeRefSplatRoute
@@ -379,6 +387,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/settings': typeof authappProjectsProjectIdSettingsIndexRoute
   '/projects/$projectId/models/$modelId': typeof authappProjectsProjectIdModelsModelIdIndexRoute
   '/projects/$projectId/datasets/$datasetId/settings': typeof authappProjectsProjectIdDatasetsDatasetIdSettingsIndexRoute
+  '/projects/$projectId/models/$modelId/security': typeof authappProjectsProjectIdModelsModelIdSecurityIndexRoute
   '/projects/$projectId/models/$modelId/settings': typeof authappProjectsProjectIdModelsModelIdSettingsIndexRoute
   '/projects/$projectId/datasets/$datasetId/blob/$ref/$': typeof authappProjectsProjectIdDatasetsDatasetIdBlobRefSplatRoute
   '/projects/$projectId/datasets/$datasetId/tree/$ref/$': typeof authappProjectsProjectIdDatasetsDatasetIdTreeRefSplatRoute
@@ -427,6 +436,7 @@ export interface FileRoutesById {
   '/(auth)/(app)/projects/$projectId/settings/': typeof authappProjectsProjectIdSettingsIndexRoute
   '/(auth)/(app)/projects_/$projectId/models/$modelId/': typeof authappProjectsProjectIdModelsModelIdIndexRoute
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/settings/': typeof authappProjectsProjectIdDatasetsDatasetIdSettingsIndexRoute
+  '/(auth)/(app)/projects_/$projectId/models/$modelId/security/': typeof authappProjectsProjectIdModelsModelIdSecurityIndexRoute
   '/(auth)/(app)/projects_/$projectId/models/$modelId/settings/': typeof authappProjectsProjectIdModelsModelIdSettingsIndexRoute
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/blob/$ref/$': typeof authappProjectsProjectIdDatasetsDatasetIdBlobRefSplatRoute
   '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/tree/$ref/$': typeof authappProjectsProjectIdDatasetsDatasetIdTreeRefSplatRoute
@@ -474,6 +484,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/settings/'
     | '/projects/$projectId/models/$modelId/'
     | '/projects/$projectId/datasets/$datasetId/settings/'
+    | '/projects/$projectId/models/$modelId/security/'
     | '/projects/$projectId/models/$modelId/settings/'
     | '/projects/$projectId/datasets/$datasetId/blob/$ref/$'
     | '/projects/$projectId/datasets/$datasetId/tree/$ref/$'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/settings'
     | '/projects/$projectId/models/$modelId'
     | '/projects/$projectId/datasets/$datasetId/settings'
+    | '/projects/$projectId/models/$modelId/security'
     | '/projects/$projectId/models/$modelId/settings'
     | '/projects/$projectId/datasets/$datasetId/blob/$ref/$'
     | '/projects/$projectId/datasets/$datasetId/tree/$ref/$'
@@ -561,6 +573,7 @@ export interface FileRouteTypes {
     | '/(auth)/(app)/projects/$projectId/settings/'
     | '/(auth)/(app)/projects_/$projectId/models/$modelId/'
     | '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/settings/'
+    | '/(auth)/(app)/projects_/$projectId/models/$modelId/security/'
     | '/(auth)/(app)/projects_/$projectId/models/$modelId/settings/'
     | '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/blob/$ref/$'
     | '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/tree/$ref/$'
@@ -833,6 +846,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authappProjectsProjectIdModelsModelIdSettingsIndexRouteImport
       parentRoute: typeof authappProjectsProjectIdModelsModelIdRouteRoute
     }
+    '/(auth)/(app)/projects_/$projectId/models/$modelId/security/': {
+      id: '/(auth)/(app)/projects_/$projectId/models/$modelId/security/'
+      path: '/security'
+      fullPath: '/projects/$projectId/models/$modelId/security/'
+      preLoaderRoute: typeof authappProjectsProjectIdModelsModelIdSecurityIndexRouteImport
+      parentRoute: typeof authappProjectsProjectIdModelsModelIdRouteRoute
+    }
     '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/settings/': {
       id: '/(auth)/(app)/projects_/$projectId/datasets/$datasetId/settings/'
       path: '/settings'
@@ -971,6 +991,7 @@ const authappProjectsProjectIdDatasetsDatasetIdRouteRouteWithChildren =
 
 interface authappProjectsProjectIdModelsModelIdRouteRouteChildren {
   authappProjectsProjectIdModelsModelIdIndexRoute: typeof authappProjectsProjectIdModelsModelIdIndexRoute
+  authappProjectsProjectIdModelsModelIdSecurityIndexRoute: typeof authappProjectsProjectIdModelsModelIdSecurityIndexRoute
   authappProjectsProjectIdModelsModelIdSettingsIndexRoute: typeof authappProjectsProjectIdModelsModelIdSettingsIndexRoute
   authappProjectsProjectIdModelsModelIdBlobRefSplatRoute: typeof authappProjectsProjectIdModelsModelIdBlobRefSplatRoute
   authappProjectsProjectIdModelsModelIdTreeRefSplatRoute: typeof authappProjectsProjectIdModelsModelIdTreeRefSplatRoute
@@ -982,6 +1003,8 @@ const authappProjectsProjectIdModelsModelIdRouteRouteChildren: authappProjectsPr
   {
     authappProjectsProjectIdModelsModelIdIndexRoute:
       authappProjectsProjectIdModelsModelIdIndexRoute,
+    authappProjectsProjectIdModelsModelIdSecurityIndexRoute:
+      authappProjectsProjectIdModelsModelIdSecurityIndexRoute,
     authappProjectsProjectIdModelsModelIdSettingsIndexRoute:
       authappProjectsProjectIdModelsModelIdSettingsIndexRoute,
     authappProjectsProjectIdModelsModelIdBlobRefSplatRoute:

@@ -74,6 +74,14 @@ func TestNewSQLiteMigratesDatabase(t *testing.T) {
 	require.Equal(t, uint(2), migrationVersion)
 	require.False(t, dirty)
 
+	// Migration 2 adds the security-scan tables (issue #1066).
+	var scanTableCount int64
+	require.NoError(t, database.Raw(
+		"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN " +
+			"('scan_tasks', 'scan_file_results', 'scan_policies', 'scan_audit_events')",
+	).Scan(&scanTableCount).Error)
+	require.Equal(t, int64(4), scanTableCount)
+
 	var userCount int64
 	require.NoError(t, database.Table("users").Where("username = ?", "admin").Count(&userCount).Error)
 	require.Equal(t, int64(1), userCount)

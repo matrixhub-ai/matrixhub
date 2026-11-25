@@ -93,7 +93,8 @@
         "localPathHint": "请替换为本机模型文件夹路径，例如：",
         "localPathExample": "/Users/yourname/models/{{name}}"
       }
-    }
+    },
+    "security": "安全"
   },
   "settings": {
     "delete": {
@@ -132,5 +133,29 @@
     "modelNameInvalid": "模型名称格式不正确",
     "success": "模型创建成功",
     "error": "创建模型失败"
+  },
+  "security": {
+    "file": "文件",
+    "severity": "严重级别",
+    "rules": "检测规则",
+    "digest": "摘要 (sha256)",
+    "size": "大小",
+    "findings": "文件级发现",
+    "audit": "审计记录",
+    "rescan": "重新扫描",
+    "scanners": "扫描器",
+    "scannedAt": "扫描时间",
+    "noAudit": "暂无审计事件",
+    "noFindingsYet": "暂无扫描结果。",
+    "blockedNotice": "当前版本已被安全策略阻断：下载被拒绝。",
+    "loadFailed": "加载扫描报告失败",
+    "status": {
+      "unscanned": "未扫描",
+      "scanning": "扫描中…",
+      "pass": "通过",
+      "warning": "警告",
+      "blocked": "已阻断",
+      "failed": "扫描失败"
+    }
   }
 }
