@@ -99,12 +99,14 @@ function AppNavbar() {
       icon: ModelIcon,
       to: ModelsRoute.to,
       extraMatch: ProjectModelRoute.to,
+      repelMatch: [CreateModelRoute.to],
     },
     {
       label: t('nav.projectManagement'),
       icon: ProjectIcon,
       to: ProjectsRoute.to,
       repelMatch: [ProjectModelRoute.to],
+      extraMatch: CreateModelRoute.to,
     },
   ])
   const matchRoute = useMatchRoute()
