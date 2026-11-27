@@ -21,7 +21,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
@@ -329,6 +331,108 @@ func (s *bufferLogStore) log(jobID int) string {
 	return s.logs[jobID].String()
 }
 
+const (
+	oidA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	oidB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+)
+
+// objectBehavior is how the download of an LFS object goes.
+type objectBehavior int
+
+const (
+	// downloads makes progress and stores the object.
+	downloads objectBehavior = iota
+	// stalls makes no progress.
+	stalls
+	// finishesUnstored downloads every byte but never stores the object,
+	// as when a reader keeps the download open.
+	finishesUnstored
+)
+
+// lfsFake is the LFS storage and the mirror downloads of a test.
+type lfsFake struct {
+	mu        sync.Mutex
+	stored    map[string]bool
+	queued    map[string]*fakeDownload
+	behaviors map[string]objectBehavior
+	// unqueued are objects that a pull does not queue, for the given number
+	// of pulls.
+	unqueued map[string]int
+	sizes    map[string]int64
+	pulls    int
+}
+
+type fakeDownload struct {
+	lfs  *lfsFake
+	oid  string
+	done int64
+}
+
+func (d *fakeDownload) Downloaded() int64 {
+	d.lfs.mu.Lock()
+	defer d.lfs.mu.Unlock()
+	total := d.lfs.sizes[d.oid]
+	switch d.lfs.behaviors[d.oid] {
+	case downloads:
+		d.done = min(d.done+total/2+1, total)
+		if d.done == total {
+			d.lfs.stored[d.oid] = true
+			delete(d.lfs.queued, d.oid)
+		}
+	case finishesUnstored:
+		d.done = total
+	case stalls:
+	}
+	return d.done
+}
+
+func (d *fakeDownload) Total() int64 {
+	d.lfs.mu.Lock()
+	defer d.lfs.mu.Unlock()
+	return d.lfs.sizes[d.oid]
+}
+
+func (l *lfsFake) exists(_ context.Context, oid string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.stored[oid]
+}
+
+func (l *lfsFake) fetch(_ context.Context, oid string) gitdomain.LFSDownload {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if d, ok := l.queued[oid]; ok {
+		return d
+	}
+	return nil
+}
+
+// pull queues every object that is not stored, as a pull of the mirror does.
+func (l *lfsFake) pull(context.Context, *gitdomain.GitRepository) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.pulls++
+	for oid := range l.sizes {
+		if l.stored[oid] || l.queued[oid] != nil {
+			continue
+		}
+		if l.unqueued[oid] > 0 {
+			l.unqueued[oid]--
+			continue
+		}
+		l.queued[oid] = &fakeDownload{lfs: l, oid: oid}
+	}
+	return nil
+}
+
+func (l *lfsFake) pullCount() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.pulls
+}
+
+const cacheJobCommit = "0123456789abcdef0123456789abcdef01234567"
+
 type cacheJobFixture struct {
 	syncJobRepo  *mocks.MockISyncJobRepo
 	registryRepo *registrymocks.MockIRegistryRepo
@@ -337,11 +441,16 @@ type cacheJobFixture struct {
 	gitRepo      *gitmocks.MockIGitRepo
 	modelMeta    *mocks.MockMetadataSyncer
 	svc          syncjob.ISyncJobService
+	lfs          *lfsFake
 	logs         *bufferLogStore
 	job          *syncjob.SyncJob
+	revision     string
 
+	mu sync.Mutex
 	// modelExists tells whether the model record exists.
 	modelExists bool
+	// afterMetadata runs when the job has synced the model's metadata.
+	afterMetadata func()
 	// createdMeanwhile makes someone else create the model record just
 	// before the job does.
 	createdMeanwhile bool
@@ -349,7 +458,9 @@ type cacheJobFixture struct {
 	saved *syncjob.SyncJob
 }
 
-// newCacheJobFixture runs job 7, which caches a revision of proxy/gpt2.
+// newCacheJobFixture runs job 7, which caches a revision of proxy/gpt2. The
+// revision has two LFS objects, which download at once unless a test says
+// otherwise.
 func newCacheJobFixture(t *testing.T, revision string) *cacheJobFixture {
 	t.Helper()
 	params, err := json.Marshal(syncjob.ModelCacheParams{Revision: revision})
@@ -362,7 +473,14 @@ func newCacheJobFixture(t *testing.T, revision string) *cacheJobFixture {
 		modelRepo:    modelmocks.NewMockIModelRepo(ctrl),
 		gitRepo:      gitmocks.NewMockIGitRepo(ctrl),
 		modelMeta:    mocks.NewMockMetadataSyncer(ctrl),
-		logs:         &bufferLogStore{logs: map[int]*bytes.Buffer{}},
+		lfs: &lfsFake{
+			stored:    map[string]bool{},
+			queued:    map[string]*fakeDownload{},
+			behaviors: map[string]objectBehavior{},
+			unqueued:  map[string]int{},
+			sizes:     map[string]int64{oidA: 100, oidB: 50},
+		},
+		logs: &bufferLogStore{logs: map[int]*bytes.Buffer{}},
 		job: &syncjob.SyncJob{
 			ID:                 7,
 			JobType:            syncjob.JobTypeModelCache,
@@ -376,9 +494,17 @@ func newCacheJobFixture(t *testing.T, revision string) *cacheJobFixture {
 			Status:             syncjob.SyncJobStatusRunning,
 			Params:             params,
 		},
+		revision: revision,
 	}
 	f.svc = syncjob.NewSyncJobService(f.syncJobRepo, f.registryRepo, f.projectRepo, f.modelRepo,
 		nil, f.gitRepo, f.modelMeta, nil, f.logs)
+	f.setOptions(syncjob.ModelCacheOptions{
+		PollInterval:    time.Millisecond,
+		RetryBackoff:    time.Millisecond,
+		StallTimeout:    50 * time.Millisecond,
+		StoreTimeout:    50 * time.Millisecond,
+		RequeueInterval: time.Nanosecond,
+	})
 	f.svc.SetOnJobDone(func(context.Context, int) error {
 		t.Error("a model cache job belongs to no sync task")
 		return nil
@@ -387,18 +513,29 @@ func newCacheJobFixture(t *testing.T, revision string) *cacheJobFixture {
 	f.syncJobRepo.EXPECT().GetSyncJob(gomock.Any(), 7).Return(f.job, nil)
 	f.syncJobRepo.EXPECT().UpdateSyncJob(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, job *syncjob.SyncJob) error {
+			f.mu.Lock()
+			defer f.mu.Unlock()
 			saved := *job
 			f.saved = &saved
 			return nil
 		})
+	f.gitRepo.EXPECT().LFSObjectExists(gomock.Any(), gomock.Any()).DoAndReturn(f.lfs.exists).AnyTimes()
+	f.gitRepo.EXPECT().FetchLFSObject(gomock.Any(), gomock.Any()).DoAndReturn(f.lfs.fetch).AnyTimes()
 	f.modelRepo.EXPECT().GetByProjectAndName(gomock.Any(), "proxy", "gpt2").DoAndReturn(
 		func(context.Context, string, string) (*modeldomain.Model, error) {
+			f.mu.Lock()
+			defer f.mu.Unlock()
 			if !f.modelExists {
 				return nil, fmt.Errorf("failed to get model: %w", gorm.ErrRecordNotFound)
 			}
 			return &modeldomain.Model{ID: 42, Name: "gpt2"}, nil
 		}).AnyTimes()
 	return f
+}
+
+// setOptions tunes the job. Unset options take the defaults of the service.
+func (f *cacheJobFixture) setOptions(opts syncjob.ModelCacheOptions) {
+	syncjob.SetModelCacheOptions(f.svc, opts)
 }
 
 // expectLookups expects the project and registry lookups of a run.
@@ -413,19 +550,27 @@ func (f *cacheJobFixture) expectLookups() {
 // metadata sync.
 func (f *cacheJobFixture) expectPull() *gomock.Call {
 	f.expectLookups()
-	metadata := f.modelMeta.EXPECT().SyncMetadata(gomock.Any(), "proxy", "gpt2").Return(nil)
+	metadata := f.modelMeta.EXPECT().SyncMetadata(gomock.Any(), "proxy", "gpt2").DoAndReturn(
+		func(context.Context, string, string) error {
+			if f.afterMetadata != nil {
+				f.afterMetadata()
+			}
+			return nil
+		})
 	gomock.InOrder(
 		f.gitRepo.EXPECT().PullFromRemote(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, gr *gitdomain.GitRepository) error {
+			func(ctx context.Context, gr *gitdomain.GitRepository) error {
 				if gr.RemoteRegistryURL != "https://hf.example.com" || gr.RemoteProjectName != "upstream-org" ||
 					gr.RemoteResourceName != "gpt2" || gr.ProjectName != "proxy" || gr.ResourceName != "gpt2" {
 					return fmt.Errorf("unexpected pull: %+v", gr)
 				}
-				return nil
+				return f.lfs.pull(ctx, gr)
 			}),
 		// The record is created only once the pull succeeded.
 		f.modelRepo.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(_ context.Context, m *modeldomain.Model) (*modeldomain.Model, error) {
+				f.mu.Lock()
+				defer f.mu.Unlock()
 				f.modelExists = true
 				if f.createdMeanwhile {
 					return nil, gorm.ErrDuplicatedKey
@@ -438,63 +583,209 @@ func (f *cacheJobFixture) expectPull() *gomock.Call {
 	return metadata
 }
 
+// expectRun expects a run up to the files of the revision: the pull, then
+// the listing of the revision, in which the two LFS objects back three files.
+func (f *cacheJobFixture) expectRun() {
+	metadata := f.expectPull()
+	revision := f.revision
+	if revision == "" {
+		revision = "main"
+	}
+	f.gitRepo.EXPECT().ListRevisionFiles(gomock.Any(), "model", "proxy", "gpt2", f.revision).Return(&gitdomain.RevisionFiles{
+		Revision: revision,
+		Commit:   cacheJobCommit,
+		Files: []gitdomain.RevisionFile{
+			{Path: "config.json", Size: 10},
+			{Path: "model.safetensors", Size: 100, IsLFS: true, OID: oidA},
+			{Path: "copy/model.safetensors", Size: 100, IsLFS: true, OID: oidA},
+			{Path: "tokenizer.json", Size: 50, IsLFS: true, OID: oidB},
+		},
+	}, nil).After(metadata)
+}
+
+// pullsAgain expects the pulls that queue missing objects again.
+func (f *cacheJobFixture) pullsAgain(times int) {
+	f.gitRepo.EXPECT().PullFromRemote(gomock.Any(), gomock.Any()).DoAndReturn(f.lfs.pull).Times(times)
+}
+
 func (f *cacheJobFixture) run() (*syncjob.SyncJob, error) {
-	err := f.svc.ExecuteSyncJobWithLog(context.Background(), 7)
+	return f.runWithContext(context.Background())
+}
+
+func (f *cacheJobFixture) runWithContext(ctx context.Context) (*syncjob.SyncJob, error) {
+	err := f.svc.ExecuteSyncJobWithLog(ctx, 7)
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	return f.saved, err
 }
 
-func TestModelCacheJob_PullsTheModelAndChecksTheRevision(t *testing.T) {
+func TestModelCacheJob_StoresEveryLFSObject(t *testing.T) {
 	f := newCacheJobFixture(t, "v1.0")
-	metadata := f.expectPull()
-	f.gitRepo.EXPECT().ListCommits(gomock.Any(), "model", "proxy", "gpt2", "v1.0", 1, 1).
-		Return([]*gitdomain.Commit{{ID: "0123456789abcdef0123456789abcdef01234567"}}, int64(3), nil).
-		After(metadata)
+	f.expectRun()
 
 	saved, err := f.run()
 	require.NoError(t, err)
 	require.Equal(t, syncjob.SyncJobStatusSucceeded, saved.Status)
 	require.NotZero(t, saved.CompletedTimestamp)
+	require.True(t, f.lfs.exists(context.Background(), oidA))
+	require.True(t, f.lfs.exists(context.Background(), oidB))
+	require.Equal(t, 1, f.lfs.pullCount())
+
 	log := f.logs.log(7)
 	require.Contains(t, log, "source=upstream-org/gpt2 -> target=proxy/gpt2, revision=v1.0")
 	require.Contains(t, log, "[INFO] pull completed")
 	require.Contains(t, log, "[INFO] metadata refreshed")
-	require.Contains(t, log, "the LFS files of the model are queued for download")
+	require.Contains(t, log, "revision v1.0 is commit "+cacheJobCommit+": 2 LFS objects, 150 bytes")
+	require.Contains(t, log, "2 of 2 LFS objects done")
+	require.Contains(t, log, "[INFO] job completed successfully; every LFS object of commit "+cacheJobCommit+" is stored")
 }
 
-func TestModelCacheJob_DefaultBranchNeedsNoCheck(t *testing.T) {
+func TestModelCacheJob_CachesTheDefaultBranch(t *testing.T) {
 	f := newCacheJobFixture(t, "")
-	// No ListCommits is expected.
-	f.expectPull()
+	f.expectRun()
 
 	saved, err := f.run()
 	require.NoError(t, err)
 	require.Equal(t, syncjob.SyncJobStatusSucceeded, saved.Status)
-	require.Contains(t, f.logs.log(7), "revision=the default branch")
+	log := f.logs.log(7)
+	require.Contains(t, log, "revision=the default branch")
+	require.Contains(t, log, "revision main is commit "+cacheJobCommit)
 }
 
 func TestModelCacheJob_FailsForARevisionThatUpstreamDoesNotHave(t *testing.T) {
 	f := newCacheJobFixture(t, "v9")
 	metadata := f.expectPull()
-	f.gitRepo.EXPECT().ListCommits(gomock.Any(), "model", "proxy", "gpt2", "v9", 1, 1).
-		Return(nil, int64(0), errors.New("reference not found")).
+	f.gitRepo.EXPECT().ListRevisionFiles(gomock.Any(), "model", "proxy", "gpt2", "v9").
+		Return(nil, fmt.Errorf("%w: %q: %w", gitdomain.ErrRevisionNotFound, "v9", errors.New("reference not found"))).
 		After(metadata)
 
 	saved, err := f.run()
-	require.ErrorContains(t, err, "revision v9: reference not found")
+	require.ErrorIs(t, err, gitdomain.ErrRevisionNotFound)
 	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
 	// Upstream has the model, so its record stays.
 	require.True(t, f.modelExists)
-	require.Contains(t, f.logs.log(7), "[ERROR] revision v9: reference not found")
+	require.Contains(t, f.logs.log(7), `[ERROR] revision not found: "v9": reference not found`)
 }
 
 func TestModelCacheJob_UsesAModelCreatedMeanwhile(t *testing.T) {
 	f := newCacheJobFixture(t, "")
 	f.createdMeanwhile = true
-	f.expectPull()
+	f.expectRun()
 
 	saved, err := f.run()
 	require.NoError(t, err)
 	require.Equal(t, syncjob.SyncJobStatusSucceeded, saved.Status)
+}
+
+func TestModelCacheJob_SkipsStoredObjects(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.lfs.stored[oidA] = true
+	f.lfs.stored[oidB] = true
+	f.expectRun()
+
+	saved, err := f.run()
+	require.NoError(t, err)
+	require.Equal(t, syncjob.SyncJobStatusSucceeded, saved.Status)
+}
+
+func TestModelCacheJob_PullsAgainForAnObjectThatIsNotQueued(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.lfs.unqueued[oidB] = 1
+	f.expectRun()
+	f.pullsAgain(1)
+
+	saved, err := f.run()
+	require.NoError(t, err)
+	require.Equal(t, syncjob.SyncJobStatusSucceeded, saved.Status)
+	require.Equal(t, 2, f.lfs.pullCount())
+	require.Contains(t, f.logs.log(7), "pulling the model again to queue its missing LFS objects")
+}
+
+func TestModelCacheJob_FailsForAnObjectThatIsNeverQueued(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.setOptions(syncjob.ModelCacheOptions{
+		MaxAttempts:     2,
+		PollInterval:    time.Millisecond,
+		RetryBackoff:    time.Millisecond,
+		RequeueInterval: time.Nanosecond,
+	})
+	f.lfs.unqueued[oidB] = 100
+	f.expectRun()
+	// One pull for each attempt.
+	f.pullsAgain(2)
+
+	saved, err := f.run()
+	require.ErrorContains(t, err, "1 of 2 LFS objects were not stored")
+	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
+	require.True(t, f.lfs.exists(context.Background(), oidA))
+	log := f.logs.log(7)
+	require.Contains(t, log, "tokenizer.json: attempt 1 of 2 failed: not queued for download")
+	require.Contains(t, log, "[ERROR] tokenizer.json: not queued for download")
+}
+
+func TestModelCacheJob_PullsAgainAtMostOncePerInterval(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.setOptions(syncjob.ModelCacheOptions{
+		MaxAttempts:     3,
+		PollInterval:    time.Millisecond,
+		RetryBackoff:    time.Millisecond,
+		RequeueInterval: time.Hour,
+	})
+	f.lfs.unqueued[oidA] = 100
+	f.lfs.unqueued[oidB] = 100
+	f.expectRun()
+	// The pull that started the job is the last one for an hour, so no
+	// object pulls again.
+
+	saved, err := f.run()
+	require.ErrorContains(t, err, "2 of 2 LFS objects were not stored")
+	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
+	require.Equal(t, 1, f.lfs.pullCount())
+}
+
+func TestModelCacheJob_StalledDownloadIsNotRetried(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.lfs.behaviors[oidB] = stalls
+	f.expectRun()
+
+	saved, err := f.run()
+	require.ErrorContains(t, err, "1 of 2 LFS objects were not stored")
+	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
+	log := f.logs.log(7)
+	require.Contains(t, log, "[ERROR] tokenizer.json: the download made no progress for 50ms")
+	require.NotContains(t, log, "attempt 1 of 3 failed")
+}
+
+func TestModelCacheJob_UnstoredDownloadFails(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.lfs.behaviors[oidA] = finishesUnstored
+	f.expectRun()
+
+	saved, err := f.run()
+	require.ErrorContains(t, err, "1 of 2 LFS objects were not stored")
+	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
+	require.Contains(t, f.logs.log(7), "[ERROR] model.safetensors: the download finished but was not stored")
+}
+
+func TestModelCacheJob_DoesNotPullADeletedModelAgain(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.lfs.unqueued[oidB] = 1
+	f.expectRun()
+	// The model is deleted while the job runs. Pulling it again would
+	// re-create its repository.
+	f.afterMetadata = func() {
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		f.modelExists = false
+	}
+
+	saved, err := f.run()
+	require.ErrorContains(t, err, "1 of 2 LFS objects were not stored")
+	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
+	require.Equal(t, 1, f.lfs.pullCount())
+	log := f.logs.log(7)
+	require.Contains(t, log, "[ERROR] tokenizer.json: the model was deleted")
+	require.NotContains(t, log, "attempt 1 of 3 failed")
 }
 
 func TestModelCacheJob_FailedPullCreatesNoModel(t *testing.T) {
@@ -516,6 +807,50 @@ func TestModelCacheJob_RequiresAProxyProject(t *testing.T) {
 
 	saved, err := f.run()
 	require.ErrorIs(t, err, syncjob.ErrNotProxyProject)
+	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
+}
+
+func TestModelCacheJob_StopsWhenCanceled(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.setOptions(syncjob.ModelCacheOptions{
+		PollInterval: time.Millisecond,
+		StallTimeout: time.Hour,
+	})
+	f.lfs.behaviors[oidA] = stalls
+	f.expectRun()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var (
+		saved *syncjob.SyncJob
+		err   error
+		done  = make(chan struct{})
+	)
+	go func() {
+		defer close(done)
+		saved, err = f.runWithContext(ctx)
+	}()
+	require.Eventually(t, func() bool { return f.lfs.exists(ctx, oidB) }, 5*time.Second, time.Millisecond)
+	cancel()
+	<-done
+
+	require.ErrorIs(t, err, context.Canceled)
+	require.Equal(t, syncjob.SyncJobStatusStopped, saved.Status)
+}
+
+func TestModelCacheJob_ReportsTheTimeLimit(t *testing.T) {
+	f := newCacheJobFixture(t, "")
+	f.setOptions(syncjob.ModelCacheOptions{
+		PollInterval: time.Millisecond,
+		StallTimeout: time.Hour,
+	})
+	f.lfs.behaviors[oidA] = stalls
+	f.expectRun()
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	saved, err := f.runWithContext(ctx)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	require.ErrorContains(t, err, "the job reached its time limit")
 	require.Equal(t, syncjob.SyncJobStatusFailed, saved.Status)
 }
 

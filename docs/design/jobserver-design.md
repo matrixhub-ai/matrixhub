@@ -108,8 +108,10 @@ Manual synchronization skips `syncPolicy` and creates a Pending task directly.
 A sync job has a type, stored in `sync_jobs.job_type`. A `sync` job pulls or
 pushes a resource for a sync task. A `model_cache` job pulls a model of a proxy
 project from upstream and belongs to no sync task; its parameters, such as the
-revision, are stored as JSON in `sync_jobs.params`. Jobs of both types share the
-`syncJob` processor and its limits.
+revision, are stored as JSON in `sync_jobs.params`. A pull only queues the LFS
+files of a model for download, so a `model_cache` job then waits until every LFS
+file of the revision is stored, and fails when a file is not. Jobs of both
+types share the `syncJob` processor and its limits.
 
 ### Processing pipeline
 

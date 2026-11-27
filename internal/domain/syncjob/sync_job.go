@@ -64,8 +64,8 @@ const (
 	// JobTypeSync pulls or pushes a resource for a sync task.
 	JobTypeSync = "sync"
 	// JobTypeModelCache pulls a model of a proxy project from upstream and
-	// checks that upstream has a revision. It belongs to no sync task, and
-	// its parameters are ModelCacheParams.
+	// waits until the LFS files of a revision are stored. It belongs to no
+	// sync task, and its parameters are ModelCacheParams.
 	JobTypeModelCache = "model_cache"
 )
 
