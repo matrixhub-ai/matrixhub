@@ -78,6 +78,30 @@ echo "  Tag:         ${IMAGE_TAG}"
 echo ""
 echo "Loading images into KIND..."
 
+# With Docker's containerd image store, `docker save` exports the full
+# multi-platform index while only the local platform's content is present, so
+# `kind load docker-image` fails with "content digest ... not found"
+# (https://github.com/kubernetes-sigs/kind/issues/3795). Export only the
+# platform used by the KIND nodes and load that archive instead.
+load_image_into_kind() {
+    local image="$1"
+
+    if docker info --format '{{.DriverStatus}}' 2>/dev/null | grep -q 'io.containerd.snapshotter'; then
+        local platform archive
+        platform="$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')"
+        archive="$(mktemp)"
+        if docker image save --platform "${platform}" --output "${archive}" "${image}" &&
+            kind load image-archive "${archive}" --name="${E2E_CLUSTER_NAME}"; then
+            rm "${archive}"
+            return 0
+        fi
+        rm "${archive}"
+        echo "  → Loading the ${platform} archive failed, falling back to kind load docker-image"
+    fi
+
+    kind load docker-image "${image}" --name="${E2E_CLUSTER_NAME}"
+}
+
 # Define images to load
 # Note: MatrixHub image should already be loaded from artifact in CI
 # MySQL image is public and can be pulled if not present
@@ -107,7 +131,7 @@ for IMAGE in "${IMAGES_TO_LOAD[@]}"; do
 
     # Load into KIND
     echo "  → Loading into KIND..."
-    if kind load docker-image "${IMAGE}" --name="${E2E_CLUSTER_NAME}"; then
+    if load_image_into_kind "${IMAGE}"; then
         echo "  ✓ Loaded into KIND"
     else
         echo "  ✗ Failed to load into KIND"
