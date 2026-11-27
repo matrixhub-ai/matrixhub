@@ -22,10 +22,64 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	v1alpha1 "github.com/matrixhub-ai/matrixhub/api/go/v1alpha1"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/role"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
 )
+
+// The services of platform resources check no project permission in their
+// handlers, so a method that the permission table misses is open to every
+// authenticated user and robot.
+func TestAuthzInterceptorCoversPlatformServices(t *testing.T) {
+	for _, desc := range []grpc.ServiceDesc{
+		v1alpha1.Cleanup_ServiceDesc,
+		v1alpha1.Registries_ServiceDesc,
+		v1alpha1.Robots_ServiceDesc,
+		v1alpha1.SyncPolicy_ServiceDesc,
+	} {
+		for _, m := range desc.Methods {
+			method := "/" + desc.ServiceName + "/" + m.MethodName
+			if _, ok := methodPermissions[method]; !ok {
+				t.Errorf("%s has no required permission", method)
+			}
+		}
+	}
+}
+
+func TestAuthzInterceptorSyncPermissions(t *testing.T) {
+	tests := []struct {
+		method     string
+		permission role.Permission
+	}{
+		{method: "/matrixhub.v1alpha1.SyncPolicy/GetSyncTask", permission: role.SyncGet},
+		{method: "/matrixhub.v1alpha1.SyncPolicy/ListSyncJobs", permission: role.SyncGet},
+		{method: "/matrixhub.v1alpha1.SyncPolicy/GetSyncJobLog", permission: role.SyncGet},
+		{method: "/matrixhub.v1alpha1.SyncPolicy/UpdateSyncPolicySwitch", permission: role.SyncUpdate},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			ctx := auth.WithIdentity(context.Background(), user.NewUserIdentity(2, "user"))
+			var gotPerm role.Permission
+			interceptor := AuthzInterceptor(func(ctx context.Context, perm role.Permission) (bool, error) {
+				gotPerm = perm
+				return false, nil
+			})
+
+			_, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{FullMethod: tt.method}, func(context.Context, interface{}) (interface{}, error) {
+				t.Fatal("handler should not be called without the permission")
+				return nil, nil
+			})
+			if status.Code(err) != codes.PermissionDenied {
+				t.Fatalf("expected PermissionDenied, got %v", err)
+			}
+			if gotPerm != tt.permission {
+				t.Fatalf("expected permission %q, got %q", tt.permission, gotPerm)
+			}
+		})
+	}
+}
 
 func TestAuthzInterceptorCleanupPermissions(t *testing.T) {
 	tests := []struct {
