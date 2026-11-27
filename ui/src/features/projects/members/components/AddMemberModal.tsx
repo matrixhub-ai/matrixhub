@@ -1,4 +1,6 @@
-import { Select, Stack } from '@mantine/core'
+import {
+  Loader, Select, Stack,
+} from '@mantine/core'
 import { MemberType } from '@matrixhub/api-ts/v1alpha1/project.pb'
 import { ProjectRoleType } from '@matrixhub/api-ts/v1alpha1/role.pb'
 import { Users } from '@matrixhub/api-ts/v1alpha1/user.pb'
@@ -16,6 +18,7 @@ import { fieldError } from '@/shared/utils/form'
 
 import { useProjectRoleDescription, useProjectRoleOptions } from '../member.utils'
 import { addMemberMutationOptions } from '../members.mutation'
+import { memberKeys } from '../members.query'
 
 interface AddMemberModalProps {
   opened: boolean
@@ -69,11 +72,14 @@ export function AddMemberModal({
   const roleOptions = useProjectRoleOptions()
   const roleDescription = useProjectRoleDescription()
 
-  const { data: usersData } = useQuery({
-    queryKey: ['users', 'list'],
+  const {
+    data: usersData, isLoading: isLoadingUsers,
+  } = useQuery({
+    queryKey: memberKeys.availableUsers(projectId),
     queryFn: () => Users.ListUsers({
       page: 1,
       pageSize: -1,
+      excludeProject: projectId,
     }),
     enabled: opened && memberType === MemberType.MEMBER_TYPE_USER,
   })
@@ -131,6 +137,8 @@ export function AddMemberModal({
               label={t('projects.detail.membersPage.addMemberModal.user')}
               withAsterisk
               data={userOptions}
+              aria-busy={isLoadingUsers}
+              rightSection={isLoadingUsers ? <Loader size="xs" /> : undefined}
               value={field.state.value || null}
               onChange={value => field.handleChange(value ?? '')}
               searchable
