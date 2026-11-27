@@ -71,21 +71,6 @@ func (mr *MockIModelServiceMockRecorder) CreateModel(ctx, project, name any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateModel", reflect.TypeOf((*MockIModelService)(nil).CreateModel), ctx, project, name)
 }
 
-// CreateModelCommit mocks base method.
-func (m *MockIModelService) CreateModelCommit(ctx context.Context, project, name, revision string, commit *git.Commit, ops []git.CommitOperation) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateModelCommit", ctx, project, name, revision, commit, ops)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateModelCommit indicates an expected call of CreateModelCommit.
-func (mr *MockIModelServiceMockRecorder) CreateModelCommit(ctx, project, name, revision, commit, ops any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateModelCommit", reflect.TypeOf((*MockIModelService)(nil).CreateModelCommit), ctx, project, name, revision, commit, ops)
-}
-
 // DeleteModel mocks base method.
 func (m *MockIModelService) DeleteModel(ctx context.Context, project, name string) error {
 	m.ctrl.T.Helper()

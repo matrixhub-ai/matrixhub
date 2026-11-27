@@ -21,24 +21,20 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
+	"io/fs"
 	"math"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
-	backendhttp "github.com/matrixhub-ai/hfd/pkg/backend/http"
-	hfdlfs "github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/mirror"
 	"github.com/matrixhub-ai/hfd/pkg/repository"
 	hfdstorage "github.com/matrixhub-ai/hfd/pkg/storage"
 	"github.com/stretchr/testify/require"
+	"github.com/wzshiming/xet"
+	xetclient "github.com/wzshiming/xet/client"
+	xetstorage "github.com/wzshiming/xet/storage"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/git"
 )
@@ -140,8 +136,8 @@ type refTestRepo struct {
 func newRefTestRepo(t *testing.T) refTestRepo {
 	t.Helper()
 	ctx := context.Background()
-	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
-	g := NewGitDB(store, nil).(*gitRepo)
+	store := newRepoTestStorage(t, t.TempDir())
+	g := NewGitDB(store, nil, XetStores{}, 0).(*gitRepo)
 	require.NoError(t, g.CreateRepository(ctx, "model", repoTestProject, repoTestName))
 
 	commit := func(message string, files map[string]string) string {
@@ -160,7 +156,7 @@ func newRefTestRepo(t *testing.T) refTestRepo {
 	first := commit("first", map[string]string{"README.md": "v1", "weights/model.bin": "weights"})
 	second := commit("second", map[string]string{"README.md": "second"})
 
-	repo, err := repository.Open(store.ResolvePath(repoTestProject + "/" + repoTestName))
+	repo, err := repository.Open(store.RepositoriesFS(), repository.ResolvePath(repoTestProject+"/"+repoTestName))
 	require.NoError(t, err)
 	evictRepoTestRepository(t, repo)
 	initial, err := repo.ResolveRevision(first + "~1")
@@ -345,15 +341,13 @@ func TestGitRepoGetBlobResolvesRevisions(t *testing.T) {
 			require.False(t, entry.Commit.CommitterDate.IsZero())
 			require.Equal(t, entry.Commit.CommitterDate, entry.Commit.CreatedAt)
 			entry.Commit = nil
-			require.NotEmpty(t, entry.Hash)
-			entry.Hash = ""
 			require.Equal(t, test.want, *entry)
 		})
 	}
 }
 
 func TestExtractMetadataRejectsMissingRepository(t *testing.T) {
-	g := NewGitDB(hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir())), nil)
+	g := NewGitDB(newRepoTestStorage(t, t.TempDir()), nil, XetStores{}, 0)
 
 	_, err := g.ExtractMetadata(context.Background(), "model", repoTestProject, repoTestName)
 
@@ -489,7 +483,7 @@ func TestParseSafetensorsIndex(t *testing.T) {
 
 func TestLFSPointerSize(t *testing.T) {
 	ctx := context.Background()
-	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	store := newRepoTestStorage(t, t.TempDir())
 	repo := initRepoTestRepository(t, ctx, store)
 	files := map[string][]byte{
 		"pointer.safetensors":       repoTestLFSPointer(repoTestMissingOID, "1024"),
@@ -523,24 +517,23 @@ func TestLFSPointerSize(t *testing.T) {
 
 func TestGitRepoOpenBlobContent(t *testing.T) {
 	ctx := context.Background()
-	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	store := newRepoTestStorage(t, t.TempDir())
+	lfsMirror := newRepoTestMirror(t, store, store.XETStorage())
 	repo := initRepoTestRepository(t, ctx, store)
 	storedObject := []byte("content of an LFS object fetched earlier")
 	commitRepoTestFiles(t, ctx, repo, map[string][]byte{
 		"config.json":         []byte(`{"torch_dtype":"bfloat16"}`),
-		"stored.safetensors":  storeRepoTestLFSObject(t, store, storedObject),
+		"stored.safetensors":  storeRepoTestLFSObject(t, lfsMirror, storedObject),
 		"pending.safetensors": repoTestLFSPointer(repoTestMissingOID, "1024"),
 	})
-	// A mirror without in-flight downloads stands in for a proxy whose object
-	// was neither queued nor fetched.
-	idleMirror := mirror.NewMirror(mirror.WithCacheDir(t.TempDir()))
 
 	for _, test := range []struct {
-		name    string
-		mirror  *mirror.Mirror
-		path    string
-		want    []byte
-		wantErr string
+		name      string
+		mirror    *mirror.Mirror
+		path      string
+		want      []byte
+		wantErr   string
+		wantErrIs error
 	}{
 		{
 			name: "regular file is read from git",
@@ -548,20 +541,21 @@ func TestGitRepoOpenBlobContent(t *testing.T) {
 			want: []byte(`{"torch_dtype":"bfloat16"}`),
 		},
 		{
-			name: "LFS pointer is resolved from the local object store",
-			path: "stored.safetensors",
-			want: storedObject,
+			name:   "LFS pointer is resolved from the xet storage",
+			mirror: lfsMirror,
+			path:   "stored.safetensors",
+			want:   storedObject,
 		},
 		{
-			name:    "missing LFS object without mirror",
+			name:    "LFS object without mirror",
 			path:    "pending.safetensors",
-			wantErr: "lfs object " + repoTestMissingOID + " is not available locally",
+			wantErr: "cannot read lfs object " + repoTestMissingOID + ": mirror is not configured",
 		},
 		{
-			name:    "missing LFS object not downloading in mirror",
-			mirror:  idleMirror,
-			path:    "pending.safetensors",
-			wantErr: "lfs object " + repoTestMissingOID + " is not available locally",
+			name:      "LFS object missing from the xet storage",
+			mirror:    lfsMirror,
+			path:      "pending.safetensors",
+			wantErrIs: fs.ErrNotExist,
 		},
 		{
 			name:    "missing file",
@@ -570,11 +564,16 @@ func TestGitRepoOpenBlobContent(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			g := NewGitDB(store, test.mirror).(*gitRepo)
+			g := NewGitDB(store, test.mirror, XetStores{}, 0).(*gitRepo)
 
-			rc, err := g.openBlobContent(repo, "main", test.path)
-			if test.wantErr != "" {
-				require.ErrorContains(t, err, test.wantErr)
+			rc, err := g.openBlobContent(ctx, repo, "main", test.path)
+			if test.wantErr != "" || test.wantErrIs != nil {
+				if test.wantErr != "" {
+					require.ErrorContains(t, err, test.wantErr)
+				}
+				if test.wantErrIs != nil {
+					require.ErrorIs(t, err, test.wantErrIs)
+				}
 				require.Nil(t, rc)
 				return
 			}
@@ -590,7 +589,8 @@ func TestGitRepoOpenBlobContent(t *testing.T) {
 
 func TestExtractMetadataReadsShardHeadersWithoutIndexTotalSize(t *testing.T) {
 	ctx := context.Background()
-	store := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
+	store := newRepoTestStorage(t, t.TempDir())
+	lfsMirror := newRepoTestMirror(t, store, store.XETStorage())
 	repo := initRepoTestRepository(t, ctx, store)
 
 	gitShard := buildRepoTestSafetensorsFile(t, map[string][]int64{"model.embed_tokens.weight": {2, 3}}, 12)
@@ -608,16 +608,16 @@ func TestExtractMetadataReadsShardHeadersWithoutIndexTotalSize(t *testing.T) {
 	commitRepoTestFiles(t, ctx, repo, map[string][]byte{
 		"model.safetensors.index.json":     index,
 		"model-00001-of-00003.safetensors": gitShard,
-		"model-00002-of-00003.safetensors": storeRepoTestLFSObject(t, store, lfsShard),
+		"model-00002-of-00003.safetensors": storeRepoTestLFSObject(t, lfsMirror, lfsShard),
 		"model-00003-of-00003.safetensors": repoTestLFSPointer(repoTestMissingOID, "4096"),
 	})
 
-	files, err := NewGitDB(store, nil).ExtractMetadata(ctx, "models", repoTestProject, repoTestName)
+	files, err := NewGitDB(store, lfsMirror, XetStores{}, 0).ExtractMetadata(ctx, "models", repoTestProject, repoTestName)
 
 	require.NoError(t, err)
 	require.Equal(t, index, files.SafetensorsIndexJSON)
 	// Readable shards contribute their header, whether the content lives in git
-	// or in the LFS store; shards whose object is missing fall back to the size
+	// or in the xet storage; shards whose object is missing fall back to the size
 	// recorded in their pointer.
 	require.Equal(t, map[string][]byte{
 		"model-00001-of-00003.safetensors": repoTestSafetensorsHeader(t, gitShard),
@@ -626,82 +626,24 @@ func TestExtractMetadataReadsShardHeadersWithoutIndexTotalSize(t *testing.T) {
 	require.Equal(t, map[string]int64{"model-00003-of-00003.safetensors": 4096}, files.SafetensorsSizes)
 }
 
-func TestReadSafetensorsHeaderGivesUpOnStalledMirrorDownload(t *testing.T) {
+func TestReadSafetensorsHeaderGivesUpOnStalledReconstruction(t *testing.T) {
 	ctx := context.Background()
-	// git talks to the loopback test server directly, even when a proxy is
-	// configured for the developer's machine.
-	t.Setenv("NO_PROXY", "127.0.0.1")
-	t.Setenv("no_proxy", "127.0.0.1")
-
-	upstream := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
-	upstreamRepo := initRepoTestRepositoryAt(t, ctx, upstream, "upstream/model")
-	commitRepoTestFiles(t, ctx, upstreamRepo, map[string][]byte{
-		"model.safetensors": repoTestLFSPointer(repoTestMissingOID, "1024"),
+	store := newRepoTestStorage(t, t.TempDir())
+	repo := initRepoTestRepository(t, ctx, store)
+	shard := buildRepoTestSafetensorsFile(t, map[string][]int64{"lm_head.weight": {4, 5}}, 40)
+	commitRepoTestFiles(t, ctx, repo, map[string][]byte{
+		"model.safetensors": storeRepoTestLFSObject(t, newRepoTestMirror(t, store, store.XETStorage()), shard),
 	})
 
-	// The upstream serves git but holds every LFS batch request until the test
-	// ends, so the object stays in flight in the mirror tee cache.
+	// Reads of the reconstructed object block until the test ends, standing in
+	// for a slow reconstruction of a large object from the xet storage.
 	release := make(chan struct{})
-	lfsBatch := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasSuffix(r.URL.Path, "/info/lfs/objects/batch") {
-			http.NotFound(w, r)
-			return
-		}
-		_, _ = io.Copy(io.Discard, r.Body)
-		select {
-		case <-release:
-		case <-r.Context().Done():
-		}
-		w.Header().Set("Content-Type", "application/vnd.git-lfs+json")
-		_, _ = fmt.Fprintf(w, `{"objects":[{"oid":%q,"size":1024,"error":{"code":404,"message":"object not found"}}]}`, repoTestMissingOID)
-	})
-	server := httptest.NewServer(backendhttp.NewHandler(
-		backendhttp.WithStorage(upstream),
-		backendhttp.WithNext(lfsBatch),
-	))
-	t.Cleanup(server.Close)
 	t.Cleanup(func() { close(release) })
-
-	local := hfdstorage.NewStorage(hfdstorage.WithRootDir(t.TempDir()))
-	gitMirror := mirror.NewMirror(
-		mirror.WithLFSStorage(hfdlfs.NewLocal(local.LFSDir())),
-		mirror.WithCacheDir(t.TempDir()),
-	)
-	g := NewGitDB(local, gitMirror).(*gitRepo)
-	pull := &git.GitRepository{
-		RemoteRegistryURL:  server.URL,
-		RemoteProjectName:  "upstream",
-		RemoteResourceName: "model",
-		ProjectName:        repoTestProject,
-		ResourceName:       repoTestName,
-		ResourceType:       "model",
-		LogWriter:          io.Discard,
-	}
-	require.NoError(t, g.PullFromRemote(ctx, pull))
-	repo, err := repository.Open(local.ResolvePath(repoTestProject + "/" + repoTestName))
-	require.NoError(t, err)
-	evictRepoTestRepository(t, repo)
-
-	// PullFromRemote only queues the object: nothing is on disk, so content is
-	// served by the in-flight tee cache download.
-	require.False(t, hfdlfs.NewLocal(local.LFSDir()).Exists(repoTestMissingOID))
-	// Under load the mirror occasionally skips queueing the pointer of a freshly
-	// mirrored repository until the next sync, and the tee cache briefly hides
-	// an object while its background worker promotes it. Sync again until the
-	// object is in flight; it then stays cached because the upstream holds the
-	// batch request until the test ends.
-	require.Eventually(t, func() bool {
-		if gitMirror.Get(repoTestMissingOID) != nil {
-			return true
-		}
-		return g.PullFromRemote(ctx, pull) == nil && gitMirror.Get(repoTestMissingOID) != nil
-	}, 30*time.Second, 50*time.Millisecond)
-	rc, err := g.openBlobContent(repo, "main", "model.safetensors")
-	require.NoError(t, err)
-	require.NoError(t, rc.Close())
+	stalled := newRepoTestMirror(t, store, stallingXetStorage{Storage: store.XETStorage(), release: release})
+	g := NewGitDB(store, stalled, XetStores{}, 0).(*gitRepo)
 
 	// The header bytes never arrive, so the read must give up when its budget
-	// expires during the stalled download instead of blocking metadata
+	// expires during the stalled reconstruction instead of blocking metadata
 	// extraction. The wait is bounded so a regression fails instead of hanging.
 	readCtx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
 	defer cancel()
@@ -724,17 +666,6 @@ func TestReadSafetensorsHeaderGivesUpOnStalledMirrorDownload(t *testing.T) {
 	require.ErrorIs(t, result.err, context.DeadlineExceeded)
 	require.ErrorContains(t, result.err, "read safetensors header model.safetensors")
 	require.Nil(t, result.header)
-}
-
-func initRepoTestRepositoryAt(t *testing.T, ctx context.Context, store *hfdstorage.Storage, name string) *repository.Repository {
-	t.Helper()
-
-	repoPath := store.ResolvePath(name)
-	require.NoError(t, os.MkdirAll(filepath.Dir(repoPath), 0750))
-	repo, err := repository.Init(ctx, repoPath, "main")
-	require.NoError(t, err)
-	evictRepoTestRepository(t, repo)
-	return repo
 }
 
 // evictRepoTestRepository removes repo when the test ends. hfd caches every
@@ -762,15 +693,54 @@ func repoTestLFSPointer(oid, size string) []byte {
 		"size " + size + "\n")
 }
 
-// storeRepoTestLFSObject puts content into the local LFS store and returns the
-// pointer that references it.
-func storeRepoTestLFSObject(t *testing.T, store *hfdstorage.Storage, content []byte) []byte {
+// storeRepoTestLFSObject ingests content into the xet storage behind m and
+// returns the pointer that references it.
+func storeRepoTestLFSObject(t *testing.T, m *mirror.Mirror, content []byte) []byte {
 	t.Helper()
 
 	sum := sha256.Sum256(content)
 	oid := hex.EncodeToString(sum[:])
-	require.NoError(t, hfdlfs.NewLocal(store.LFSDir()).Put(oid, bytes.NewReader(content), int64(len(content))))
+	require.NoError(t, m.PutObject(context.Background(), oid, bytes.NewReader(content), int64(len(content))))
 	return repoTestLFSPointer(oid, strconv.Itoa(len(content)))
+}
+
+// newRepoTestMirror builds a mirror serving LFS objects from xs, laid out under store's xet directory.
+func newRepoTestMirror(t *testing.T, store *hfdstorage.Storage, xs xetstorage.Storage) *mirror.Mirror {
+	t.Helper()
+
+	m, err := mirror.NewMirror(
+		mirror.WithXETStorage(xs),
+		mirror.WithXETCache(xetclient.NewCache(store.XETMirrorDir(), 0, 0)),
+		mirror.WithDataDir(store.XETDir()),
+		mirror.WithRepositoriesFS(store.RepositoriesFS()),
+	)
+	require.NoError(t, err)
+	t.Cleanup(m.Wait)
+	return m
+}
+
+// stallingXetStorage serves xorbs whose reads block until release is closed, stalling every file reconstruction.
+type stallingXetStorage struct {
+	xetstorage.Storage
+	release <-chan struct{}
+}
+
+func (s stallingXetStorage) GetXorbReadSeekCloser(ctx context.Context, xorbHash xet.XorbHash) (io.ReadSeekCloser, error) {
+	rs, err := s.Storage.GetXorbReadSeekCloser(ctx, xorbHash)
+	if err != nil {
+		return nil, err
+	}
+	return stallingReader{ReadSeekCloser: rs, release: s.release}, nil
+}
+
+type stallingReader struct {
+	io.ReadSeekCloser
+	release <-chan struct{}
+}
+
+func (r stallingReader) Read(p []byte) (int, error) {
+	<-r.release
+	return r.ReadSeekCloser.Read(p)
 }
 
 func repoTestSafetensorsHeader(t *testing.T, content []byte) []byte {

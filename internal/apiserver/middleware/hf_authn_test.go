@@ -19,62 +19,47 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
 
 	"github.com/matrixhub-ai/matrixhub/internal/domain/auth"
-	robotmocks "github.com/matrixhub-ai/matrixhub/internal/domain/robot/mocks"
 	"github.com/matrixhub-ai/matrixhub/internal/domain/user"
-	usermocks "github.com/matrixhub-ai/matrixhub/internal/domain/user/mocks"
-	"github.com/matrixhub-ai/matrixhub/internal/infra/authcodec"
 	"github.com/matrixhub-ai/matrixhub/internal/infra/utils"
 )
 
-func TestHFAuthnMiddlewareSetsAuthenticatedUser(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	tokenRepo := usermocks.NewMockIAccessTokenRepo(ctrl)
-	sessionRepo := usermocks.NewMockISessionRepo(ctrl)
-	userRepo := usermocks.NewMockIUserRepo(ctrl)
-	robotRepo := robotmocks.NewMockIRobotRepo(ctrl)
-	token := utils.TokenPrefix + "test-secret"
-	tokenRepo.EXPECT().GetByTokenHash(gomock.Any(), utils.Sha256Hex(token)).Return(&user.AccessToken{UserId: 42, Enabled: true}, nil)
-	userRepo.EXPECT().GetUser(gomock.Any(), 42).Return(&user.User{ID: 42, Username: "alice"}, nil)
+func TestHFAuthnMiddlewarePublishesPrincipal(t *testing.T) {
+	accessRepo := &gitAuthAccessRepo{token: &user.AccessToken{Enabled: true, UserId: 42}}
+	userRepo := &gitAuthUserRepo{user: &user.User{Username: "alice"}}
+	sessionRepo := &hfAuthnSessionRepo{manager: scs.New()}
+	var hfdIdentity authenticate.Identity
+	var domainIdentity auth.Identity
+	handler := HFAuthnMiddleware(accessRepo, sessionRepo, userRepo, &gitAuthRobotRepo{})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hfdIdentity = authenticate.IdentityFrom(r.Context())
+		domainIdentity, _ = auth.IdentityFromContext(r.Context())
+	}))
 
-	next := http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		identity, ok := auth.IdentityFromContext(request.Context())
-		require.True(t, ok)
-		require.Equal(t, "alice", identity.GetName())
-		info, ok := authenticate.GetUserInfo(request.Context())
-		require.True(t, ok)
-		decoded, err := authcodec.Unmarshal(info.User)
-		require.NoError(t, err)
-		require.Equal(t, "alice", decoded.GetName())
-		w.WriteHeader(http.StatusNoContent)
-	})
-	handler := HFAuthnMiddleware(tokenRepo, sessionRepo, userRepo, robotRepo)(next)
 	request := httptest.NewRequest(http.MethodGet, "/api/whoami-v2", nil)
-	request.Header.Set("Authorization", "Bearer "+token)
-	recorder := httptest.NewRecorder()
+	request.Header.Set("Authorization", "Bearer "+utils.TokenPrefix+"valid")
+	handler.ServeHTTP(httptest.NewRecorder(), request)
+	principal, ok := hfdIdentity.(Principal)
+	if !ok || principal.GetID() != 42 || principal.Name() != "alice" {
+		t.Fatalf("hfd identity = %#v, want Principal alice/42", hfdIdentity)
+	}
+	if domainIdentity == nil || domainIdentity.GetID() != 42 {
+		t.Fatalf("domain identity = %#v, want ID 42", domainIdentity)
+	}
 
-	handler.ServeHTTP(recorder, request)
-	require.Equal(t, http.StatusNoContent, recorder.Code)
+	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/api/whoami-v2", nil))
+	if !authenticate.IsAnonymous(hfdIdentity) || domainIdentity != nil {
+		t.Fatalf("identities without credentials = (%#v, %#v), want anonymous and none", hfdIdentity, domainIdentity)
+	}
 }
 
-func TestSetUserInfoPreservesRequestWhenIdentityCannotBeEncoded(t *testing.T) {
-	request := httptest.NewRequest(http.MethodGet, "/", nil)
-	got := setUserInfo(request, invalidIdentity{Bad: make(chan int)})
-
-	_, ok := authenticate.GetUserInfo(got.Context())
-	require.False(t, ok)
+type hfAuthnSessionRepo struct {
+	user.ISessionRepo
+	manager *scs.SessionManager
 }
 
-type invalidIdentity struct {
-	Bad chan int
+func (repo *hfAuthnSessionRepo) Manager() *scs.SessionManager {
+	return repo.manager
 }
-
-func (invalidIdentity) GetID() int       { return 0 }
-func (invalidIdentity) GetName() string  { return "invalid" }
-func (invalidIdentity) TypeName() string { return "unsupported" }
-
-var _ auth.Identity = invalidIdentity{}

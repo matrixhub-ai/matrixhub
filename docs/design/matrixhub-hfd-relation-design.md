@@ -3,7 +3,7 @@
 MatrixHub is the application in
 [`matrixhub-ai/matrixhub`](https://github.com/matrixhub-ai/matrixhub). It
 uses [`matrixhub-ai/hfd`](https://github.com/matrixhub-ai/hfd) as a separately
-maintained Go library for Git, LFS, mirroring, and related protocol primitives.
+maintained Go library for Git, LFS, XET, mirroring, and related protocol primitives.
 hfd is linked into the MatrixHub binary; MatrixHub does not deploy an hfd
 service. Both repositories are in scope for the CNCF Sandbox application, with
 MatrixHub as the primary application repository.
@@ -21,7 +21,7 @@ In short, hfd provides repository and transfer primitives, while MatrixHub owns 
 flowchart LR
   subgraph matrixhub["matrixhub repository: application and policy"]
     direction TB
-    entry["API and protocol handlers<br/>HTTP, gRPC, HF, Git, LFS, SSH"]
+    entry["API and protocol handlers<br/>HTTP, gRPC, HF, Git, LFS, XET, SSH"]
     domain["Domain services<br/>projects, models, RBAC, registries, sync jobs"]
     adapter["Git and storage adapter<br/>internal/repo"]
     entry --> domain
@@ -30,7 +30,7 @@ flowchart LR
 
   subgraph hfd["hfd repository: reusable Go library"]
     direction TB
-    gitdata["git repository, storage,<br/>lfs, mirror"]
+    gitdata["git repository, storage,<br/>lfs, xet, mirror"]
   end
 
   entry -->|imports primitives| gitdata
@@ -38,22 +38,11 @@ flowchart LR
 ```
 
 The dependency direction is from MatrixHub to hfd. MatrixHub implements its
-own [HTTP/HF/Git/LFS/SSH handlers](../../internal/apiserver/handler/),
+own [HTTP/HF/Git/LFS/XET/SSH handlers](../../internal/apiserver/hfd/),
 application services, database repositories, and background jobs. hfd supplies
 lower-level building blocks used by those
 components. The diagram shows the repository boundary; the internal MatrixHub
 package rules are documented in [Code Architecture](../code-architecture.md).
-
-## hfd packages consumed by MatrixHub
-
-The table shows the hfd packages MatrixHub intends to keep using. Current code
-also imports a few smaller hfd packages; they are omitted here and will be
-removed in follow-up cleanup.
-
-| hfd package(s) | What MatrixHub uses | What remains in MatrixHub |
-| --- | --- | --- |
-| `pkg/repository`, `pkg/storage`, `pkg/lfs` | Git repository operations, storage paths, LFS objects and pointers | The Git repository adapter, model records, project association, and resource lifecycle |
-| `pkg/mirror` | Git/LFS transfer and mirror primitives | Registry and credential selection, proxy behavior, synchronization policies, jobs, and status |
 
 ## Version pin and updates
 
