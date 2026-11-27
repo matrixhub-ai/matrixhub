@@ -87,10 +87,13 @@ For **every** tag (`-dev`, `-rc`, and official):
 
 For **official** tags only (`vX.Y.Z` without `-rc` / `-dev`):
 
-5. Build release notes from [`CHANGELOG/`](../CHANGELOG/) via [`scripts/release-notes.sh`](../scripts/release-notes.sh)
-6. Create a **draft** [GitHub Release](https://github.com/matrixhub-ai/matrixhub/releases) with the release notes and Helm chart `.tgz` attached
+5. Once the image is published, also tag it as `ghcr.io/matrixhub-ai/matrixhub:latest` if the tag is the highest official version at that point; a patch release for an older release line (for example `v0.1.2` once `v0.2.0` exists) does not move `latest`
+6. Build release notes from [`CHANGELOG/`](../CHANGELOG/) via [`scripts/release-notes.sh`](../scripts/release-notes.sh)
+7. Create a **draft** [GitHub Release](https://github.com/matrixhub-ai/matrixhub/releases) with the release notes and Helm chart `.tgz` attached
 
 Maintainers must **review and publish** the draft release manually.
+
+For a tag push, GitHub Actions runs the workflow definitions from the tagged commit, so `latest` moves only when that commit contains this logic. A release branch created before the logic was added needs the workflow change cherry-picked before a patch release can move `latest`.
 
 `scripts/release-notes.sh` reads the matching section from `CHANGELOG/CHANGELOG-X.Y.md`. If the tagged commit does not yet contain that file (for example when promoting `v0.1.0` on the same commit as `v0.1.0-rc.1`), the script falls back to `origin/main` for the changelog content. **Always verify the draft release body** before publishing — see [Promoting an RC on the same commit](#promoting-an-rc-on-the-same-commit).
 
