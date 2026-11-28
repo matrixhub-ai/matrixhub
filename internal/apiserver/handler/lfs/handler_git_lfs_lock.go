@@ -26,6 +26,8 @@ import (
 	"github.com/matrixhub-ai/hfd/pkg/authenticate"
 	"github.com/matrixhub-ai/hfd/pkg/lfs"
 	"github.com/matrixhub-ai/hfd/pkg/permission"
+
+	"github.com/matrixhub-ai/matrixhub/internal/apiserver/middleware"
 )
 
 func (h *Handler) handleGetLock(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +138,7 @@ func (h *Handler) handleCreateLock(w http.ResponseWriter, r *http.Request) {
 	if h.permissionHookFunc != nil {
 		op := permission.OperationUpdateRepo
 		if ok, err := h.permissionHookFunc(r.Context(), op, repoName, permission.Context{}); err != nil {
-			responseJSON(w, &lfs.VerifiableLockList{Message: err.Error()}, http.StatusInternalServerError)
+			responseJSON(w, &lfs.VerifiableLockList{Message: err.Error()}, middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, &lfs.VerifiableLockList{Message: "permission denied"}, http.StatusForbidden)
@@ -189,7 +191,7 @@ func (h *Handler) handleDeleteLock(w http.ResponseWriter, r *http.Request) {
 	if h.permissionHookFunc != nil {
 		op := permission.OperationUpdateRepo
 		if ok, err := h.permissionHookFunc(r.Context(), op, repoName, permission.Context{}); err != nil {
-			responseJSON(w, &lfs.VerifiableLockList{Message: err.Error()}, http.StatusInternalServerError)
+			responseJSON(w, &lfs.VerifiableLockList{Message: err.Error()}, middleware.RepoPermissionErrorStatus(err))
 			return
 		} else if !ok {
 			responseJSON(w, &lfs.VerifiableLockList{Message: "permission denied"}, http.StatusForbidden)

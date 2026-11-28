@@ -83,6 +83,15 @@ var _ = Describe("Model cache", Label("model", "model-cache"), func() {
 			projectName = createProxyProject("http://127.0.0.1:1", "upstream-org")
 		})
 
+		It("should reject creating a model", Label("M00067"), func() {
+			_, resp, err := modelsApi.ModelsCreateModel(ctx, v1alpha1model.V1alpha1CreateModelRequest{
+				Project: projectName,
+				Name:    "gpt2",
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+		})
+
 		It("should create a pending job", Label("M00063"), func() {
 			created, _, err := modelsApi.ModelsCacheModel(ctx, projectName, "gpt2", v1alpha1model.ModelsCacheModelBody{Revision: "main"})
 			Expect(err).NotTo(HaveOccurred())
